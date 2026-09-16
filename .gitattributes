@@ -1,0 +1,30 @@
+# Binary art assets. Git's auto-detection usually gets these right, but naming
+# them explicitly guarantees no CRLF translation and no attempted text merge —
+# a "fixed" line ending inside a .blend or .fbx corrupts the file silently.
+*.blend  binary
+*.blend1 binary
+*.fbx    binary
+*.png    binary
+*.tga    binary
+*.psd    binary
+*.exr    binary
+*.pdf    binary
+*.mp4    binary
+*.unitypackage binary
+
+# Unity text assets are YAML. Marking them text keeps diffs readable; the
+# merge=unityyamlmerge driver is opt-in and only used if UnityYAMLMerge is
+# configured in .git/config, so this is inert until then.
+*.unity      text eol=lf merge=unityyamlmerge
+*.prefab     text eol=lf merge=unityyamlmerge
+*.asset      text eol=lf merge=unityyamlmerge
+*.mat        text eol=lf merge=unityyamlmerge
+*.controller text eol=lf merge=unityyamlmerge
+*.meta       text eol=lf
+*.cs         text diff=csharp
+
+# Tooling
+*.sh   text eol=lf
+*.py   text eol=lf
+*.ps1  text eol=crlf
+*.md   text
