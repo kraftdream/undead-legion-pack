@@ -1,0 +1,46 @@
+# ---- Blender ----
+# Autosave backups. Blender rewrites prod.blend1 on every save of prod.blend,
+# so each one is a fresh binary blob in every commit that touches the file.
+# The .blend is the source; the .blend1 is last save's copy of it.
+*.blend1
+*.blend2
+*.blend@
+
+# FBX exporter side-car: path_mode='COPY' drops a duplicate of every source
+# texture beside the .fbx and rewrites it on every export. Regenerable; the
+# shipped textures live in <Character>/ and in the Unity project.
+*.fbm/
+
+# ---- Unity ----
+# The Unity project lives in skeletons/ and carries its own skeletons/.gitignore.
+# Keeping the Unity patterns in there means they stay anchored to the project
+# root: an unanchored [Bb]uild/ or [Tt]emp/ here would also match a folder of
+# that name inside Assets/ and silently drop shipped assets. It also travels
+# with the folder if the project is ever renamed or moved.
+# Tracked: skeletons/Assets, skeletons/Packages, skeletons/ProjectSettings.
+
+# ---- IDE / editor cruft ----
+.vs/
+.idea/
+.vscode/
+*.suo
+*.user
+*.userprefs
+*.opendb
+*.VC.db
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Python bytecode from headless Blender / tool runs
+__pycache__/
+*.pyc
+
+# ---- Vendored binaries ----
+# Tools are not a source of this pack. If ffmpeg is needed for turntable or
+# showcase encoding, drop it here and it stays out of history.
+/ffmpeg.exe
+/ffprobe.exe
+/ffplay.exe
