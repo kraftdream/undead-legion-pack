@@ -13,20 +13,32 @@ Working title: **Undead Legion — Modular Skeleton Army**
 Verified 2026-09-19 by probing the `.blend` files headlessly (`tools/rig_check.py`)
 and importing the exports into Unity 6000.4 through the editor bridge.
 
-| Character | Mesh | Textures | Shared rig | `SK_*.fbx` in Unity | Humanoid avatar | Anims | Prefab / demo |
+| Character | Mesh | Textures | Shared rig | `SK_*.fbx` in Unity | Humanoid avatar | Materials + prefab | In demo |
 |---|---|---|---|---|---|---|---|
-| Skeleton Knight      | done | done | **yes** | **yes** | **valid, 53 bones mapped** | — | demo scene, on the OLD mesh-only FBX |
-| Skeleton Archer      | done | done | **yes** | **yes** | valid | — | — |
-| Skeleton Assassin    | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | — | — |
-| Skeleton Mage        | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | — | — |
-| Skeleton Necromancer | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | — | — |
-| Skeleton Warrior     | done | done | **yes** | **yes** | valid | — | — |
-| Weapons (12 meshes)  | done | **none** — no UVs, no materials | n/a | — | n/a | n/a | — |
+| Skeleton Knight      | done | done | **yes** | **yes** | **valid, 53 bones mapped** | **yes** | **yes** |
+| Skeleton Archer      | done | done | **yes** | **yes** | valid | **yes** | **yes** |
+| Skeleton Assassin    | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | **yes** | **yes** |
+| Skeleton Mage        | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | **yes** | **yes** |
+| Skeleton Necromancer | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | **yes** | **yes** |
+| Skeleton Warrior     | done | done | **yes** | **yes** | valid | **yes** | **yes** |
+| Weapons (12 meshes)  | done | **none** — no UVs, no materials | n/a | — | n/a | — | — |
+
+Shared clips so far: `Idle` (loop) + `Twitch_01..03` (additive), on `AC_Skeleton`.
 
 All six characters share one armature (§2), every body and armour module is skinned to
-it, and every exported model imports in Unity with the **same 66-bone hierarchy**, the
-same bone array on every renderer, Hips at 0.982 m and mesh nodes at identity rotation.
-**No clip exists yet.** Until the first one does, the skeleton is still cheap to change.
+it, and every exported model imports in Unity with the **same 68-bone hierarchy**
+(66 + two weapon sockets), the same bone array on every renderer, Hips at 0.982 m and
+mesh nodes at identity rotation.
+
+**First clips exist (2026-09-19), so the skeleton is frozen.** In Unity
+`Assets/UndeadLegion/Animations/`: `Skeleton@Idle` (4.0 s loop, Kimodo text-to-motion
+retargeted, §8), `Skeleton@Twitch_01/02/03` (2.5 / 3.5 / 4.5 s additive head + jaw
+twitches), and `AC_Skeleton.controller` (Base: Idle; Twitch: additive layer, random
+pick via `Demo/Scripts/SkeletonTwitch.cs`). Measured on all six models: Idle travel
+0, Head 5.2° / Hips 2.5° of motion; Twitch_03 over Idle adds Head 5.7° / Jaw 4.7°
+peaks with Hips at 0.00°. The pipeline test clip `Test_RootMotion` (1 m forward, 30°
+yaw, 25° nod) measured 1.805 m / 30.08° / 25.0° with Apply Root Motion on and 0 / 0
+with it off; it stays in the anim file, not in Unity.
 
 ### Known gaps
 
@@ -35,11 +47,11 @@ same bone array on every renderer, Hips at 0.982 m and mesh nodes at identity ro
   the material must not sample a metallic map) or the bake was skipped.
 - `Weapons/weapons.blend` holds 12 rigid meshes (`H1Sword`, `H2Longbow`, `H1Spellbook`…)
   with **no UVs, no textures and placeholder Tripo materials**. No grip convention yet.
-- The **old mesh-only exports are superseded but still tracked**: `skeleton.fbx`,
-  `armor.fbx`, `mesh_quad.fbx`, `mesh_uv.fbx` in every character folder, and
-  `Models/SkeletonKnight/SkeletonKnight_{Body,Armor}.fbx` in Unity. The demo prefab
-  `PF_SkeletonKnight` still references the latter two, at `globalScale = 1.8`. Rebuild
-  it on `SK_SkeletonKnight.fbx` (scale 1, §7) before deleting anything.
+- The **old mesh-only exports in the character folders are superseded but still
+  tracked**: `skeleton.fbx`, `armor.fbx`, `mesh_quad.fbx`, `mesh_uv.fbx`. The Unity
+  copies (`SkeletonKnight_{Body,Armor}.fbx`) were deleted on 2026-09-19 and every prefab
+  now builds from `SK_<Character>.fbx`. Deleting the repo-root ones is safe.
+- The Asset Store validator has not been re-run since the prefabs and demo were rebuilt.
 - The **Archer's head** was skinned against a rig whose neck/head/jaw bones sat ~18 mm
   forward of the shared rig's; it now binds to the shared rig. Posed deviation is
   ≤ 6 mm on the skull and helm. Acceptable, but look at the Archer first if a neck
@@ -72,8 +84,19 @@ Get this wrong and the fix is re-authoring every clip.
 
 ### Weapons are the exception
 
-Rigid props attached to a hand bone (`RightHand` / `LeftHand` in the export). Fix one
-grip convention (bone, local offset, rotation) and apply it to every weapon.
+Rigid props, attached to the **weapon socket bones** that are part of the shared
+skeleton: `DEF-weapon.L/R` in Blender, `LeftWeaponSocket` / `RightWeaponSocket` in the
+export, children of the hands, deform-flagged, no weights (`tools/rig_lib_add_sockets.py`).
+Grip convention, in the socket's own bone frame, identical in Unity and Unreal:
+
+- head = centre of the palm (mean of the four palm-bone midpoints)
+- **+Y = along the hilt, out of the fist on the thumb/index side** (blade direction)
+- **+Z = out of the back of the hand**
+- +X completes the right-handed frame (roughly along the fingers)
+
+A weapon mesh is authored with its grip point at the origin and its blade along +Y in
+the engine, and attaches to the socket with an **identity** local transform. The
+weapon meshes in `Weapons/weapons.blend` are not yet re-origined to this convention.
 
 ---
 
@@ -84,16 +107,27 @@ undead-legion-pack/
 ├── Rig/
 │   ├── skeleton_rig.blend     THE armature (Rigify metarig + generated rig + widgets)
 │   └── skeleton_rig.json      bone table dumped from it; what rig_check compares against
+├── Animations/
+│   └── skeleton_anim.blend    THE file clips are authored in: rig LINKED from Rig/ as a
+│                              library override, all six bodies + armour appended as
+│                              reference (Ref_<Character>, only the Knight enabled),
+│                              weapons appended, 30 fps. Actions live here, nowhere else.
 ├── Skeleton{Knight,Archer,Assassin,Mage,Necromancer,Warrior}/
 │   └── prod.blend + textures + reference + (superseded) mesh-only FBX exports
 ├── Weapons/                   weapons.blend + mesh_quad.fbx
 ├── tools/                     headless Blender + Unity scripts, see tools/README.md
 │   ├── rig_lib_build.py       (one-off) built Rig/skeleton_rig.blend from the Knight
+│   ├── rig_lib_add_sockets.py adds/refreshes the weapon socket bones in the library
 │   ├── rig_lib_dump.py        library -> skeleton_rig.json
 │   ├── rig_sync.py            put the library rig into a character file, normalise it
 │   ├── rig_check.py           assert a character file matches the library (exit 1 if not)
-│   ├── export_fbx.py          character file -> SK_<Character>.fbx into the Unity project
-│   └── unity/mcp_call.py      stdio MCP client for the running Unity editor
+│   ├── anim_file_build.py     create / refresh Animations/skeleton_anim.blend (keeps actions)
+│   ├── anim_test_clip.py      authors the Test_RootMotion pipeline clip
+│   ├── export_fbx.py          model: character file -> SK_<Character>.fbx
+│   │                          clip:  anim file + `--clip Name` -> Skeleton@Name.fbx
+│   └── unity/                 mcp_call.py (stdio MCP client), probe_fbx.py (model
+│                              import check), verify_clip.py (clip import + root-motion
+│                              measurement on all six models)
 └── skeletons/                 Unity project (Unity 6000.4.0f1, URP 17.4.0)
     └── Assets/UndeadLegion/
         ├── Animations/        shared clips — Skeleton@<Clip>.fbx, retarget to all six
@@ -123,8 +157,17 @@ ToeBase}`. Unity maps 53 of the 65 (fingers, jaw and UpperChest included); `Neck
 the palms, pelvis helpers and `Jaw2` are extra transforms — your own clips drive them,
 third-party humanoid clips leave them at rest.
 
-**Animation export** — `Skeleton@<Clip>.fbx`, rig only, no mesh, avatar copied from
-`SK_SkeletonKnight`. The `@` form is what Unity splits into a named clip.
+**Animation authoring and export** — author every clip as an Action on the override
+rig in `Animations/skeleton_anim.blend` at **30 fps**, then
+`blender -b Animations/skeleton_anim.blend -P tools/export_fbx.py -- --clip <Name>` →
+`Assets/UndeadLegion/Animations/Skeleton@<Name>.fbx`: rig only, one take named after
+the clip, plus an empty node called `Body` that reproduces the model files' node paths
+(without it Unity's "Copy From Other Avatar" yields zero clips, silently). Unity import:
+Humanoid, avatar copied from `SK_SkeletonKnight`, then
+`python tools/unity/verify_clip.py Assets/UndeadLegion/Animations/Skeleton@<Name>.fbx`
+to measure it on all six models. **Never author clips in a character file**:
+`rig_sync.py` replaces the rig object there and the animation data goes with it.
+`anim_file_build.py` may be re-run to refresh the reference meshes; it keeps actions.
 
 **Textures** — `<part>_<map>.png`: `body_color`, `body_normal`, `body_roughness`,
 `armor_color`, `armor_normal`, `armor_roughness`, `armor_metallic`. `*_orig.png` are
@@ -167,46 +210,74 @@ metallic/smoothness sRGB off (see §7 for the packing).
 
 ---
 
-## 7. Demo scene and submission validation
+## 7. Demo scene, prefabs and submission validation
 
-`Assets/UndeadLegion/Demo/Scenes/UndeadLegion_Demo.unity` — minimum shippable scene
-built 2026-09-15: `Ground`, `SK_SkeletonKnight` (from the old two-mesh export), warm key
-light, cool fill, trilight ambient, camera at 40° FOV.
+`Assets/UndeadLegion/Demo/Scenes/UndeadLegion_Demo.unity` — the animation-browser
+demo, rebuilt 2026-09-19 on the model of the creatures pack: characters (top-left),
+armour MODULES with All/None (left), ANIMATIONS grouped in sections (right, plus a
+"Twitch (additive layer)" section whose buttons fire the additive layer over the
+current clip), footer with Root Motion / Turntable / Random twitch toggles and Recenter.
+Drag to orbit, wheel to zoom. Verified in play mode: six characters, Idle looping on
+each, module toggles, twitch firing, no console errors.
+
+**Everything is generated by menu items in `Demo/Editor/`, never hand-edited:**
+
+| menu (`Undead Legion/…`) | script | does |
+|---|---|---|
+| 1. Import Setup | `UndeadLegionImportSetup.cs` | texture importers (colour sRGB, normal `NormalMap`, packed map linear + alpha from input), `SK_*` model importers (Humanoid, scale 1, materials None), `M_<Char>_{Body,Armor}` URP/Lit materials |
+| 2. Rebuild Character Prefabs | `CharacterPrefabBuilder.cs` | `PF_<Char>.prefab` from `SK_<Char>.fbx`: materials per renderer, Animator (own avatar, `AC_Skeleton`, root motion on, always animate), CapsuleCollider 1.8/0.35, `SkeletonModules`, `SkeletonTwitch`; root at exactly 0/0/1 |
+| 3. Rebuild Demo Scene | `DemoSceneBuilder.cs` | lights (1.10 key / 0.45 fill / 0.30 rim, skybox ambient 2.0 — the creatures pack's measured turntable rig), ground, camera + `DemoTurntable`, EventSystem + `DemoEventSystemBootstrap`, the uGUI canvas, `SkeletonShowcase` wired to all six prefabs |
+| Rebuild All (1-3) | | the three in order |
+
+Textures reach the project through `tools/pack_textures.py` (Blender + numpy: copies
+colour/normal, packs `R = metallic` / `A = 1 − roughness` into
+`<part>_metallicsmoothness.png`; characters without a metallic map get R = 0). ⚠ It
+copies by **content**, never by mtime: a git checkout stamps every file alike, and the
+Knight's body texture in Unity was a stale pre-retexture copy that an mtime check kept
+("skeleton textures seem to be wrong": 33 % of the body faces on black). The check
+that catches this is to sample `<part>_color` through the imported mesh's UVs at
+triangle centroids and count near-black hits, in Unity and in the source `.blend`;
+they must agree. Reference (2026-09-19): bodies ≤ 0.7 %, armour Knight 7 %, Assassin
+4 %, Mage 2 %, Necromancer 22 % (dark cloth, present in the source art), others < 1 %. Runtime
+scripts live in `Demo/Scripts/` (`SkeletonShowcase`, `SkeletonModules`, `SkeletonTwitch`,
+`DemoTurntable`, `DemoUI`, `DemoEventSystemBootstrap`), namespace `UndeadLegion.Demo`.
+Legacy uGUI Text on purpose (no TMP import prompt for buyers); input read through both
+backends. `tools/unity/demo_smoke.py` plays the scene headlessly and screenshots it.
 
 ### Import decisions
 
-- **Scale**: the old mesh-only FBXs use `ModelImporter.globalScale = 1.8`. The new
-  `SK_*.fbx` bake the 1.8 at export and import at **`globalScale = 1`**. Do not mix.
-- **Smoothness**: URP has no roughness input. Maps were packed once with Pillow —
-  `R = metallic`, `A = 1 - roughness` — into `<part>_metallicsmoothness.png`
-  (`_MetallicGlossMap`). Raw roughness/metallic PNGs are not shipped. Materials set
-  `_Metallic = 1`, `_Smoothness = 1` so the map alone drives both.
+- **Scale**: `SK_*.fbx` bake the 1.8 at export and import at **`globalScale = 1`**.
+  The old mesh-only Knight FBXs (globalScale 1.8) were deleted on 2026-09-19.
+- **Smoothness**: URP has no roughness input; the packed `_metallicsmoothness` map
+  drives `_MetallicGlossMap` with `_Metallic = 1`, `_Smoothness = 1`. Raw
+  roughness/metallic PNGs are not shipped.
 - **Colour space**: normal maps `NormalMap`; packed map `sRGB = false`,
   `alphaSource = FromInput`; albedo sRGB.
 - **Materials**: `materialImportMode = None` on every FBX; `Materials/URP/` is the
-  single source of truth.
+  single source of truth (twelve character materials + `M_Demo_Ground`).
 
-### Validator status — 31 pass, 0 fail, 1 warning (on the OLD export)
+### Validator
 
 Run the Asset Store validator headlessly against `Assets/UndeadLegion` (category
 `3D/Characters/Humanoids`). Its classes are `internal`; drive
 `AssetStoreTools.Validator.CurrentProjectValidator` by reflection; `Title` and `Result`
-on `AutomatedTest` are fields.
+on `AutomatedTest` are fields. Last run (2026-09-15, old export): 31 pass, 0 fail,
+1 warning (`Check Model Orientation`), which the `SK_*` exports fix
+(`bake_space_transform=True`: mesh nodes at identity). **Not yet re-run on the new
+assets.** `Check Prefab Transforms` requires a prefab root at exactly 0 / 0 / 1 at 12
+decimal places; the prefab builder guarantees it.
 
-`Check Model Orientation` warned because the old exports carried `localRotation =
-(89.98, 0, 0)` on every mesh node. **Fixed in the `SK_*.fbx` exports** with
-`bake_space_transform=True` (measured: mesh nodes at identity, `Armature` keeps its −90°
-X, which the validator ignores). The warning goes away once the demo prefab is rebuilt
-on `SK_SkeletonKnight.fbx`.
+### Driving play mode from the MCP bridge
 
-`Check Prefab Transforms` requires a prefab's root at exactly 0 / 0 / 1 at 12 decimal
-places. Any grounding offset lives on children, never the root.
-
-### Verifying a scene actually renders
-
-`manage_camera screenshot` returns a stale Game view in edit mode. Render explicitly:
-`RenderTexture` on the camera, `cam.Render()`, `ReadPixels`, write the PNG.
-`GeometryUtility.TestPlanesAABB` is the cheap "is it in frustum" check.
+`manage_editor play` enters play mode but the game then sits at **frame 1** until
+something advances it: call `EditorApplication.Step()` a few times, clear
+`EditorApplication.isPaused` and `QueuePlayerLoopUpdate()` (`demo_smoke.py` does this;
+measured 280 frames in the next 3 s). `Destroy` is deferred, so a frozen game keeps
+destroyed UI rows in `childCount`. `ScreenCapture.CaptureScreenshot` needs a following
+frame to flush, and the first seconds show **solid cyan UI panels** (URP's async shader
+compilation placeholder), so wait before shooting. Stop play mode when done: a stalled
+MCP call leaves the editor playing. In edit mode `manage_camera screenshot` returns a
+stale Game view; render explicitly (`RenderTexture` + `cam.Render()` + `ReadPixels`).
 
 ---
 
@@ -251,6 +322,42 @@ Additive` + Aim Offset). What it changes on the authoring side:
    locomotion, `Spine1` upward goes to the upper body.
 5. The additive layer can drive `Jaw` even under third-party humanoid clips that leave
    it at rest.
+
+### Motion source — Kimodo text-to-motion, retargeted (first used 2026-09-19)
+
+Clips start as a text prompt to NVIDIA's Kimodo (SOMA-RP-v1.1) running as the
+`kimodo.cpp` port on the LAN laptop `DESKTOP-PQNPNNB` (details in the creatures pack
+memory note `kimodo-machine`): `tools/kimodo_gen.ps1 -Prompt "..." -Name idle_s42
+[-Frames 180 -Seed 42]` → `External Anims/Kimodo/<Name>.glb` (30-joint SOMA human,
+Mixamo-style names, T-pose bind, 30 fps; ~2 min per 90 frames). The driver ships the
+job as a `.ps1` over scp and runs it with `-File`: the remote login shell is cmd.exe
+and an inline command loses its quotes (the prompt arrived as a comma-split array).
+A skeleton body description is prepended to steer weight and stiffness; the output
+skeleton is always human.
+
+`tools/glb_retarget.py -- --glb ... --name Idle --loop 120 --blend 30 --src-start 30
+--save` puts it on the rig in the anim file: world-rotation deltas from the GLB's
+bind pose onto the FK controls, a per-bone rest correction on the arms only, hips
+translation scaled by the hip-height ratio onto `torso`, arms on FK (`IK_FK` keyed 1),
+**legs NOT copied** — they stay on IK with the feet at rest, because copying a human's
+FK legs onto other proportions is what skated the creatures' feet. The loop is closed
+by crossfading the last `blend` frames into the source frames before `src-start`;
+frame `loop+1` equals frame 1 (0.0000° seam). Kimodo's idle is subtle (hips ±2 cm,
+arms a few degrees); that reads right for undead standing still, and the twitches
+carry the life.
+
+⚠ `scene.frame_set` re-applies the action being written: set the frame BEFORE posing,
+or every key repeats the previous frame (the first build produced a 121-frame still).
+
+Twitches are not Kimodo: `tools/anim_twitch.py` authors them procedurally (random
+quick jerks on `head`, a third on `neck`, opens on `lowerjaw` whose open direction is
+measured — on this rig +X about the jaw control LIFTS the chin, so open is −X). Frame
+1 and the last frame are rest, so each clip is its own additive reference (Unity:
+`hasAdditiveReferencePose`, frame 0). `tools/anim_preview.py` renders a Workbench
+contact sheet of any action for review.
+
+Reference meshes in the anim file must be bound to `RIG-Meta-Rig`, not `Meta-Rig`:
+both are overrides, and a refresh once picked the metarig and froze every mesh.
 
 ### Root motion — decided 2026-09-19
 

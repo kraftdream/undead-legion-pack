@@ -1,12 +1,18 @@
-"""Character file -> game-ready FBX: shared Rigify rig -> clean Mixamo-named skeleton.
+"""Shared Rigify rig -> clean Mixamo-named skeleton -> FBX, for models and clips.
 
+Model (run in a character file):
     blender -b SkeletonKnight/prod.blend -P tools/export_fbx.py -- [--out DIR] [--bst 0|1]
+  -> skeletons/Assets/UndeadLegion/Models/<Character>/SK_<Character>.fbx : the deform
+     skeleton under Armature/Root plus every skinned mesh (Body + armour modules) as
+     SIBLING nodes of the armature, at SCALE x the Blender metres, no animation.
 
-Writes skeletons/Assets/UndeadLegion/Models/<Character>/SK_<Character>.fbx (or --out
-DIR): the deform skeleton
-under a `Root` node plus every skinned mesh in the file (Body + armour modules) as
-SIBLING nodes of the armature, at SCALE x the Blender metres. No animation.
-Nothing is saved back to the .blend.
+Clip (run in Animations/skeleton_anim.blend):
+    blender -b Animations/skeleton_anim.blend -P tools/export_fbx.py -- --clip Walk_Fwd [--out DIR]
+  -> skeletons/Assets/UndeadLegion/Animations/Skeleton@Walk_Fwd.fbx : the same skeleton,
+     no mesh, one baked take named after the clip, plus an EMPTY node called `Body` so
+     the node paths match the model files (see below).
+
+Nothing is ever saved back to the .blend.
 
 Why a rebuilt skeleton (inherited from the creatures pack, see smp-10-rgp-creatures
 tools/goblin_export.py):
@@ -15,14 +21,20 @@ tools/goblin_export.py):
   * Mixamo names: Unity's Humanoid auto-mapper takes them cleanly and buyers can drop
     any Mixamo/humanoid clip on the rig.
   * Copy each bone's WHOLE rest matrix (roll included) or every posed frame skins wrong.
-  * `Root` points UP (+Z here = +Y in the engine); Rigify's `root` lies flat.
-  * Meshes are siblings of the armature, not children: a model FBX and a clip FBX must
-    produce the same node paths or Unity's "Copy From Other Avatar" yields zero clips.
-  * bake_space_transform=True (default, --bst 0 to disable): measured in Unity 6000.4 on
-    2026-09-19, both settings give the same valid Humanoid avatar and identical bounds,
-    but only True leaves every SkinnedMeshRenderer node at identity rotation, which is
-    what the Asset Store validator's "Check Model Orientation" wants. The Armature node
-    keeps its -90 deg X either way; the validator does not look at it.
+  * `Root` points UP (+Z here = +Y in the engine); Rigify's `root` lies flat. Root takes
+    the source root's location and Z-only rotation, so travel and yaw land on `Root`
+    (CLAUDE.md 8: root motion decision) and Unreal extracts them from the root bone.
+  * Meshes are siblings of the armature, not children. Unity renames an FBX's SINGLE
+    root node after the file but keeps names when there are two or more roots. A model
+    file has Armature + meshes (many roots); a rig-only clip file would have ONE root
+    and be renamed, the bone paths would disagree, and "Copy From Other Avatar" yields
+    ZERO clips silently. Clip files therefore carry an empty node named `Body`.
+  * Scale: bones are built at Blender scale, the clip is baked there, then edit bones
+    and every location key are multiplied by SCALE. Rotations are scale-invariant.
+  * bake_space_transform=True (default): measured in Unity 6000.4, both settings give
+    the same valid Humanoid avatar, but only True leaves every SkinnedMeshRenderer
+    node at identity rotation, which the Asset Store validator's "Check Model
+    Orientation" wants. The Armature node keeps its -90 deg X either way.
 """
 import bpy, os, sys
 from mathutils import Matrix, Vector
@@ -30,13 +42,17 @@ from mathutils import Matrix, Vector
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC_RIG, METARIG = "RIG-Meta-Rig", "Meta-Rig"
 RIG_NODE = "Armature"       # one child (Root) -> Unreal strips it, Unity keeps it; same in every file
+CLIP_PREFIX = "Skeleton"    # Skeleton@<Clip>.fbx
 SCALE = 1.8                 # source art is ~0.94 m; the Unity demo established 1.8x (CLAUDE.md 7)
+FPS = 30
 MAX_INFLUENCES = 4
+UNITY = os.path.join(ROOT, "skeletons", "Assets", "UndeadLegion")
 
 _SPINE = {"spine": "Hips", "spine.001": "Spine", "spine.002": "Spine1", "spine.003": "Spine2",
           "spine.004": "Neck", "spine.005": "Neck1", "spine.006": "Head"}
 _LIMB = {"shoulder": "Shoulder", "upper_arm": "Arm", "forearm": "ForeArm", "hand": "Hand",
-         "thigh": "UpLeg", "shin": "Leg", "foot": "Foot", "toe": "ToeBase", "pelvis": "Pelvis"}
+         "thigh": "UpLeg", "shin": "Leg", "foot": "Foot", "toe": "ToeBase", "pelvis": "Pelvis",
+         "weapon": "WeaponSocket"}
 _HAND = {"thumb": "HandThumb", "f_index": "HandIndex", "f_middle": "HandMiddle",
          "f_ring": "HandRing", "f_pinky": "HandPinky", "palm": "HandPalm"}
 _HEAD = {"lowerjaw": "Jaw"}
@@ -94,15 +110,35 @@ def name_report(src):
         raise RuntimeError("name collision: %s" % dup)
     req = ["Hips", "Spine", "Spine1", "Spine2", "Neck", "Head"]
     for s in ("Left", "Right"):
-        req += [s + x for x in ("Shoulder", "Arm", "ForeArm", "Hand", "UpLeg", "Leg", "Foot", "ToeBase")]
+        req += [s + x for x in ("Shoulder", "Arm", "ForeArm", "Hand", "UpLeg", "Leg", "Foot",
+                                "ToeBase", "WeaponSocket")]
     miss = [r for r in req if r not in seen]
     if miss:
-        raise RuntimeError("humanoid mapping incomplete: %s" % miss)
-    log("%d deform bones -> %d names; all %d humanoid-required bones present" % (len(seen), len(seen), len(req)))
+        raise RuntimeError("required bones missing: %s" % miss)
+    log("%d deform bones -> %d names; all %d required bones present" % (len(seen), len(seen), len(req)))
     return seen
 
 
-def build_game_rig(src, meta):
+def fcurves(action):
+    """Blender 5 slotted actions have no action.fcurves; walk the channelbags."""
+    if getattr(action, "layers", None):
+        for layer in action.layers:
+            for strip in layer.strips:
+                for cb in strip.channelbags:
+                    yield from cb.fcurves
+    elif hasattr(action, "fcurves"):
+        yield from action.fcurves
+
+
+# ------------------------------------------------------------------- the rig
+
+def build_game_rig(src, meta, constrain):
+    """Root + the deform bones, Mixamo-named, at Blender scale.
+
+    constrain=True adds the constraints that make the game rig follow the source
+    (for baking a clip): every bone COPY_TRANSFORMS in WORLD space from its DEF bone,
+    Root COPY_LOCATION + Z-only COPY_ROTATION from `root`.
+    """
     pmap = deform_parent_map(src, meta)
     arm = bpy.data.armatures.new(RIG_NODE)
     rig = bpy.data.objects.new(RIG_NODE, arm)
@@ -124,16 +160,44 @@ def build_game_rig(src, meta):
         arm.edit_bones[game_name(n)].parent = arm.edit_bones["Root" if p == "root" else game_name(p)]
     bpy.ops.object.mode_set(mode='OBJECT')
     roots = sorted(game_name(n) for n, p in pmap.items() if p == "root")
-    log("game rig: %d bones; children of Root: %s" % (len(arm.bones), roots))
     assert roots == ["Hips"], roots
+    if constrain:
+        pb = rig.pose.bones["Root"]
+        c = pb.constraints.new('COPY_LOCATION'); c.target, c.subtarget = src, "root"
+        c = pb.constraints.new('COPY_ROTATION'); c.target, c.subtarget = src, "root"
+        c.use_x = c.use_y = False
+        for n in order:
+            c = rig.pose.bones[game_name(n)].constraints.new('COPY_TRANSFORMS')
+            c.target, c.subtarget = src, n
+            c.target_space = c.owner_space = 'WORLD'
+    log("game rig: %d bones%s" % (len(arm.bones), ", constrained to source" if constrain else ""))
     return rig
 
 
+def scale_rig(rig, action=None):
+    """Multiply the rest pose and (if given) every location key by SCALE."""
+    bpy.ops.object.select_all(action='DESELECT')
+    rig.select_set(True); bpy.context.view_layer.objects.active = rig
+    bpy.ops.object.mode_set(mode='EDIT')
+    for e in rig.data.edit_bones:
+        e.head = e.head * SCALE; e.tail = e.tail * SCALE   # roll is an angle: unchanged
+    bpy.ops.object.mode_set(mode='OBJECT')
+    n = 0
+    if action is not None:
+        for fc in fcurves(action):
+            if fc.data_path.endswith("location"):
+                for kp in fc.keyframe_points:
+                    kp.co.y *= SCALE; kp.handle_left.y *= SCALE; kp.handle_right.y *= SCALE
+                n += 1
+    return n
+
+
+# ----------------------------------------------------------------- the meshes
+
 def limit_influences(ob):
     """Unity keeps 4 weights per vertex; do the cut and re-normalise here, deterministically."""
-    me = ob.data
     n = 0
-    for v in me.vertices:
+    for v in ob.data.vertices:
         gs = sorted(((g.weight, g.group) for g in v.groups if g.weight > 0), reverse=True)
         if len(gs) > MAX_INFLUENCES:
             for w, gi in gs[MAX_INFLUENCES:]:
@@ -149,7 +213,8 @@ def limit_influences(ob):
 def build_game_mesh(src_ob, rig, name):
     ob = bpy.data.objects.new(name, src_ob.data.copy())
     bpy.context.scene.collection.objects.link(ob)
-    ob.matrix_world = src_ob.matrix_world.copy()
+    ob.matrix_world = Matrix.Identity(4)
+    ob.data.transform(src_ob.matrix_world)          # identity after rig_sync, but be exact
     for g in ob.vertex_groups:
         if g.name.startswith("DEF-") or g.name == "root":
             g.name = game_name(g.name)
@@ -157,71 +222,128 @@ def build_game_mesh(src_ob, rig, name):
         ob.modifiers.remove(m)
     ob.modifiers.new("Armature", 'ARMATURE').object = rig
     cut = limit_influences(ob)
+    ob.data.transform(Matrix.Scale(SCALE, 4))
     log("  mesh %-10s %6d v  %s" % (name, len(ob.data.vertices),
                                     ("%d verts cut to %d influences" % (cut, MAX_INFLUENCES)) if cut else ""))
     return ob
 
 
-def apply_scale(rig, meshes):
-    """Scale the temporary export set by SCALE, baked into bones and vertices."""
-    M = Matrix.Scale(SCALE, 4)
-    for ob in meshes:
-        ob.data.transform(M)
-    bpy.ops.object.select_all(action='DESELECT')
-    rig.select_set(True); bpy.context.view_layer.objects.active = rig
-    rig.scale = (SCALE, SCALE, SCALE)
-    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+# --------------------------------------------------------------------- export
+
+def park_names(names):
+    """Free the given object names so the export copies can take them (file is never saved)."""
+    for o in bpy.data.objects:
+        if o.name in names:
+            o.hide_viewport = False; o.hide_set(False)
+            o.name = "__src_" + o.name
 
 
-def export(path, rig, meshes, bake_space_transform):
+def fbx(path, objs, bake_anim, bake_space_transform, frame_range=None):
     bpy.ops.object.select_all(action='DESELECT')
-    rig.select_set(True)
-    for ob in meshes:
+    for ob in objs:
         ob.select_set(True)
-    bpy.context.view_layer.objects.active = rig
+    bpy.context.view_layer.objects.active = objs[0]
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    bpy.ops.export_scene.fbx(
-        filepath=path, use_selection=True, object_types={'ARMATURE', 'MESH'},
+    kw = dict(
+        filepath=path, use_selection=True, object_types={'ARMATURE', 'MESH', 'EMPTY'},
         apply_unit_scale=True, global_scale=1.0, apply_scale_options='FBX_SCALE_ALL',
         axis_forward='-Z', axis_up='Y', bake_space_transform=bake_space_transform,
         use_mesh_modifiers=True, mesh_smooth_type='OFF', use_tspace=False,
         add_leaf_bones=False, primary_bone_axis='Y', secondary_bone_axis='X',
         use_armature_deform_only=False, armature_nodetype='NULL',
-        bake_anim=False, path_mode='AUTO', embed_textures=False, use_custom_props=False)
+        bake_anim=bake_anim, path_mode='AUTO', embed_textures=False, use_custom_props=False)
+    if bake_anim:
+        kw.update(bake_anim_use_all_bones=True, bake_anim_use_nla_strips=False,
+                  bake_anim_use_all_actions=False, bake_anim_force_startend_keying=True,
+                  bake_anim_step=1.0, bake_anim_simplify_factor=0.0)
+    bpy.ops.export_scene.fbx(**kw)
     log("wrote", os.path.relpath(path, ROOT), "%d KB" % (os.path.getsize(path) // 1024))
+
+
+def source_rig():
+    src, meta = bpy.data.objects[SRC_RIG], bpy.data.objects[METARIG]
+    assert bpy.context.mode == 'OBJECT'
+    assert src.matrix_world == Matrix.Identity(4), "source rig must be at identity"
+    return src, meta
+
+
+def export_model(out_dir, bst):
+    character = os.path.basename(os.path.dirname(bpy.data.filepath))
+    out_dir = out_dir or os.path.join(UNITY, "Models", character)
+    src, meta = source_rig()
+    for pb in src.pose.bones:
+        pb.matrix_basis.identity()
+    src.data.pose_position = 'REST'
+    sources = [o for o in bpy.data.objects if o.type == 'MESH' and not o.name.startswith("WGT")
+               and any(m.type == 'ARMATURE' and m.object == src for m in o.modifiers)]
+    sources.sort(key=lambda o: (o.name != "Body", o.name))
+    assert sources and sources[0].name == "Body", [o.name for o in sources]
+    log(character, "-", len(sources), "skinned meshes:", [o.name for o in sources])
+    name_report(src)
+    names = [o.name for o in sources]
+    park_names(names)
+    rig = build_game_rig(src, meta, constrain=False)
+    meshes = [build_game_mesh(o, rig, n) for o, n in zip(sources, names)]
+    scale_rig(rig)
+    top = max(v.co.z for v in meshes[0].data.vertices)
+    log("scale x%.2f -> Hips at %.3f m, Body top at %.3f m" % (SCALE, rig.data.bones["Hips"].head_local.z, top))
+    fbx(os.path.join(out_dir, "SK_%s.fbx" % character), [rig] + meshes, False, bst)
+
+
+def export_clip(clip, out_dir, bst):
+    out_dir = out_dir or os.path.join(UNITY, "Animations")
+    scene = bpy.context.scene
+    assert abs(scene.render.fps / scene.render.fps_base - FPS) < 1e-6, \
+        "scene fps is %s, clips must be authored at %d" % (scene.render.fps, FPS)
+    src, meta = source_rig()
+    act = bpy.data.actions.get(clip)
+    assert act is not None, "no action named %r (have %s)" % (clip, [a.name for a in bpy.data.actions])
+    name_report(src)
+    src.animation_data_create()
+    src.animation_data.action = act
+    if hasattr(src.animation_data, "action_slot") and act.slots:
+        src.animation_data.action_slot = act.slots[0]
+    f0, f1 = (int(round(x)) for x in act.frame_range)
+    scene.frame_start, scene.frame_end = f0, f1
+    log("clip %s: frames %d..%d (%.2f s at %d fps)" % (clip, f0, f1, (f1 - f0) / FPS, FPS))
+
+    park_names(["Body"])
+    rig = build_game_rig(src, meta, constrain=True)
+    bpy.ops.object.select_all(action='DESELECT')
+    rig.select_set(True); bpy.context.view_layer.objects.active = rig
+    bpy.ops.object.mode_set(mode='POSE')
+    bpy.ops.pose.select_all(action='SELECT')
+    kw = dict(frame_start=f0, frame_end=f1, step=1, only_selected=True, visual_keying=True,
+              clear_constraints=True, clear_parents=False, use_current_action=False,
+              clean_curves=False, bake_types={'POSE'})
+    try:
+        bpy.ops.nla.bake(channel_types={'LOCATION', 'ROTATION', 'SCALE'}, **kw)
+    except TypeError:
+        bpy.ops.nla.bake(**kw)
+    bpy.ops.object.mode_set(mode='OBJECT')
+    baked = rig.animation_data.action
+    assert baked is not None and not any(pb.constraints for pb in rig.pose.bones)
+    baked.name = clip
+    n = scale_rig(rig, baked)
+    root_fc = [fc for fc in fcurves(baked) if fc.data_path == 'pose.bones["Root"].location']
+    travel = [fc.evaluate(f1) - fc.evaluate(f0) for fc in sorted(root_fc, key=lambda f: f.array_index)]
+    log("baked %d location curves scaled x%.1f; Root travel over the clip (Blender XYZ, m): %s"
+        % (n, SCALE, [round(t, 4) for t in travel]))
+
+    body = bpy.data.objects.new("Body", None)          # node-path decoy, see module docstring
+    bpy.context.scene.collection.objects.link(body)
+    scene.name = clip                                   # the FBX take name comes from the scene
+    fbx(os.path.join(out_dir, "%s@%s.fbx" % (CLIP_PREFIX, clip)), [rig, body], True, bst)
 
 
 def main():
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     out_dir = argv[argv.index("--out") + 1] if "--out" in argv else None
     bst = bool(int(argv[argv.index("--bst") + 1])) if "--bst" in argv else True
-    character = os.path.basename(os.path.dirname(bpy.data.filepath))
-    out_dir = out_dir or os.path.join(ROOT, "skeletons", "Assets", "UndeadLegion", "Models", character)
-    src, meta = bpy.data.objects[SRC_RIG], bpy.data.objects[METARIG]
-    assert bpy.context.mode == 'OBJECT'
-    assert src.matrix_world == Matrix.Identity(4)
-    for pb in src.pose.bones:
-        pb.matrix_basis.identity()
-    src.data.pose_position = 'REST'
-
-    sources = [o for o in bpy.data.objects if o.type == 'MESH' and not o.name.startswith("WGT")
-               and any(m.type == 'ARMATURE' and m.object == src for m in o.modifiers)]
-    sources.sort(key=lambda o: (o.name != "Body", o.name))
-    log(character, "-", len(sources), "skinned meshes:", [o.name for o in sources])
-    name_report(src)
-
-    # park the sources' names so the export copies can take them (file is never saved)
-    names = [o.name for o in sources]
-    for o in sources:
-        o.hide_viewport = False; o.hide_set(False)
-        o.name = "__src_" + o.name
-    rig = build_game_rig(src, meta)
-    meshes = [build_game_mesh(o, rig, n) for o, n in zip(sources, names)]
-    apply_scale(rig, meshes)
-    hips = rig.data.bones["Hips"].head_local
-    top = max((v.co.z for v in meshes[0].data.vertices), default=0)
-    log("scale x%.2f -> Hips at %.3f m, Body top at %.3f m" % (SCALE, hips.z, top))
-    export(os.path.join(out_dir, "SK_%s.fbx" % character), rig, meshes, bst)
+    if "--clip" in argv:
+        export_clip(argv[argv.index("--clip") + 1], out_dir, bst)
+    else:
+        export_model(out_dir, bst)
 
 
 main()
