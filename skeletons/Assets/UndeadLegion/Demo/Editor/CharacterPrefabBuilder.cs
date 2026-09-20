@@ -61,7 +61,9 @@ namespace UndeadLegion.DemoEditor
                 {
                     var model = AssetDatabase.LoadAssetAtPath<GameObject>(string.Format("{0}/Models/Weapons/{1}.fbx", Root, row[i]));
                     if (model == null) { Debug.LogWarning("[UndeadLegion] missing weapon model " + row[i]); continue; }
-                    lo.items.Add(new SkeletonWeapon.Item { model = model, hand = (SkeletonWeapon.Hand)row[i + 1] });
+                    // textured weapons have M_Weapon_<Name>.mat (import setup); the rest use the placeholder
+                    var mat = AssetDatabase.LoadAssetAtPath<Material>(string.Format("{0}/Materials/URP/M_Weapon_{1}.mat", Root, ((string)row[i]).Substring(3)));
+                    lo.items.Add(new SkeletonWeapon.Item { model = model, hand = (SkeletonWeapon.Hand)row[i + 1], material = mat });
                 }
                 if (lo.items.Count > 0) list.Add(lo);
             }

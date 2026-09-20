@@ -22,6 +22,8 @@ namespace UndeadLegion.Demo
         {
             public GameObject model;
             public Hand hand = Hand.Right;
+            [Tooltip("The weapon's own material (M_Weapon_<Name>); empty = the placeholder")]
+            public Material material;
         }
 
         [System.Serializable]
@@ -32,7 +34,7 @@ namespace UndeadLegion.Demo
         }
 
         public List<Loadout> loadouts = new List<Loadout>();
-        [Tooltip("Applied to every weapon renderer (the weapon meshes ship untextured).")]
+        [Tooltip("Applied to a weapon renderer whose item has no material of its own (untextured meshes).")]
         public Material placeholderMaterial;
         [Tooltip("Shield socket: offset from the LeftForeArm bone along the bone (metres) and rotation.")]
         public Vector3 forearmSocketOffset = new Vector3(0f, 0.13f, 0.03f);
@@ -87,11 +89,12 @@ namespace UndeadLegion.Demo
                 go.transform.localPosition = Vector3.zero;
                 go.transform.localRotation = Quaternion.identity;
                 go.transform.localScale = Vector3.one;
-                if (placeholderMaterial != null)
+                var use = it.material != null ? it.material : placeholderMaterial;
+                if (use != null)
                     foreach (var r in go.GetComponentsInChildren<Renderer>())
                     {
                         var mats = r.sharedMaterials;
-                        for (int i = 0; i < mats.Length; i++) mats[i] = placeholderMaterial;
+                        for (int i = 0; i < mats.Length; i++) mats[i] = use;
                         r.sharedMaterials = mats;
                     }
                 _spawned.Add(go);
