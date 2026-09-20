@@ -37,6 +37,51 @@ namespace UndeadLegion.DemoEditor
                 foreach (var part in new[] { "Body", "Armor" })
                     EnsureMaterial(c, part);
             }
+            // weapons: plain meshes at the pack scale, no rig, no materials of their own
+            foreach (var guid in AssetDatabase.FindAssets("SM_ t:Model", new[] { Root + "/Models/Weapons" }))
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                var imp = AssetImporter.GetAtPath(path) as ModelImporter;
+                if (imp == null) continue;
+                if (imp.animationType != ModelImporterAnimationType.None || imp.materialImportMode != ModelImporterMaterialImportMode.None
+                    || Mathf.Abs(imp.globalScale - 1f) > 1e-4f || imp.importAnimation)
+                {
+                    imp.animationType = ModelImporterAnimationType.None;
+                    imp.importAnimation = false;
+                    imp.materialImportMode = ModelImporterMaterialImportMode.None;
+                    imp.globalScale = 1f;
+                    imp.useFileScale = true;
+                    imp.SaveAndReimport();
+                }
+            }
+            // textured weapons (Weapons/prod.blend, 2026-09-20): Textures/Weapons/<Name>_{color,normal,metallicsmoothness}.png
+            // packed by tools/pack_textures.py -> M_Weapon_<Name>.mat; SkeletonWeapon uses it when the loadout names it
+            foreach (var guid in AssetDatabase.FindAssets("t:Texture2D", new[] { Root + "/Textures/Weapons" }))
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                var file = System.IO.Path.GetFileNameWithoutExtension(path);
+                if (file.EndsWith("_color")) SetTexture(path, TextureImporterType.Default, true, TextureImporterAlphaSource.None);
+                else if (file.EndsWith("_normal")) SetTexture(path, TextureImporterType.NormalMap, false, TextureImporterAlphaSource.None);
+                else if (file.EndsWith("_metallicsmoothness")) SetTexture(path, TextureImporterType.Default, false, TextureImporterAlphaSource.FromInput);
+            }
+            foreach (var guid in AssetDatabase.FindAssets("t:Texture2D", new[] { Root + "/Textures/Weapons" }))
+            {
+                var file = System.IO.Path.GetFileNameWithoutExtension(AssetDatabase.GUIDToAssetPath(guid));
+                if (!file.EndsWith("_color")) continue;
+                string wname = file.Substring(0, file.Length - "_color".Length);
+                EnsureLitMaterial(Root + "/Materials/URP/M_Weapon_" + wname + ".mat",
+                    Root + "/Textures/Weapons/" + wname + "_color.png", Root + "/Textures/Weapons/" + wname + "_normal.png",
+                    Root + "/Textures/Weapons/" + wname + "_metallicsmoothness.png", false);
+            }
+            string wp = Root + "/Materials/URP/M_Weapon_Placeholder.mat";
+            if (AssetDatabase.LoadAssetAtPath<Material>(wp) == null)
+            {
+                var m = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                m.SetColor("_BaseColor", new Color(0.42f, 0.40f, 0.38f));
+                m.SetFloat("_Metallic", 0.6f);
+                m.SetFloat("_Smoothness", 0.45f);
+                AssetDatabase.CreateAsset(m, wp);
+            }
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log("[UndeadLegion] import setup done for " + Characters.Length + " characters");
@@ -92,7 +137,15 @@ namespace UndeadLegion.DemoEditor
 
         static void EnsureMaterial(string c, string part)
         {
-            string path = MaterialPath(c, part);
+            string p = part.ToLowerInvariant();
+            // Armour is torn cloth, open hoods and hollow greaves: render both faces, or the
+            // inside of a hood is a hole. Bones are closed volumes and stay single-sided.
+            EnsureLitMaterial(MaterialPath(c, part), TexPath(c, p, "color"), TexPath(c, p, "normal"), TexPath(c, p, "metallicsmoothness"), part == "Armor");
+        }
+
+        /// <summary>URP/Lit material driven by the pack's colour, normal and packed metallic/smoothness maps.</summary>
+        static void EnsureLitMaterial(string path, string colorPath, string normalPath, string msPath, bool doubleSided)
+        {
             var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
             bool created = false;
             if (mat == null)
@@ -100,16 +153,17 @@ namespace UndeadLegion.DemoEditor
                 mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
                 created = true;
             }
-            string p = part.ToLowerInvariant();
-            var color = AssetDatabase.LoadAssetAtPath<Texture2D>(TexPath(c, p, "color"));
-            var normal = AssetDatabase.LoadAssetAtPath<Texture2D>(TexPath(c, p, "normal"));
-            var ms = AssetDatabase.LoadAssetAtPath<Texture2D>(TexPath(c, p, "metallicsmoothness"));
+            var color = AssetDatabase.LoadAssetAtPath<Texture2D>(colorPath);
+            var normal = AssetDatabase.LoadAssetAtPath<Texture2D>(normalPath);
+            var ms = AssetDatabase.LoadAssetAtPath<Texture2D>(msPath);
             mat.SetTexture("_BaseMap", color);
             mat.SetTexture("_BumpMap", normal);
             mat.SetTexture("_MetallicGlossMap", ms);
             mat.SetFloat("_Metallic", 1f);
             mat.SetFloat("_Smoothness", 1f);
             mat.SetFloat("_BumpScale", 1f);
+            mat.SetFloat("_Cull", doubleSided ? 0f : 2f);
+            mat.doubleSidedGI = doubleSided;
             if (normal != null) mat.EnableKeyword("_NORMALMAP"); else mat.DisableKeyword("_NORMALMAP");
             if (ms != null) mat.EnableKeyword("_METALLICSPECGLOSSMAP"); else mat.DisableKeyword("_METALLICSPECGLOSSMAP");
             if (created)

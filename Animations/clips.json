@@ -1,0 +1,487 @@
+{
+ "_doc": "One entry per clip. gen: Kimodo prompt/frames/seed -> External Anims/Kimodo/<glb>.glb. retarget: mode + args for tools/glb_retarget.py. unity: import flags for tools/unity/verify_clip.py. 30 fps everywhere. Modes: idle = legs pinned IK, loop; loco = FK legs + root travel, gait loop; action = FK legs, in place, one-shot; death = FK legs, grounded lying, one-shot. layer: 'upper' = can be played on the UpperBody Animator layer over locomotion (attack on the move); 'full' = whole-body one-shot that stops the legs. Idles/loco/deaths carry no layer key. lift: whole-clip Root lift in engine metres passed to export_fbx --lift (default CLIP_LIFT 0.015); raise it when ground_clip.py reports a model under the floor.",
+ "clips": [
+  {
+   "name": "Idle_TwoHanded",
+   "glb": "idle_2h",
+   "mode": "idle",
+   "seed": 3,
+   "frames": 300,
+   "loop": 240,
+   "blend": 40,
+   "src_start": 40,
+   "time_scale": 2.0,
+   "smooth": 2,
+   "fist": 0.9,
+   "prompt": "A person stands relaxed with a heavy two-handed axe resting on the right shoulder, holding its handle with both hands, slowly shifting weight from foot to foot.",
+   "arm_pose": "two_handed_shoulder"
+  },
+  {
+   "name": "Idle_Propped",
+   "glb": "idle_propped",
+   "mode": "idle",
+   "seed": 5,
+   "frames": 300,
+   "loop": 240,
+   "blend": 40,
+   "src_start": 40,
+   "time_scale": 2.0,
+   "smooth": 2,
+   "fist": 0.8,
+   "prompt": "A person stands leaning forward on a tall staff planted on the ground in front, both hands stacked on top of it, swaying slowly, tired.",
+   "arm_pose": "propped"
+  },
+  {
+   "name": "Idle_Bow",
+   "glb": "idle_bow",
+   "mode": "idle",
+   "seed": 8,
+   "frames": 300,
+   "loop": 240,
+   "blend": 40,
+   "src_start": 40,
+   "time_scale": 2.0,
+   "smooth": 2,
+   "fist": 0.8,
+   "prompt": "A person stands holding a longbow upright in the left hand at the side, right arm relaxed, slowly looking around.",
+   "arm_pose": "bow_side"
+  },
+  {
+   "name": "Idle_Staff",
+   "glb": "idle_staff",
+   "mode": "idle",
+   "seed": 13,
+   "frames": 300,
+   "loop": 240,
+   "blend": 40,
+   "src_start": 40,
+   "time_scale": 2.0,
+   "smooth": 2,
+   "fist": 0.8,
+   "prompt": "A person stands holding a long staff upright in the right hand beside the body, left arm relaxed, swaying slowly.",
+   "arm_pose": "staff_side"
+  },
+  {
+   "name": "Idle_Wand",
+   "glb": "idle_wand",
+   "mode": "idle",
+   "seed": 21,
+   "frames": 300,
+   "loop": 240,
+   "blend": 40,
+   "src_start": 40,
+   "time_scale": 2.0,
+   "smooth": 2,
+   "fist": 0.8,
+   "prompt": "A person stands holding a short wand in the right hand with the forearm raised in front, slowly turning the head, ready to cast.",
+   "arm_pose": "wand_front"
+  },
+  {
+   "name": "Idle_OneHanded",
+   "glb": "idle_1h",
+   "mode": "idle",
+   "seed": 34,
+   "frames": 300,
+   "loop": 240,
+   "blend": 40,
+   "src_start": 40,
+   "time_scale": 2.0,
+   "smooth": 2,
+   "fist": 0.9,
+   "prompt": "A person stands in a relaxed guard holding a sword low in the right hand and a shield on the left forearm, slowly shifting weight.",
+   "arm_pose": "sword_side"
+  },
+  {
+   "name": "Walk_Fwd",
+   "glb": "walk_fwd",
+   "mode": "loco",
+   "seed": 4,
+   "frames": 240,
+   "time_scale": 1.3,
+   "smooth": 1,
+   "fist": 0.4,
+   "prompt": "A person walks forward slowly with a stiff, shambling, heavy gait, arms hanging, in a straight line.",
+   "head_damp": 0.45
+  },
+  {
+   "name": "Walk_Back",
+   "glb": "walk_back",
+   "mode": "loco",
+   "seed": 6,
+   "frames": 240,
+   "time_scale": 1.3,
+   "smooth": 1,
+   "fist": 0.4,
+   "prompt": "A person walks backward slowly and carefully in a straight line, stiff, arms hanging.",
+   "lift": 0.019
+  },
+  {
+   "name": "Run_Fwd",
+   "glb": "run_fwd",
+   "mode": "loco",
+   "seed": 9,
+   "frames": 240,
+   "time_scale": 1.0,
+   "smooth": 1,
+   "fist": 0.6,
+   "prompt": "A person runs forward at a steady jog in a straight line, stiff and jerky, arms pumping.",
+   "head_damp": 0.45
+  },
+  {
+   "name": "Strafe_Left",
+   "glb": "strafe_right",
+   "mode": "loco",
+   "seed": 12,
+   "frames": 240,
+   "time_scale": 1.3,
+   "smooth": 1,
+   "fist": 0.4,
+   "prompt": "A person side-steps to the left repeatedly in a straight line while facing forward, stiff, arms hanging.",
+   "travel_axis": "x",
+   "mirror": true,
+   "_note": "mirrored from strafe_right: the strafe_left generation barely moved sideways (0.19 m/cycle vs 0.60)"
+  },
+  {
+   "name": "Strafe_Right",
+   "glb": "strafe_right",
+   "mode": "loco",
+   "seed": 14,
+   "frames": 240,
+   "time_scale": 1.3,
+   "smooth": 1,
+   "fist": 0.4,
+   "prompt": "A person side-steps to the right repeatedly in a straight line while facing forward, stiff, arms hanging.",
+   "travel_axis": "x"
+  },
+  {
+   "name": "Death_01",
+   "glb": "death_back",
+   "mode": "death",
+   "seed": 7,
+   "frames": 150,
+   "time_scale": 1.0,
+   "smooth": 1,
+   "fist": 0.3,
+   "prompt": "A person is struck hard in the chest, staggers backward and falls onto their back, then lies completely still."
+  },
+  {
+   "name": "Death_02",
+   "glb": "death_crumple",
+   "mode": "death",
+   "seed": 11,
+   "frames": 150,
+   "time_scale": 1.0,
+   "smooth": 1,
+   "fist": 0.3,
+   "prompt": "A person collapses down onto the knees and then crumples sideways to the ground, lying completely still."
+  },
+  {
+   "name": "Attack_2H_01",
+   "glb": "atk_2h_overhead",
+   "mode": "action",
+   "seed": 2,
+   "frames": 120,
+   "time_scale": 1.0,
+   "smooth": 1,
+   "fist": 0.9,
+   "prompt": "A person swings a heavy two-handed axe overhead and down with both hands in a powerful chop, then returns to stance.",
+   "lock_left_hand": 0.085,
+   "layer": "full"
+  },
+  {
+   "name": "Attack_2H_02",
+   "glb": "atk_2h_sweep",
+   "mode": "action",
+   "seed": 15,
+   "frames": 120,
+   "time_scale": 1.0,
+   "smooth": 1,
+   "fist": 0.9,
+   "prompt": "A person swings a large two-handed sword horizontally from right to left with both hands, then returns to stance.",
+   "lock_left_hand": 0.085,
+   "layer": "full"
+  },
+  {
+   "name": "Attack_1H_01",
+   "glb": "atk_1h_slash",
+   "mode": "action",
+   "seed": 17,
+   "frames": 120,
+   "time_scale": 1.0,
+   "smooth": 1,
+   "fist": 0.9,
+   "prompt": "A person slashes diagonally downward with a sword held in the right hand, then returns to guard.",
+   "layer": "upper"
+  },
+  {
+   "name": "Attack_1H_02",
+   "glb": "atk_1h_thrust",
+   "mode": "action",
+   "seed": 19,
+   "frames": 120,
+   "time_scale": 1.0,
+   "smooth": 1,
+   "fist": 0.9,
+   "prompt": "A person lunges and thrusts a sword forward with the right hand, then pulls it back to guard.",
+   "layer": "upper"
+  },
+  {
+   "name": "Shield_Bash",
+   "glb": "shield_bash",
+   "mode": "action",
+   "seed": 22,
+   "frames": 120,
+   "time_scale": 1.0,
+   "smooth": 1,
+   "fist": 0.9,
+   "prompt": "A person bashes forward with a shield held on the left forearm, stepping in, then recovers.",
+   "layer": "upper"
+  },
+  {
+   "name": "Block",
+   "glb": "block",
+   "mode": "action",
+   "seed": 23,
+   "frames": 120,
+   "time_scale": 1.0,
+   "smooth": 1,
+   "fist": 0.9,
+   "prompt": "A person raises a shield on the left forearm in front of the body to block, braces for a moment, then lowers it.",
+   "layer": "upper"
+  },
+  {
+   "name": "Shoot_01",
+   "glb": "shoot_draw",
+   "mode": "action",
+   "seed": 25,
+   "frames": 150,
+   "time_scale": 1.0,
+   "smooth": 1,
+   "fist": 0.6,
+   "prompt": "A person holds a longbow in the left hand, draws an arrow back with the right hand, aims and releases it.",
+   "arm_keys": [
+    [
+     0.0,
+     "bow_side"
+    ],
+    [
+     0.18,
+     "bow_aim"
+    ],
+    [
+     0.42,
+     "bow_draw"
+    ],
+    [
+     0.6,
+     "bow_draw"
+    ],
+    [
+     0.66,
+     "bow_release"
+    ],
+    [
+     0.78,
+     "bow_release"
+    ],
+    [
+     1.0,
+     "bow_side"
+    ]
+   ],
+   "layer": "upper"
+  },
+  {
+   "name": "Shoot_02",
+   "glb": "shoot_quick",
+   "mode": "action",
+   "seed": 27,
+   "frames": 120,
+   "time_scale": 1.0,
+   "smooth": 1,
+   "fist": 0.6,
+   "prompt": "A person quickly raises a longbow in the left hand, nocks and shoots an arrow, then lowers the bow.",
+   "arm_keys": [
+    [
+     0.0,
+     "bow_side"
+    ],
+    [
+     0.15,
+     "bow_aim"
+    ],
+    [
+     0.35,
+     "bow_draw"
+    ],
+    [
+     0.45,
+     "bow_draw"
+    ],
+    [
+     0.5,
+     "bow_release"
+    ],
+    [
+     0.62,
+     "bow_release"
+    ],
+    [
+     1.0,
+     "bow_side"
+    ]
+   ],
+   "layer": "upper"
+  },
+  {
+   "name": "Cast_Wand_01",
+   "glb": "cast_wand_flick",
+   "mode": "action",
+   "seed": 29,
+   "frames": 120,
+   "time_scale": 1.0,
+   "smooth": 1,
+   "fist": 0.8,
+   "prompt": "A person points a short wand forward with the right hand and flicks it sharply, casting a spell.",
+   "layer": "upper"
+  },
+  {
+   "name": "Cast_Wand_02",
+   "glb": "cast_wand_raise",
+   "mode": "action",
+   "seed": 31,
+   "frames": 120,
+   "time_scale": 1.0,
+   "smooth": 1,
+   "fist": 0.8,
+   "prompt": "A person raises a short wand overhead with the right hand and thrusts it forward, casting a spell.",
+   "layer": "upper"
+  },
+  {
+   "name": "Cast_Staff_01",
+   "glb": "cast_staff_slam",
+   "mode": "action",
+   "seed": 33,
+   "frames": 120,
+   "time_scale": 1.0,
+   "smooth": 1,
+   "fist": 0.9,
+   "prompt": "A person holds a long staff in both hands and slams its base into the ground, casting a spell.",
+   "lock_left_hand": 0.22,
+   "layer": "full"
+  },
+  {
+   "name": "Cast_Staff_02",
+   "glb": "cast_staff_sweep",
+   "mode": "action",
+   "seed": 35,
+   "frames": 120,
+   "time_scale": 1.0,
+   "smooth": 1,
+   "fist": 0.9,
+   "prompt": "A person raises a long staff with both hands overhead and sweeps it forward and down, casting a spell.",
+   "lock_left_hand": 0.22,
+   "layer": "upper"
+  },
+  {
+   "name": "Summon",
+   "glb": "special_summon",
+   "mode": "action",
+   "seed": 37,
+   "frames": 150,
+   "time_scale": 1.2,
+   "smooth": 1,
+   "fist": 0.3,
+   "prompt": "A person slowly raises both arms overhead with open hands and holds them up while chanting, then lowers them.",
+   "arm_keys": [
+    [
+     0.0,
+     "free"
+    ],
+    [
+     0.25,
+     "summon_high"
+    ],
+    [
+     0.75,
+     "summon_high"
+    ],
+    [
+     1.0,
+     "free"
+    ]
+   ],
+   "layer": "full"
+  },
+  {
+   "name": "AOE_Cast",
+   "glb": "special_aoe",
+   "mode": "action",
+   "seed": 39,
+   "frames": 150,
+   "time_scale": 1.0,
+   "smooth": 1,
+   "fist": 0.3,
+   "prompt": "A person raises both hands high, then slams them down toward the ground releasing a burst of energy, then stands up.",
+   "layer": "full"
+  },
+  {
+   "name": "Taunt",
+   "glb": "special_taunt",
+   "mode": "action",
+   "seed": 41,
+   "frames": 150,
+   "time_scale": 1.0,
+   "smooth": 1,
+   "fist": 0.9,
+   "prompt": "A person beats the chest with the right fist twice and spreads both arms wide in a taunting shout.",
+   "arm_keys": [
+    [
+     0.0,
+     "free"
+    ],
+    [
+     0.5,
+     "free"
+    ],
+    [
+     0.62,
+     "arms_wide"
+    ],
+    [
+     0.82,
+     "arms_wide"
+    ],
+    [
+     1.0,
+     "free"
+    ]
+   ],
+   "layer": "full"
+  },
+  {
+   "name": "Cutthroat",
+   "glb": "special_cutthroat",
+   "mode": "action",
+   "seed": 43,
+   "frames": 150,
+   "time_scale": 1.0,
+   "smooth": 1,
+   "fist": 0.9,
+   "prompt": "A person grabs an enemy from behind with the left arm and slices across the throat with a dagger in the right hand.",
+   "layer": "full"
+  },
+  {
+   "name": "Rally",
+   "glb": "special_rally",
+   "mode": "action",
+   "seed": 45,
+   "frames": 150,
+   "time_scale": 1.0,
+   "smooth": 1,
+   "fist": 0.9,
+   "prompt": "A person raises a sword overhead with the right hand and shouts, rallying others.",
+   "layer": "upper"
+  }
+ ]
+}

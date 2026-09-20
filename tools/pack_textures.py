@@ -87,7 +87,39 @@ def copy_maps(char):
                 shutil.copyfile(src, dst); log("copied", os.path.relpath(dst, ROOT))
 
 
-for c in CHARS:
-    copy_maps(c)
-    for part in ("body", "armor"):
-        pack(c, part)
+# Weapons (2026-09-20): Weapons/<lower>_{color,normal,roughness[,metallic]}.png per textured
+# weapon -> Textures/Weapons/<Name>_{color,normal,metallicsmoothness}.png, named after the
+# SM_<Name> mesh so the import setup can pair them.
+WEAPON_MAPS = {"H1Sword": "h1sword", "H1Dagger": "h1dagger", "H1Axe": "h1axe", "H1Mace": "h1mace", "H1HeaterShield": "h1heatershield"}
+
+
+def pack_weapons():
+    out_dir = os.path.join(UNITY_TEX, "Weapons"); os.makedirs(out_dir, exist_ok=True)
+    for name, low in WEAPON_MAPS.items():
+        src_dir = os.path.join(ROOT, "Weapons")
+        for m in ("color", "normal"):
+            src = os.path.join(src_dir, "%s_%s.png" % (low, m)); dst = os.path.join(out_dir, "%s_%s.png" % (name, m))
+            if not os.path.exists(src):
+                log("Weapons", name, m, "MISSING"); continue
+            if not os.path.exists(dst) or digest(dst) != digest(src):
+                shutil.copyfile(src, dst); log("copied", os.path.relpath(dst, ROOT))
+        rough_p = os.path.join(src_dir, low + "_roughness.png"); met_p = os.path.join(src_dir, low + "_metallic.png")
+        if not os.path.exists(rough_p):
+            log("Weapons", name, "no roughness map, skipped"); continue
+        rough, w, h = load_gray(rough_p)
+        met = load_gray(met_p)[0] if os.path.exists(met_p) else np.zeros_like(rough)
+        rgba = np.zeros((h, w, 4), dtype=np.float32); rgba[:, :, 0] = met; rgba[:, :, 3] = 1.0 - rough
+        img = bpy.data.images.new("_pack", w, h, alpha=True, is_data=True); img.pixels.foreach_set(rgba.ravel())
+        out = os.path.join(out_dir, name + "_metallicsmoothness.png"); img.filepath_raw = out; img.file_format = 'PNG'; img.save(); bpy.data.images.remove(img)
+        log("Weapons %-15s -> %s  (%dx%d, metallic %s, smoothness mean %.2f)" % (name, os.path.relpath(out, ROOT), w, h, "map" if os.path.exists(met_p) else "0", float((1 - rough).mean())))
+
+
+if argv == ["Weapons"]:
+    pack_weapons()
+else:
+    for c in CHARS:
+        copy_maps(c)
+        for part in ("body", "armor"):
+            pack(c, part)
+    if not argv:
+        pack_weapons()

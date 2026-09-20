@@ -7,7 +7,7 @@ Model (run in a character file):
      SIBLING nodes of the armature, at SCALE x the Blender metres, no animation.
 
 Clip (run in Animations/skeleton_anim.blend):
-    blender -b Animations/skeleton_anim.blend -P tools/export_fbx.py -- --clip Walk_Fwd [--out DIR]
+    blender -b Animations/skeleton_anim.blend -P tools/export_fbx.py -- --clip Walk_Fwd [--out DIR] [--lift 0.018]
   -> skeletons/Assets/UndeadLegion/Animations/Skeleton@Walk_Fwd.fbx : the same skeleton,
      no mesh, one baked take named after the clip, plus an EMPTY node called `Body` so
      the node paths match the model files (see below).
@@ -36,8 +36,8 @@ tools/goblin_export.py):
     node at identity rotation, which the Asset Store validator's "Check Model
     Orientation" wants. The Armature node keeps its -90 deg X either way.
 """
-import bpy, os, sys
-from mathutils import Matrix, Vector
+import bpy, os, sys, math
+from mathutils import Matrix, Vector, Quaternion
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC_RIG, METARIG = "RIG-Meta-Rig", "Meta-Rig"
@@ -46,6 +46,13 @@ CLIP_PREFIX = "Skeleton"    # Skeleton@<Clip>.fbx
 SCALE = 1.8                 # source art is ~0.94 m; the Unity demo established 1.8x (CLAUDE.md 7)
 FPS = 30
 MAX_INFLUENCES = 4
+# Ground clearance baked into every clip's Root (engine metres). The boots' soles sit
+# 4-8 mm below the bare foot and Unity's humanoid playback lets the feet dip a few mm,
+# so an exact-floor clip reads as sinking. A lift on the prefab's Armature node does
+# NOT work for a Humanoid: Unity positions the hips from the avatar root and ignores
+# the child offset while a clip plays (measured: 13.6 mm of lift moved the mesh 2 mm).
+# Measured raw penetration 2026-09-19, all six models, three idles: worst -10.9 mm.
+CLIP_LIFT = 0.015
 UNITY = os.path.join(ROOT, "skeletons", "Assets", "UndeadLegion")
 
 _SPINE = {"spine": "Hips", "spine.001": "Spine", "spine.002": "Spine1", "spine.003": "Spine2",
@@ -174,6 +181,103 @@ def build_game_rig(src, meta, constrain):
     return rig
 
 
+LEG_BONES = ("LeftUpLeg", "LeftLeg", "RightUpLeg", "RightLeg")
+FOOT_BONES = ("LeftFoot", "LeftToeBase", "RightFoot", "RightToeBase")
+
+
+def detwist_legs(rig, f0, f1):
+    """Strip the axial twist Rigify's IK bakes into the thigh and shin, per frame.
+
+    Unity's Humanoid muscle space does not carry that twist: the SAME clip played as
+    Generic kept the feet within 3 mm of the floor, played as Humanoid it put the ankle
+    2.5 cm lower with identical hips (Idle_02, 2026-09-19). Swing-twist decomposition
+    about each bone's rest axis; dropping the twist keeps the bone DIRECTION, so knee
+    and ankle positions do not move, and the foot is put back on its baked world pose.
+    Ported from smp-10-rgp-creatures tools/export_fbx.py (_detwist_legs), whose note
+    still applies: snapshot every world matrix BEFORE editing any of them.
+    """
+    scene = bpy.context.scene
+    rest = {b: rig.data.bones[b].matrix_local.to_3x3() for b in LEG_BONES}
+    axes = {b: (Vector(rig.data.bones[b].tail_local) - Vector(rig.data.bones[b].head_local)).normalized() for b in LEG_BONES}
+    for b in LEG_BONES + FOOT_BONES:
+        rig.pose.bones[b].rotation_mode = 'QUATERNION'
+    worst = 0.0
+    for f in range(f0, f1 + 1):
+        scene.frame_set(f); bpy.context.view_layer.update()
+        snap = {b: rig.pose.bones[b].matrix.copy() for b in LEG_BONES + FOOT_BONES}
+        targets = {}
+        for bn in LEG_BONES:
+            q = (snap[bn].to_3x3() @ rest[bn].inverted()).to_quaternion()
+            ax = axes[bn]
+            v = Vector((q.x, q.y, q.z)); p = v.dot(ax) * ax
+            tw = Quaternion((q.w, p.x, p.y, p.z)); tw.normalize()
+            worst = max(worst, abs(tw.angle if tw.angle <= math.pi else 2 * math.pi - tw.angle))
+            M = ((q @ tw.inverted()).to_matrix() @ rest[bn]).to_4x4()
+            M.translation = snap[bn].translation
+            targets[bn] = M
+        for bn in LEG_BONES:
+            rig.pose.bones[bn].matrix = targets[bn]; bpy.context.view_layer.update()
+        for b in FOOT_BONES:
+            rig.pose.bones[b].matrix = snap[b]; bpy.context.view_layer.update()
+        for b in LEG_BONES + FOOT_BONES:
+            rig.pose.bones[b].keyframe_insert("rotation_quaternion", frame=f)
+            rig.pose.bones[b].keyframe_insert("location", frame=f)
+    log("legs de-twisted over %d frames (largest twist removed %.1f deg)" % (f1 - f0 + 1, math.degrees(worst)))
+
+
+def park_on_rest(rig, frame):
+    """Key the REST pose on `frame` (outside the exported range) and park the scene there.
+
+    Blender's FBX exporter writes a bone node's transform from the CURRENT POSE, not
+    from the armature's rest (the bind pose is only written for skinned meshes). In a
+    rig-only clip file that posed frame becomes the skeleton Unity reads: re-imported,
+    Idle's thigh measured 0.3816 m, the hunched Idle_02's 0.3673 m, the model's 0.3740 m.
+    Unity's Humanoid conversion then works against a skeleton that is not the avatar's
+    and the ankle lands up to 2.5 cm low (Generic playback was exact). With every
+    channel keyed at rest on a frame before the take and the scene parked there, the
+    file's skeleton is the model's.
+    """
+    for pb in rig.pose.bones:
+        pb.matrix_basis.identity()
+        pb.keyframe_insert("location", frame=frame)
+        pb.keyframe_insert("rotation_quaternion" if pb.rotation_mode == 'QUATERNION' else "rotation_euler", frame=frame)
+        pb.keyframe_insert("scale", frame=frame)
+    bpy.context.scene.frame_set(frame)
+    bpy.context.view_layer.update()
+
+
+KEEP_TRANSLATION = ("Root", "Hips")
+
+
+def strip_bone_translation(action):
+    """Drop location (and scale) curves on every bone except Root and Hips.
+
+    The baked COPY_TRANSFORMS carry Rigify's DEF-bone stretch as per-frame bone
+    translations and scales. A rig-only clip file has no bind pose, so those baked
+    offsets become the SKELETON Unity reads from the file: re-imported, Idle's thigh
+    read 0.3816 m at rest and the hunched Idle_02's 0.3620 m, from the same rig. Unity's
+    Humanoid retarget then reconstructs the legs against a skeleton that is not the
+    model's and the ankle lands 2.5 cm low (Generic playback, which copies transforms
+    verbatim, was exact). Humanoid ignores bone translation anyway; only Root (travel)
+    and Hips (body position) carry meaning.
+    """
+    removed = 0
+    for fc in list(fcurves(action)):
+        if not (fc.data_path.endswith(".location") or fc.data_path.endswith(".scale")):
+            continue
+        bone = fc.data_path.split('"')[1] if '"' in fc.data_path else ""
+        if bone in KEEP_TRANSLATION:
+            continue
+        for layer in action.layers:
+            for strip in layer.strips:
+                for cb in strip.channelbags:
+                    try:
+                        cb.fcurves.remove(fc); removed += 1
+                    except (RuntimeError, ReferenceError):
+                        pass
+    log("stripped %d bone translation/scale curves (kept Root, Hips)" % removed)
+
+
 def scale_rig(rig, action=None):
     """Multiply the rest pose and (if given) every location key by SCALE."""
     bpy.ops.object.select_all(action='DESELECT')
@@ -210,6 +314,25 @@ def limit_influences(ob):
     return n
 
 
+def fix_normals(ob):
+    """Make every face's winding consistent with its neighbours (bmesh recalc).
+
+    Unity culls back faces, so a face wound the wrong way is a hole. Measured in the
+    sources (2026-09-19): Assassin Body 15 % of faces inconsistent, Mage Robe 31 %,
+    small patches on several helms/gloves/boots. Applied to the export copy only; the
+    artist files are untouched. Returns the number of faces flipped.
+    """
+    import bmesh
+    bm = bmesh.new(); bm.from_mesh(ob.data)
+    before = [f.normal.copy() for f in bm.faces]
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    n = sum(1 for f, v in zip(bm.faces, before) if f.normal.dot(v) < 0)
+    if n:
+        bm.to_mesh(ob.data)
+    bm.free()
+    return n
+
+
 def build_game_mesh(src_ob, rig, name):
     ob = bpy.data.objects.new(name, src_ob.data.copy())
     bpy.context.scene.collection.objects.link(ob)
@@ -221,10 +344,12 @@ def build_game_mesh(src_ob, rig, name):
     for m in list(ob.modifiers):
         ob.modifiers.remove(m)
     ob.modifiers.new("Armature", 'ARMATURE').object = rig
+    flipped = fix_normals(ob)
     cut = limit_influences(ob)
     ob.data.transform(Matrix.Scale(SCALE, 4))
-    log("  mesh %-10s %6d v  %s" % (name, len(ob.data.vertices),
-                                    ("%d verts cut to %d influences" % (cut, MAX_INFLUENCES)) if cut else ""))
+    log("  mesh %-10s %6d v  %s%s" % (name, len(ob.data.vertices),
+                                      ("%d verts cut to %d influences  " % (cut, MAX_INFLUENCES)) if cut else "",
+                                      ("%d faces re-wound" % flipped) if flipped else ""))
     return ob
 
 
@@ -262,7 +387,8 @@ def fbx(path, objs, bake_anim, bake_space_transform, frame_range=None):
 
 def source_rig():
     src, meta = bpy.data.objects[SRC_RIG], bpy.data.objects[METARIG]
-    assert bpy.context.mode == 'OBJECT'
+    if bpy.context.mode != 'OBJECT':          # the anim file may be saved in pose mode
+        bpy.ops.object.mode_set(mode='OBJECT')
     assert src.matrix_world == Matrix.Identity(4), "source rig must be at identity"
     return src, meta
 
@@ -290,7 +416,7 @@ def export_model(out_dir, bst):
     fbx(os.path.join(out_dir, "SK_%s.fbx" % character), [rig] + meshes, False, bst)
 
 
-def export_clip(clip, out_dir, bst):
+def export_clip(clip, out_dir, bst, lift=0.0):
     out_dir = out_dir or os.path.join(UNITY, "Animations")
     scene = bpy.context.scene
     assert abs(scene.render.fps / scene.render.fps_base - FPS) < 1e-6, \
@@ -299,6 +425,8 @@ def export_clip(clip, out_dir, bst):
     act = bpy.data.actions.get(clip)
     assert act is not None, "no action named %r (have %s)" % (clip, [a.name for a in bpy.data.actions])
     name_report(src)
+    for pb in src.pose.bones:          # rigid IK chains (see tools/rig_lib_no_stretch.py)
+        pb.ik_stretch = 0.0
     src.animation_data_create()
     src.animation_data.action = act
     if hasattr(src.animation_data, "action_slot") and act.slots:
@@ -324,8 +452,21 @@ def export_clip(clip, out_dir, bst):
     baked = rig.animation_data.action
     assert baked is not None and not any(pb.constraints for pb in rig.pose.bones)
     baked.name = clip
+    detwist_legs(rig, f0, f1)
     n = scale_rig(rig, baked)
+    strip_bone_translation(baked)
     root_fc = [fc for fc in fcurves(baked) if fc.data_path == 'pose.bones["Root"].location']
+    if lift:
+        # whole-character lift, in ENGINE metres: Unity's humanoid retarget reconstructs the
+        # legs approximately and a pinned foot lands a few mm to 2 cm under the floor,
+        # by an amount that depends on the pose (Idle -5 mm, hunched Idle_03 -18 mm).
+        # Measured per clip in Unity by tools/unity/ground_clip.py; Root points up, so
+        # its bone-local Y is world Z.
+        for fc in root_fc:
+            if fc.array_index == 1:
+                for kp in fc.keyframe_points:
+                    kp.co.y += lift; kp.handle_left.y += lift; kp.handle_right.y += lift
+        log("lifted Root by %.4f m" % lift)
     travel = [fc.evaluate(f1) - fc.evaluate(f0) for fc in sorted(root_fc, key=lambda f: f.array_index)]
     log("baked %d location curves scaled x%.1f; Root travel over the clip (Blender XYZ, m): %s"
         % (n, SCALE, [round(t, 4) for t in travel]))
@@ -333,6 +474,7 @@ def export_clip(clip, out_dir, bst):
     body = bpy.data.objects.new("Body", None)          # node-path decoy, see module docstring
     bpy.context.scene.collection.objects.link(body)
     scene.name = clip                                   # the FBX take name comes from the scene
+    park_on_rest(rig, f0 - 1)
     fbx(os.path.join(out_dir, "%s@%s.fbx" % (CLIP_PREFIX, clip)), [rig, body], True, bst)
 
 
@@ -341,7 +483,8 @@ def main():
     out_dir = argv[argv.index("--out") + 1] if "--out" in argv else None
     bst = bool(int(argv[argv.index("--bst") + 1])) if "--bst" in argv else True
     if "--clip" in argv:
-        export_clip(argv[argv.index("--clip") + 1], out_dir, bst)
+        lift = float(argv[argv.index("--lift") + 1]) if "--lift" in argv else CLIP_LIFT
+        export_clip(argv[argv.index("--clip") + 1], out_dir, bst, lift)
     else:
         export_model(out_dir, bst)
 

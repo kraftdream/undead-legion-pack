@@ -366,6 +366,7 @@ GameObject:
   - component: {fileID: 2662887729201533055}
   - component: {fileID: 6919667510316033393}
   - component: {fileID: 5445846948764776407}
+  - component: {fileID: 7972385655524446069}
   m_Layer: 0
   m_Name: PF_SkeletonWarrior
   m_TagString: Untagged
@@ -476,6 +477,155 @@ MonoBehaviour:
   minWeight: 0.5
   maxWeight: 1
   seed: 0
+--- !u!114 &7972385655524446069
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 973501018718765678}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63c895e103adc914b932832dd126def4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UndeadLegion.Demo.SkeletonWeapon
+  loadouts:
+  - displayName: Sword + shield
+    items:
+    - model: {fileID: 919132149155446097, guid: d45aa743ac823c14d8643f9df0fcfe4d, type: 3}
+      hand: 0
+      material: {fileID: 2100000, guid: 1fef6512d5141964e94355eabd90f032, type: 2}
+    - model: {fileID: 919132149155446097, guid: 056f8fd6736ddc945b0cf4de47a22248, type: 3}
+      hand: 2
+      material: {fileID: 2100000, guid: de39c4df083cb0b4d8f32add3921fcbd, type: 2}
+  - displayName: Sword
+    items:
+    - model: {fileID: 919132149155446097, guid: d45aa743ac823c14d8643f9df0fcfe4d, type: 3}
+      hand: 0
+      material: {fileID: 2100000, guid: 1fef6512d5141964e94355eabd90f032, type: 2}
+  - displayName: Axe + round shield
+    items:
+    - model: {fileID: 919132149155446097, guid: 62ac2ad17eb918d41bc377fe289f7bc2, type: 3}
+      hand: 0
+      material: {fileID: 2100000, guid: f85b063c991cf7646a00800f370b0115, type: 2}
+    - model: {fileID: 919132149155446097, guid: f07c40a4c51ee4e4e845f42d879f9b79, type: 3}
+      hand: 2
+      material: {fileID: 0}
+  - displayName: Mace
+    items:
+    - model: {fileID: 919132149155446097, guid: ec0a2286378e97b458e9eabace85d1c9, type: 3}
+      hand: 0
+      material: {fileID: 2100000, guid: 6df8491411d91b546a97ae509280432c, type: 2}
+  - displayName: Dagger
+    items:
+    - model: {fileID: 919132149155446097, guid: e4b625b879e59544197ccafcc201eddb, type: 3}
+      hand: 0
+      material: {fileID: 2100000, guid: 56feb08beb6fb65499a8e0862ac6208d, type: 2}
+  - displayName: Two daggers
+    items:
+    - model: {fileID: 919132149155446097, guid: e4b625b879e59544197ccafcc201eddb, type: 3}
+      hand: 0
+      material: {fileID: 2100000, guid: 56feb08beb6fb65499a8e0862ac6208d, type: 2}
+    - model: {fileID: 919132149155446097, guid: e4b625b879e59544197ccafcc201eddb, type: 3}
+      hand: 1
+      material: {fileID: 2100000, guid: 56feb08beb6fb65499a8e0862ac6208d, type: 2}
+  - displayName: Longsword (2H)
+    items:
+    - model: {fileID: 919132149155446097, guid: 1c4324266da1a8d40811184e962b15db, type: 3}
+      hand: 0
+      material: {fileID: 0}
+  - displayName: Battle axe (2H)
+    items:
+    - model: {fileID: 919132149155446097, guid: 0c45aa7b0786a7c428fc024b5bc9329a, type: 3}
+      hand: 0
+      material: {fileID: 0}
+  - displayName: Longbow
+    items:
+    - model: {fileID: 919132149155446097, guid: 5bf8ccd0ed5451c49882a697edae36c3, type: 3}
+      hand: 1
+      material: {fileID: 0}
+    - model: {fileID: 919132149155446097, guid: 78040aff5a185924f8ebfcba672d8544, type: 3}
+      hand: 0
+      material: {fileID: 0}
+  - displayName: Staff
+    items:
+    - model: {fileID: 919132149155446097, guid: 8999a7d9a39d4844580afdb38399fb36, type: 3}
+      hand: 0
+      material: {fileID: 0}
+  - displayName: Spellbook
+    items:
+    - model: {fileID: 919132149155446097, guid: 3cfe90bd39cf6534fb5508945904e113, type: 3}
+      hand: 1
+      material: {fileID: 0}
+  gripLeft:
+  - bone: LeftHandThumb1
+    localRotation: {x: 0.017012207, y: -0.76783156, z: -0.30761525, w: 0.56170994}
+  - bone: LeftHandThumb2
+    localRotation: {x: 0.52181244, y: 0.14422524, z: -0.036230557, w: 0.83999896}
+  - bone: LeftHandThumb3
+    localRotation: {x: 0.48238763, y: 0.085513294, z: 0.028644368, w: 0.8713031}
+  - bone: LeftHandIndex1
+    localRotation: {x: 0.32892644, y: -0.06574243, z: 0.27280048, w: 0.9017013}
+  - bone: LeftHandIndex2
+    localRotation: {x: 0.54636276, y: -0.07672699, z: -0.08240787, w: 0.82994556}
+  - bone: LeftHandIndex3
+    localRotation: {x: 0.41147575, y: -0.6069199, z: -0.20721811, w: 0.6476084}
+  - bone: LeftHandMiddle1
+    localRotation: {x: 0.3769402, y: -0.10861559, z: 0.2810204, w: 0.8758689}
+  - bone: LeftHandMiddle2
+    localRotation: {x: 0.5041036, y: -0.008164182, z: -0.013492167, w: 0.8634992}
+  - bone: LeftHandMiddle3
+    localRotation: {x: 0.44622216, y: -0.14939003, z: 0.15525043, w: 0.8685999}
+  - bone: LeftHandRing1
+    localRotation: {x: 0.36933267, y: -0.06535615, z: 0.29662555, w: 0.878257}
+  - bone: LeftHandRing2
+    localRotation: {x: 0.5498126, y: -0.07737744, z: 0.026105199, w: 0.83128655}
+  - bone: LeftHandRing3
+    localRotation: {x: 0.4019069, y: -0.08567496, z: 0.134283, w: 0.90171987}
+  - bone: LeftHandPinky1
+    localRotation: {x: 0.23995519, y: 0.02505513, z: 0.3127709, w: 0.9186774}
+  - bone: LeftHandPinky2
+    localRotation: {x: 0.47263706, y: -0.054119408, z: 0.11031824, w: 0.8726484}
+  - bone: LeftHandPinky3
+    localRotation: {x: 0.27488726, y: -0.010471999, z: 0.38766876, w: 0.8797956}
+  gripRight:
+  - bone: RightHandThumb1
+    localRotation: {x: -0.09266797, y: -0.77767986, z: -0.32163802, w: -0.53214264}
+  - bone: RightHandThumb2
+    localRotation: {x: -0.58663654, y: 0.13823079, z: -0.04302004, w: -0.79680556}
+  - bone: RightHandThumb3
+    localRotation: {x: -0.43018755, y: 0.08631009, z: 0.023707628, w: -0.8982913}
+  - bone: RightHandIndex1
+    localRotation: {x: -0.48187053, y: -0.09164586, z: 0.3126348, w: -0.81342566}
+  - bone: RightHandIndex2
+    localRotation: {x: -0.6709682, y: -0.06569759, z: -0.104088105, w: -0.7311985}
+  - bone: RightHandIndex3
+    localRotation: {x: -0.418323, y: -0.60540664, z: -0.21590953, w: -0.6417724}
+  - bone: RightHandMiddle1
+    localRotation: {x: -0.43989474, y: -0.1329979, z: 0.34389547, w: -0.8188652}
+  - bone: RightHandMiddle2
+    localRotation: {x: -0.5644621, y: -0.006974847, z: -0.016526083, w: -0.82526416}
+  - bone: RightHandMiddle3
+    localRotation: {x: -0.39417094, y: -0.1394607, z: 0.16044295, w: -0.89411306}
+  - bone: RightHandRing1
+    localRotation: {x: 0.40093344, y: 0.09118082, z: -0.36946362, w: 0.8333278}
+  - bone: RightHandRing2
+    localRotation: {x: -0.59491134, y: -0.07454709, z: 0.028397288, w: -0.7998231}
+  - bone: RightHandRing3
+    localRotation: {x: -0.32546028, y: -0.07439218, z: 0.13023439, w: -0.9335847}
+  - bone: RightHandPinky1
+    localRotation: {x: 0.2694779, y: -0.014468936, z: -0.35086745, w: 0.8966963}
+  - bone: RightHandPinky2
+    localRotation: {x: -0.49605933, y: -0.053224366, z: 0.11570722, w: -0.8588971}
+  - bone: RightHandPinky3
+    localRotation: {x: -0.21345672, y: 0.013615772, z: 0.36632487, w: -0.90557003}
+  placeholderMaterial: {fileID: 2100000, guid: 531693aede88e77448518923a6a8bf60, type: 2}
+  forearmSocketOffset: {x: 0.028, y: 0.13, z: -0.021}
+  forearmSocketEuler: {x: 0, y: 126.1, z: 180}
+  rightHandOffset: {x: -0.028, y: 0.008, z: -0.038}
+  rightHandEuler: {x: 0, y: 0, z: 0}
+  leftHandOffset: {x: 0.038, y: 0.01, z: -0.037}
+  leftHandEuler: {x: 0, y: 0, z: 0}
 --- !u!1 &1069646108107100336
 GameObject:
   m_ObjectHideFlags: 0
@@ -501,7 +651,7 @@ Transform:
   m_GameObject: {fileID: 1069646108107100336}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
-  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

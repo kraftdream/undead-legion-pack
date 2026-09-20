@@ -21,32 +21,70 @@ and importing the exports into Unity 6000.4 through the editor bridge.
 | Skeleton Mage        | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | **yes** | **yes** |
 | Skeleton Necromancer | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | **yes** | **yes** |
 | Skeleton Warrior     | done | done | **yes** | **yes** | valid | **yes** | **yes** |
-| Weapons (12 meshes)  | done | **none** — no UVs, no materials | n/a | — | n/a | — | — |
+| Weapons (13 meshes)  | done | 5 textured (sword, dagger, axe, mace, heater shield), 8 untextured | n/a | `SM_*.fbx` ×13 | n/a | `M_Weapon_<Name>` ×5 + placeholder | **yes** (12 loadouts) |
 
-Shared clips so far: `Idle` (loop) + `Twitch_01..03` (additive), on `AC_Skeleton`.
+Shared clips so far: `Idle`, `Idle_02`, `Idle_03` (loops, 8 / 12 / 12 s) +
+`Twitch_01..03` (additive), on `AC_Skeleton`. Armour materials render both faces
+(torn cloth, open hoods); body materials stay single-sided.
 
 All six characters share one armature (§2), every body and armour module is skinned to
 it, and every exported model imports in Unity with the **same 68-bone hierarchy**
 (66 + two weapon sockets), the same bone array on every renderer, Hips at 0.982 m and
 mesh nodes at identity rotation.
 
-**First clips exist (2026-09-19), so the skeleton is frozen.** In Unity
-`Assets/UndeadLegion/Animations/`: `Skeleton@Idle` (4.0 s loop, Kimodo text-to-motion
-retargeted, §8), `Skeleton@Twitch_01/02/03` (2.5 / 3.5 / 4.5 s additive head + jaw
-twitches), and `AC_Skeleton.controller` (Base: Idle; Twitch: additive layer, random
-pick via `Demo/Scripts/SkeletonTwitch.cs`). Measured on all six models: Idle travel
-0, Head 5.2° / Hips 2.5° of motion; Twitch_03 over Idle adds Head 5.7° / Jaw 4.7°
-peaks with Hips at 0.00°. The pipeline test clip `Test_RootMotion` (1 m forward, 30°
-yaw, 25° nod) measured 1.805 m / 30.08° / 25.0° with Apply Root Motion on and 0 / 0
-with it off; it stays in the anim file, not in Unity.
+**First clips exist (2026-09-19), so the skeleton is frozen.** As of 2026-09-20 there
+are **34 clips** in `Assets/UndeadLegion/Animations/` (`Skeleton@<Name>.fbx`, 30 fps,
+every one verified on all six models with `verify_clip.py` + `ground_clip.py`) plus
+`AC_Skeleton.controller` (Base: every clip as a state; Twitch: additive layer):
+
+| Group | Clips |
+|---|---|
+| Idles (loop) | `Idle`, `Idle_02`, `Idle_03`; weapon idles `Idle_OneHanded`, `Idle_TwoHanded` (axe on the shoulder), `Idle_Propped` (leaning on the staff), `Idle_Bow`, `Idle_Staff`, `Idle_Wand` |
+| Twitch (additive) | `Twitch_01/02/03` head + jaw |
+| Locomotion (loop, root motion) | `Walk_Fwd`, `Walk_Back`, `Run_Fwd`, `Strafe_Left` (mirrored right), `Strafe_Right` |
+| One-handed | `Attack_1H_01` (slash), `Attack_1H_02` (thrust), `Shield_Bash`, `Block` |
+| Two-handed | `Attack_2H_01` (overhead chop), `Attack_2H_02` (horizontal sweep) — left hand locked on the handle |
+| Bow | `Shoot_01` (slow draw), `Shoot_02` (quick) — authored arm keys over the generated body |
+| Magic | `Cast_Wand_01/02`, `Cast_Staff_01/02` (both hands on the staff) |
+| Specials | `Summon` (necromancer, arms overhead), `AOE_Cast` (mage slam), `Taunt` (warrior, chest beat + arms wide), `Cutthroat` (assassin), `Rally` (knight, sword raised) |
+| Death | `Death_01` (struck, falls on the back), `Death_02` (kneels, crumples sideways) |
+
+**Measured speed table** (Unity, Humanoid, root motion on, Knight; the other five are
+identical because the avatar is shared). Ship these numbers with the pack:
+
+| Clip | Length | Travel per loop | Speed |
+|---|---|---|---|
+| `Walk_Fwd` | 1.400 s | +0.724 m | 0.52 m/s |
+| `Walk_Back` | 3.433 s | −1.119 m | 0.33 m/s |
+| `Run_Fwd` | 0.967 s | +1.107 m | 1.14 m/s |
+| `Strafe_Left` | 1.467 s | −0.599 m (X) | 0.41 m/s |
+| `Strafe_Right` | 1.467 s | +0.599 m (X) | 0.41 m/s |
+
+Measured on all six models: Idle travel 0, Head 5.2° / Hips 2.5° of motion; Twitch_03
+over Idle adds Head 5.7° / Jaw 4.7° peaks with Hips at 0.00°. Every clip's lowest baked
+vertex is ≥ 0 on every model except `Death_02` (Necromancer robe −5.6 cm during the
+kneel, §8 "Grounding"). Not yet authored: turns, hits/staggers, knockdown/get-up
+(the showcase already lists those sections and skips missing clips). The pipeline test
+clip `Test_RootMotion` stays in the anim file, not in Unity.
 
 ### Known gaps
 
 - `SkeletonMage`, `SkeletonNecromancer` and `SkeletonAssassin` have **no `armor_metallic.png`**;
   Knight, Archer and Warrior do. Either those armours are non-metallic by design (then
   the material must not sample a metallic map) or the bake was skipped.
-- `Weapons/weapons.blend` holds 12 rigid meshes (`H1Sword`, `H2Longbow`, `H1Spellbook`…)
-  with **no UVs, no textures and placeholder Tripo materials**. No grip convention yet.
+- **Weapons** (2026-09-20): `Weapons/prod.blend` replaced `weapons.blend` as the source.
+  `H1Sword`, `H1Dagger`, `H1Axe`, `H1Mace`, `H1HeaterShield` have UVs and 512² PBR maps
+  (`Weapons/<lower>_{color,normal,roughness[,metallic]}.png`, packed by
+  `tools/pack_textures.py -- Weapons` into `Textures/Weapons/`, materials
+  `M_Weapon_<Name>` made by the import setup, assigned per loadout item). Still
+  untextured on the placeholder: round shield, longsword, battle axe, longbow, staff,
+  spellbook, arrow. Several meshes were rescaled in prod.blend (longsword 1.15 m, staff
+  1.24 m, heater shield 0.70 m at pack scale); the grips carried over at the same
+  relative position along the length. The **Arrow** in prod.blend is 2 cm long, so it is
+  still exported from `weapons.blend` (`--only Arrow`). **`H1Wand`** in prod.blend is the
+  staff mesh squashed to 0.39 m in length only and renders as a block: not exported, no
+  Wand loadout until a real mesh exists. `Weapons/prod.blend1` came in tracked from a
+  remote commit and is removed from the index (autosaves are ignored, §5).
 - The **old mesh-only exports in the character folders are superseded but still
   tracked**: `skeleton.fbx`, `armor.fbx`, `mesh_quad.fbx`, `mesh_uv.fbx`. The Unity
   copies (`SkeletonKnight_{Body,Armor}.fbx`) were deleted on 2026-09-19 and every prefab
@@ -95,7 +133,30 @@ Grip convention, in the socket's own bone frame, identical in Unity and Unreal:
 - +X completes the right-handed frame (roughly along the fingers)
 
 A weapon mesh is authored with its grip point at the origin and its blade along +Y in
-the engine, and attaches to the socket with an **identity** local transform. The
+the engine, and attaches to the socket with an identity local transform **plus the
+component's per-hand offset** (`SkeletonWeapon.rightHandOffset` / `leftHandOffset`, socket
+space, default (−0.028, 0.008, −0.038) / (0.038, 0.010, −0.037) m): the socket bone sits at
+the palm centre, but with the grip pose the ring of curled fingers is ~3 cm along the
+fingers and ~4 cm to the palm side of it (measured as the centroid of the twelve finger
+bones in socket space), and that is where the hilt has to be. The ring's axis is within
+3.5° of the socket's +Y, so no rotation offset. The shield socket is a child of
+`LeftForeArm` at mid-forearm, 3.5 cm out on the side away from the spine, rotated so the
+mesh's face normal (+Z, its thin axis) points that way and its top towards the elbow
+(`forearmSocketOffset` (0.028, 0.13, −0.021), `forearmSocketEuler` (0, 126.1, 180)). All
+four are inspector fields; the defaults live in the script so a prefab rebuild keeps them.
+Check any change with `weapon_shots.py ... RightWeaponSocket` (close-up mode).
+
+**Fingers close on whatever a hand holds (2026-09-20).** The grip is hand-authored in
+`Animations/skeleton_anim.blend` on the individual finger controls of both hands (the
+user's `grip` action keys the body but no finger, so the pose lived only in the saved
+pose state); `tools/anim_grip_export.py -- --save` keys it into the action `Grip` and
+`export_fbx.py -- --clip Grip` ships it as `Skeleton@Grip.fbx`, a two-frame clip that is
+finger-pose DATA, not a demo state (the controller builder skips it). The prefab builder
+samples it on each model through its own avatar and stores the 15 finger bones' local
+rotations per hand on `SkeletonWeapon` (`gripLeft` / `gripRight`); `ApplyGrip()` writes
+them in LateUpdate, after the Animator, to every hand that holds an item (a forearm
+shield counts for the left hand), so any clip keeps its own fingers on an empty hand and
+the grip on a full one. The
 weapon meshes in `Weapons/weapons.blend` are not yet re-origined to this convention.
 
 ---
@@ -139,6 +200,18 @@ undead-legion-pack/
 ```
 
 `Animations/` is **flat and shared**: six characters on one rig means one clip set.
+
+**Clip adjustment (decided 2026-09-20).** The animations are the same for all six, so
+they live on ONE model: `Animations/skeleton_anim.blend` is where a Kimodo clip is
+hand-adjusted (the rig override animates like a local rig; enable another `Ref_*`
+collection to check the clip on that body), then `export_fbx.py -- --clip <Name>` and
+`verify_clip.py`. Per-character `prod_copy.blend` files with the actions were built and
+verified that day and then dropped as redundant. Lesson kept from that: an Action does
+not carry pose-bone state. If clips are ever appended onto another rig, set each bone's
+rotation mode from the keys it receives (the finger masters are keyed in Euler; on a
+quaternion-mode bone the keys are ignored, the thumb came out 53° off) and force IK
+stretch off, as `glb_retarget.zero_pose` does; with that, an export from a copy matched
+the shipped clip to 0.0000° on all 68 bones.
 
 ---
 
@@ -215,8 +288,11 @@ metallic/smoothness sRGB off (see §7 for the packing).
 `Assets/UndeadLegion/Demo/Scenes/UndeadLegion_Demo.unity` — the animation-browser
 demo, rebuilt 2026-09-19 on the model of the creatures pack: characters (top-left),
 armour MODULES with All/None (left), ANIMATIONS grouped in sections (right, plus a
-"Twitch (additive layer)" section whose buttons fire the additive layer over the
-current clip), footer with Root Motion / Turntable / Random twitch toggles and Recenter.
+"Twitch (additive, toggle)" section: each twitch is a toggle that, while on, loops on its
+own additive layer over whatever the base and upper-body layers play, all three on by
+default, remembered across character switches), footer with Root Motion / Turntable
+toggles and Recenter. The random trigger firing (`SkeletonTwitch`, the game-side way to
+twitch a crowd) is disabled in the demo so it does not stack on the loops.
 Drag to orbit, wheel to zoom. Verified in play mode: six characters, Idle looping on
 each, module toggles, twitch firing, no console errors.
 
@@ -309,7 +385,29 @@ creatures pack `tools/ue/README.md`).
 Walking while attacking, running while shooting, and twitch overlays are done in the
 engine with masks over the full skeleton (Unity: Animator layers + `AvatarMask` cut at
 `Spine1`; Unreal: `Layered blend per bone` + `UpperBody` montage slot + `Apply
-Additive` + Aim Offset). What it changes on the authoring side:
+Additive` + Aim Offset).
+
+**Implemented in Unity 2026-09-20.** `AC_Skeleton.controller` has three layers: `Base`
+(every clip), `UpperBody` (Override, weight 1, mask `AM_UpperBody.mask`: humanoid
+Body/Head/Arms/Fingers on, Root/legs/IK off, plus the 55 extra transforms under
+`Spine1`; states `Empty` + every clip tagged `layer: upper` in `Animations/clips.json`),
+`Twitch` (Additive, trigger-fired once), `TwitchLoop_01..03` (Additive, weight 0, one
+looping state each: the demo's twitch toggles set the weight; the twitch clips import
+with Loop Time on, which the trigger layer's exit-time transition still ends after one
+pass). The manifest tag is the single source of truth for "can be
+performed on the move" (`upper`: Attack_1H_01/02, Shield_Bash, Block, Shoot_01/02,
+Cast_Wand_01/02, Cast_Staff_02, Rally) versus "full stop" (`full`: Attack_2H_01/02,
+Cast_Staff_01, Summon, AOE_Cast, Taunt, Cutthroat). Measured by
+`build_twitch_controller.py`: Walk_Fwd on Base + Attack_1H_01 on UpperBody gives the
+walk's legs (LeftUpLeg within 0.00° of the walk alone, 31° swing) and the attack's arms
+and spine (RightArm within 0.00° of the attack alone, 74° swing). The demo routes
+automatically: an upper clip clicked while a locomotion loop plays goes to `UpperBody`
+("upper body over Walk_Fwd"); a full-stop clip takes `Base` and the loop resumes after
+it (`layer_smoke.py` proves both in play mode). Humanoid masks cannot cut inside the
+spine (Body is one part), so the upper layer owns the whole spine above the hips; the
+walk keeps hips + legs, which is the cut the clips were authored for.
+
+What it changes on the authoring side:
 
 1. **Attack and cast clips are in place** — the root never moves. Locomotion carries
    the travel; lunges come from the base layer or gameplay.
@@ -349,6 +447,44 @@ carry the life.
 ⚠ `scene.frame_set` re-applies the action being written: set the frame BEFORE posing,
 or every key repeats the previous frame (the first build produced a 121-frame still).
 
+**Idle set (2026-09-19, by request: "too fast for a skeleton, not just speed").**
+`Idle` = `idle_s42` at `--time-scale 2.0 --smooth 2` (8 s loop); `Idle_02` = `idle_slow_c`
+(exhausted heavy sway) and `Idle_03` = `idle_slow_b` (slouched slow look-around), both
+at `--time-scale 3.0 --smooth 3` (12 s loops). The stretch is slerp resampling, the
+smoothing is N passes of a [1,2,1] temporal low-pass that removes the human's quick
+corrections, which is what makes it read heavier rather than merely slower. A prompt
+saying "completely still" (`idle_slow_a`) came back frozen (3 mm of hip travel in
+10 s) and is not used. Measured mean angular speed of the head, deg/s: old Idle 5.8,
+new Idle 3.8, Idle_02 7.7, Idle_03 8.1 (these two carry real motion at a slow pace).
+**Fingers**: Kimodo's skeleton has none, so `glb_retarget.py` gives every finger master
+a constant curl plus its own slow sine (1-2 cycles per loop, `--finger-life`).
+
+⚠ **IK STRETCH MUST BE OFF** (`tools/rig_lib_no_stretch.py`, now the library state, and
+re-asserted at export). Rigify leaves `ik_stretch = 0.1` on the IK chain bones: a pinned
+foot under a lowered pelvis was reached by SHRINKING the leg 3 % instead of bending the
+knee (the upright idle stretched it 2 %). Blender showed the feet on the floor; Unity's
+Humanoid keeps rigid bone lengths and put the same rotations 2-3 cm under it, while the
+same clip played as Generic was exact — that comparison is the diagnostic. A pose-bone
+`ik_stretch` set on the anim file's library override is NOT saved with the override;
+it has to be in the library.
+
+⚠ **Rig-only clip files carry the CURRENT POSE as the skeleton.** Blender's FBX
+exporter writes bone nodes from the pose, and a bind pose only exists with a skinned
+mesh. Re-imported, Idle's thigh read 0.3816 m and Idle_02's 0.3673 m from one rig
+(model: 0.3740). `export_clip` now strips every baked bone translation/scale except
+Root and Hips (Humanoid ignores them anyway) and parks the scene on a rest-keyed frame
+before the take (`park_on_rest`), so the file's skeleton is the model's.
+
+**Grounding**: every clip's `Root` is lifted by `CLIP_LIFT = 0.015` m at export. Boot
+soles sit 4-8 mm below the bare foot and Humanoid playback dips the feet a few mm; a
+lift on the prefab's Armature node is ignored while a Humanoid clip plays (13.6 mm
+moved the mesh 2 mm). Measured with `tools/unity/ground_clip.py` (lowest baked vertex
+per model per clip, forced reimport): all six models, three idles, +4.1 .. +10.8 mm.
+Foot IK on the states made things WORSE (goals ~13 mm below the FK feet) and root Y
+"based on feet" dropped the character a metre; neither is used. Root Y is always baked
+into the pose; idles/attacks/twitches bake XZ and rotation too (`verify_clip.py
+--in-place 1`), locomotion will not.
+
 Twitches are not Kimodo: `tools/anim_twitch.py` authors them procedurally (random
 quick jerks on `head`, a third on `neck`, opens on `lowerjaw` whose open direction is
 measured — on this rig +X about the jaw control LIFTS the chin, so open is −X). Frame
@@ -358,6 +494,111 @@ contact sheet of any action for review.
 
 Reference meshes in the anim file must be bound to `RIG-Meta-Rig`, not `Meta-Rig`:
 both are overrides, and a refresh once picked the metarig and froze every mesh.
+
+⚠ **THE RIG'S 109 DRIVERS ARE PART OF THE RIG.** The first library build called
+`animation_data_clear()` to drop a stray action and removed every Rigify driver with
+it: the IK/FK switches, so each ORG bone followed the IK copy at full influence no
+matter what `IK_FK` said, and every FK control posed nothing. The retargeted Idle
+therefore showed the untouched IK arms (32–35° from vertical) instead of the source's
+18–25°, reported as "arms pose is too wide". Rebuilt 2026-09-19 from the Knight as
+committed in `f9eacf8` with only the action cleared (`rig_lib_build.py` now asserts
+the driver count), sockets re-added, all six files re-synced, the anim file's override
+relinked (`anim_file_build.py -- --relink`), clips rebuilt: FK and DEF now agree at
+23.0°. Bind pose was never the cause: the retarget corrects for the source's T-pose.
+
+**Face winding vs single-layer cloth** (settled 2026-09-19, the user asked whether
+normals were the cause of the one-sided look). Measured by rendering every character
+with and without back-face culling from five views and counting changed pixels
+(`tools/mesh_normals_fix.py --render`, EEVEE with `use_backface_culling` on the
+materials; Workbench's culling flag is viewport-only and renders identically):
+
+- **Assassin: yes, winding.** 697 body faces are wound inward — the lower jaw and part
+  of the skull vanish under culling. `recalc_face_normals` fixes it; changed pixels
+  8009 → 6057. Fixed copy saved as `SkeletonAssassin/prod_copy.blend` (the only copy
+  kept). `export_fbx.fix_normals` applies the same recalc on every export copy.
+- **Mage: no.** The 1208 robe faces recalc re-winds are a TWO-LAYER cloth island, so
+  flipping them changes nothing visible (22958 vs 22954 pixels). What disappears under
+  culling — hood side, sleeve flaps, skirt side panels seen from below — is
+  single-layer cloth viewed from its back. No winding fix can help; the armour
+  materials render both faces for exactly this. Same for the Necromancer (identical
+  counts) and the Knight (3 pixels).
+- **Archer: the automatic island vote makes it slightly worse** (6085 → 6204), so the
+  vote is not applied anywhere shipped; the export uses the consistency recalc only.
+- Rule: a face is a hole in Unity only if it is wound against its neighbours or is a
+  single-layer surface seen from behind. Blender's default viewport shows neither;
+  check with the Face Orientation overlay or a culled render, not with normals.
+
+### The clip factory (2026-09-19/20)
+
+`Animations/clips.json` is the manifest: one entry per clip with the Kimodo prompt,
+frames, seed, retarget **mode** and arguments. Two detached batches consume it:
+`tools/kimodo_batch.py` (generates every GLB that is missing, ~2–4 min each on the
+laptop) and `tools/anim_batch.py --wait` (retargets, previews to
+`Animations/preview/`, exports, runs `verify_clip.py` with the mode's import flags and
+`ground_clip.py`; state in `Animations/build_state.json`, log in
+`Animations/anim_batch.log`). Re-run `anim_batch.py <Name> --force` after changing an
+entry or the retarget.
+
+`glb_retarget.py --mode`:
+- **idle** — legs on IK at rest, loop, finger life. Weapon idles are just prompts
+  ("axe resting on the right shoulder", "leaning on a staff"); the hands hold nothing
+  in Blender, the socket carries the weapon in the engine.
+- **loco** — FK legs from the source; the hips' straight-line travel over the loop goes
+  on `root` (→ `Root` = root motion), the rest on `torso`; loop = one gait cycle found
+  by autocorrelating the ankle-height difference (first local maximum, not the global
+  one: the global max is several cycles); root travel along the **dominant axis only**
+  (`--travel-axis x` forces sideways for strafes), the other axis's drift is removed
+  linearly from the hips. ⚠ The torso is set in armature space, so its world target
+  must **include** the root's travel: the first build put travel on `root` while the
+  hips stayed in place, and Unity measured zero root motion — Humanoid derives root
+  motion from the hips, never from the `Root` bone. `--mirror` swaps left/right in the
+  source (Strafe_Left is the mirrored right strafe: the left generation barely moved).
+  `--head-damp 0.45` on Walk_Fwd/Run_Fwd: Kimodo's "shambling" walks bow the head 30–60°.
+  ⚠ The loop-closing crossfade blends each of the last BLEND frames with the source frame
+  one cycle EARLIER; on a walk that frame is a whole cycle behind in world space, so the
+  raw blend pulled the hips backwards over frames 33–42 and the wrap snapped them forward
+  (the user saw it in the anim file). The partner frame's positions are shifted forward
+  by the loop's travel before blending; the retarget now logs the hips' advance per frame
+  along the travel axis, which must never be negative (Walk_Fwd: 5.8–19 mm, seam 5.9 mm).
+- **action** — FK legs, root fixed, net hips drift removed (end = start), one-shot;
+  ground = median stance on the floor + smoothed lift-only.
+- **death** — FK legs, hips as authored (the corpse lands where the fall put it), root
+  fixed, two-way slope-limited ground correction so the lying body rests on the floor.
+Unity import per mode: idle/loco loop; loco keeps root XZ as root motion; everything
+else bakes XZ + rotation into the pose; root Y is always baked.
+
+**Grounding measures every skinned mesh of all six characters** (boots, greaves, robes,
+armour), un-excluding the `Ref_*` collections for the measurement and restoring them
+before the save. The Knight body alone under-grounded the deaths by 6–15 cm: a corpse
+rests on its pauldrons and the Necromancer's robe hangs lowest. What remains is a Unity-
+side difference on deep knee bends (Death_02 kneel: Necromancer robe −5.6 cm for ~1 s)
+because the export merges Rigify's two-segment limbs into one bone; `ground_clip.py`
+is the truth, the Blender number is the estimate.
+
+**Authored arm keys**: Kimodo has no props, so archery, summoning and taunting came back
+as hanging or half-raised arms. `--arm-keys "t:preset,..."` (manifest `arm_keys`, t in
+0..1 of the clip) interpolates socket-frame hand poses over the clip and blends each arm
+between the source and the authored pose through Rigify's `IK_FK` where only one key
+poses it (`free` = hand the arm back). `Shoot_01/02` = bow_side → bow_aim → bow_draw →
+bow_release → bow_side; `Summon` = summon_high; `Taunt` = arms_wide after the chest beats.
+The hand IK controls are keyed only while an authored mode is active — the first lock
+build keyed them once at frame 1 and the left hand stayed pinned in space.
+
+**Two-handed grips**: `--lock-left-hand D` (manifest `lock_left_hand`) pins the left
+hand on IK D m down the right hand's weapon handle every frame (left socket frame =
+right socket frame moved −Y), so a weapon on `RightWeaponSocket` passes through both
+hands: 0.085 for Attack_2H_*, 0.22 for Cast_Staff_*. Verified with `weapon_shots.py`
+on the battle axe.
+
+Weapon idles: Kimodo has no props, so "axe resting on the shoulder" comes back as
+hanging arms. `--arm-pose <preset>` (manifest key `arm_pose`) puts the hands on IK at
+an authored position/orientation written in the socket's own frame and following the
+torso's sway; presets in `glb_retarget.ARM_POSES`. ⚠ The detached batch loads its code
+at start: after editing `anim_batch.py` restart the process, and clear the affected
+entries from `build_state.json` (the signature already contained the new manifest key,
+so the old process had marked them built without the argument). Never run a manual
+retarget with `--save` while the batch is mid-clip: two Blender processes writing
+`skeleton_anim.blend` is a corrupt file.
 
 ### Root motion — decided 2026-09-19
 

@@ -1,0 +1,182 @@
+{
+ "Idle_Bow": {
+  "sig": "idle_bow|1789847430|{\"arm_pose\": \"bow_side\", \"blend\": 40, \"fist\": 0.8, \"frames\": 300, \"glb\": \"idle_bow\", \"loop\": 240, \"mode\": \"idle\", \"name\": \"Idle_Bow\", \"seed\": 8, \"smooth\": 2, \"src_start\": 40, \"time_scale\": 2.0}",
+  "ok": true,
+  "when": "2026-09-19 22:59",
+  "mode": "idle"
+ },
+ "Idle_Staff": {
+  "sig": "idle_staff|1789847716|{\"arm_pose\": \"staff_side\", \"blend\": 40, \"fist\": 0.8, \"frames\": 300, \"glb\": \"idle_staff\", \"loop\": 240, \"mode\": \"idle\", \"name\": \"Idle_Staff\", \"seed\": 13, \"smooth\": 2, \"src_start\": 40, \"time_scale\": 2.0}",
+  "ok": true,
+  "when": "2026-09-19 23:01",
+  "mode": "idle"
+ },
+ "Idle_Wand": {
+  "sig": "idle_wand|1789848003|{\"arm_pose\": \"wand_front\", \"blend\": 40, \"fist\": 0.8, \"frames\": 300, \"glb\": \"idle_wand\", \"loop\": 240, \"mode\": \"idle\", \"name\": \"Idle_Wand\", \"seed\": 21, \"smooth\": 2, \"src_start\": 40, \"time_scale\": 2.0}",
+  "ok": true,
+  "when": "2026-09-19 23:04",
+  "mode": "idle"
+ },
+ "Idle_OneHanded": {
+  "sig": "idle_1h|1789848291|{\"arm_pose\": \"sword_side\", \"blend\": 40, \"fist\": 0.9, \"frames\": 300, \"glb\": \"idle_1h\", \"loop\": 240, \"mode\": \"idle\", \"name\": \"Idle_OneHanded\", \"seed\": 34, \"smooth\": 2, \"src_start\": 40, \"time_scale\": 2.0}",
+  "ok": true,
+  "when": "2026-09-19 23:10",
+  "mode": "idle"
+ },
+ "Idle_Propped": {
+  "sig": "idle_propped|1789847143|{\"arm_pose\": \"propped\", \"blend\": 40, \"fist\": 0.8, \"frames\": 300, \"glb\": \"idle_propped\", \"loop\": 240, \"mode\": \"idle\", \"name\": \"Idle_Propped\", \"seed\": 5, \"smooth\": 2, \"src_start\": 40, \"time_scale\": 2.0}",
+  "ok": true,
+  "when": "2026-09-19 23:13",
+  "mode": "idle"
+ },
+ "Idle_TwoHanded": {
+  "sig": "idle_2h|1789846856|{\"arm_pose\": \"two_handed_shoulder\", \"blend\": 40, \"fist\": 0.9, \"frames\": 300, \"glb\": \"idle_2h\", \"loop\": 240, \"mode\": \"idle\", \"name\": \"Idle_TwoHanded\", \"seed\": 3, \"smooth\": 2, \"src_start\": 40, \"time_scale\": 2.0}",
+  "ok": true,
+  "when": "2026-09-19 23:16",
+  "mode": "idle"
+ },
+ "Run_Fwd": {
+  "sig": "run_fwd|1789849025|{\"fist\": 0.6, \"frames\": 240, \"glb\": \"run_fwd\", \"head_damp\": 0.45, \"mode\": \"loco\", \"name\": \"Run_Fwd\", \"seed\": 9, \"smooth\": 1, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-20 09:23",
+  "mode": "loco"
+ },
+ "Strafe_Left": {
+  "sig": "strafe_right|1789849514|{\"_note\": \"mirrored from strafe_right: the strafe_left generation barely moved sideways (0.19 m/cycle vs 0.60)\", \"fist\": 0.4, \"frames\": 240, \"glb\": \"strafe_right\", \"mirror\": true, \"mode\": \"loco\", \"name\": \"Strafe_Left\", \"seed\": 12, \"smooth\": 1, \"time_scale\": 1.3, \"travel_axis\": \"x\"}",
+  "ok": true,
+  "when": "2026-09-20 09:23",
+  "mode": "loco"
+ },
+ "Strafe_Right": {
+  "sig": "strafe_right|1789849514|{\"fist\": 0.4, \"frames\": 240, \"glb\": \"strafe_right\", \"mode\": \"loco\", \"name\": \"Strafe_Right\", \"seed\": 14, \"smooth\": 1, \"time_scale\": 1.3, \"travel_axis\": \"x\"}",
+  "ok": true,
+  "when": "2026-09-20 09:24",
+  "mode": "loco"
+ },
+ "Death_01": {
+  "sig": "death_back|1789849695|{\"fist\": 0.3, \"frames\": 150, \"glb\": \"death_back\", \"mode\": \"death\", \"name\": \"Death_01\", \"seed\": 7, \"smooth\": 1, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-19 23:39",
+  "mode": "death"
+ },
+ "Death_02": {
+  "sig": "death_crumple|1789849874|{\"fist\": 0.3, \"frames\": 150, \"glb\": \"death_crumple\", \"mode\": \"death\", \"name\": \"Death_02\", \"seed\": 11, \"smooth\": 1, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-19 23:40",
+  "mode": "death"
+ },
+ "Attack_1H_01": {
+  "sig": "atk_1h_slash|1789850346|{\"fist\": 0.9, \"frames\": 120, \"glb\": \"atk_1h_slash\", \"mode\": \"action\", \"name\": \"Attack_1H_01\", \"seed\": 17, \"smooth\": 1, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-19 23:45",
+  "mode": "action"
+ },
+ "Walk_Fwd": {
+  "sig": "walk_fwd|1789848534|{\"fist\": 0.4, \"frames\": 240, \"glb\": \"walk_fwd\", \"head_damp\": 0.45, \"mode\": \"loco\", \"name\": \"Walk_Fwd\", \"seed\": 4, \"smooth\": 1, \"time_scale\": 1.3}",
+  "ok": true,
+  "when": "2026-09-20 09:22",
+  "mode": "loco"
+ },
+ "Walk_Back": {
+  "sig": "walk_back|1789848780|{\"fist\": 0.4, \"frames\": 240, \"glb\": \"walk_back\", \"lift\": 0.019, \"mode\": \"loco\", \"name\": \"Walk_Back\", \"seed\": 6, \"smooth\": 1, \"time_scale\": 1.3}",
+  "ok": true,
+  "when": "2026-09-20 09:25",
+  "mode": "loco"
+ },
+ "Attack_1H_02": {
+  "sig": "atk_1h_thrust|1789850504|{\"fist\": 0.9, \"frames\": 120, \"glb\": \"atk_1h_thrust\", \"mode\": \"action\", \"name\": \"Attack_1H_02\", \"seed\": 19, \"smooth\": 1, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-19 23:50",
+  "mode": "action"
+ },
+ "Shield_Bash": {
+  "sig": "shield_bash|1789850662|{\"fist\": 0.9, \"frames\": 120, \"glb\": \"shield_bash\", \"mode\": \"action\", \"name\": \"Shield_Bash\", \"seed\": 22, \"smooth\": 1, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-19 23:51",
+  "mode": "action"
+ },
+ "Block": {
+  "sig": "block|1789850819|{\"fist\": 0.9, \"frames\": 120, \"glb\": \"block\", \"mode\": \"action\", \"name\": \"Block\", \"seed\": 23, \"smooth\": 1, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-19 23:54",
+  "mode": "action"
+ },
+ "Cast_Wand_01": {
+  "sig": "cast_wand_flick|1789851314|{\"fist\": 0.8, \"frames\": 120, \"glb\": \"cast_wand_flick\", \"mode\": \"action\", \"name\": \"Cast_Wand_01\", \"seed\": 29, \"smooth\": 1, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-19 23:58",
+  "mode": "action"
+ },
+ "Cast_Wand_02": {
+  "sig": "cast_wand_raise|1789851473|{\"fist\": 0.8, \"frames\": 120, \"glb\": \"cast_wand_raise\", \"mode\": \"action\", \"name\": \"Cast_Wand_02\", \"seed\": 31, \"smooth\": 1, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-19 23:59",
+  "mode": "action"
+ },
+ "Attack_2H_01": {
+  "sig": "atk_2h_overhead|1789850031|{\"fist\": 0.9, \"frames\": 120, \"glb\": \"atk_2h_overhead\", \"lock_left_hand\": 0.085, \"mode\": \"action\", \"name\": \"Attack_2H_01\", \"seed\": 2, \"smooth\": 1, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-20 00:07",
+  "mode": "action"
+ },
+ "Attack_2H_02": {
+  "sig": "atk_2h_sweep|1789850189|{\"fist\": 0.9, \"frames\": 120, \"glb\": \"atk_2h_sweep\", \"lock_left_hand\": 0.085, \"mode\": \"action\", \"name\": \"Attack_2H_02\", \"seed\": 15, \"smooth\": 1, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-20 00:08",
+  "mode": "action"
+ },
+ "Shoot_01": {
+  "sig": "shoot_draw|1789850999|{\"arm_keys\": [[0.0, \"bow_side\"], [0.18, \"bow_aim\"], [0.42, \"bow_draw\"], [0.6, \"bow_draw\"], [0.66, \"bow_release\"], [0.78, \"bow_release\"], [1.0, \"bow_side\"]], \"fist\": 0.6, \"frames\": 150, \"glb\": \"shoot_draw\", \"mode\": \"action\", \"name\": \"Shoot_01\", \"seed\": 25, \"smooth\": 1, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-20 00:09",
+  "mode": "action"
+ },
+ "Shoot_02": {
+  "sig": "shoot_quick|1789851157|{\"arm_keys\": [[0.0, \"bow_side\"], [0.15, \"bow_aim\"], [0.35, \"bow_draw\"], [0.45, \"bow_draw\"], [0.5, \"bow_release\"], [0.62, \"bow_release\"], [1.0, \"bow_side\"]], \"fist\": 0.6, \"frames\": 120, \"glb\": \"shoot_quick\", \"mode\": \"action\", \"name\": \"Shoot_02\", \"seed\": 27, \"smooth\": 1, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-20 00:10",
+  "mode": "action"
+ },
+ "Cast_Staff_01": {
+  "sig": "cast_staff_slam|1789851630|{\"fist\": 0.9, \"frames\": 120, \"glb\": \"cast_staff_slam\", \"lock_left_hand\": 0.22, \"mode\": \"action\", \"name\": \"Cast_Staff_01\", \"seed\": 33, \"smooth\": 1, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-20 00:11",
+  "mode": "action"
+ },
+ "Cast_Staff_02": {
+  "sig": "cast_staff_sweep|1789851787|{\"fist\": 0.9, \"frames\": 120, \"glb\": \"cast_staff_sweep\", \"lock_left_hand\": 0.22, \"mode\": \"action\", \"name\": \"Cast_Staff_02\", \"seed\": 35, \"smooth\": 1, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-20 00:12",
+  "mode": "action"
+ },
+ "Summon": {
+  "sig": "special_summon|1789851967|{\"arm_keys\": [[0.0, \"free\"], [0.25, \"summon_high\"], [0.75, \"summon_high\"], [1.0, \"free\"]], \"fist\": 0.3, \"frames\": 150, \"glb\": \"special_summon\", \"mode\": \"action\", \"name\": \"Summon\", \"seed\": 37, \"smooth\": 1, \"time_scale\": 1.2}",
+  "ok": true,
+  "when": "2026-09-20 00:23",
+  "mode": "action"
+ },
+ "AOE_Cast": {
+  "sig": "special_aoe|1789852147|{\"fist\": 0.3, \"frames\": 150, \"glb\": \"special_aoe\", \"mode\": \"action\", \"name\": \"AOE_Cast\", \"seed\": 39, \"smooth\": 1, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-20 00:16",
+  "mode": "action"
+ },
+ "Taunt": {
+  "sig": "special_taunt|1789852327|{\"arm_keys\": [[0.0, \"free\"], [0.5, \"free\"], [0.62, \"arms_wide\"], [0.82, \"arms_wide\"], [1.0, \"free\"]], \"fist\": 0.9, \"frames\": 150, \"glb\": \"special_taunt\", \"mode\": \"action\", \"name\": \"Taunt\", \"seed\": 41, \"smooth\": 1, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-20 00:24",
+  "mode": "action"
+ },
+ "Cutthroat": {
+  "sig": "special_cutthroat|1789852507|{\"fist\": 0.9, \"frames\": 150, \"glb\": \"special_cutthroat\", \"mode\": \"action\", \"name\": \"Cutthroat\", \"seed\": 43, \"smooth\": 1, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-20 00:18",
+  "mode": "action"
+ },
+ "Rally": {
+  "sig": "special_rally|1789852686|{\"fist\": 0.9, \"frames\": 150, \"glb\": \"special_rally\", \"mode\": \"action\", \"name\": \"Rally\", \"seed\": 45, \"smooth\": 1, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-20 00:21",
+  "mode": "action"
+ }
+}

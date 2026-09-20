@@ -18,7 +18,7 @@ def arg(k, d=None):
 
 
 ACTION = arg("--action", "Idle")
-FRAMES = [int(x) for x in arg("--frames", "1,31,61,91,121").split(",")]
+FRAMES = [int(x) for x in arg("--frames").split(",")] if "--frames" in argv else None   # None = 6 frames spread over the action
 OUT = arg("--out", os.path.join(ROOT, "Animations", "preview"))
 PX = int(arg("--px", "420"))
 REF = arg("--ref", "SkeletonKnight")
@@ -26,6 +26,9 @@ REF = arg("--ref", "SkeletonKnight")
 rig = next(o for o in bpy.data.objects if o.type == 'ARMATURE' and o.name.startswith("RIG-"))
 scene = bpy.context.scene
 act = bpy.data.actions[ACTION]
+if FRAMES is None:
+    a, b = act.frame_range
+    FRAMES = sorted(set(int(round(a + (b - a) * i / 5.0)) for i in range(6)))
 rig.animation_data_create(); rig.animation_data.action = act
 if hasattr(rig.animation_data, "action_slot") and act.slots:
     rig.animation_data.action_slot = act.slots[0]
@@ -64,6 +67,10 @@ for view, (loc, rot) in VIEWS.items():
     paths = []
     for f in FRAMES:
         scene.frame_set(f)
+        bpy.context.view_layer.update()
+        # follow the root's travel (locomotion clips carry root motion)
+        rt = rig.matrix_world @ rig.pose.bones["root"].matrix.translation
+        cam.location = loc + Vector((rt.x, rt.y, 0))
         p = os.path.join(OUT, "_%s_%s_%03d.png" % (ACTION, view, f))
         scene.render.filepath = p
         bpy.ops.render.render(write_still=True)
