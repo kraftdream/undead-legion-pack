@@ -1,6 +1,6 @@
 """Render a character playing a clip with a weapon loadout equipped, in edit mode.
 
-    python tools/unity/weapon_shots.py <out_dir> <clip> <loadout index> [character] [normalized time]
+    python tools/unity/weapon_shots.py <out_dir> <clip> <loadout index> [character] [normalized time] [close-up transform]
 
 e.g.  python tools/unity/weapon_shots.py shots Idle_TwoHanded 7 SkeletonKnight 0.3
 Loadout indices follow CharacterPrefabBuilder.LoadoutTable (0 sword+shield, 1 sword,
@@ -20,12 +20,19 @@ var an = go.GetComponent<Animator>(); an.applyRootMotion = false; an.cullingMode
 an.Rebind(); an.Update(0f);
 if (an.HasState(0, Animator.StringToHash("%CLIP%"))) { an.Play("%CLIP%", 0, %T%f); an.Update(0f); an.Update(0.03f); sb.AppendLine("playing %CLIP%"); } else sb.AppendLine("NO STATE %CLIP% - rest pose");
 var w = go.GetComponent<UndeadLegion.Demo.SkeletonWeapon>();
-w.Equip(%LOADOUT%);
+w.Equip(%LOADOUT%); w.ApplyGrip();
 var camGo = new GameObject("__cam"); var cam = camGo.AddComponent<Camera>(); cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = new Color(0.25f, 0.26f, 0.3f); cam.fieldOfView = 32f;
 var rt = new RenderTexture(800, 1000, 24); cam.targetTexture = rt;
 var views = new object[][]{ new object[]{"front", new Vector3(0, 1.0f, 3.4f)}, new object[]{"right", new Vector3(3.4f, 1.0f, 0)}, new object[]{"left", new Vector3(-3.4f, 1.0f, 0)} };
+Vector3 lookAt = new Vector3(0, 0.95f, 0);
+string closeUp = "%CLOSE%";   // "" = full body; else a transform name to frame from 0.5 m away
+if (closeUp != "") {
+  Transform target = null; foreach (var t in go.GetComponentsInChildren<Transform>(true)) if (t.name == closeUp) target = t;
+  if (target != null) { lookAt = target.position; cam.fieldOfView = 28f;
+    views = new object[][]{ new object[]{"front", lookAt + new Vector3(0, 0.15f, 0.55f)}, new object[]{"right", lookAt + new Vector3(0.55f, 0.15f, 0)}, new object[]{"left", lookAt + new Vector3(-0.55f, 0.15f, 0)}, new object[]{"below", lookAt + new Vector3(0.2f, -0.45f, 0.35f)} }; }
+}
 foreach (var v in views) {
-  cam.transform.position = (Vector3)v[1]; cam.transform.LookAt(new Vector3(0, 0.95f, 0));
+  cam.transform.position = (Vector3)v[1]; cam.transform.LookAt(lookAt);
   cam.Render(); var prev = RenderTexture.active; RenderTexture.active = rt;
   var tex = new Texture2D(800, 1000, TextureFormat.RGB24, false); tex.ReadPixels(new Rect(0, 0, 800, 1000), 0, 0); tex.Apply(); RenderTexture.active = prev;
   System.IO.File.WriteAllBytes("%OUT%/%CLIP%_%LOADOUT%_" + (string)v[0] + ".png", tex.EncodeToPNG());
@@ -42,7 +49,8 @@ if __name__ == "__main__":
     clip = sys.argv[2]; loadout = sys.argv[3]
     char = sys.argv[4] if len(sys.argv) > 4 else "SkeletonKnight"
     t = sys.argv[5] if len(sys.argv) > 5 else "0.3"
-    code = CODE.replace("%OUT%", out).replace("%CLIP%", clip).replace("%LOADOUT%", loadout).replace("%CHAR%", char).replace("%T%", t)
+    close = sys.argv[6] if len(sys.argv) > 6 else ""      # e.g. RightWeaponSocket: close-ups of that transform
+    code = CODE.replace("%OUT%", out).replace("%CLIP%", clip).replace("%LOADOUT%", loadout).replace("%CHAR%", char).replace("%T%", t).replace("%CLOSE%", close)
     c = Client()
     try:
         c.call("refresh_unity", {"mode": "if_dirty", "scope": "assets", "wait_for_ready": True}, timeout=300)

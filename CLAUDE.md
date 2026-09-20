@@ -133,7 +133,30 @@ Grip convention, in the socket's own bone frame, identical in Unity and Unreal:
 - +X completes the right-handed frame (roughly along the fingers)
 
 A weapon mesh is authored with its grip point at the origin and its blade along +Y in
-the engine, and attaches to the socket with an **identity** local transform. The
+the engine, and attaches to the socket with an identity local transform **plus the
+component's per-hand offset** (`SkeletonWeapon.rightHandOffset` / `leftHandOffset`, socket
+space, default (−0.028, 0.008, −0.038) / (0.038, 0.010, −0.037) m): the socket bone sits at
+the palm centre, but with the grip pose the ring of curled fingers is ~3 cm along the
+fingers and ~4 cm to the palm side of it (measured as the centroid of the twelve finger
+bones in socket space), and that is where the hilt has to be. The ring's axis is within
+3.5° of the socket's +Y, so no rotation offset. The shield socket is a child of
+`LeftForeArm` at mid-forearm, 3.5 cm out on the side away from the spine, rotated so the
+mesh's face normal (+Z, its thin axis) points that way and its top towards the elbow
+(`forearmSocketOffset` (0.028, 0.13, −0.021), `forearmSocketEuler` (0, 126.1, 180)). All
+four are inspector fields; the defaults live in the script so a prefab rebuild keeps them.
+Check any change with `weapon_shots.py ... RightWeaponSocket` (close-up mode).
+
+**Fingers close on whatever a hand holds (2026-09-20).** The grip is hand-authored in
+`Animations/skeleton_anim.blend` on the individual finger controls of both hands (the
+user's `grip` action keys the body but no finger, so the pose lived only in the saved
+pose state); `tools/anim_grip_export.py -- --save` keys it into the action `Grip` and
+`export_fbx.py -- --clip Grip` ships it as `Skeleton@Grip.fbx`, a two-frame clip that is
+finger-pose DATA, not a demo state (the controller builder skips it). The prefab builder
+samples it on each model through its own avatar and stores the 15 finger bones' local
+rotations per hand on `SkeletonWeapon` (`gripLeft` / `gripRight`); `ApplyGrip()` writes
+them in LateUpdate, after the Animator, to every hand that holds an item (a forearm
+shield counts for the left hand), so any clip keeps its own fingers on an empty hand and
+the grip on a full one. The
 weapon meshes in `Weapons/weapons.blend` are not yet re-origined to this convention.
 
 ---
@@ -265,8 +288,11 @@ metallic/smoothness sRGB off (see §7 for the packing).
 `Assets/UndeadLegion/Demo/Scenes/UndeadLegion_Demo.unity` — the animation-browser
 demo, rebuilt 2026-09-19 on the model of the creatures pack: characters (top-left),
 armour MODULES with All/None (left), ANIMATIONS grouped in sections (right, plus a
-"Twitch (additive layer)" section whose buttons fire the additive layer over the
-current clip), footer with Root Motion / Turntable / Random twitch toggles and Recenter.
+"Twitch (additive, toggle)" section: each twitch is a toggle that, while on, loops on its
+own additive layer over whatever the base and upper-body layers play, all three on by
+default, remembered across character switches), footer with Root Motion / Turntable
+toggles and Recenter. The random trigger firing (`SkeletonTwitch`, the game-side way to
+twitch a crowd) is disabled in the demo so it does not stack on the loops.
 Drag to orbit, wheel to zoom. Verified in play mode: six characters, Idle looping on
 each, module toggles, twitch firing, no console errors.
 
@@ -365,7 +391,10 @@ Additive` + Aim Offset).
 (every clip), `UpperBody` (Override, weight 1, mask `AM_UpperBody.mask`: humanoid
 Body/Head/Arms/Fingers on, Root/legs/IK off, plus the 55 extra transforms under
 `Spine1`; states `Empty` + every clip tagged `layer: upper` in `Animations/clips.json`),
-`Twitch` (Additive). The manifest tag is the single source of truth for "can be
+`Twitch` (Additive, trigger-fired once), `TwitchLoop_01..03` (Additive, weight 0, one
+looping state each: the demo's twitch toggles set the weight; the twitch clips import
+with Loop Time on, which the trigger layer's exit-time transition still ends after one
+pass). The manifest tag is the single source of truth for "can be
 performed on the move" (`upper`: Attack_1H_01/02, Shield_Bash, Block, Shoot_01/02,
 Cast_Wand_01/02, Cast_Staff_02, Rally) versus "full stop" (`full`: Attack_2H_01/02,
 Cast_Staff_01, Summon, AOE_Cast, Taunt, Cutthroat). Measured by

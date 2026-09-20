@@ -387,7 +387,8 @@ def fbx(path, objs, bake_anim, bake_space_transform, frame_range=None):
 
 def source_rig():
     src, meta = bpy.data.objects[SRC_RIG], bpy.data.objects[METARIG]
-    assert bpy.context.mode == 'OBJECT'
+    if bpy.context.mode != 'OBJECT':          # the anim file may be saved in pose mode
+        bpy.ops.object.mode_set(mode='OBJECT')
     assert src.matrix_world == Matrix.Identity(4), "source rig must be at identity"
     return src, meta
 

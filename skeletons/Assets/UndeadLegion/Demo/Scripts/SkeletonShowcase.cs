@@ -35,7 +35,6 @@ namespace UndeadLegion.Demo
         public Text clipInfoLabel;
         public Toggle rootMotionToggle;
         public Toggle turntableToggle;
-        public Toggle twitchToggle;
         public Button recenterButton;
         public Button allModulesButton;
         public Button noModulesButton;
@@ -67,6 +66,10 @@ namespace UndeadLegion.Demo
         readonly List<Button> _weaponButtons = new List<Button>();
         readonly List<AnimationClip> _clips = new List<AnimationClip>();      // base-layer clips, display order
         readonly List<AnimationClip> _twitches = new List<AnimationClip>();   // additive-layer clips
+        readonly List<Button> _twitchButtons = new List<Button>();
+        // a twitch toggled on loops on its own additive layer (TwitchLoop_NN) over whatever plays;
+        // all on when the demo starts, remembered across character switches
+        readonly List<bool> _twitchLoopOn = new List<bool>();
         AnimationClip _current;
         AnimationClip _pendingFollow;
         // layered playback: clips with a state on the "UpperBody" layer (attacks that can be
@@ -94,11 +97,6 @@ namespace UndeadLegion.Demo
                 turntableToggle.onValueChanged.AddListener(v => turntable.autoRotate = v);
                 turntable.autoRotate = turntableToggle.isOn;
                 turntable.onUserTookOver = () => { if (turntableToggle.isOn) turntableToggle.isOn = false; };
-            }
-            if (twitchToggle != null)
-            {
-                twitchToggle.onValueChanged.AddListener(OnTwitchChanged);
-                OnTwitchChanged(twitchToggle.isOn);
             }
             if (recenterButton != null) recenterButton.onClick.AddListener(Recenter);
             if (allModulesButton != null) allModulesButton.onClick.AddListener(() => SetAllModules(true));
@@ -203,7 +201,9 @@ namespace UndeadLegion.Demo
             if (_animator != null) _upperLayer = _animator.GetLayerIndex("UpperBody");
             _modules = _instance.GetComponentInChildren<SkeletonModules>();
             _twitch = _instance.GetComponentInChildren<SkeletonTwitch>();
-            if (_twitch != null && twitchToggle != null) _twitch.enabled = twitchToggle.isOn;
+            // the demo shows the twitches through the per-clip loop toggles; the random trigger
+            // firing (SkeletonTwitch, for games) stays off here so the two do not stack
+            if (_twitch != null) _twitch.enabled = false;
             _weapon = _instance.GetComponentInChildren<SkeletonWeapon>();
             BuildModuleList();
             BuildWeaponList();
@@ -318,16 +318,20 @@ namespace UndeadLegion.Demo
             _clips.Clear();
             _clips.AddRange(ordered);
 
+            _twitchButtons.Clear();
             if (_twitches.Count > 0)
             {
-                DemoUI.CreateSectionLabel(clipListContent, "Twitch  (additive layer)");
+                DemoUI.CreateSectionLabel(clipListContent, "Twitch  (additive, toggle)");
+                while (_twitchLoopOn.Count < _twitches.Count) _twitchLoopOn.Add(true);   // all on by default
                 for (int i = 0; i < _twitches.Count; i++)
                 {
                     int index = i;
                     var b = DemoUI.CreateListButton(clipListContent, _twitches[i].name, NormalColor);
-                    b.onClick.AddListener(() => FireTwitch(index));
+                    b.onClick.AddListener(() => SetTwitchLoop(index, !_twitchLoopOn[index]));
+                    _twitchButtons.Add(b);
                 }
-                DemoUI.CreateInfoRow(clipListContent, "plays over the current clip");
+                DemoUI.CreateInfoRow(clipListContent, "on = keeps adding to the current clip");
+                for (int i = 0; i < _twitches.Count; i++) SetTwitchLoop(i, _twitchLoopOn[i]);
             }
         }
 
@@ -413,6 +417,30 @@ namespace UndeadLegion.Demo
                     clip.name, clip.length, _current != null ? _current.name : "-");
         }
 
+        /// <summary>Toggle a twitch clip: on = it loops on its own additive layer over whatever
+        /// the base and upper-body layers play, until toggled off. Several can be on at once.</summary>
+        public void SetTwitchLoop(int index, bool on)
+        {
+            if (index < 0 || index >= _twitches.Count) return;
+            while (_twitchLoopOn.Count <= index) _twitchLoopOn.Add(false);
+            _twitchLoopOn[index] = on;
+            if (_animator != null)
+            {
+                int layer = _animator.GetLayerIndex("TwitchLoop_" + _twitches[index].name.Substring(_twitches[index].name.Length - 2));
+                if (layer >= 0) _animator.SetLayerWeight(layer, on ? 1f : 0f);
+                else Debug.LogWarning("SkeletonShowcase: no TwitchLoop layer for " + _twitches[index].name + " (rebuild the controller)", this);
+            }
+            if (index < _twitchButtons.Count)
+            {
+                var img = _twitchButtons[index].GetComponent<Image>();
+                if (img != null) img.color = on ? SelectedColor : NormalColor;
+            }
+            if (clipInfoLabel != null)
+                clipInfoLabel.text = string.Format("{0}   |   {1}   |   additive over {2}", _twitches[index].name, on ? "ON, looping" : "off", _current != null ? _current.name : "-");
+        }
+
+        public bool IsTwitchLoopOn(int index) { return index >= 0 && index < _twitchLoopOn.Count && _twitchLoopOn[index]; }
+
         public void FireTwitch(int index)
         {
             if (_twitch == null) return;
@@ -431,10 +459,6 @@ namespace UndeadLegion.Demo
             if (!on) Recenter();
         }
 
-        void OnTwitchChanged(bool on)
-        {
-            if (_twitch != null) _twitch.enabled = on;
-        }
 
         /// <summary>Bring the character back to the spawn point, keeping its facing.</summary>
         public void Recenter()

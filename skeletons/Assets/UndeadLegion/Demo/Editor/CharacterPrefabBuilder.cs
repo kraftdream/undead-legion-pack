@@ -51,6 +51,38 @@ namespace UndeadLegion.DemoEditor
             new object[] { "Spellbook", "SM_H1Spellbook", SkeletonWeapon.Hand.Left },
         };
 
+        static readonly string[] FingerBones = { "Thumb1", "Thumb2", "Thumb3", "Index1", "Index2", "Index3", "Middle1", "Middle2", "Middle3", "Ring1", "Ring2", "Ring3", "Pinky1", "Pinky2", "Pinky3" };
+
+        /// <summary>Sample Skeleton@Grip (the authored finger grip, tools/anim_grip_export.py) on this
+        /// model through its own avatar and store the finger bones' local rotations on the component.</summary>
+        static void SampleGrip(GameObject go, SkeletonWeapon weapon)
+        {
+            AnimationClip clip = null;
+            foreach (var a in AssetDatabase.LoadAllAssetsAtPath(Root + "/Animations/Skeleton@Grip.fbx"))
+                if (a is AnimationClip && !a.name.StartsWith("__preview")) clip = (AnimationClip)a;
+            weapon.gripLeft.Clear(); weapon.gripRight.Clear();
+            if (clip == null) { Debug.LogWarning("[UndeadLegion] no Skeleton@Grip clip: hands will not grip weapons"); return; }
+            var an = go.GetComponent<Animator>();
+            var all = go.GetComponentsInChildren<Transform>(true);
+            AnimationMode.StartAnimationMode();
+            try
+            {
+                AnimationMode.BeginSampling();
+                AnimationMode.SampleAnimationClip(go, clip, 0.02f);
+                AnimationMode.EndSampling();
+                foreach (var side in new[] { "Left", "Right" })
+                    foreach (var f in FingerBones)
+                    {
+                        var t = System.Array.Find(all, x => x.name == side + "Hand" + f);
+                        if (t == null) continue;
+                        var gb = new SkeletonWeapon.GripBone { bone = t.name, localRotation = t.localRotation };
+                        if (side == "Left") weapon.gripLeft.Add(gb); else weapon.gripRight.Add(gb);
+                    }
+            }
+            finally { AnimationMode.StopAnimationMode(); }
+            Debug.Log("[UndeadLegion] grip sampled on " + go.name + ": " + weapon.gripLeft.Count + " left + " + weapon.gripRight.Count + " right finger bones");
+        }
+
         static System.Collections.Generic.List<SkeletonWeapon.Loadout> Loadouts()
         {
             var list = new System.Collections.Generic.List<SkeletonWeapon.Loadout>();
@@ -142,6 +174,7 @@ namespace UndeadLegion.DemoEditor
             var weapon = go.GetComponent<SkeletonWeapon>();
             if (weapon == null) weapon = go.AddComponent<SkeletonWeapon>();
             weapon.loadouts = Loadouts();
+            SampleGrip(go, weapon);
             weapon.placeholderMaterial = AssetDatabase.LoadAssetAtPath<Material>(Root + "/Materials/URP/M_Weapon_Placeholder.mat");
 
             string path = PrefabPath(c);
