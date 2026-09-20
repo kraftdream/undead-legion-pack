@@ -19,6 +19,7 @@ All Blender scripts run with Blender 5.2 in background mode and never open a UI:
 | `kimodo_gen.ps1` (PowerShell) | a text prompt | Generates a clip on the Kimodo laptop over SSH, fetches `External Anims/Kimodo/<Name>.glb/.bvh/.txt` | writes External Anims |
 | `rig_lib_no_stretch.py` | `Rig/skeleton_rig.blend` | Sets `ik_stretch = 0` on every pose bone and `IK_Stretch = 0` on the limb switches (CLAUDE.md §8: rigid IK chains or Unity sinks the feet) | **overwrites the library** |
 | `glb_retarget.py -- --glb F --name N --mode idle\|loco\|action\|death [--loop 120 --blend 30 --src-start 30 --time-scale 1.0 --smooth 0 --fist 0.3 --finger-life 0.12 --hunch 0 --head-damp 1 --arm-pose P --lock-left-hand 0 --travel-axis auto --mirror] [--save]` | the anim file | Kimodo GLB → Action on the rig (world-rotation deltas, IK-pinned legs for idles, FK legs otherwise). `--time-scale` slerp-stretches the source, `--smooth` low-passes it, `--head-damp 0.45` takes the bow out of a shambling head, `--arm-pose` swaps the arms for an authored socket-frame hand pose (weapon idles), `--lock-left-hand D` pins the left hand D m down the right hand's weapon handle (two-handed attacks, staff casts), `--travel-axis x` forces sideways root travel (strafes), `--mirror` swaps left/right in the source (Strafe_Left is the mirrored right strafe). `--arm-keys "0:bow_side,0.4:bow_draw,..."` keys arm presets over the clip (archery, summon, taunt; `free` releases the arm to the source). Ground correction per mode from the lowest vertex of **all six characters' meshes** (the Ref_ collections are un-excluded for the measurement). Reports gait period, travel, floor and seam | with `--save` |
+| `anim_grip_export.py [-- --save]` | the anim file | Keys the hand-authored finger grip (unkeyed pose on the finger controls of both hands) into the action `Grip`; export it with `export_fbx.py -- --clip Grip` and rebuild the prefabs, which sample it into `SkeletonWeapon.gripLeft/Right` | with `--save` |
 | `anim_twitch.py [-- --save]` | the anim file | Authors `Twitch_01..03`, the additive head + jaw clips (rest at frame 1 and the last frame) | with `--save` |
 | `anim_preview.py -- --action N [--frames 1,31,..] [--out DIR] [--ref SkeletonKnight]` | the anim file | Workbench contact sheet, front + side, one column per frame (default: six frames spread over the action; the camera follows the root's travel) | writes PNGs |
 
@@ -100,9 +101,10 @@ the socket bones, in edit mode.
 - `build_twitch_controller.py` — (re)builds `Animations/AC_Skeleton.controller` in place
   (Base: every clip as a state; UpperBody: Override layer masked by `AM_UpperBody.mask`
   at Spine1 with `Empty` + every manifest clip tagged `layer: upper`; Twitch: additive
-  layer with Rest + Twitch_01..03, trigger `Twitch` + int `TwitchIndex`) and measures the
-  additive head/jaw contribution over the idle and the walk+attack layering on the
-  Knight. Run it after every new clip. `Demo/Scripts/SkeletonTwitch.cs` fires the
+  layer with Rest + Twitch_01..03, trigger `Twitch` + int `TwitchIndex`; TwitchLoop_01..03:
+  additive loop layers at weight 0 for the demo's twitch toggles) and measures the
+  additive head/jaw contribution over the idle (fired once, and toggled on across two
+  passes) and the walk+attack layering on the Knight. Run it after every new clip. `Demo/Scripts/SkeletonTwitch.cs` fires the
   twitch layer at random; `SkeletonShowcase.PlayOnTheMove` uses the upper layer.
 - `layer_smoke.py [out_dir]` — play-mode proof of layered playback in the demo: walk,
   then an on-the-move attack (must land on UpperBody while Base keeps walking), then a

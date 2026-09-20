@@ -2829,9 +2829,75 @@ MonoBehaviour:
     - model: {fileID: 919132149155446097, guid: 3cfe90bd39cf6534fb5508945904e113, type: 3}
       hand: 1
       material: {fileID: 0}
+  gripLeft:
+  - bone: LeftHandThumb1
+    localRotation: {x: 0.017013934, y: -0.76783246, z: -0.3076165, w: 0.56170803}
+  - bone: LeftHandThumb2
+    localRotation: {x: 0.5218116, y: 0.14422692, z: -0.036228865, w: 0.8399993}
+  - bone: LeftHandThumb3
+    localRotation: {x: 0.4823877, y: 0.08551367, z: 0.028643854, w: 0.87130314}
+  - bone: LeftHandIndex1
+    localRotation: {x: 0.32892832, y: -0.06574303, z: 0.2728001, w: 0.9017007}
+  - bone: LeftHandIndex2
+    localRotation: {x: 0.54636014, y: -0.076726556, z: -0.082410336, w: 0.8299471}
+  - bone: LeftHandIndex3
+    localRotation: {x: 0.411476, y: -0.6069184, z: -0.20721875, w: 0.6476094}
+  - bone: LeftHandMiddle1
+    localRotation: {x: 0.37694058, y: -0.108615816, z: 0.2810203, w: 0.8758687}
+  - bone: LeftHandMiddle2
+    localRotation: {x: 0.50410205, y: -0.008163722, z: -0.01349351, w: 0.8635001}
+  - bone: LeftHandMiddle3
+    localRotation: {x: 0.44622242, y: -0.14938934, z: 0.15525007, w: 0.8685999}
+  - bone: LeftHandRing1
+    localRotation: {x: 0.36933282, y: -0.065355875, z: 0.29662567, w: 0.87825686}
+  - bone: LeftHandRing2
+    localRotation: {x: 0.54981095, y: -0.077376984, z: 0.026105732, w: 0.83128774}
+  - bone: LeftHandRing3
+    localRotation: {x: 0.40190667, y: -0.08567533, z: 0.13428298, w: 0.9017199}
+  - bone: LeftHandPinky1
+    localRotation: {x: 0.23995386, y: 0.025055245, z: 0.31277242, w: 0.9186773}
+  - bone: LeftHandPinky2
+    localRotation: {x: 0.47263744, y: -0.054119647, z: 0.110318154, w: 0.87264824}
+  - bone: LeftHandPinky3
+    localRotation: {x: 0.2748869, y: -0.010472417, z: 0.38766888, w: 0.8797957}
+  gripRight:
+  - bone: RightHandThumb1
+    localRotation: {x: -0.09266613, y: -0.777681, z: -0.32163897, w: -0.5321407}
+  - bone: RightHandThumb2
+    localRotation: {x: -0.58663327, y: 0.13823171, z: -0.043019976, w: -0.7968078}
+  - bone: RightHandThumb3
+    localRotation: {x: -0.43018746, y: 0.0863104, z: 0.023707833, w: -0.8982913}
+  - bone: RightHandIndex1
+    localRotation: {x: -0.48187077, y: -0.09164691, z: 0.31263423, w: -0.81342566}
+  - bone: RightHandIndex2
+    localRotation: {x: -0.6709685, y: -0.0656978, z: -0.104088776, w: -0.73119813}
+  - bone: RightHandIndex3
+    localRotation: {x: -0.41832286, y: -0.6054064, z: -0.21590978, w: -0.6417726}
+  - bone: RightHandMiddle1
+    localRotation: {x: -0.43989432, y: -0.13299717, z: 0.34389552, w: -0.8188655}
+  - bone: RightHandMiddle2
+    localRotation: {x: -0.5644622, y: -0.006974682, z: -0.016527615, w: -0.82526404}
+  - bone: RightHandMiddle3
+    localRotation: {x: -0.39417136, y: -0.1394598, z: 0.1604428, w: -0.89411294}
+  - bone: RightHandRing1
+    localRotation: {x: 0.40093344, y: 0.091180414, z: -0.3694638, w: 0.83332765}
+  - bone: RightHandRing2
+    localRotation: {x: -0.59491265, y: -0.074547336, z: 0.028399829, w: -0.799822}
+  - bone: RightHandRing3
+    localRotation: {x: -0.3254599, y: -0.0743934, z: 0.13023452, w: -0.9335847}
+  - bone: RightHandPinky1
+    localRotation: {x: 0.26947796, y: -0.0144681465, z: -0.3508681, w: 0.8966961}
+  - bone: RightHandPinky2
+    localRotation: {x: -0.4960559, y: -0.053224757, z: 0.11570349, w: -0.8588996}
+  - bone: RightHandPinky3
+    localRotation: {x: -0.21345729, y: 0.013616385, z: 0.36632425, w: -0.90557015}
   placeholderMaterial: {fileID: 2100000, guid: 531693aede88e77448518923a6a8bf60, type: 2}
-  forearmSocketOffset: {x: 0, y: 0.13, z: 0.03}
-  forearmSocketEuler: {x: 0, y: 90, z: 90}
+  forearmSocketOffset: {x: 0.028, y: 0.13, z: -0.021}
+  forearmSocketEuler: {x: 0, y: 126.1, z: 180}
+  rightHandOffset: {x: -0.028, y: 0.008, z: -0.038}
+  rightHandEuler: {x: 0, y: 0, z: 0}
+  leftHandOffset: {x: 0.038, y: 0.01, z: -0.037}
+  leftHandEuler: {x: 0, y: 0, z: 0}
 --- !u!1 &6077060544750161325
 GameObject:
   m_ObjectHideFlags: 0

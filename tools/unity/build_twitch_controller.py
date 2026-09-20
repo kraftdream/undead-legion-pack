@@ -10,7 +10,11 @@ entry (Animations/clips.json) says `layer: upper` -> an attack that can be playe
 move over a locomotion loop. Layer 2 "Twitch": Additive, weight 1, states Rest (empty) and
 Twitch_01..03; Rest -> Twitch_NN on trigger `Twitch` with `TwitchIndex` == NN-1, back to
 Rest on exit time. Demo/Scripts/SkeletonTwitch.cs drives it at random, SkeletonShowcase
-routes upper clips to layer 1 while a locomotion clip plays on layer 0.
+routes upper clips to layer 1 while a locomotion clip plays on layer 0. Layers 3..5
+"TwitchLoop_01..03": Additive, weight 0, one looping state each, so a twitch can be
+toggled ON and stay added to whatever plays (SkeletonShowcase.SetTwitchLoop sets the
+weight); several can be on at once. The twitch importers are set to loop for that; the
+trigger layer still plays them once because its exit transition fires at exit time 1.
 
 Then measures on the Knight, in edit mode: Head and Jaw local rotation per frame with
 the twitch layer at weight 0 versus weight 1 with Twitch_03 fired at frame 0. The
@@ -36,7 +40,7 @@ foreach (var guid in AssetDatabase.FindAssets("Skeleton@ t:Model", new string[]{
   var p = AssetDatabase.GUIDToAssetPath(guid); var fn = System.IO.Path.GetFileNameWithoutExtension(p);
   if (!fn.StartsWith("Skeleton@")) continue;
   var nm = fn.Substring("Skeleton@".Length);
-  if (nm == "Idle" || nm.StartsWith("Twitch_")) continue;
+  if (nm == "Idle" || nm.StartsWith("Twitch_") || nm == "Grip") continue;   // Grip: finger pose data, not a state
   var cl = load(nm); if (cl != null) idleClips.Add(cl);
 }
 idleClips.Sort((x, y) => string.CompareOrdinal(x.name, y.name));
@@ -73,7 +77,8 @@ foreach (AvatarMaskBodyPart part in System.Enum.GetValues(typeof(AvatarMaskBodyP
 }
 string modelPath = "Assets/UndeadLegion/Models/SkeletonKnight/SK_SkeletonKnight.fbx";
 var modelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
-mask.AddTransformPath(modelPrefab.transform, true);
+if (mask.transformCount == 0) mask.AddTransformPath(modelPrefab.transform, true);   // adding again duplicates every path
+else if (mask.transformCount > 80) { while (mask.transformCount > 0) mask.RemoveTransformPath(modelPrefab.transform, true); mask.AddTransformPath(modelPrefab.transform, true); }
 int upperPaths = 0;
 for (int i = 0; i < mask.transformCount; i++) {
   string tp = mask.GetTransformPath(i);
@@ -83,9 +88,19 @@ for (int i = 0; i < mask.transformCount; i++) {
 if (newMask) AssetDatabase.CreateAsset(mask, maskPath); else EditorUtility.SetDirty(mask);
 sb.AppendLine("mask " + maskPath + ": " + upperPaths + "/" + mask.transformCount + " transform paths upper");
 
+// twitch clips loop (for the loop layers); the trigger layer's exit-time transition still ends them after one pass
+foreach (var tn in new string[]{ "Twitch_01", "Twitch_02", "Twitch_03" }) {
+  var timp = AssetImporter.GetAtPath(dir + "Skeleton@" + tn + ".fbx") as ModelImporter;
+  if (timp == null) continue;
+  var tclips = timp.clipAnimations; bool dirty = false;
+  for (int i = 0; i < tclips.Length; i++) if (!tclips[i].loopTime) { tclips[i].loopTime = true; dirty = true; }
+  if (dirty) { timp.clipAnimations = tclips; timp.SaveAndReimport(); sb.AppendLine("set loopTime on " + tn); }
+}
 ctrl.AddLayer("UpperBody");
 ctrl.AddLayer("Twitch");
+ctrl.AddLayer("TwitchLoop_01"); ctrl.AddLayer("TwitchLoop_02"); ctrl.AddLayer("TwitchLoop_03");
 var layers = ctrl.layers;
+for (int i = 3; i < 6; i++) { layers[i].blendingMode = UnityEditor.Animations.AnimatorLayerBlendingMode.Additive; layers[i].defaultWeight = 0f; }
 layers[1].blendingMode = UnityEditor.Animations.AnimatorLayerBlendingMode.Override;
 layers[1].defaultWeight = 1f;
 layers[1].avatarMask = mask;
@@ -114,6 +129,12 @@ for (int i = 0; i < 3; i++) {
   var back = st.AddTransition(rest); back.hasExitTime = true; back.exitTime = 1f; back.duration = 0.1f;
   n++;
 }
+int nLoop = 0;
+for (int i = 0; i < 3; i++) {
+  var clip = load("Twitch_0" + (i + 1)); if (clip == null) continue;
+  var lsm = ctrl.layers[3 + i].stateMachine; var ls = lsm.AddState("Twitch_0" + (i + 1)); ls.motion = clip; lsm.defaultState = ls; nLoop++;
+}
+sb.AppendLine("twitch loop layers: " + nLoop + " (additive, weight 0 until toggled)");
 EditorUtility.SetDirty(ctrl); AssetDatabase.SaveAssets();
 sb.AppendLine("controller " + path + ": layers=" + ctrl.layers.Length + " twitch states=" + n + " layer2 mode=" + ctrl.layers[2].blendingMode);
 
@@ -147,6 +168,18 @@ for (int f = 0; f < frames; f++) {
 }
 sb.AppendLine(string.Format("Twitch_03 over Idle on the Knight: Head additive peak {0:F1} deg at frame {1}, Jaw peak {2:F1} deg at frame {3}, Hips diff {4:F2} deg, frames with visible twitch {5}/{6}", mh, fh, mj, fj, mp, active, frames));
 sb.AppendLine("base Idle alone: Head moved " + Quaternion.Angle(headA[0], headA[frames-1]).ToString("F1") + " deg between first and last frame (idle motion, not twitch)");
+// loop layers: Twitch_01 (75 frames) toggled on must still twitch in frames 90..200 (second pass) and Hips must stay put
+{
+  int lf = 200; var hOff = new Quaternion[lf]; var jOff = new Quaternion[lf]; var hOn = new Quaternion[lf]; var jOn = new Quaternion[lf]; var pOn = new Quaternion[lf]; var pOff = new Quaternion[lf];
+  for (int run = 0; run < 2; run++) {
+    an.Rebind(); an.Update(0f); an.SetLayerWeight(an.GetLayerIndex("Twitch"), 0f);
+    an.SetLayerWeight(an.GetLayerIndex("TwitchLoop_01"), run == 0 ? 0f : 1f);
+    for (int f = 0; f < lf; f++) { an.Update(1f / 30f); if (run == 0) { hOff[f] = head.localRotation; jOff[f] = jaw.localRotation; pOff[f] = hips.localRotation; } else { hOn[f] = head.localRotation; jOn[f] = jaw.localRotation; pOn[f] = hips.localRotation; } }
+  }
+  float p1 = 0, p2 = 0, ph = 0; int act2 = 0;
+  for (int f = 0; f < lf; f++) { float d = Mathf.Max(Quaternion.Angle(hOff[f], hOn[f]), Quaternion.Angle(jOff[f], jOn[f])); ph = Mathf.Max(ph, Quaternion.Angle(pOff[f], pOn[f])); if (f < 75) p1 = Mathf.Max(p1, d); else { p2 = Mathf.Max(p2, d); if (d > 0.2f) act2++; } }
+  sb.AppendLine(string.Format("TwitchLoop_01 toggled on over Idle: head/jaw peak {0:F1} deg in the first pass, {1:F1} deg in the second pass (frames 75..200, {2} frames visibly twitching), Hips diff {3:F2} deg", p1, p2, act2, ph));
+}
 
 // ---- layering proof: Walk_Fwd on Base + Attack_1H_01 on UpperBody must give the walk's legs
 // and the attack's arms; compared per frame against each clip played alone on the base layer

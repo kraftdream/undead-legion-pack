@@ -146,8 +146,6 @@ namespace UndeadLegion.DemoEditor
             RightMid(rootToggle.Item1, -540f);
             var turnToggle = Toggle(footer, "TurntableToggle", "Turntable", true);
             RightMid(turnToggle.Item1, -390f);
-            var twitchToggle = Toggle(footer, "TwitchToggle", "Random twitch", true);
-            RightMid(twitchToggle.Item1, -230f);
             var recenter = TextButton(footer, "RecenterButton", "Recenter", Accent);
             RightMid((RectTransform)recenter.transform, -24f);
             ((RectTransform)recenter.transform).sizeDelta = new Vector2(120f, 34f);
@@ -166,7 +164,6 @@ namespace UndeadLegion.DemoEditor
             showcase.clipInfoLabel = info.GetComponent<Text>();
             showcase.rootMotionToggle = rootToggle.Item2;
             showcase.turntableToggle = turnToggle.Item2;
-            showcase.twitchToggle = twitchToggle.Item2;
             showcase.recenterButton = recenter;
             showcase.allModulesButton = allBtn;
             showcase.noModulesButton = noneBtn;
