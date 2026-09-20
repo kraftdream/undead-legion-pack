@@ -17,7 +17,7 @@ MODELS = ["SkeletonKnight", "SkeletonArcher", "SkeletonAssassin", "SkeletonMage"
 
 CODE = r'''
 var sb = new System.Text.StringBuilder();
-string clipPath = "%CLIP%"; string avatarPath = "%AVATAR%"; bool loop = %LOOP%; bool additive = %ADDITIVE%;
+string clipPath = "%CLIP%"; string avatarPath = "%AVATAR%"; bool loop = %LOOP%; bool additive = %ADDITIVE%; bool inPlace = %INPLACE%;
 var avImp = AssetImporter.GetAtPath(avatarPath) as ModelImporter;
 Avatar srcAvatar = null;
 foreach (var a in AssetDatabase.LoadAllAssetsAtPath(avatarPath)) if (a is Avatar) srcAvatar = (Avatar)a;
@@ -31,7 +31,7 @@ imp.globalScale = 1f; imp.useFileScale = true; imp.importAnimation = true;
 imp.materialImportMode = ModelImporterMaterialImportMode.None; imp.bakeAxisConversion = false;
 imp.importBlendShapes = false; imp.importCameras = false; imp.importLights = false;
 var clips = imp.defaultClipAnimations;
-foreach (var c in clips) { c.loopTime = loop; c.loopPose = false; c.hasAdditiveReferencePose = additive; c.additiveReferencePoseFrame = 0f; c.lockRootRotation = false; c.lockRootHeightY = false; c.lockRootPositionXZ = false; c.keepOriginalOrientation = true; c.keepOriginalPositionY = true; c.keepOriginalPositionXZ = true; }
+foreach (var c in clips) { c.loopTime = loop; c.loopPose = false; c.hasAdditiveReferencePose = additive; c.additiveReferencePoseFrame = 0f; c.lockRootRotation = inPlace; c.lockRootHeightY = true; c.lockRootPositionXZ = inPlace; c.keepOriginalOrientation = true; c.keepOriginalPositionY = true; c.keepOriginalPositionXZ = true; }
 imp.clipAnimations = clips;
 imp.SaveAndReimport();
 AnimationClip clip = null;
@@ -76,7 +76,8 @@ if __name__ == "__main__":
     avatar = args[args.index("--avatar") + 1] if "--avatar" in args else "Assets/UndeadLegion/Models/SkeletonKnight/SK_SkeletonKnight.fbx"
     loop = "true" if ("--loop" in args and args[args.index("--loop") + 1] == "1") else "false"
     additive = "true" if ("--additive" in args and args[args.index("--additive") + 1] == "1") else "false"
-    code = CODE.replace("%CLIP%", clip).replace("%AVATAR%", avatar).replace("%LOOP%", loop).replace("%ADDITIVE%", additive) \
+    inplace = "true" if ("--in-place" in args and args[args.index("--in-place") + 1] == "1") else "false"
+    code = CODE.replace("%CLIP%", clip).replace("%AVATAR%", avatar).replace("%LOOP%", loop).replace("%ADDITIVE%", additive).replace("%INPLACE%", inplace) \
                .replace("%MODELS%", ", ".join('"%s"' % m for m in MODELS))
     c = Client()
     try:

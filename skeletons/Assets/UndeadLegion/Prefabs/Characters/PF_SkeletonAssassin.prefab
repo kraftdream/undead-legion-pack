@@ -828,7 +828,7 @@ Transform:
   m_GameObject: {fileID: 1020716790977970785}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
-  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1295,6 +1295,7 @@ GameObject:
   - component: {fileID: 2929394207247959385}
   - component: {fileID: 7566156611855687146}
   - component: {fileID: 9146845616936775146}
+  - component: {fileID: 7967734679377390836}
   m_Layer: 0
   m_Name: PF_SkeletonAssassin
   m_TagString: Untagged
@@ -1405,6 +1406,74 @@ MonoBehaviour:
   minWeight: 0.5
   maxWeight: 1
   seed: 0
+--- !u!114 &7967734679377390836
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2001794907257193781}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63c895e103adc914b932832dd126def4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UndeadLegion.Demo.SkeletonWeapon
+  loadouts:
+  - displayName: Sword + shield
+    items:
+    - model: {fileID: 919132149155446097, guid: d45aa743ac823c14d8643f9df0fcfe4d, type: 3}
+      hand: 0
+    - model: {fileID: 919132149155446097, guid: 056f8fd6736ddc945b0cf4de47a22248, type: 3}
+      hand: 2
+  - displayName: Sword
+    items:
+    - model: {fileID: 919132149155446097, guid: d45aa743ac823c14d8643f9df0fcfe4d, type: 3}
+      hand: 0
+  - displayName: Axe + round shield
+    items:
+    - model: {fileID: 919132149155446097, guid: 62ac2ad17eb918d41bc377fe289f7bc2, type: 3}
+      hand: 0
+    - model: {fileID: 919132149155446097, guid: f07c40a4c51ee4e4e845f42d879f9b79, type: 3}
+      hand: 2
+  - displayName: Mace
+    items:
+    - model: {fileID: 919132149155446097, guid: ec0a2286378e97b458e9eabace85d1c9, type: 3}
+      hand: 0
+  - displayName: Dagger
+    items:
+    - model: {fileID: 919132149155446097, guid: e4b625b879e59544197ccafcc201eddb, type: 3}
+      hand: 0
+  - displayName: Two daggers
+    items:
+    - model: {fileID: 919132149155446097, guid: e4b625b879e59544197ccafcc201eddb, type: 3}
+      hand: 0
+    - model: {fileID: 919132149155446097, guid: e4b625b879e59544197ccafcc201eddb, type: 3}
+      hand: 1
+  - displayName: Longsword (2H)
+    items:
+    - model: {fileID: 919132149155446097, guid: 1c4324266da1a8d40811184e962b15db, type: 3}
+      hand: 0
+  - displayName: Battle axe (2H)
+    items:
+    - model: {fileID: 919132149155446097, guid: 0c45aa7b0786a7c428fc024b5bc9329a, type: 3}
+      hand: 0
+  - displayName: Longbow
+    items:
+    - model: {fileID: 919132149155446097, guid: 5bf8ccd0ed5451c49882a697edae36c3, type: 3}
+      hand: 1
+    - model: {fileID: 919132149155446097, guid: 78040aff5a185924f8ebfcba672d8544, type: 3}
+      hand: 0
+  - displayName: Staff
+    items:
+    - model: {fileID: 919132149155446097, guid: 8999a7d9a39d4844580afdb38399fb36, type: 3}
+      hand: 0
+  - displayName: Spellbook
+    items:
+    - model: {fileID: 919132149155446097, guid: 3cfe90bd39cf6534fb5508945904e113, type: 3}
+      hand: 1
+  placeholderMaterial: {fileID: 2100000, guid: 531693aede88e77448518923a6a8bf60, type: 2}
+  forearmSocketOffset: {x: 0, y: 0.13, z: 0.03}
+  forearmSocketEuler: {x: 0, y: 90, z: 90}
 --- !u!1 &2015440392650792239
 GameObject:
   m_ObjectHideFlags: 0

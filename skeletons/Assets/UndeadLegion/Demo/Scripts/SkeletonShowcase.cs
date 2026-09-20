@@ -29,6 +29,8 @@ namespace UndeadLegion.Demo
         public RectTransform clipListContent;
         public RectTransform moduleListContent;
         public Text moduleHeaderLabel;
+        public RectTransform weaponListContent;
+        public Text weaponHeaderLabel;
         public Text characterNameLabel;
         public Text clipInfoLabel;
         public Toggle rootMotionToggle;
@@ -46,6 +48,8 @@ namespace UndeadLegion.Demo
         public string idleClipName = "Idle";
         [Tooltip("Seconds a finished death clip holds its last pose before the idle returns.")]
         public float deathHold = 2f;
+        [Tooltip("With root motion on, bring the character back to the spawn point once it is this far away (metres). 0 = never: the position is only reset by the Recenter button or by turning root motion off.")]
+        public float rootMotionLeash = 0f;
         [Tooltip("Prefix of the clips that live on the additive twitch layer.")]
         public string twitchPrefix = "Twitch_";
 
@@ -56,13 +60,22 @@ namespace UndeadLegion.Demo
         Animator _animator;
         SkeletonModules _modules;
         SkeletonTwitch _twitch;
+        SkeletonWeapon _weapon;
         readonly List<Button> _characterButtons = new List<Button>();
         readonly List<Button> _clipButtons = new List<Button>();
         readonly List<Button> _moduleButtons = new List<Button>();
+        readonly List<Button> _weaponButtons = new List<Button>();
         readonly List<AnimationClip> _clips = new List<AnimationClip>();      // base-layer clips, display order
         readonly List<AnimationClip> _twitches = new List<AnimationClip>();   // additive-layer clips
         AnimationClip _current;
         AnimationClip _pendingFollow;
+        // layered playback: clips with a state on the "UpperBody" layer (attacks that can be
+        // performed on the move) play there while a locomotion loop keeps the legs; a clip
+        // without one is a full stop: it takes the base layer and the loop resumes after it
+        int _upperLayer = -1;
+        AnimationClip _upperCurrent;
+        int _upperPlayFrame = -10;
+        AnimationClip _lastLoco;
         float _pendingAt;
         int _playFrame = -10;
 
@@ -106,7 +119,21 @@ namespace UndeadLegion.Demo
                 }
                 return;
             }
+            if (_upperCurrent != null && Time.frameCount > _upperPlayFrame + 1 && !_animator.IsInTransition(_upperLayer))
+            {
+                var us = _animator.GetCurrentAnimatorStateInfo(_upperLayer);
+                if (!us.IsName(_upperCurrent.name) || us.normalizedTime >= 1f)
+                {
+                    _upperCurrent = null;
+                    if (_current != null) ShowClipInfo(_current);
+                }
+            }
             if (_current == null) return;
+            if (rootMotionLeash > 0f && _instance != null && rootMotionToggle != null && rootMotionToggle.isOn)
+            {
+                var where = spawnPoint != null ? spawnPoint.position : transform.position;
+                if ((_instance.transform.position - where).sqrMagnitude > rootMotionLeash * rootMotionLeash) Recenter();
+            }
             // The frame after Play() the animator still reports the previous state.
             if (Time.frameCount <= _playFrame + 1) return;
 
@@ -155,6 +182,9 @@ namespace UndeadLegion.Demo
             if (_instance != null) Destroy(_instance);
             _current = null;
             _pendingFollow = null;
+            _upperCurrent = null;
+            _lastLoco = null;
+            _upperLayer = -1;
             _clips.Clear();
             _twitches.Clear();
 
@@ -170,10 +200,13 @@ namespace UndeadLegion.Demo
             _instance = Instantiate(entry.prefab, where.position, where.rotation);
             _instance.name = entry.prefab.name;
             _animator = _instance.GetComponentInChildren<Animator>();
+            if (_animator != null) _upperLayer = _animator.GetLayerIndex("UpperBody");
             _modules = _instance.GetComponentInChildren<SkeletonModules>();
             _twitch = _instance.GetComponentInChildren<SkeletonTwitch>();
             if (_twitch != null && twitchToggle != null) _twitch.enabled = twitchToggle.isOn;
+            _weapon = _instance.GetComponentInChildren<SkeletonWeapon>();
             BuildModuleList();
+            BuildWeaponList();
             FrameCamera();
 
             if (characterNameLabel != null)
@@ -216,13 +249,24 @@ namespace UndeadLegion.Demo
 
         static readonly ClipSection[] Sections =
         {
+            new ClipSection { title = "Idle", idlePreference = new[] { "Idle" },
+                members = new[] { "Idle", "Idle_02", "Idle_03" } },
+            new ClipSection { title = "Weapon idles", idlePreference = new[] { "Idle" },
+                members = new[] { "Idle_OneHanded", "Idle_TwoHanded", "Idle_Propped", "Idle_Bow", "Idle_Staff", "Idle_Wand" } },
             new ClipSection { title = "Locomotion", idlePreference = new[] { "Idle" },
-                members = new[] { "Idle", "Walk_Fwd", "Walk_Back", "Run_Fwd", "Strafe_Left", "Strafe_Right",
+                members = new[] { "Walk_Fwd", "Walk_Back", "Run_Fwd", "Strafe_Left", "Strafe_Right",
                                   "Turn_Left_90", "Turn_Right_90" } },
-            new ClipSection { title = "Combat", idlePreference = new[] { "Idle_Combat", "Idle" },
-                members = new[] { "Idle_Combat", "Attack_Light_01", "Attack_Light_02", "Attack_Heavy",
-                                  "Attack_Special", "Shoot", "Cast", "Idle_Block", "Block_Impact", "Dodge_Back" } },
-            new ClipSection { title = "Reactions", idlePreference = new[] { "Idle_Combat", "Idle" },
+            new ClipSection { title = "One-handed", idlePreference = new[] { "Idle_OneHanded", "Idle" },
+                members = new[] { "Attack_1H_01", "Attack_1H_02", "Shield_Bash", "Block" } },
+            new ClipSection { title = "Two-handed", idlePreference = new[] { "Idle_TwoHanded", "Idle" },
+                members = new[] { "Attack_2H_01", "Attack_2H_02" } },
+            new ClipSection { title = "Bow", idlePreference = new[] { "Idle_Bow", "Idle" },
+                members = new[] { "Shoot_01", "Shoot_02" } },
+            new ClipSection { title = "Magic", idlePreference = new[] { "Idle_Staff", "Idle_Wand", "Idle" },
+                members = new[] { "Cast_Wand_01", "Cast_Wand_02", "Cast_Staff_01", "Cast_Staff_02" } },
+            new ClipSection { title = "Specials", idlePreference = new[] { "Idle" },
+                members = new[] { "Taunt", "Rally", "Cutthroat", "Summon", "AOE_Cast" } },
+            new ClipSection { title = "Reactions", idlePreference = new[] { "Idle" },
                 members = new[] { "Hit_Front", "Hit_Back", "Stagger", "Knockdown", "Get_Up", "Rise" } },
             new ClipSection { title = "Death", idlePreference = new string[0],
                 members = new[] { "Death_01", "Death_02" } },
@@ -287,8 +331,22 @@ namespace UndeadLegion.Demo
             }
         }
 
+        bool IsLocomotion(AnimationClip clip)
+        {
+            ClipSection s;
+            return clip != null && _sectionOf.TryGetValue(clip.name, out s) && s.title == "Locomotion";
+        }
+
+        /// <summary>True when the controller offers this clip on the masked upper-body layer.</summary>
+        public bool CanPlayOnTheMove(AnimationClip clip)
+        {
+            return clip != null && _animator != null && _upperLayer >= 0
+                   && _animator.HasState(_upperLayer, Animator.StringToHash(clip.name));
+        }
+
         AnimationClip ReturnClipFor(AnimationClip clip)
         {
+            if (_lastLoco != null && !clip.name.StartsWith("Death")) return _lastLoco;
             ClipSection s;
             if (_sectionOf.TryGetValue(clip.name, out s))
                 foreach (var name in s.idlePreference)
@@ -299,18 +357,25 @@ namespace UndeadLegion.Demo
             return _clips.Find(x => x.name == idleClipName);
         }
 
-        /// <param name="resetFacing">True when the viewer picked the clip: put the character
-        /// back on the spawn point facing forward. False when falling back to idle after a
-        /// one-shot, where a turn's rotation must survive.</param>
+        /// <param name="resetFacing">Kept for callers; the position is no longer reset when a
+        /// clip starts or ends (the character stays where root motion left it, the turntable
+        /// follows it). Only the Recenter button and turning root motion off recenter.</param>
         public void Play(AnimationClip clip, bool resetFacing = true)
         {
             if (_animator == null || clip == null) return;
-            _pendingFollow = null;
-            if (resetFacing && _instance != null)
+            if (_current != null && _current.isLooping && IsLocomotion(_current) && CanPlayOnTheMove(clip))
             {
-                var home = spawnPoint != null ? spawnPoint : transform;
-                _instance.transform.SetPositionAndRotation(home.position, home.rotation);
+                PlayOnTheMove(clip);
+                return;
             }
+            if (_upperCurrent != null)
+            {
+                _animator.Play("Empty", _upperLayer, 0f);
+                _upperCurrent = null;
+            }
+            if (IsLocomotion(clip)) _lastLoco = clip;
+            else if (clip.isLooping) _lastLoco = null;          // an idle picked by hand ends the walk
+            _pendingFollow = null;
             int hash = Animator.StringToHash(clip.name);
             bool hasEvents = clip.events != null && clip.events.Length > 0;
             bool restart = !clip.isLooping && !_animator.IsInTransition(0)
@@ -322,13 +387,30 @@ namespace UndeadLegion.Demo
             _current = clip;
             _playFrame = Time.frameCount;
             Highlight(_clipButtons, _clips.IndexOf(clip));
+            ShowClipInfo(clip);
+        }
+
+        void ShowClipInfo(AnimationClip clip)
+        {
+            if (clipInfoLabel == null) return;
+            int frames = Mathf.RoundToInt(clip.length * clip.frameRate);
+            string tail = clip.isLooping ? "looping" : "one-shot";
+            if (!clip.isLooping && _lastLoco != null && !clip.name.StartsWith("Death")) tail = "full stop, then " + _lastLoco.name;
+            else if (clip.isLooping && IsLocomotion(clip)) tail = "looping   |   pick an attack: on-the-move ones play over it";
+            clipInfoLabel.text = string.Format("{0}   |   {1:0.00}s   |   {2} frames @ {3:0}fps   |   {4}",
+                clip.name, clip.length, frames, clip.frameRate, tail);
+        }
+
+        /// <summary>Play an upper-body-capable clip on the masked layer over the running locomotion loop.</summary>
+        public void PlayOnTheMove(AnimationClip clip)
+        {
+            if (!CanPlayOnTheMove(clip)) { Play(clip); return; }
+            _animator.Play(Animator.StringToHash(clip.name), _upperLayer, 0f);
+            _upperCurrent = clip;
+            _upperPlayFrame = Time.frameCount;
             if (clipInfoLabel != null)
-            {
-                int frames = Mathf.RoundToInt(clip.length * clip.frameRate);
-                clipInfoLabel.text = string.Format("{0}   |   {1:0.00}s   |   {2} frames @ {3:0}fps   |   {4}",
-                    clip.name, clip.length, frames, clip.frameRate, clip.isLooping ? "looping" : "one-shot");
-            }
-            if (rootMotionToggle != null && rootMotionToggle.isOn) Recenter();
+                clipInfoLabel.text = string.Format("{0}   |   {1:0.00}s   |   upper body over {2}   (legs keep walking)",
+                    clip.name, clip.length, _current != null ? _current.name : "-");
         }
 
         public void FireTwitch(int index)
@@ -403,6 +485,35 @@ namespace UndeadLegion.Demo
                 var img = _moduleButtons[i].GetComponent<Image>();
                 if (img != null) img.color = _modules.IsWorn(i) ? SelectedColor : NormalColor;
             }
+        }
+
+        // ---------------------------------------------------------------- weapons
+
+        void BuildWeaponList()
+        {
+            Clear(weaponListContent, _weaponButtons);
+            if (weaponListContent == null) return;
+            bool any = _weapon != null && _weapon.Count > 0;
+            if (weaponHeaderLabel != null) weaponHeaderLabel.text = any ? "WEAPONS" : "WEAPONS  (none)";
+            if (!any) return;
+            var none = DemoUI.CreateListButton(weaponListContent, "None", NormalColor);
+            none.onClick.AddListener(() => SelectWeapon(-1));
+            _weaponButtons.Add(none);
+            for (int i = 0; i < _weapon.Count; i++)
+            {
+                int index = i;
+                var b = DemoUI.CreateListButton(weaponListContent, _weapon.NameAt(i), NormalColor);
+                b.onClick.AddListener(() => SelectWeapon(index));
+                _weaponButtons.Add(b);
+            }
+            SelectWeapon(-1);
+        }
+
+        public void SelectWeapon(int index)
+        {
+            if (_weapon == null) return;
+            _weapon.Equip(index);
+            Highlight(_weaponButtons, index + 1);   // button 0 is "None"
         }
 
         // ---------------------------------------------------------------- framing
