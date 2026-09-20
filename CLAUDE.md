@@ -21,7 +21,7 @@ and importing the exports into Unity 6000.4 through the editor bridge.
 | Skeleton Mage        | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | **yes** | **yes** |
 | Skeleton Necromancer | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | **yes** | **yes** |
 | Skeleton Warrior     | done | done | **yes** | **yes** | valid | **yes** | **yes** |
-| Weapons (12 meshes)  | done | **none** — no UVs, no materials | n/a | — | n/a | — | — |
+| Weapons (13 meshes)  | done | 5 textured (sword, dagger, axe, mace, heater shield), 8 untextured | n/a | `SM_*.fbx` ×13 | n/a | `M_Weapon_<Name>` ×5 + placeholder | **yes** (12 loadouts) |
 
 Shared clips so far: `Idle`, `Idle_02`, `Idle_03` (loops, 8 / 12 / 12 s) +
 `Twitch_01..03` (additive), on `AC_Skeleton`. Armour materials render both faces
@@ -72,8 +72,19 @@ clip `Test_RootMotion` stays in the anim file, not in Unity.
 - `SkeletonMage`, `SkeletonNecromancer` and `SkeletonAssassin` have **no `armor_metallic.png`**;
   Knight, Archer and Warrior do. Either those armours are non-metallic by design (then
   the material must not sample a metallic map) or the bake was skipped.
-- `Weapons/weapons.blend` holds 12 rigid meshes (`H1Sword`, `H2Longbow`, `H1Spellbook`…)
-  with **no UVs, no textures and placeholder Tripo materials**. No grip convention yet.
+- **Weapons** (2026-09-20): `Weapons/prod.blend` replaced `weapons.blend` as the source.
+  `H1Sword`, `H1Dagger`, `H1Axe`, `H1Mace`, `H1HeaterShield` have UVs and 512² PBR maps
+  (`Weapons/<lower>_{color,normal,roughness[,metallic]}.png`, packed by
+  `tools/pack_textures.py -- Weapons` into `Textures/Weapons/`, materials
+  `M_Weapon_<Name>` made by the import setup, assigned per loadout item). Still
+  untextured on the placeholder: round shield, longsword, battle axe, longbow, staff,
+  spellbook, arrow. Several meshes were rescaled in prod.blend (longsword 1.15 m, staff
+  1.24 m, heater shield 0.70 m at pack scale); the grips carried over at the same
+  relative position along the length. The **Arrow** in prod.blend is 2 cm long, so it is
+  still exported from `weapons.blend` (`--only Arrow`). **`H1Wand`** in prod.blend is the
+  staff mesh squashed to 0.39 m in length only and renders as a block: not exported, no
+  Wand loadout until a real mesh exists. `Weapons/prod.blend1` came in tracked from a
+  remote commit and is removed from the index (autosaves are ignored, §5).
 - The **old mesh-only exports in the character folders are superseded but still
   tracked**: `skeleton.fbx`, `armor.fbx`, `mesh_quad.fbx`, `mesh_uv.fbx`. The Unity
   copies (`SkeletonKnight_{Body,Armor}.fbx`) were deleted on 2026-09-19 and every prefab
