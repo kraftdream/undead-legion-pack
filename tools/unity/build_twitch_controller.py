@@ -1,10 +1,16 @@
-"""Build Assets/UndeadLegion/Animations/AC_Skeleton.controller and prove the additive twitch layer.
+"""Build Assets/UndeadLegion/Animations/AC_Skeleton.controller (+ AM_UpperBody.mask) and prove
+the additive twitch layer and the upper-body layer.
 
     python tools/unity/build_twitch_controller.py
 
-Layer 0 "Base": Idle (looping). Layer 1 "Twitch": Additive, weight 1, states Rest (empty)
-and Twitch_01..03; Rest -> Twitch_NN on trigger `Twitch` with `TwitchIndex` == NN-1,
-back to Rest on exit time. Demo/Scripts/SkeletonTwitch.cs drives it at random.
+Layer 0 "Base": every Skeleton@*.fbx clip as a state (Idle default). Layer 1 "UpperBody":
+Override, weight 1, AvatarMask AM_UpperBody (humanoid Body/Head/Arms/Fingers, no Root, no
+legs; extra transforms under Spine1), states Empty (default) + every clip whose manifest
+entry (Animations/clips.json) says `layer: upper` -> an attack that can be played on the
+move over a locomotion loop. Layer 2 "Twitch": Additive, weight 1, states Rest (empty) and
+Twitch_01..03; Rest -> Twitch_NN on trigger `Twitch` with `TwitchIndex` == NN-1, back to
+Rest on exit time. Demo/Scripts/SkeletonTwitch.cs drives it at random, SkeletonShowcase
+routes upper clips to layer 1 while a locomotion clip plays on layer 0.
 
 Then measures on the Knight, in edit mode: Head and Jaw local rotation per frame with
 the twitch layer at weight 0 versus weight 1 with Twitch_03 fired at frame 0. The
@@ -23,19 +29,80 @@ System.Func<string, AnimationClip> load = (name) => {
   return null;
 };
 var idle = load("Idle"); if (idle == null) return "no Idle clip";
+// every Skeleton@*.fbx except the twitches becomes a base-layer state named after its clip
+// (Idle is the default; the browser plays states by clip name)
+var idleClips = new System.Collections.Generic.List<AnimationClip>();
+foreach (var guid in AssetDatabase.FindAssets("Skeleton@ t:Model", new string[]{ dir.TrimEnd('/') })) {
+  var p = AssetDatabase.GUIDToAssetPath(guid); var fn = System.IO.Path.GetFileNameWithoutExtension(p);
+  if (!fn.StartsWith("Skeleton@")) continue;
+  var nm = fn.Substring("Skeleton@".Length);
+  if (nm == "Idle" || nm.StartsWith("Twitch_")) continue;
+  var cl = load(nm); if (cl != null) idleClips.Add(cl);
+}
+idleClips.Sort((x, y) => string.CompareOrdinal(x.name, y.name));
 string path = dir + "AC_Skeleton.controller";
-var ctrl = UnityEditor.Animations.AnimatorController.CreateAnimatorControllerAtPath(path);
+// rebuild IN PLACE: deleting the asset gives it a new GUID and every prefab's Animator
+// then points at a missing controller (measured: empty clip list, nothing plays)
+var ctrl = AssetDatabase.LoadAssetAtPath<UnityEditor.Animations.AnimatorController>(path);
+if (ctrl == null) ctrl = UnityEditor.Animations.AnimatorController.CreateAnimatorControllerAtPath(path);
+while (ctrl.layers.Length > 0) ctrl.RemoveLayer(0);
+while (ctrl.parameters.Length > 0) ctrl.RemoveParameter(0);
+ctrl.AddLayer("Base");
 ctrl.AddParameter("Twitch", AnimatorControllerParameterType.Trigger);
 ctrl.AddParameter("TwitchIndex", AnimatorControllerParameterType.Int);
-var layers = ctrl.layers; layers[0].name = "Base"; ctrl.layers = layers;
 var baseSm = ctrl.layers[0].stateMachine;
+// NO Foot IK: measured 2026-09-19, Foot IK put the goals ~13 mm BELOW the FK feet (Idle raw
+// penetration -5 mm -> -18 mm). Grounding is a per-clip lift measured in Unity instead
+// (tools/unity/ground_clip.py -> export_fbx --lift) plus the prefab's clearance.
 var idleState = baseSm.AddState("Idle"); idleState.motion = idle; baseSm.defaultState = idleState;
+foreach (var cl in idleClips) { var vs = baseSm.AddState(cl.name); vs.motion = cl; }
+sb.AppendLine("base layer: Idle + " + idleClips.Count + " more states");
+
+// ---- upper-body mask: humanoid parts Body/Head/Arms/Fingers on, Root + legs + IK goals off;
+// the extra (non-humanoid) transforms follow the same cut: everything under Spine1 on
+string maskPath = dir + "AM_UpperBody.mask";
+var mask = AssetDatabase.LoadAssetAtPath<AvatarMask>(maskPath);
+bool newMask = mask == null;
+if (newMask) mask = new AvatarMask();
+foreach (AvatarMaskBodyPart part in System.Enum.GetValues(typeof(AvatarMaskBodyPart))) {
+  if (part == AvatarMaskBodyPart.LastBodyPart) continue;
+  bool on = part == AvatarMaskBodyPart.Body || part == AvatarMaskBodyPart.Head
+         || part == AvatarMaskBodyPart.LeftArm || part == AvatarMaskBodyPart.RightArm
+         || part == AvatarMaskBodyPart.LeftFingers || part == AvatarMaskBodyPart.RightFingers;
+  mask.SetHumanoidBodyPartActive(part, on);
+}
+string modelPath = "Assets/UndeadLegion/Models/SkeletonKnight/SK_SkeletonKnight.fbx";
+var modelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
+mask.AddTransformPath(modelPrefab.transform, true);
+int upperPaths = 0;
+for (int i = 0; i < mask.transformCount; i++) {
+  string tp = mask.GetTransformPath(i);
+  bool on = tp.Contains("/Spine1");           // Spine1 and every descendant (arms, neck, head, jaw, palms, sockets)
+  mask.SetTransformActive(i, on); if (on) upperPaths++;
+}
+if (newMask) AssetDatabase.CreateAsset(mask, maskPath); else EditorUtility.SetDirty(mask);
+sb.AppendLine("mask " + maskPath + ": " + upperPaths + "/" + mask.transformCount + " transform paths upper");
+
+ctrl.AddLayer("UpperBody");
 ctrl.AddLayer("Twitch");
-layers = ctrl.layers;
-layers[1].blendingMode = UnityEditor.Animations.AnimatorLayerBlendingMode.Additive;
+var layers = ctrl.layers;
+layers[1].blendingMode = UnityEditor.Animations.AnimatorLayerBlendingMode.Override;
 layers[1].defaultWeight = 1f;
+layers[1].avatarMask = mask;
+layers[2].blendingMode = UnityEditor.Animations.AnimatorLayerBlendingMode.Additive;
+layers[2].defaultWeight = 1f;
 ctrl.layers = layers;
-var sm = ctrl.layers[1].stateMachine;
+var upSm = ctrl.layers[1].stateMachine;
+var empty = upSm.AddState("Empty"); upSm.defaultState = empty;
+int nUpper = 0;
+foreach (var nm in new string[]{ %UPPER% }) {
+  var cl = load(nm); if (cl == null) { sb.AppendLine("missing upper clip " + nm); continue; }
+  var st = upSm.AddState(nm); st.motion = cl;
+  var back = st.AddTransition(empty); back.hasExitTime = true; back.exitTime = 1f; back.duration = 0.15f; back.hasFixedDuration = true;
+  nUpper++;
+}
+sb.AppendLine("upper-body layer: Empty + " + nUpper + " states (masked at Spine1)");
+var sm = ctrl.layers[2].stateMachine;
 var rest = sm.AddState("Rest"); sm.defaultState = rest;
 int n = 0;
 for (int i = 0; i < 3; i++) {
@@ -48,7 +115,7 @@ for (int i = 0; i < 3; i++) {
   n++;
 }
 EditorUtility.SetDirty(ctrl); AssetDatabase.SaveAssets();
-sb.AppendLine("controller " + path + ": layers=" + ctrl.layers.Length + " twitch states=" + n + " layer1 mode=" + ctrl.layers[1].blendingMode);
+sb.AppendLine("controller " + path + ": layers=" + ctrl.layers.Length + " twitch states=" + n + " layer2 mode=" + ctrl.layers[2].blendingMode);
 
 // measure
 string model = "Assets/UndeadLegion/Models/SkeletonKnight/SK_SkeletonKnight.fbx";
@@ -64,7 +131,7 @@ var headA = new Quaternion[frames]; var jawA = new Quaternion[frames]; var hipsA
 var headB = new Quaternion[frames]; var jawB = new Quaternion[frames]; var hipsB = new Quaternion[frames];
 for (int run = 0; run < 2; run++) {
   an.Rebind(); an.Update(0f);
-  an.SetLayerWeight(1, run == 0 ? 0f : 1f);
+  an.SetLayerWeight(an.GetLayerIndex("Twitch"), run == 0 ? 0f : 1f);
   if (run == 1) { an.SetInteger("TwitchIndex", 2); an.SetTrigger("Twitch"); }
   for (int f = 0; f < frames; f++) {
     an.Update(1f / 30f);
@@ -80,19 +147,53 @@ for (int f = 0; f < frames; f++) {
 }
 sb.AppendLine(string.Format("Twitch_03 over Idle on the Knight: Head additive peak {0:F1} deg at frame {1}, Jaw peak {2:F1} deg at frame {3}, Hips diff {4:F2} deg, frames with visible twitch {5}/{6}", mh, fh, mj, fj, mp, active, frames));
 sb.AppendLine("base Idle alone: Head moved " + Quaternion.Angle(headA[0], headA[frames-1]).ToString("F1") + " deg between first and last frame (idle motion, not twitch)");
+
+// ---- layering proof: Walk_Fwd on Base + Attack_1H_01 on UpperBody must give the walk's legs
+// and the attack's arms; compared per frame against each clip played alone on the base layer
+Transform lLeg = null, rArm = null, spine1 = null, lFoot = null;
+foreach (var t in go.GetComponentsInChildren<Transform>(true)) { if (t.name == "LeftUpLeg") lLeg = t; if (t.name == "RightArm") rArm = t; if (t.name == "Spine1") spine1 = t; if (t.name == "LeftFoot") lFoot = t; }
+int nf = 60;
+var legWalk = new Quaternion[nf]; var armAtk = new Quaternion[nf]; var sp1Atk = new Quaternion[nf]; var footWalk = new Vector3[nf];
+var legMix = new Quaternion[nf]; var armMix = new Quaternion[nf]; var sp1Mix = new Quaternion[nf]; var footMix = new Vector3[nf]; var armWalk = new Quaternion[nf];
+int up = an.GetLayerIndex("UpperBody");
+for (int run = 0; run < 3; run++) {
+  an.Rebind(); an.Update(0f);
+  an.SetLayerWeight(an.GetLayerIndex("Twitch"), 0f);
+  if (run == 0) { an.Play("Walk_Fwd", 0, 0f); an.Play("Empty", up, 0f); }
+  if (run == 1) { an.Play("Attack_1H_01", 0, 0f); an.Play("Empty", up, 0f); }
+  if (run == 2) { an.Play("Walk_Fwd", 0, 0f); an.Play("Attack_1H_01", up, 0f); }
+  an.Update(0f);
+  for (int f = 0; f < nf; f++) {
+    an.Update(1f / 30f);
+    if (run == 0) { legWalk[f] = lLeg.localRotation; footWalk[f] = lFoot.position - hips.position; armWalk[f] = rArm.localRotation; }
+    if (run == 1) { armAtk[f] = rArm.localRotation; sp1Atk[f] = spine1.localRotation; }
+    if (run == 2) { legMix[f] = lLeg.localRotation; armMix[f] = rArm.localRotation; sp1Mix[f] = spine1.localRotation; footMix[f] = lFoot.position - hips.position; }
+  }
+}
+float legDev = 0, armDev = 0, sp1Dev = 0, footDev = 0, armVsWalk = 0, legRange = 0, armRange = 0;
+for (int f = 0; f < nf; f++) {
+  legDev = Mathf.Max(legDev, Quaternion.Angle(legWalk[f], legMix[f]));
+  armDev = Mathf.Max(armDev, Quaternion.Angle(armAtk[f], armMix[f]));
+  sp1Dev = Mathf.Max(sp1Dev, Quaternion.Angle(sp1Atk[f], sp1Mix[f]));
+  footDev = Mathf.Max(footDev, (footWalk[f] - footMix[f]).magnitude);
+  armVsWalk = Mathf.Max(armVsWalk, Quaternion.Angle(armWalk[f], armMix[f]));
+  legRange = Mathf.Max(legRange, Quaternion.Angle(legWalk[0], legWalk[f]));
+  armRange = Mathf.Max(armRange, Quaternion.Angle(armAtk[0], armAtk[f]));
+}
+sb.AppendLine(string.Format("layering (Walk_Fwd base + Attack_1H_01 upper, {0} frames): LeftUpLeg follows the walk within {1:F2} deg (walk swings {2:F1} deg), LeftFoot within {3:F1} mm; RightArm follows the attack within {4:F2} deg (attack swings {5:F1} deg; it differs from the walk's arm by up to {6:F1} deg); Spine1 follows the attack within {7:F2} deg", nf, legDev, legRange, footDev * 1000f, armDev, armRange, armVsWalk, sp1Dev));
 GameObject.DestroyImmediate(go);
 return sb.ToString();
 '''
 
 if __name__ == "__main__":
-    ctrl_path = os.path.join(os.path.dirname(__file__), "..", "..", "skeletons", "Assets", "UndeadLegion", "Animations", "AC_Skeleton.controller")
-    for p in (ctrl_path, ctrl_path + ".meta"):   # rebuild from scratch; deleting is blocked inside execute_code
-        if os.path.exists(p):
-            os.remove(p)
+    manifest = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "Animations", "clips.json")
+    upper = [c["name"] for c in json.load(open(manifest))["clips"] if c.get("layer") == "upper"]
+    print("upper-body clips from the manifest:", ", ".join(upper))
+    code = CODE.replace("%UPPER%", ", ".join('"%s"' % u for u in upper))
     c = Client()
     try:
         c.call("refresh_unity", {"mode": "force", "scope": "all", "compile": "request", "wait_for_ready": True}, timeout=600)
-        r = c.call("execute_code", {"action": "execute", "code": CODE}, timeout=900)
+        r = c.call("execute_code", {"action": "execute", "code": code}, timeout=900)
         res = r.get("data", r) if isinstance(r, dict) else r
         if isinstance(res, dict):
             print(res.get("result") or json.dumps(res, indent=1)[:4000])

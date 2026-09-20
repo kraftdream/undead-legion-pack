@@ -97,7 +97,22 @@ def main():
     scene.render.fps, scene.render.fps_base = FPS, 1.0
     scene.frame_start, scene.frame_end = 1, 60
 
+    argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     rig = next((o for o in bpy.data.objects if o.type == 'ARMATURE' and o.override_library and o.name.startswith("RIG-")), None)
+    if rig is not None and "--relink" in argv:
+        # rebuild the override from the current library (after a library rebuild that
+        # changed more than bone data, e.g. restored drivers). Actions are datablocks
+        # with fake users and survive; they are re-bound by name when next assigned.
+        log("relinking the rig override; actions kept:", [a.name for a in bpy.data.actions])
+        for o in list(bpy.data.objects):
+            if o.override_library is not None or o.library is not None:
+                bpy.data.objects.remove(o, do_unlink=True)
+        for c in list(bpy.data.collections):
+            if c.override_library is not None or c.library is not None or c.name.startswith(("Rig", "WGTS")):
+                bpy.data.collections.remove(c)
+        for _ in range(3):
+            bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
+        rig = None
     if rig is None:
         rig = link_rig(scene)
     else:

@@ -109,13 +109,19 @@ namespace UndeadLegion.DemoEditor
 
             // module panel (left, under the characters)
             var modPanel = Panel(canvasRt, "ModulePanel", PanelBg);
-            TopLeft(modPanel, new Vector2(20f, -346f), new Vector2(240f, 400f));
+            TopLeft(modPanel, new Vector2(20f, -346f), new Vector2(240f, 300f));
             var modHeader = SectionHeader(modPanel, "MODULES");
             var allBtn = TextButton(modPanel, "AllOn", "All", Accent);
             TopLeft((RectTransform)allBtn.transform, new Vector2(128f, -3f), new Vector2(48f, 22f));
             var noneBtn = TextButton(modPanel, "AllOff", "None", new Color(0.30f, 0.31f, 0.35f));
             TopLeft((RectTransform)noneBtn.transform, new Vector2(182f, -3f), new Vector2(48f, 22f));
             var modContent = ScrollList(modPanel);
+
+            // weapon panel (left, under the modules): loadouts on the socket bones
+            var wpnPanel = Panel(canvasRt, "WeaponPanel", PanelBg);
+            TopLeft(wpnPanel, new Vector2(20f, -662f), new Vector2(240f, 330f));
+            var wpnHeader = SectionHeader(wpnPanel, "WEAPONS");
+            var wpnContent = ScrollList(wpnPanel);
 
             // clip panel (top-right)
             var clipPanel = Panel(canvasRt, "AnimationPanel", PanelBg);
@@ -154,6 +160,8 @@ namespace UndeadLegion.DemoEditor
             showcase.clipListContent = clipContent;
             showcase.moduleListContent = modContent;
             showcase.moduleHeaderLabel = modHeader;
+            showcase.weaponListContent = wpnContent;
+            showcase.weaponHeaderLabel = wpnHeader;
             showcase.characterNameLabel = selectedName.GetComponent<Text>();
             showcase.clipInfoLabel = info.GetComponent<Text>();
             showcase.rootMotionToggle = rootToggle.Item2;

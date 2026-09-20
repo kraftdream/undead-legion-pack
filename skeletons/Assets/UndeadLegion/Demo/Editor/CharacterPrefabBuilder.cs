@@ -34,6 +34,40 @@ namespace UndeadLegion.DemoEditor
             return string.Format("{0}/Prefabs/Characters/PF_{1}.prefab", Root, c);
         }
 
+        /// <summary>Weapon loadouts every character offers in the demo (name, then
+        /// (model, hand) pairs). Models are the SM_*.fbx from tools/export_weapons.py.</summary>
+        static readonly object[][] LoadoutTable =
+        {
+            new object[] { "Sword + shield", "SM_H1Sword", SkeletonWeapon.Hand.Right, "SM_H1HeaterShield", SkeletonWeapon.Hand.LeftForearm },
+            new object[] { "Sword", "SM_H1Sword", SkeletonWeapon.Hand.Right },
+            new object[] { "Axe + round shield", "SM_H1Axe", SkeletonWeapon.Hand.Right, "SM_H1RoundShield", SkeletonWeapon.Hand.LeftForearm },
+            new object[] { "Mace", "SM_H1Mace", SkeletonWeapon.Hand.Right },
+            new object[] { "Dagger", "SM_H1Dagger", SkeletonWeapon.Hand.Right },
+            new object[] { "Two daggers", "SM_H1Dagger", SkeletonWeapon.Hand.Right, "SM_H1Dagger", SkeletonWeapon.Hand.Left },
+            new object[] { "Longsword (2H)", "SM_H2Longsword", SkeletonWeapon.Hand.Right },
+            new object[] { "Battle axe (2H)", "SM_H2Axe", SkeletonWeapon.Hand.Right },
+            new object[] { "Longbow", "SM_H2Longbow", SkeletonWeapon.Hand.Left, "SM_Arrow", SkeletonWeapon.Hand.Right },
+            new object[] { "Staff", "SM_H2MagicStuff", SkeletonWeapon.Hand.Right },
+            new object[] { "Spellbook", "SM_H1Spellbook", SkeletonWeapon.Hand.Left },
+        };
+
+        static System.Collections.Generic.List<SkeletonWeapon.Loadout> Loadouts()
+        {
+            var list = new System.Collections.Generic.List<SkeletonWeapon.Loadout>();
+            foreach (var row in LoadoutTable)
+            {
+                var lo = new SkeletonWeapon.Loadout { displayName = (string)row[0] };
+                for (int i = 1; i + 1 < row.Length; i += 2)
+                {
+                    var model = AssetDatabase.LoadAssetAtPath<GameObject>(string.Format("{0}/Models/Weapons/{1}.fbx", Root, row[i]));
+                    if (model == null) { Debug.LogWarning("[UndeadLegion] missing weapon model " + row[i]); continue; }
+                    lo.items.Add(new SkeletonWeapon.Item { model = model, hand = (SkeletonWeapon.Hand)row[i + 1] });
+                }
+                if (lo.items.Count > 0) list.Add(lo);
+            }
+            return list;
+        }
+
         static bool Build(string c, AnimatorController controller)
         {
             string modelPath = UndeadLegionImportSetup.ModelPath(c);
@@ -75,8 +109,38 @@ namespace UndeadLegion.DemoEditor
             col.height = 1.8f;
             col.radius = 0.35f;
 
+            // Ground the character on its LOWEST module, not on the bare foot: boot soles sit
+            // 4-8 mm below the body's foot and read as sinking. The lift goes on the Armature
+            // node, never on the prefab root (the validator wants the root at exactly 0/0/1).
+            float minY = 9f;
+            var bake = new Mesh();
+            foreach (var r in go.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                r.BakeMesh(bake);
+                var vs = bake.vertices;
+                for (int i = 0; i < vs.Length; i++) minY = Mathf.Min(minY, r.transform.TransformPoint(vs[i]).y);
+            }
+            Object.DestroyImmediate(bake);
+            var armature = go.transform.Find("Armature");
+            // plus a clearance: Unity's humanoid retarget lets the feet dip ~5 mm below their
+            // rest height through the idle (measured; Foot IK made it 9 mm), and a sole that
+            // starts exactly on the floor then reads as sinking
+            // A lift on the Armature node only works for the REST pose: while a Humanoid clip
+            // plays, Unity places the hips from the avatar root and the child offset is all
+            // but ignored (13.6 mm of lift moved the animated mesh 2 mm). Grounding therefore
+            // lives in the clips (export_fbx.CLIP_LIFT). Reported here for the record.
+            if (armature != null && minY < 9f)
+            {
+                armature.localPosition = Vector3.zero;
+                Debug.Log(string.Format("[UndeadLegion] {0}: lowest rest vertex at {1:+0.0000;-0.0000} m (clips carry the clearance)", c, minY));
+            }
+
             if (go.GetComponent<SkeletonModules>() == null) go.AddComponent<SkeletonModules>();
             if (go.GetComponent<SkeletonTwitch>() == null) go.AddComponent<SkeletonTwitch>();
+            var weapon = go.GetComponent<SkeletonWeapon>();
+            if (weapon == null) weapon = go.AddComponent<SkeletonWeapon>();
+            weapon.loadouts = Loadouts();
+            weapon.placeholderMaterial = AssetDatabase.LoadAssetAtPath<Material>(Root + "/Materials/URP/M_Weapon_Placeholder.mat");
 
             string path = PrefabPath(c);
             System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path));

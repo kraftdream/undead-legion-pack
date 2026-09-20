@@ -1,13 +1,21 @@
 """Build Rig/skeleton_rig.blend - the ONE armature every character links to.
 
-    blender -b SkeletonKnight/prod.blend -P tools/rig_lib_build.py
+    blender -b <original knight prod.blend> -P tools/rig_lib_build.py
 
-Takes the Rigify metarig + generated rig out of a character file (the Knight: its
-deform skeleton is the one five of six files already agree on to 0.1 mm), drops
+Takes the Rigify metarig + generated rig out of a character file (the Knight as
+committed in f9eacf8, before any tooling touched it: its deform skeleton is the one
+five of six files already agreed on to 0.1 mm), drops
 everything else, normalises the datablock names, sets bbone_segments=1 on every
 deform bone (FBX has no B-bones, so what Blender shows must be what the engine
 shows) and saves the library. Never edit the rig in a character file afterwards:
-edit it here and run tools/rig_sync.py.
+edit it here and run tools/rig_sync.py. Then run tools/rig_lib_add_sockets.py and
+tools/rig_lib_dump.py.
+
+⚠ KEEP THE DRIVERS. The first build called `animation_data_clear()` to drop any
+action and silently removed Rigify's 109 drivers with it - the IK/FK switches,
+among others. Every FK control then posed nothing (the ORG chain followed the IK
+copy at full influence) and the retargeted Idle's arms were the untouched IK
+controls' pose, ~12 deg wider than the source. Only the ACTION is cleared here.
 """
 import bpy, os
 
@@ -56,10 +64,15 @@ for b in meta.data.bones:
         b.bbone_segments = 1
 print("bbone_segments reset on", n, "bones")
 
-# rest pose, no leftover animation
-rig.animation_data_clear(); meta.animation_data_clear()
+# rest pose, no leftover action - but the DRIVERS stay (see the docstring)
+for ob in (rig, meta):
+    if ob.animation_data is not None:
+        ob.animation_data.action = None
 for pb in rig.pose.bones:
     pb.matrix_basis.identity()
+n_drv = len(rig.animation_data.drivers) if rig.animation_data else 0
+assert n_drv > 50, "rig has only %d drivers - wrong source file?" % n_drv
+print("drivers kept:", n_drv)
 
 # orphan purge
 for _ in range(3):

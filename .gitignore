@@ -44,3 +44,14 @@ __pycache__/
 /ffmpeg.exe
 /ffprobe.exe
 /ffplay.exe
+
+# ---- Clip factory (2026-09-20) ----
+# Regenerable: contact sheets from anim_preview.py (60 MB of PNGs) and the batch logs.
+# Animations/clips.json (manifest) and build_state.json ARE tracked; External Anims/Kimodo
+# (the generated source motion, ~9 MB) is tracked so a clip can be rebuilt without the laptop.
+/Animations/preview/
+/Animations/*.log
+/Animations/*.log.err
+# verify_clip.py leaves its throwaway controller here; never ship it
+/skeletons/Assets/_PipelineTest/
+/skeletons/Assets/_PipelineTest.meta

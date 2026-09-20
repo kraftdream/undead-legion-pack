@@ -37,6 +37,32 @@ namespace UndeadLegion.DemoEditor
                 foreach (var part in new[] { "Body", "Armor" })
                     EnsureMaterial(c, part);
             }
+            // weapons: plain meshes at the pack scale, no rig, no materials of their own
+            foreach (var guid in AssetDatabase.FindAssets("SM_ t:Model", new[] { Root + "/Models/Weapons" }))
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                var imp = AssetImporter.GetAtPath(path) as ModelImporter;
+                if (imp == null) continue;
+                if (imp.animationType != ModelImporterAnimationType.None || imp.materialImportMode != ModelImporterMaterialImportMode.None
+                    || Mathf.Abs(imp.globalScale - 1f) > 1e-4f || imp.importAnimation)
+                {
+                    imp.animationType = ModelImporterAnimationType.None;
+                    imp.importAnimation = false;
+                    imp.materialImportMode = ModelImporterMaterialImportMode.None;
+                    imp.globalScale = 1f;
+                    imp.useFileScale = true;
+                    imp.SaveAndReimport();
+                }
+            }
+            string wp = Root + "/Materials/URP/M_Weapon_Placeholder.mat";
+            if (AssetDatabase.LoadAssetAtPath<Material>(wp) == null)
+            {
+                var m = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                m.SetColor("_BaseColor", new Color(0.42f, 0.40f, 0.38f));
+                m.SetFloat("_Metallic", 0.6f);
+                m.SetFloat("_Smoothness", 0.45f);
+                AssetDatabase.CreateAsset(m, wp);
+            }
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log("[UndeadLegion] import setup done for " + Characters.Length + " characters");
@@ -110,6 +136,10 @@ namespace UndeadLegion.DemoEditor
             mat.SetFloat("_Metallic", 1f);
             mat.SetFloat("_Smoothness", 1f);
             mat.SetFloat("_BumpScale", 1f);
+            // Armour is torn cloth, open hoods and hollow greaves: render both faces, or the
+            // inside of a hood is a hole. Bones are closed volumes and stay single-sided.
+            mat.SetFloat("_Cull", part == "Armor" ? 0f : 2f);
+            mat.doubleSidedGI = part == "Armor";
             if (normal != null) mat.EnableKeyword("_NORMALMAP"); else mat.DisableKeyword("_NORMALMAP");
             if (ms != null) mat.EnableKeyword("_METALLICSPECGLOSSMAP"); else mat.DisableKeyword("_METALLICSPECGLOSSMAP");
             if (created)
