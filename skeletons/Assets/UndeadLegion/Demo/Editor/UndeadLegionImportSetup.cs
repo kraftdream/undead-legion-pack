@@ -159,8 +159,10 @@ namespace UndeadLegion.DemoEditor
             mat.SetTexture("_BaseMap", color);
             mat.SetTexture("_BumpMap", normal);
             mat.SetTexture("_MetallicGlossMap", ms);
-            mat.SetFloat("_Metallic", 1f);
-            mat.SetFloat("_Smoothness", 1f);
+            // with a packed map the map drives both; without one (staff, bow, wand, arrow: colour + normal
+            // only) 1/1 would be a mirror-smooth metal, so plain wood/cloth values instead
+            mat.SetFloat("_Metallic", ms != null ? 1f : 0f);
+            mat.SetFloat("_Smoothness", ms != null ? 1f : 0.35f);
             mat.SetFloat("_BumpScale", 1f);
             mat.SetFloat("_Cull", doubleSided ? 0f : 2f);
             mat.doubleSidedGI = doubleSided;

@@ -21,7 +21,7 @@ and importing the exports into Unity 6000.4 through the editor bridge.
 | Skeleton Mage        | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | **yes** | **yes** |
 | Skeleton Necromancer | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | **yes** | **yes** |
 | Skeleton Warrior     | done | done | **yes** | **yes** | valid | **yes** | **yes** |
-| Weapons (13 meshes)  | done | 6 textured (sword, dagger, axe, mace, both shields), 7 untextured | n/a | `SM_*.fbx` ×13 | n/a | `M_Weapon_<Name>` ×6 + placeholder | **yes** (11 loadouts, `W_*` prefabs) |
+| Weapons (13 meshes)  | done | 12 textured (8 full PBR; staff, recurve bow, wand colour + normal; arrow colour only), spellbook untextured | n/a | `SM_*.fbx` ×13 | n/a | `M_Weapon_<Name>` ×12 + placeholder | **yes** (12 loadouts, `W_*` prefabs) |
 
 Shared clips so far: `Idle`, `Idle_02`, `Idle_03` (loops, 8 / 12 / 12 s) +
 `Twitch_01..03` (additive), on `AC_Skeleton`. Armour materials render both faces
@@ -73,19 +73,22 @@ clip `Test_RootMotion` stays in the anim file, not in Unity.
 - `SkeletonMage`, `SkeletonNecromancer` and `SkeletonAssassin` have **no `armor_metallic.png`**;
   Knight, Archer and Warrior do. Either those armours are non-metallic by design (then
   the material must not sample a metallic map) or the bake was skipped.
-- **Weapons** (2026-09-20): `Weapons/prod.blend` replaced `weapons.blend` as the source.
-  `H1Sword`, `H1Dagger`, `H1Axe`, `H1Mace`, `H1HeaterShield` have UVs and 512² PBR maps
-  (`Weapons/<lower>_{color,normal,roughness[,metallic]}.png`, packed by
-  `tools/pack_textures.py -- Weapons` into `Textures/Weapons/`, materials
-  `M_Weapon_<Name>` made by the import setup, assigned inside the `W_*` weapon prefab).
-  The round shield got its maps on 2026-09-21 (commit `10740f3`). Still untextured on
-  the placeholder: longsword, battle axe, longbow, staff, spellbook, arrow. Several meshes were rescaled in prod.blend (longsword 1.15 m, staff
-  1.24 m, heater shield 0.70 m at pack scale); the grips carried over at the same
-  relative position along the length. The **Arrow** in prod.blend is 2 cm long, so it is
-  still exported from `weapons.blend` (`--only Arrow`). **`H1Wand`** in prod.blend is the
-  staff mesh squashed to 0.39 m in length only and renders as a block: not exported, no
-  Wand loadout until a real mesh exists. `Weapons/prod.blend1` came in tracked from a
-  remote commit and is removed from the index (autosaves are ignored, §5).
+- **Weapons** (2026-09-20, updated 2026-09-21 from the teammate's commit `4a70422`):
+  `Weapons/prod.blend` is the only source; `weapons.blend` is history. Twelve of the
+  thirteen meshes carry UVs and textures (`Weapons/<lower>_{color,normal[,roughness,metallic]}.png`,
+  packed by `tools/pack_textures.py -- Weapons` into `Textures/Weapons/`, materials
+  `M_Weapon_<Name>` made by the import setup; a weapon without a roughness map gets no
+  packed map and plain `_Metallic 0 / _Smoothness 0.35` instead of the 1/1 that the packed
+  map normally drives). `H2Recurvebow` replaced `H2Longbow` (the `SM_`/`W_` longbow assets
+  were deleted); `H1Wand` is a textured 0.39 m short staff and has its own loadout now; the
+  `Arrow` is a real 29 cm arrow modelled along +Y, so `export_weapons.PRE` rotates it onto
+  the length axis first (the old 2 cm arrow and the `--only Arrow` export from
+  `weapons.blend` are gone). Grips carried over by relative position along the length as
+  before (`OLD_EXTENT`); new entries: recurve bow at the riser's middle (roll 90 like the
+  longbow), wand 10 cm up the shaft. Still untextured: `H1Spellbook` (no UVs). The prefab
+  builder now swaps the placeholder for the weapon's own material on an EXISTING `W_*`
+  prefab (the Grip is still never touched). `Weapons/prod.blend1` keeps arriving from the
+  remote as a tracked file (autosaves are ignored by our `.gitignore`, §5).
 - The **old mesh-only exports in the character folders are superseded but still
   tracked**: `skeleton.fbx`, `armor.fbx`, `mesh_quad.fbx`, `mesh_uv.fbx`. The Unity
   copies (`SkeletonKnight_{Body,Armor}.fbx`) were deleted on 2026-09-19 and every prefab

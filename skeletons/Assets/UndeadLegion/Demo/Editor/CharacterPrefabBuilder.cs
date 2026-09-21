@@ -46,8 +46,9 @@ namespace UndeadLegion.DemoEditor
             new object[] { "Two daggers", "SM_H1Dagger", SkeletonWeapon.Hand.Right, "SM_H1Dagger", SkeletonWeapon.Hand.Left },
             new object[] { "Longsword (2H)", "SM_H2Longsword", SkeletonWeapon.Hand.Right },
             new object[] { "Battle axe (2H)", "SM_H2Axe", SkeletonWeapon.Hand.Right },
-            new object[] { "Longbow", "SM_H2Longbow", SkeletonWeapon.Hand.Left, "SM_Arrow", SkeletonWeapon.Hand.Right },
+            new object[] { "Recurve bow", "SM_H2Recurvebow", SkeletonWeapon.Hand.Left, "SM_Arrow", SkeletonWeapon.Hand.Right },
             new object[] { "Staff", "SM_H2MagicStuff", SkeletonWeapon.Hand.Right },
+            new object[] { "Wand", "SM_H1Wand", SkeletonWeapon.Hand.Right },
             new object[] { "Spellbook", "SM_H1Spellbook", SkeletonWeapon.Hand.Left },
         };
 
@@ -109,11 +110,30 @@ namespace UndeadLegion.DemoEditor
             string name = sm.StartsWith("SM_") ? sm.Substring(3) : sm;
             string path = string.Format("{0}/Prefabs/Weapons/W_{1}.prefab", Root, name);
             var existing = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-            if (existing != null) return existing;
+            var mat = AssetDatabase.LoadAssetAtPath<Material>(string.Format("{0}/Materials/URP/M_Weapon_{1}.mat", Root, name));
+            var placeholder = AssetDatabase.LoadAssetAtPath<Material>(Root + "/Materials/URP/M_Weapon_Placeholder.mat");
+            if (existing != null)
+            {
+                // kept as is (an edited Grip survives), except that a weapon which has gained its
+                // textures since the prefab was made swaps the placeholder for its own material
+                if (mat != null)
+                {
+                    bool changed = false;
+                    var contents = PrefabUtility.LoadPrefabContents(path);
+                    foreach (var r in contents.GetComponentsInChildren<Renderer>())
+                    {
+                        var mats = r.sharedMaterials;
+                        for (int i = 0; i < mats.Length; i++) if (mats[i] == null || mats[i] == placeholder) { mats[i] = mat; changed = true; }
+                        r.sharedMaterials = mats;
+                    }
+                    if (changed) { PrefabUtility.SaveAsPrefabAsset(contents, path); Debug.Log("[UndeadLegion] weapon prefab " + path + ": placeholder -> " + mat.name); }
+                    PrefabUtility.UnloadPrefabContents(contents);
+                }
+                return AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            }
             var model = AssetDatabase.LoadAssetAtPath<GameObject>(string.Format("{0}/Models/Weapons/{1}.fbx", Root, sm));
             if (model == null) return null;
-            var mat = AssetDatabase.LoadAssetAtPath<Material>(string.Format("{0}/Materials/URP/M_Weapon_{1}.mat", Root, name));
-            if (mat == null) mat = AssetDatabase.LoadAssetAtPath<Material>(Root + "/Materials/URP/M_Weapon_Placeholder.mat");
+            if (mat == null) mat = placeholder;
             var root = new GameObject("W_" + name);
             var mesh = (GameObject)PrefabUtility.InstantiatePrefab(model);
             mesh.transform.SetParent(root.transform, false);
