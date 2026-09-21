@@ -636,18 +636,51 @@ a pose without keys is lost on the next frame change). Edit that action and re-r
 tool; everything in it is kept, arms included (the user posed the right fist on the hilt
 at the belly with the hilt axis pointing into the body; `--tool-arms` makes the tool pose
 them instead). `Impaled_Idle` (30 frames) is that base held still: skeletons do not
-breathe. `Impaled_Rise` (150 frames, 5 s) is a **Kimodo clip spliced onto the base**
-(user's choice among five candidates, `External Anims/Kimodo/rise_a.glb`, manifest
-entry with `blend_from: Impaled_Base`): `glb_retarget.py --blend-from` starts the clip on
-the base pose and crossfades every target and the hips into the generated motion over
-18 frames; `--arm-keys "0:base,0.1:base,0.3:base_out,0.45:free"` keeps the base's hands,
-slides the right hand out along the POSED hilt axis by a blade length, then hands the
-arms to the source; `--elbow-pole` drives the arm IK with a pole held outward (the first
-procedural pull folded the elbow into the body). Trimmed to 91 frames (`src_end 90`) with
-`--blend-to Idle --blend-out 20`: frames 70..90 crossfade every target and the hips into
-Idle's frame 1 so the clip ends upright and still (the source swayed on for 2.5 s more).
-Grounded `twoway` (the stance changes) and exported with `lift 0.009`: Unity's Humanoid
-floats this clip ~1 cm more than the idles at the default 15 mm. Kimodo cannot take a start pose (the
+breathe. `Impaled_Rise` (69 frames, 2.3 s) is a **video-mocap clip spliced onto the base**:
+the user recorded a stand-up (`P:\standing up.glb`, copied to `External Anims/Kimodo/
+standing_up.glb`, a 52-joint `*_JNT` skeleton at 24 fps; `--rename jnt` maps it to the
+names the retarget expects) and asked for its frame 34 as the start (= 30 fps frame 42,
+where the hips begin to rise). Before that a Kimodo candidate (`rise_a`) had been chosen
+among five; the mocap replaced it. The capture's own right arm does the pull (an authored
+slide along the hilt axis over-reached and locked the elbow at 180°; the performer keeps
+it at ~100°, measured 72° → 104° in play mode). Manifest: `blend_from Impaled_Idle:1`
+(`blend_in 14`, so the rise starts on the idle's own frame, not the base: the idle's
+analytic legs differ from the base by 2 cm), `blend_from_lift 0.0061` (rig m = the idle's
+15 mm export lift minus this clip's 4 mm, faded out with the crossfade, so frame 1 lands
+where the idle sits in Unity to 3 mm), `arm_keys 0:base,0.08:base,0.3:free`, `elbow_pole`,
+`ground twoway` + `ground_ignore Robe,Skirt`, `plant_feet 0.001`, `blend_to Idle` over the
+last 20 frames, `lift 0.004`.
+
+**Feet (2026-09-21, "feet are floating on this one, while in mine they not").** The
+`--plant-feet` pass in `glb_retarget.py` is what keeps FK-copied legs on the floor, and it
+took four fixes to make Unity agree with Blender:
+1. **Sole from the meshes, not an estimate.** The first pass lowered a foot by the bare
+   foot's flat-sole offset; on a toe-down foot that sank the boot 18 mm. `foot_min_z(side)`
+   now measures the lowest vertex of all six characters' meshes around that ankle.
+2. **Reach.** The hips (scaled human) sat too high for the skeleton's stepped-forward leg:
+   the IK locked the knee straight and the foot hung 34 mm up in Unity from t=0.5 on. A
+   pass 1b measures, per frame, how far the hips must drop for every planted foot to stay
+   within `PLANT_REACH = 0.985` of the leg length (knee keeps ~20°), running-max ±2 frames
+   then smoothed, applied to the torso before planting (up to 3.4 cm rig on this clip).
+3. **Toes have ONE muscle in Humanoid.** Measured with `HumanPoseHandler`: "Toes Up-Down"
+   hinges about the T-pose's **world sideways axis** (the toe bone itself yaws 10° out, so
+   its own X is not it); every other toe component is dropped on import, and with the boot
+   resting on the toe cap in the crouch that moved the sole 1 cm (Humanoid toes 6–13° off
+   the Generic playback of the same file). `hinge_toes()` keeps only that component on
+   both toe controls, before the plant measures the sole; Humanoid now matches Generic and
+   Blender within 1° on every foot and toe bone.
+4. **Under-floor clamp and first frame.** A boot under the floor is lifted at full weight
+   whatever the source does (FK blends sweep through the floor); a floating foot is planted
+   with a weight that eases in over the source foot's last 3 cm of descent and with the
+   blend-from crossfade, and the ground correction and hip drop both start at zero on
+   frame 1, so the first frame is the idle verbatim.
+Diagnostic chain that found it: `ground_clip`-style per-boot trace on all six models
+(Unity) vs the same measure in Blender **including the export lift**; then bone heights
+Humanoid vs Generic vs Blender (agreed to 1–4 mm → not the pose); then per-bone rotation
+Humanoid vs Generic (toes 6–13° → the muscle model); then boot bounds per engine
+(1 mm → the plant itself). Result: the lowest of the six boots is on the floor on every
+frame from t=0.18 to the end in Blender; Unity reads 0..+14 mm across the models with
+`lift 0.004` (Archer 0..+7), the two-frame landing of the stepping foot peaks at +3 cm. Kimodo cannot take a start pose (the
 port has no constraint input) and every prompt that mentioned the sword in the stomach
 skipped the kneel or collapsed instead; stand-up-only prompts knelt but as a head-down
 crouch. The old procedural rise (pull, gather, blend to Idle frame 1) was: brings the right

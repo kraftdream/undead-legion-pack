@@ -98,7 +98,7 @@
    "smooth": 1,
    "fist": 0.4,
    "prompt": "A person walks backward slowly and carefully in a straight line, stiff, arms hanging.",
-   "lift": 0.019
+   "lift": 0.0019
   },
   {
    "name": "Run_Fwd",
@@ -470,14 +470,13 @@
   },
   {
    "name": "Impaled_Rise",
-   "glb": "rise_a",
+   "glb": "standing_up",
    "mode": "action",
-   "seed": 51,
-   "frames": 150,
    "smooth": 1,
    "fist": 0.6,
-   "blend_from": "Impaled_Base",
-   "blend_in": 18,
+   "blend_from": "Impaled_Idle:1",
+   "blend_from_lift": 0.0061,
+   "blend_in": 14,
    "elbow_pole": true,
    "arm_keys": [
     [
@@ -485,27 +484,26 @@
      "base"
     ],
     [
-     0.16,
+     0.08,
      "base"
     ],
     [
-     0.5,
-     "base_out"
-    ],
-    [
-     0.72,
+     0.3,
      "free"
     ]
    ],
    "layer": "full",
-   "prompt": "A person kneels on one knee, hunched forward with both hands at the stomach, slowly pulls a sword out of their stomach with the right hand, then stands up straight and lowers the arms.",
-   "_note": "user-chosen candidate 2026-09-21 (rise_a); starts on the hand-posed Impaled_Base and crossfades into the generated motion",
-   "src_end": 90,
+   "prompt": "(not Kimodo) video mocap 'standing up.glb' from the P: drive, 24 fps frame 34 = 30 fps frame 42",
+   "_note": "user-supplied mocap 2026-09-21, replaces the Kimodo rise_a splice; starts on Impaled_Idle's frame (the hand-posed base with the idle's analytic legs, so the two clips meet exactly) and crossfades into the capture",
+   "src_end": 110,
    "ground": "twoway",
    "ground_ignore": "Robe,Skirt",
    "blend_to": "Idle",
    "blend_out": 20,
-   "lift": 0.009
+   "lift": 0.004,
+   "rename": "jnt",
+   "src_start": 42,
+   "plant_feet": 0.001
   }
  ]
 }

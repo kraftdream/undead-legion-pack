@@ -66,11 +66,26 @@ ARM_POSE = arg("--arm-pose", "")
 ARM_KEYS = [(float(k.split(":")[0]), k.split(":")[1]) for k in arg("--arm-keys", "").split(",") if k]  # "0:bow_side,0.3:bow_draw,..."
 BLEND_FROM = arg("--blend-from", "")           # ACTION[:frame]: start the clip on this pose and crossfade into the source
 BLEND_IN = int(arg("--blend-in", "18"))         # frames of that crossfade
+BLEND_FROM_LIFT = float(arg("--blend-from-lift", "0"))   # rig m: extra height on the first frame, faded out over the crossfade
+                                                         # (= the blend-from clip's export lift minus this clip's, / 1.8, so the two meet in the engine)
 BLEND_TO = arg("--blend-to", "")               # ACTION[:frame]: end the clip on this pose, crossfading over the last --blend-out frames
 BLEND_OUT = int(arg("--blend-out", "20"))
 ELBOW_POLE = "--elbow-pole" in argv
 GROUND = arg("--ground", "")
-GROUND_IGNORE = [k for k in arg("--ground-ignore", "").split(",") if k]   # mesh-name substrings left out of the floor measure (Robe,Skirt for kneels: hems hang through the floor)                   # action mode: "twoway" = lowest point on the floor every frame (a clip whose stance changes: kneel -> stand)             # arm IK with a pole vector held outward (authored hands: no elbow inside the body)
+GROUND_IGNORE = [k for k in arg("--ground-ignore", "").split(",") if k]
+PLANT = float(arg("--plant-feet", "0"))         # FK legs: a foot the SOURCE has on the floor is lowered onto the floor through the leg IK when it floats more than this (rig m)
+PLANT_ACTIVE = False                           # only in the final pass, after the whole-body grounding is known
+PLANT_REACH = 0.985                            # a planted foot may use this much of the leg's length: the knee keeps ~20 deg of bend, never locks
+HIP_DROP = None                                # per-frame torso drop (rig m) that brings every planted foot within reach, measured in pass 1b
+NEED_DROP = 0.0                                # written by pose() while measuring
+RENAME = arg("--rename", "")                   # "jnt": a video-mocap skeleton (hips_JNT, l_arm_JNT ...) renamed to the SOMA/Mixamo names the MAP expects
+RENAME_TABLES = {
+    "jnt": {"hips_JNT": "Hips", "spine_JNT": "Spine1", "spine1_JNT": "Spine2", "spine2_JNT": "Chest", "neck_JNT": "Neck1", "head_JNT": "Head",
+            "l_shoulder_JNT": "LeftShoulder", "l_arm_JNT": "LeftArm", "l_forearm_JNT": "LeftForeArm", "l_hand_JNT": "LeftHand", "l_handMiddle3_JNT": "LeftHandMiddleEnd",
+            "r_shoulder_JNT": "RightShoulder", "r_arm_JNT": "RightArm", "r_forearm_JNT": "RightForeArm", "r_hand_JNT": "RightHand", "r_handMiddle3_JNT": "RightHandMiddleEnd",
+            "l_upleg_JNT": "LeftLeg", "l_leg_JNT": "LeftShin", "l_foot_JNT": "LeftFoot", "l_toebase_JNT": "LeftToeBase",
+            "r_upleg_JNT": "RightLeg", "r_leg_JNT": "RightShin", "r_foot_JNT": "RightFoot", "r_toebase_JNT": "RightToeBase"},
+}   # mesh-name substrings left out of the floor measure (Robe,Skirt for kneels: hems hang through the floor)                   # action mode: "twoway" = lowest point on the floor every frame (a clip whose stance changes: kneel -> stand)             # arm IK with a pole vector held outward (authored hands: no elbow inside the body)
 HEAD_DAMP = float(arg("--head-damp", "1.0"))    # 0..1: scales the neck+head rotation away from rest (1 = as authored)
 TRAVEL_AXIS = arg("--travel-axis", "auto")
 LOCK_L = float(arg("--lock-left-hand", "0"))   # >0: pin the left hand on the right hand's weapon this far down the handle (rig m)
@@ -237,6 +252,35 @@ hip_z_t = (rig.matrix_world @ rig.data.bones["DEF-spine"].head_local).z
 log("mode %s | target hip pivot z %.4f" % (MODE, hip_z_t))
 TORSO_REST = (rig.matrix_world @ pbs["torso"].matrix).copy()
 # hand IK control <- socket frame: the constant relation at rest between the hand control and the socket bone
+FOOTIK_FROM_FOOT = {s: (rig.matrix_world @ pbs["DEF-foot." + s].matrix).inverted() @ (rig.matrix_world @ pbs["foot_ik." + s].matrix) for s in ("L", "R")}
+LEG_LEN = {s: ((rig.matrix_world @ pbs["DEF-thigh." + s].matrix).translation - (rig.matrix_world @ pbs["DEF-shin." + s].matrix).translation).length
+              + ((rig.matrix_world @ pbs["DEF-shin." + s].matrix).translation - (rig.matrix_world @ pbs["DEF-foot." + s].matrix).translation).length for s in ("L", "R")}
+FOOT_SOLE = {s: ((rig.matrix_world @ pbs["DEF-foot." + s].matrix).translation.z,
+                 ((rig.matrix_world @ pbs["DEF-toe." + s].matrix) @ Vector((0, pbs["DEF-toe." + s].length, 0))).z) for s in ("L", "R")}   # ankle / toe-tip height with the sole on the floor
+# Unity's Humanoid gives the toes ONE muscle, "Toes Up-Down", hinged about the T-pose's WORLD
+# sideways axis (measured with HumanPoseHandler: 50 deg about world (1,0,0) on the shared avatar;
+# the toe bone itself yaws 10 deg outward, so its own X is not that axis). Any other toe rotation
+# is dropped on import; with the boot resting on the toe cap that moved the sole 1 cm
+# (Impaled_Rise crouch: Humanoid toes 6-13 deg off the Generic playback). Every authored toe
+# keeps only the hinge component, so Humanoid and Blender agree.
+TOE_REST_REL = {s: ((rig.matrix_world @ pbs["DEF-foot." + s].matrix).to_quaternion().inverted() @ (rig.matrix_world @ pbs["DEF-toe." + s].matrix).to_quaternion()) for s in ("L", "R")}
+TOE_HINGE = {s: ((rig.matrix_world @ pbs["DEF-toe." + s].matrix).to_3x3().inverted() @ Vector((1, 0, 0))).normalized() for s in ("L", "R")}
+
+
+def hinge_toes():
+    for side in ("L", "R"):
+        foot_q = (rig.matrix_world @ pbs["DEF-foot." + side].matrix).to_quaternion()
+        toe_q = (rig.matrix_world @ pbs["DEF-toe." + side].matrix).to_quaternion()
+        rel = TOE_REST_REL[side].inverted() @ foot_q.inverted() @ toe_q       # toe vs its rest, in the toe's own frame
+        a = TOE_HINGE[side]
+        v = Vector((rel.x, rel.y, rel.z)); p = v.dot(a) * a
+        tw = Quaternion((rel.w, p.x, p.y, p.z)).normalized()                  # the hinge component only
+        q = foot_q @ TOE_REST_REL[side] @ tw
+        for ctrl in ("toe_fk." + side, "toe_ik." + side):
+            set_world(pbs[ctrl], q)
+        update()
+
+
 HAND_FROM_SOCKET = {}
 for side in ("L", "R"):
     hand_m = (rig.matrix_world @ pbs["hand_ik." + side].matrix).copy()
@@ -304,6 +348,11 @@ assert src_act is not None, "GLB armature carries no action"
 n_src = int(round(src_act.frame_range[1] - src_act.frame_range[0])) + 1
 f_src0 = int(round(src_act.frame_range[0]))
 log("source %s: %d joints, %d frames" % (os.path.basename(GLB), len(SRC_ARM.data.bones), n_src))
+if RENAME:
+    for old_n, new_n in RENAME_TABLES[RENAME].items():
+        if old_n in SRC_ARM.data.bones:
+            SRC_ARM.data.bones[old_n].name = new_n
+    log("renamed %d source joints (%s)" % (len(RENAME_TABLES[RENAME]), RENAME))
 S = {b.name: b for b in SRC_ARM.data.bones}
 S_rest = {n: ((SRC_ARM.matrix_world @ b.matrix_local).to_quaternion(),
               (SRC_ARM.matrix_world @ b.head_local).copy()) for n, b in S.items()}
@@ -494,7 +543,7 @@ rig.animation_data.action = act
 if hasattr(rig.animation_data, "action_slot"):
     rig.animation_data.action_slot = act.slots.new('OBJECT', rig.name)
 
-DRIVEN = sorted(TARGETS) + FINGERS + ["root"] + (["hand_ik.L", "hand_ik.R"] if (ARM_POSE or ARM_KEYS or LOCK_L > 0) else []) + (["upper_arm_ik_target.L", "upper_arm_ik_target.R"] if ELBOW_POLE else [])
+DRIVEN = sorted(TARGETS) + FINGERS + ["root"] + (["hand_ik.L", "hand_ik.R"] if (ARM_POSE or ARM_KEYS or LOCK_L > 0) else []) + (["upper_arm_ik_target.L", "upper_arm_ik_target.R"] if ELBOW_POLE else []) + (["foot_ik.L", "foot_ik.R", "toe_ik.L", "toe_ik.R"] if PLANT > 0 else [])
 STATIC = [c for c in controls() if c not in DRIVEN]
 _rnd = __import__("random").Random(7)
 FINGER_WAVE = {n: (_rnd.choice([1, 1, 2]), _rnd.uniform(0, 2 * math.pi), _rnd.uniform(0.6, 1.0)) for n in FINGERS}
@@ -556,13 +605,15 @@ def pose(f, dz=0.0, f_travel=None):
         hips = hips.lerp(END["hips"], we)
         for n in FINGERS:
             pbs[n].rotation_euler = (pbs[n].rotation_euler.x + (END["fist"][n] - pbs[n].rotation_euler.x) * we, 0, 0)
-    hips = hips + Vector((0, 0, dz))
+    hips = hips + Vector((0, 0, dz - (HIP_DROP[f] if HIP_DROP is not None else 0.0)))
     pbs["root"].location = (root.x, root.y, root.z)      # root points +Y, its local frame = world at rest
     update()
     for level in LEVELS:
         for tgt in level:
             set_world(pbs[tgt], targets[tgt], hips if tgt == "torso" else None)
         update()
+    if FK_LEGS:
+        hinge_toes()          # before the plant measures the sole: the toe cap is what a pitched boot rests on
     if ARM_POSE:
         # authored hands on IK, following the torso's current transform (sway, hunch)
         torso_now = (rig.matrix_world @ pbs["torso"].matrix).copy()
@@ -605,6 +656,37 @@ def pose(f, dz=0.0, f_travel=None):
                 m = pbs["upper_arm_ik_target." + side].matrix.copy(); m.translation = rig.matrix_world.inverted() @ pole
                 pbs["upper_arm_ik_target." + side].matrix = m
         update()
+    if PLANT > 0 and PLANT_ACTIVE and FK_LEGS:
+        global NEED_DROP
+        NEED_DROP = 0.0
+        # blend-from: the first frame is the base pose verbatim, the planting fades in with the crossfade
+        w_in = smooth01(f / float(BLEND_IN)) if (BASE is not None and f < BLEND_IN) else 1.0
+        for side, sf, st in (("L", "LeftFoot", "LeftToeBase"), ("R", "RightFoot", "RightToeBase")):
+            if sf not in src or st not in src:
+                continue
+            # human: ankle ~8 cm up when flat, toe joint ~0; the plant weight eases in over the
+            # last 3 cm of the source foot's descent so the landing does not pop
+            src_h = min(src[sf][1].z - 0.075, src[st][1].z)
+            w = w_in * max(0.0, min(1.0, (0.05 - src_h) / 0.03))
+            fm = rig.matrix_world @ pbs["DEF-foot." + side].matrix
+            lowest = foot_min_z(side)                                  # the boots of all six characters, not a bare-foot estimate
+            if lowest < -PLANT and f > 0:
+                w = 1.0                                                # a boot under the floor is wrong whatever the source does (FK blends sweep through it)
+            if w <= 0.0 or (abs(lowest) <= PLANT and w >= 1.0):
+                continue
+            toe_q = (rig.matrix_world @ pbs["DEF-toe." + side].matrix).to_quaternion()
+            ankle_t = fm.translation - Vector((0, 0, lowest))
+            hipj = (rig.matrix_world @ pbs["DEF-thigh." + side].matrix).translation
+            v = hipj - ankle_t
+            reach = PLANT_REACH * LEG_LEN[side]
+            need = v.z - math.sqrt(max(0.0, reach * reach - v.x * v.x - v.y * v.y))
+            NEED_DROP = max(NEED_DROP, need * w)
+            pbs["thigh_parent." + side]["IK_FK"] = 1.0 - w
+            target = Matrix.Translation((0, 0, -lowest)) @ fm @ FOOTIK_FROM_FOOT[side]
+            pbs["foot_ik." + side].matrix = rig.matrix_world.inverted() @ target
+            update()
+            set_world(pbs["toe_ik." + side], toe_q)
+            update()
     if LOCK_L > 0:
         # two-handed grip: the left hand's socket frame = the right hand's socket frame moved
         # LOCK_L down the handle (-Y), so both hands wrap the handle the same way and a weapon
@@ -614,6 +696,8 @@ def pose(f, dz=0.0, f_travel=None):
         pbs["upper_arm_parent.L"]["IK_FK"] = 0.0
         pbs["hand_ik.L"].matrix = rig.matrix_world.inverted() @ target
         update()
+    if FK_LEGS:
+        hinge_toes()
 
 
 # every skinned reference mesh of all six characters (boots, greaves, robes and armour
@@ -653,6 +737,29 @@ def body_min_z():
     return lowest
 
 
+def foot_min_z(side):
+    """Lowest vertex of every character's meshes around this ankle (nearer to it than to the
+    other ankle, within 0.16 m): the boot sole under the posed foot, whatever its tilt."""
+    dg = bpy.context.evaluated_depsgraph_get()
+    a = np.array((rig.matrix_world @ pbs["DEF-foot." + side].matrix).translation, dtype=np.float32)
+    o_ = np.array((rig.matrix_world @ pbs["DEF-foot." + ("R" if side == "L" else "L")].matrix).translation, dtype=np.float32)
+    lowest = 1e9
+    for o in REF_MESHES:
+        me = o.evaluated_get(dg).data
+        n = len(me.vertices)
+        buf = _co_buf.get(o.name)
+        if buf is None or len(buf) != n * 3:
+            buf = _co_buf[o.name] = np.empty(n * 3, dtype=np.float32)
+        me.vertices.foreach_get("co", buf)
+        M = np.array(o.matrix_world, dtype=np.float32)
+        w = buf.reshape(-1, 3) @ M[:3, :3].T + M[:3, 3]
+        da = ((w - a) ** 2).sum(1); do = ((w - o_) ** 2).sum(1)
+        m = (da < 0.16 * 0.16) & (da <= do)
+        if m.any():
+            lowest = min(lowest, float(w[m, 2].min()))
+    return lowest if lowest < 1e8 else 0.0
+
+
 # pass 1: raw pose, measure the floor
 raw_min = []
 for f in range(N_OUT):
@@ -682,8 +789,31 @@ else:  # death
 log("ground: raw body min z %.4f..%.4f -> correction %.4f..%.4f" % (min(raw_min), max(raw_min), min(dz), max(dz)))
 if LOOPING:
     dz[-1] = dz[0]
+if BASE is not None and dz[0] != 0.0:
+    # the first frame must be the base pose verbatim (the idle it follows), so the correction fades in with the crossfade
+    log("ground: first-frame correction %.4f faded in over %d frames (the base pose is kept as authored)" % (dz[0], BLEND_IN))
+    dz = [d - dz[0] * (1.0 - smooth01(min(1.0, f / float(BLEND_IN)))) for f, d in enumerate(dz)]
+if BASE is not None and BLEND_FROM_LIFT:
+    dz = [d + BLEND_FROM_LIFT * (1.0 - smooth01(min(1.0, f / float(BLEND_IN)))) for f, d in enumerate(dz)]
+    log("blend-from lift %.4f rig m on the first frame, faded out over %d frames" % (BLEND_FROM_LIFT, BLEND_IN))
+
+# pass 1b: with the feet planted, how far must the hips drop so no planted foot is beyond reach
+PLANT_ACTIVE = True
+if PLANT > 0 and FK_LEGS:
+    need = []
+    for f in range(N_OUT):
+        scene.frame_set(f + 1)
+        pose(f % LOOP if LOOPING else f, dz[f], f)
+        need.append(max(0.0, NEED_DROP))
+    # never less than the raw need on any frame (a running max over 5 frames), then smoothed
+    wide = [max(need[max(0, i - 2):i + 3]) for i in range(N_OUT)]
+    HIP_DROP = smooth_series(wide, 2)
+    if BASE is not None:                                     # the first frame stays the base pose; the drop fades in with the crossfade
+        HIP_DROP = [d * (smooth01(f / float(BLEND_IN)) if f < BLEND_IN else 1.0) for f, d in enumerate(HIP_DROP)]
+    log("plant: reach drop of the hips %.4f..%.4f rig m (%d frames need it)" % (min(HIP_DROP), max(HIP_DROP), sum(1 for n in need if n > 1e-4)))
 
 # pass 2: final pose + keys
+planted = 0
 for f in range(N_OUT):
     frame = f + 1
     scene.frame_set(frame)
