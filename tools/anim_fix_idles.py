@@ -1,6 +1,6 @@
 """Hand-fix the three idles in place (user review 2026-09-21), no Kimodo regeneration.
 
-    blender -b Animations/skeleton_anim.blend -P tools/anim_fix_idles.py -- [--save] [--only Idle,Idle_02]
+    blender -b Animations/skeleton_anim.blend -P tools/anim_fix_idles.py -- [--save] [--only Idle,Idle_02] [--torso-drop 0.010]
 
 Per frame of each action (the retarget keyed every frame, so every frame is re-keyed):
 
@@ -28,7 +28,7 @@ FWD = Vector((0, -1, 0)); UP = Vector((0, 0, 1))
 OUTWARD_DEG = 12.0          # blades point forward and a little out, not exactly parallel
 SPINE_KEEP = 0.4            # Idle_02: fraction of the source spine flex kept
 HEAD_KEEP = 0.25            # Idle_02: fraction of the source head motion kept (about the rest heading)
-IDLE_TORSO_DROP = 0.010
+IDLE_TORSO_DROP = float(argv[argv.index("--torso-drop") + 1]) if "--torso-drop" in argv else 0.010   # rig m; the first run used 0.010, 2026-09-21 evening another 0.0071 (knee was at 177 deg)
 
 rig = next(o for o in bpy.data.objects if o.type == 'ARMATURE' and o.name.startswith("RIG-"))
 pbs = rig.pose.bones

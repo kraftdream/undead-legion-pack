@@ -39,7 +39,7 @@ every one verified on all six models with `verify_clip.py` + `ground_clip.py`) p
 
 | Group | Clips |
 |---|---|
-| Idles (loop) | `Idle`, `Idle_02`, `Idle_03` (hand-fixed 2026-09-21: blades forward, Idle grounded, Idle_02 upright with hanging arms); weapon idles `Idle_TwoHanded` (axe on the shoulder), `Idle_Propped` (leaning on the staff), `Idle_Bow`, `Idle_Staff`, `Idle_Wand` |
+| Idles (loop) | `Idle`, `Idle_02` (hand-fixed 2026-09-21: blades forward, Idle grounded, Idle_02 upright with hanging arms, left foot 5 cm forward / right 5 cm back), `Idle_03` (the user's own video-mocap idle, 2026-09-21, slowed 3×, 10.8 s loop, fingers from the capture, right foot 10 cm forward / left 10 cm back); weapon idles `Idle_TwoHanded` (axe on the shoulder), `Idle_Propped` (leaning on the staff), `Idle_Bow`, `Idle_Staff`, `Idle_Wand` |
 | Impaled (hand-authored) | `Impaled_Idle` (loop: on its knees, hunched, sword through the belly), `Impaled_Rise` (one-shot: pulls it out, stands up, ends on the neutral standing pose) |
 | Twitch (additive) | `Twitch_01/02/03` head + jaw |
 | Locomotion (loop, root motion) | `Walk_Fwd`, `Walk_Back`, `Run_Fwd`, `Strafe_Left` (mirrored right), `Strafe_Right` |
@@ -616,13 +616,69 @@ so the old process had marked them built without the argument). Never run a manu
 retarget with `--save` while the batch is mid-clip: two Blender processes writing
 `skeleton_anim.blend` is a corrupt file.
 
+### Recorded idle (2026-09-21)
+
+`Idle_03` is no longer the Kimodo `idle_slow_b` build: the user recorded an idle with a
+video-mocap app (`P:\VID20260921200208_default.glb`, copied to `External Anims/Kimodo/
+idle_mocap.glb`: a 53-joint Mixamo-named skeleton WITH finger joints, T-pose bind, 163
+frames at 30 fps) and asked for "all bones except legs/feet". That is idle mode as it
+already was (legs on IK at rest) plus two additions to `glb_retarget.py`, both in the
+manifest entry: `rename mixamo` (Spine/Spine1/Spine2/Neck/UpLeg/Leg → the SOMA names the
+MAP expects; the rename is two-phase because the names chain, and the hand's direction
+child falls back from `*HandMiddleEnd` to `*HandMiddle1` when a capture has real fingers)
+and `fingers` (`--fingers`: the first two phalanges of every finger are copied as world-
+rotation deltas onto Rigify's `thumb/f_*.01/.02` chain controls, the third follows its
+parent, and the finger masters stay at 0 instead of the constant curl + sine). Idle mode
+now also removes the hips' net XY drift over the loop linearly and shifts the seam's
+crossfade partner by it (the recording drifted 3 cm in 4 s; Kimodo idles drift ~0, so
+their rebuilds are unchanged). `src_end 128`, then `time_scale 3.0` (user: "slow it
+down like 3 times"; slerp resampling, `smooth 3`), `loop 324 blend 60 src_start 60` in
+resampled frames (10.8 s): the app lost the right hand at source frames 130–132 (a 50°
+jump in one frame, jitter to the end), so the loop stops before it; `--smooth` alone did
+not hide it, and the raw-source per-joint step trace is how to find such dropouts.
+
+**Heading (user: "knees twist slightly in some spots").** The performer stood 48° off the
+app's bind facing. The retarget copied that yaw onto the pelvis while idle mode keeps
+the feet at rest, so both legs were rolled 49° about their own axes on every frame
+(the greave sat 4 cm inward in Blender too, easy to miss on a straight leg; the export's
+de-twist then stripped it and Unity's Humanoid re-derived ±40° of thigh twist from the
+swing, which is what showed as twisting knees). `--heading auto` (now the default, manifest
+`heading`; `keep` disables) rotates every source frame about Z so the hips' mean yaw
+against the bind is 0: thigh/shin twist 0–6° in Blender, de-twist ≤ 11°. The user then
+named the deeper cause ("the torso is a bit too high, making the legs twist to compensate"):
+Idle_03's hips reached 102 % of the leg length and Idle's 100 % (knee 177°), and a straight
+IK leg has no defined roll. **Idle mode now lowers the hips by a constant** so no frame
+exceeds `PLANT_REACH` (0.985 of the leg, knee ≥ ~20° of bend): 32 mm on Idle_03 (the sway
+keeps its shape). `Idle` got the same through `anim_fix_idles.py --only Idle --torso-drop
+0.0071` (a further 13 mm on top of its first 10 mm; knee 177° → 160°). Idle_02 sits at
+93 % and needed nothing. After that, Unity's Humanoid is within ±8° of the Generic playback
+on every leg bone (it was ±14° with straight legs, and 1.0 / 0.0 avatar twist settings are
+worse than the default 0.5). Verified: seam 0.0000°, in place on all six, lowest vertex
+Idle +2.7..+7.4 mm, Idle_03 +5.2..+10.1 mm with the default lift, faces forward in play
+mode.
+
+**Split stances (user request, same evening).** Idle_02: left foot forward, right back
+"a bit" (`tools/anim_stance.py -- --action Idle_02 --left 0.03 --right -0.03`, rig m along
+forward = 5.4 cm each in the engine); Idle_03: the other way round and wider (manifest
+`stance "L:-0.055,R:0.055"`, 10 cm each). The retarget's `--stance` moves the resting
+`foot_ik` targets before the pose every frame; the standalone tool does the same on a
+finished action and lowers the torso by the reach constant if the wider stance needs it
+(Idle_02 needed 0: its knees sit at 129–139°). ⚠ The tool's first version shifted the foot
+per frame after keying it, on controls keyed only on frame 1: every frame re-evaluated the
+previous frame's shifted key and the feet ran 10 m away (the anim file was saved so; Idle_02
+was restored from `HEAD` by appending the action from `git show HEAD:…blend`). Any tool that
+keys a control per frame must read every frame's original value first. The wrists are the capture's (no forward-blade fix applied), and the
+motion is brisker than the other idles (head ~40°/s in the source): `time_scale` +
+`smooth` in the manifest are the knobs if it should read heavier.
+
 ### Hand-authored clips and idle fixes (2026-09-21)
 
 The user's review of the idles: blades pointed into the model, Idle's feet floated, Idle_02
 was hunched with a bent left arm and looked sideways. `tools/anim_fix_idles.py` rewrites
 the three actions in place, no Kimodo: every frame, the forearm is pronated about its
 own axis until the socket's hilt axis points forward (12° out); Idle's torso is dropped
-10 mm (its hips sat above the IK legs' reach, which lifted both feet 9 mm); Idle_02's
+10 mm (its hips sat above the IK legs' reach, which lifted both feet 9 mm; a further
+13 mm on 2026-09-21 evening, `--torso-drop`, so the knees keep 20° of bend); Idle_02's
 spine flex is scaled down (61° → 14° chest tilt after two passes: the fixer is NOT
 idempotent on Idle_02, run it once), the head re-aimed forward on the new spine, and
 both arms replaced by Idle's hanging arms resampled over its loop.
