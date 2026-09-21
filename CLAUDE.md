@@ -21,7 +21,7 @@ and importing the exports into Unity 6000.4 through the editor bridge.
 | Skeleton Mage        | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | **yes** | **yes** |
 | Skeleton Necromancer | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | **yes** | **yes** |
 | Skeleton Warrior     | done | done | **yes** | **yes** | valid | **yes** | **yes** |
-| Weapons (12 meshes)  | done | all textured (8 full PBR; staff, recurve bow, wand colour + normal; arrow colour only) | n/a | `SM_*.fbx` ×12 | n/a | `M_Weapon_<Name>` ×12 (+ unused placeholder) | **yes** (11 loadouts, `W_*` prefabs) |
+| Weapons (12 meshes)  | done | all textured (8 full PBR; staff, recurve bow, wand colour + normal; arrow colour only) | n/a | `SM_*.fbx` ×12 | n/a | `M_Weapon_<Name>` ×12 (+ unused placeholder) | **yes** (12 loadouts, `W_*` prefabs) |
 
 Shared clips so far: `Idle`, `Idle_02`, `Idle_03` (loops, 8 / 12 / 12 s) +
 `Twitch_01..03` (additive), on `AC_Skeleton`. Armour materials render both faces
@@ -39,7 +39,7 @@ every one verified on all six models with `verify_clip.py` + `ground_clip.py`) p
 
 | Group | Clips |
 |---|---|
-| Idles (loop) | `Idle`, `Idle_02` (hand-fixed 2026-09-21: blades forward, Idle grounded, Idle_02 upright with hanging arms, left foot 5 cm forward / right 5 cm back), `Idle_03` (the user's own video-mocap idle, 2026-09-21, slowed 3×, 10.8 s loop, fingers from the capture, right foot 10 cm forward / left 10 cm back); weapon idles `Idle_TwoHanded` (axe on the shoulder), `Idle_Propped` (leaning on the staff), `Idle_Bow`, `Idle_Staff`, `Idle_Wand` |
+| Idles (loop) | `Idle`, `Idle_02` (hand-fixed 2026-09-21: blades forward, Idle grounded, Idle_02 upright with hanging arms, left foot 5 cm forward / right 5 cm back), `Idle_03` (the user's own video-mocap idle, 2026-09-21, slowed 3×, 10.8 s loop, fingers from the capture, right foot 10 cm forward / left 10 cm back); weapon idles `Idle_TwoHanded` (axe on the shoulder), `Idle_Propped` (the user's video mocap, 2026-09-21: right palm on the top of a staff planted ahead, demo loadout "Staff (propped)"), `Idle_Bow`, `Idle_Staff`, `Idle_Wand` |
 | Impaled (hand-authored) | `Impaled_Idle` (loop: on its knees, hunched, sword through the belly), `Impaled_Rise` (one-shot: pulls it out, stands up, ends on the neutral standing pose) |
 | Twitch (additive) | `Twitch_01/02/03` head + jaw |
 | Locomotion (loop, root motion) | `Walk_Fwd`, `Walk_Back`, `Run_Fwd`, `Strafe_Left` (mirrored right), `Strafe_Right` |
@@ -675,6 +675,53 @@ was restored from `HEAD` by appending the action from `git show HEAD:…blend`).
 keys a control per frame must read every frame's original value first. The wrists are the capture's (no forward-blade fix applied), and the
 motion is brisker than the other idles (head ~40°/s in the source): `time_scale` +
 `smooth` in the manifest are the knobs if it should read heavier.
+
+### Recorded propped idle (2026-09-21, later)
+
+`Idle_Propped` is the user's capture `P: handed propped up 2_default.glb` (copied to
+`External Anims/Kimodo/idle_propped_mocap.glb`, the 52-joint `*_JNT` skeleton, 168 frames).
+Three things the file needed, all manifest keys now: **`mirror`** (the app mirrored the
+capture: the user propped with the right arm, the file shows the left; `--mirror` swaps it
+back and the retarget's heading removal runs after the mirror), **`still_joints RightHand`**
+(pre-mirror name = the file's hanging hand: the tracker lost it at source frames 75–91, 73°
+steps while the forearm stayed calm; the joint's rotation vs its parent is frozen to the
+clip's medoid frame) and **`prop R:0.69`** + **`prop_damp 0.2`** (user: "twist the right
+hand 90 degree, so the weapon points down. also, reduce the movement on the right hand, so
+it feels like it rests on a weapon"): the hand's socket +Y, the hilt axis that every weapon's
+blade direction follows, is aimed at a floor point straight ahead at the distance a 0.69 rig
+m (1.24 m) staff reaches from the hand's mean height (0.27 rig m ahead here), the fingers
+keep their heading, and the hand goes on IK at its mean position plus a fifth of its own
+motion (5 mm of travel over the loop). Then (user, from a Knight screenshot with the sword
+angled ahead: "twist the torso forward, so that model is hunched forward more; twist the arm
+so that the weapon points down") **`hunch 25`** and **`prop_vertical`**: the hand is put ON
+the staff's top at the staff's height (0.69 rig m = 1.24 m, the recording had it at 1.08),
+horizontally where the arm holds it at 90 % of its reach (pinning it at the recorded x/y
+left the elbow locked 3 cm short), and the hilt axis is aimed straight down from that
+pinned position (aiming from the recorded position left an 11° lean). Result in Unity: chest
+38° forward, elbow ~100°, staff foot on the floor 0.5 m ahead, hilt within 2° of vertical.
+Then the user posed a **reference** on frame 0 of the generated Idle_Propped ("use the
+reference pose in blender for torso position/rotation and right hand position"): torso 19°
+further forward and 4 cm back, right hand at 0.95 m. `tools/anim_pose_save.py -- --from
+Idle_Propped:0 --to Propped_Base` copied it into a one-frame action of its own (a rebuild
+recreates Idle_Propped, frame 0 included), and the manifest's **`torso_ref` / `hand_ref`
+`Propped_Base:1`** make the retarget use it: the torso control's world rotation/position
+replace the clip's MEAN (the recorded sway stays) and the delta is applied to every world
+target above the torso (the user rotated the control, which carries the spine, head and
+arms with it; rotating the pelvis alone left the chest where it was); the propping hand's
+socket position comes from the reference and the reach drop is re-measured after the fix
+(the reference's height alone locked a knee at 177° mid-loop). Then "lower the right hand like 20 cm": manifest `hand_offset 0,0,-0.111` (rig m, on top of
+the reference; if the target is beyond 97 % of the arm's reach from the mean shoulder it is
+brought in HORIZONTALLY at the requested height, so the elbow keeps ~30° and the height
+holds; pulling it straight towards the shoulder had given most of the drop back). The staff's grip for the propped loadout is `ProppedHandHeight =
+0.80` m up from its foot (0.95 before the lowering; 0.80 is the socket height Unity measures,
+the hand at 0.75 plus the export lift and the socket's offset above the wrist), so the foot
+meets the floor and the head rises above the hand. The staff is held by its TOP for this: loadout row
+`"SM_H2MagicStuff@Top"` makes a second prefab `W_H2MagicStuff_Top` of the same model whose
+Grip sits at the mesh's max Y turned 180° about Z, so the shaft runs down the slot's +Y to
+the floor (the first try aimed the palm normal and gripped along Z; a sign slip hung the
+staff off the back of the hand, the bounds check caught it); the demo lists it as "Staff
+(propped)" (the plain "Staff" keeps the shaft grip for Idle_Staff). Legs on IK with the
+reach drop (28 mm), 12.0 s loop (`time_scale 3.0`, slowed 3× on request), seam 0.0000°, lowest vertex +2.8..+7.5 mm, hands 20–24°/s after the freeze.
 
 ### Hand-authored clips and idle fixes (2026-09-21)
 

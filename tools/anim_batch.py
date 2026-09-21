@@ -52,7 +52,7 @@ def retarget_args(c):
                     ("arm_pose", "--arm-pose"), ("head_damp", "--head-damp"), ("travel_axis", "--travel-axis"),
                     ("lock_left_hand", "--lock-left-hand"), ("lock_left_roll", "--lock-left-roll"),
                     ("blend_from", "--blend-from"), ("blend_in", "--blend-in"), ("ground", "--ground"),
-                    ("ground_ignore", "--ground-ignore"), ("blend_to", "--blend-to"), ("blend_out", "--blend-out"), ("rename", "--rename"), ("plant_feet", "--plant-feet"), ("blend_from_lift", "--blend-from-lift"), ("heading", "--heading"), ("stance", "--stance")):
+                    ("ground_ignore", "--ground-ignore"), ("blend_to", "--blend-to"), ("blend_out", "--blend-out"), ("rename", "--rename"), ("plant_feet", "--plant-feet"), ("blend_from_lift", "--blend-from-lift"), ("heading", "--heading"), ("stance", "--stance"), ("still_joints", "--still-joints"), ("prop", "--prop"), ("prop_damp", "--prop-damp"), ("torso_ref", "--torso-ref"), ("hand_ref", "--hand-ref"), ("hand_offset", "--hand-offset")):
         if k in c:
             a += [flag, str(c[k])]
     if c.get("mirror"):
@@ -61,6 +61,8 @@ def retarget_args(c):
         a.append("--elbow-pole")
     if c.get("fingers"):
         a.append("--fingers")
+    if c.get("prop_vertical"):
+        a.append("--prop-vertical")
     if c.get("arm_keys"):
         a += ["--arm-keys", ",".join("%g:%s" % (t, n) for t, n in c["arm_keys"])]
     return a

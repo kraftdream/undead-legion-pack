@@ -89,6 +89,18 @@ RENAME_TABLES = {
                "LeftUpLeg": "LeftLeg", "LeftLeg": "LeftShin", "RightUpLeg": "RightLeg", "RightLeg": "RightShin"},
 }
 FINGERS_COPY = "--fingers" in argv               # copy the source's finger joints (two phalanges per finger) instead of the constant curl   # mesh-name substrings left out of the floor measure (Robe,Skirt for kneels: hems hang through the floor)                   # action mode: "twoway" = lowest point on the floor every frame (a clip whose stance changes: kneel -> stand)             # arm IK with a pole vector held outward (authored hands: no elbow inside the body)
+PROP = arg("--prop", "")                        # "R:0.69": that hand props on a staff of this length (rig m): its palm is aimed at a floor point straight ahead, at the distance the staff reaches
+PROP_SIDE, PROP_LEN = (PROP.split(":")[0], float(PROP.split(":")[1])) if PROP else (None, 0.0)
+PROP_POINT = None                               # the floor point, found from the mean hand position in pass 1
+PROP_MEAN = None
+TORSO_REF = arg("--torso-ref", "")             # ACTION[:frame]: the torso control's world rotation/position from that pose replace the clip's MEAN (the sway stays)
+HAND_OFFSET = Vector([float(v) for v in arg("--hand-offset", "0,0,0").split(",")])   # rig m, added to the reference/computed propping hand position
+HAND_REF = arg("--hand-ref", "")               # ACTION[:frame]: the propping hand's socket position from that pose (with --prop)
+TORSO_REF_POSE = None; HAND_REF_POS = None; TORSO_TRACE = []; TORSO_FIX = None
+PROP_VERTICAL = "--prop-vertical" in argv        # the weapon hangs straight down: floor point directly below the hand, the hand pinned at the staff's top height
+PROP_DAMP = float(arg("--prop-damp", "0.2"))    # the propping hand keeps this fraction of its motion about its mean position (it rests on the staff)
+PROP_TRACE = []
+STILL = [k for k in arg("--still-joints", "").split(",") if k]   # source joints (renamed, pre-mirror names) whose rotation vs their parent is frozen to the clip's typical value (a hand the tracker lost)
 STANCE = {k.split(":")[0]: float(k.split(":")[1]) for k in arg("--stance", "").split(",") if k}   # idle mode: "L:0.03,R:-0.03" moves each resting foot forward (+, rig m)
 HEADING = arg("--heading", "auto")             # auto: rotate the source so the hips' mean yaw vs the bind is 0 (a video capture faces wherever the performer stood); keep: as is; <deg>: fixed
 HEAD_DAMP = float(arg("--head-damp", "1.0"))    # 0..1: scales the neck+head rotation away from rest (1 = as authored)
@@ -350,6 +362,21 @@ if BLEND_TO:
     zero_pose()
     log("blend-to %s over the last %d frames" % (BLEND_TO, BLEND_OUT))
 
+def _sample_ref(spec):
+    name, _, frame = spec.partition(":")
+    act_ = bpy.data.actions[name]; rig.animation_data.action = act_
+    if hasattr(rig.animation_data, "action_slot") and act_.slots: rig.animation_data.action_slot = act_.slots[0]
+    scene.frame_set(int(frame) if frame else int(round(act_.frame_range[0]))); update()
+    out = ((rig.matrix_world @ pbs["torso"].matrix).copy(), (rig.matrix_world @ pbs["DEF-weapon.R"].matrix).translation.copy(), (rig.matrix_world @ pbs["DEF-weapon.L"].matrix).translation.copy())
+    rig.animation_data.action = None; zero_pose()
+    return out
+if TORSO_REF:
+    TORSO_REF_POSE = _sample_ref(TORSO_REF)[0]
+    log("torso-ref %s: torso at %s, %s deg" % (TORSO_REF, tuple(round(v, 3) for v in TORSO_REF_POSE.translation), tuple(round(math.degrees(v)) for v in TORSO_REF_POSE.to_euler())))
+if HAND_REF:
+    r_ = _sample_ref(HAND_REF); HAND_REF_POS = {"R": r_[1], "L": r_[2]}
+    log("hand-ref %s: sockets R %s L %s" % (HAND_REF, tuple(round(v, 3) for v in r_[1]), tuple(round(v, 3) for v in r_[2])))
+
 # ------------------------------------------------------------- 2. source
 before = set(bpy.data.objects)
 acts_before = set(bpy.data.actions)
@@ -370,6 +397,7 @@ if RENAME:
         SRC_ARM.data.bones["__ren__" + RENAME_TABLES[RENAME][old_n]].name = RENAME_TABLES[RENAME][old_n]
     log("renamed %d source joints (%s)" % (len(RENAME_TABLES[RENAME]), RENAME))
 S = {b.name: b for b in SRC_ARM.data.bones}
+S_PARENT = {b.name: (b.parent.name if b.parent else None) for b in SRC_ARM.data.bones}
 S_rest = {n: ((SRC_ARM.matrix_world @ b.matrix_local).to_quaternion(),
               (SRC_ARM.matrix_world @ b.head_local).copy()) for n, b in S.items()}
 
@@ -406,6 +434,17 @@ for i in range(n_src):
     scene.frame_set(f_src0 + i); update()
     SRC.append({n: ((SRC_ARM.matrix_world @ SRC_ARM.pose.bones[n].matrix).to_quaternion(),
                     (SRC_ARM.matrix_world @ SRC_ARM.pose.bones[n].head).copy()) for n in S})
+for j in STILL:
+    # freeze the joint's rotation relative to its parent to the medoid over the clip (the frame whose
+    # relative rotation is closest to all others): a video tracker that loses a hanging hand flaps it
+    # 70 deg in a frame while the forearm stays calm (the propped idle, 2026-09-21)
+    par = S_PARENT[j]
+    rel = [p[par][0].inverted() @ p[j][0] for p in SRC]
+    idx = range(0, len(rel), max(1, len(rel) // 60))
+    best = min(idx, key=lambda i: sum(min(rel[i].rotation_difference(rel[k]).angle, 2 * math.pi - rel[i].rotation_difference(rel[k]).angle) for k in idx))
+    for p in SRC:
+        p[j] = (p[par][0] @ rel[best], p[j][1])
+    log("still joint %s: rotation vs %s frozen to frame %d's" % (j, par, best))
 if MIRROR:
     SRC = [_mirror_pose(p) for p in SRC]
     log("mirrored the source left<->right")
@@ -585,7 +624,7 @@ rig.animation_data.action = act
 if hasattr(rig.animation_data, "action_slot"):
     rig.animation_data.action_slot = act.slots.new('OBJECT', rig.name)
 
-DRIVEN = sorted(TARGETS) + FINGERS + ["root"] + (["hand_ik.L", "hand_ik.R"] if (ARM_POSE or ARM_KEYS or LOCK_L > 0) else []) + (["upper_arm_ik_target.L", "upper_arm_ik_target.R"] if ELBOW_POLE else []) + (["foot_ik.L", "foot_ik.R", "toe_ik.L", "toe_ik.R"] if PLANT > 0 else [])
+DRIVEN = sorted(TARGETS) + FINGERS + ["root"] + (["hand_ik.L", "hand_ik.R"] if (ARM_POSE or ARM_KEYS or LOCK_L > 0 or PROP) else []) + (["upper_arm_ik_target.L", "upper_arm_ik_target.R"] if ELBOW_POLE else []) + (["foot_ik.L", "foot_ik.R", "toe_ik.L", "toe_ik.R"] if PLANT > 0 else [])
 STATIC = [c for c in controls() if c not in DRIVEN]
 _rnd = __import__("random").Random(7)
 FINGER_WAVE = {n: (_rnd.choice([1, 1, 2]), _rnd.uniform(0, 2 * math.pi), _rnd.uniform(0.6, 1.0)) for n in FINGERS}
@@ -654,6 +693,15 @@ def pose(f, dz=0.0, f_travel=None):
         hips = hips.lerp(END["hips"], we)
         for n in FINGERS:
             pbs[n].rotation_euler = (pbs[n].rotation_euler.x + (END["fist"][n] - pbs[n].rotation_euler.x) * we, 0, 0)
+    if TORSO_REF_POSE is not None:
+        if TORSO_FIX is None:
+            TORSO_TRACE.append((targets["torso"].copy(), hips.copy()))          # pass 1: collect the clip's torso
+        else:
+            # the user rotated the torso CONTROL, which carries everything above it: apply the delta to
+            # every world target (spine, neck, head, shoulders, FK arms), not to the pelvis alone
+            for tgt in targets:
+                targets[tgt] = TORSO_FIX[0] @ targets[tgt]
+            hips = hips + TORSO_FIX[1]
     hips = hips + Vector((0, 0, dz - (HIP_DROP[f] if HIP_DROP is not None else 0.0)))
     pbs["root"].location = (root.x, root.y, root.z)      # root points +Y, its local frame = world at rest
     update()
@@ -663,6 +711,24 @@ def pose(f, dz=0.0, f_travel=None):
         update()
     if FK_LEGS:
         hinge_toes()          # before the plant measures the sole: the toe cap is what a pitched boot rests on
+    if PROP_SIDE:
+        # propping hand: the socket's +Y (the hilt axis: the weapon convention's "blade direction")
+        # is aimed at the floor point so a weapon in that hand points down onto it, the fingers keep
+        # their heading, and the hand is put on IK at its mean position plus PROP_DAMP of its own
+        # motion (user: "reduce the movement on the right hand, so it feels like it rests on a
+        # weapon"). The "Staff (propped)" prefab grips the staff at its top end along +Y.
+        sock = rig.matrix_world @ pbs["DEF-weapon." + PROP_SIDE].matrix
+        PROP_TRACE.append((sock.translation.copy(), (rig.matrix_world @ pbs["DEF-upper_arm." + PROP_SIDE].matrix).translation.copy()))
+        if PROP_POINT is not None:
+            pos = PROP_MEAN + (sock.translation - PROP_MEAN) * PROP_DAMP
+            y_new = (PROP_POINT - pos).normalized()                 # aimed from where the hand is PUT, not where it was recorded
+            x_old = (sock.to_3x3() @ Vector((1, 0, 0))).normalized()
+            x_new = (x_old - y_new * x_old.dot(y_new)).normalized()
+            z_new = x_new.cross(y_new)
+            frame = Matrix.Translation(pos) @ Matrix((x_new, y_new, z_new)).transposed().to_4x4()
+            pbs["upper_arm_parent." + PROP_SIDE]["IK_FK"] = 0.0
+            pbs["hand_ik." + PROP_SIDE].matrix = rig.matrix_world.inverted() @ frame @ HAND_FROM_SOCKET[PROP_SIDE]
+            update()
     if not FK_LEGS:
         # IK legs on resting feet: hips beyond PLANT_REACH of the leg leave the IK a straight leg whose
         # roll is undetermined (the recorded idle rolled both legs 49 deg; Idle's knee sat at 177 deg)
@@ -822,6 +888,62 @@ for f in range(N_OUT):
     pose(f % LOOP if LOOPING else f, 0.0, f)
     raw_min.append(body_min_z())
     idle_need.append(NEED_DROP)
+if TORSO_REF_POSE is not None:
+    qs = [q for q, _ in TORSO_TRACE]; q0 = qs[0]
+    acc = Quaternion((0, 0, 0, 0))
+    for q in qs:
+        acc = acc + (q if q.dot(q0) >= 0 else -q)
+    mean_q = acc.normalized(); mean_p = sum((p for _, p in TORSO_TRACE), Vector()) / len(TORSO_TRACE)
+    TORSO_FIX = (TORSO_REF_POSE.to_quaternion() @ mean_q.inverted(), TORSO_REF_POSE.translation - mean_p)
+    ang = TORSO_FIX[0].angle
+    log("torso-ref: clip mean replaced by the reference: rotated %.0f deg, moved %s rig m; reach drop off (the reference sets the height)" % (math.degrees(ang if ang <= math.pi else 2 * math.pi - ang), tuple(round(v, 3) for v in TORSO_FIX[1])))
+if PROP_SIDE:
+    mean = sum((h for h, _ in PROP_TRACE), Vector()) / len(PROP_TRACE)
+    shoulder = sum((sh for _, sh in PROP_TRACE), Vector()) / len(PROP_TRACE)
+    ahead = math.sqrt(max(0.0, PROP_LEN * PROP_LEN - mean.z * mean.z))
+    if HAND_REF_POS is not None:
+        PROP_MEAN = HAND_REF_POS[PROP_SIDE] + HAND_OFFSET
+        # keep the target within 90 % of the arm's reach from the mean shoulder (a lowered hand would
+        # otherwise straighten the elbow): pulled towards the shoulder along the same line
+        arm = ((rig.matrix_world @ pbs["DEF-upper_arm." + PROP_SIDE].matrix).translation - (rig.matrix_world @ pbs["DEF-forearm." + PROP_SIDE].matrix).translation).length \
+            + ((rig.matrix_world @ pbs["DEF-forearm." + PROP_SIDE].matrix).translation - (rig.matrix_world @ pbs["DEF-hand." + PROP_SIDE].matrix).translation).length
+        # keep the requested HEIGHT; if the target is beyond 97 % of the arm's reach from the mean
+        # shoulder, bring it in horizontally towards the shoulder (the elbow keeps ~30 deg of bend)
+        v = PROP_MEAN - shoulder
+        limit = 0.97 * arm
+        if v.length > limit:
+            dz = PROP_MEAN.z - shoulder.z
+            if abs(dz) >= limit:
+                PROP_MEAN = Vector((shoulder.x, shoulder.y, shoulder.z + math.copysign(limit, dz)))
+            else:
+                h = Vector((v.x, v.y, 0.0)); h = h.normalized() if h.length > 1e-4 else Vector((0, -1, 0))
+                r = math.sqrt(limit * limit - dz * dz)
+                PROP_MEAN = Vector((shoulder.x + h.x * r, shoulder.y + h.y * r, PROP_MEAN.z))
+            log("prop: hand target %.3f rig m from the shoulder, beyond 97%% of the arm (%.3f): brought in to (%.3f, %.3f, %.3f)" % (v.length, arm, PROP_MEAN.x, PROP_MEAN.y, PROP_MEAN.z))
+        PROP_POINT = Vector((PROP_MEAN.x, PROP_MEAN.y, 0.0)) if PROP_VERTICAL else Vector((PROP_MEAN.x, PROP_MEAN.y - math.sqrt(max(0.0, PROP_LEN ** 2 - PROP_MEAN.z ** 2)), 0.0))
+        log("prop: hand %s from the reference (offset %.3f, %.3f, %.3f) at (%.3f, %.3f, %.3f) rig m: %.2f m up in the engine; a %.2f m weapon below it reaches %+.2f m" % (PROP_SIDE, HAND_OFFSET.x, HAND_OFFSET.y, HAND_OFFSET.z, PROP_MEAN.x, PROP_MEAN.y, PROP_MEAN.z, PROP_MEAN.z * 1.8, PROP_LEN * 1.8, (PROP_MEAN.z - PROP_LEN) * 1.8))
+    elif PROP_VERTICAL:
+        # the hand rests on the staff's top at height PROP_LEN, placed where the arm holds it at 90 % of
+        # its reach (pinning it at the recorded x/y left the elbow locked 3 cm short of the top)
+        arm = (rig.matrix_world @ pbs["DEF-upper_arm." + PROP_SIDE].matrix).translation - (rig.matrix_world @ pbs["DEF-forearm." + PROP_SIDE].matrix).translation
+        arm = arm.length + ((rig.matrix_world @ pbs["DEF-forearm." + PROP_SIDE].matrix).translation - (rig.matrix_world @ pbs["DEF-hand." + PROP_SIDE].matrix).translation).length
+        dz = PROP_LEN - shoulder.z
+        r = math.sqrt(max(0.0, (0.9 * arm) ** 2 - dz * dz))
+        d = Vector((mean.x - shoulder.x, mean.y - shoulder.y, 0.0)); d = d.normalized() if d.length > 1e-4 else Vector((0, -1, 0))
+        PROP_MEAN = Vector((shoulder.x + d.x * r, shoulder.y + d.y * r, PROP_LEN)); PROP_POINT = Vector((PROP_MEAN.x, PROP_MEAN.y, 0.0))
+        log("prop: hand %s on the staff's top at %.3f rig m, %.2f from the shoulder (arm %.2f, 90%%), weapon straight down; recorded hand mean %.3f up" % (PROP_SIDE, PROP_LEN, r, arm, mean.z))
+    else:
+        PROP_POINT = Vector((mean.x, mean.y - ahead, 0.0)); PROP_MEAN = mean.copy()
+        log("prop: hand %s mean height %.3f rig m, staff %.2f -> floor point %.2f ahead" % (PROP_SIDE, mean.z, PROP_LEN, ahead))
+    PROP_TRACE = []
+if MODE == "idle" and TORSO_REF_POSE is not None:
+    # the reference sets the height, but the sway must still keep the knees off full extension:
+    # re-measure the reach with the torso fix applied
+    idle_need = []
+    for f in range(N_OUT):
+        scene.frame_set(f + 1)
+        pose(f % LOOP if LOOPING else f, 0.0, f)
+        idle_need.append(NEED_DROP)
 if MODE == "idle" and max(idle_need) > 1e-4:
     HIP_DROP = [max(idle_need)] * N_OUT                      # constant: the sway keeps its shape, the knees keep a bend
     log("reach: hips lowered by %.4f rig m (%.0f mm) so the IK legs never straighten" % (HIP_DROP[0], HIP_DROP[0] * 1800))
