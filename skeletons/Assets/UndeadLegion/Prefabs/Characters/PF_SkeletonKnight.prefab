@@ -730,7 +730,8 @@ Transform:
   m_LocalPosition: {x: 0.0071665887, y: 0.03653276, z: -0.0074945986}
   m_LocalScale: {x: 0.99999994, y: 0.9999999, z: 0.99999994}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 6880975575717298749}
   m_Father: {fileID: 3377195353720482672}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1626528819029074400
@@ -923,6 +924,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3377195353720482672}
+  - {fileID: 4144967987112450635}
   m_Father: {fileID: 8892268300750849202}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1792117738662545873
@@ -2208,6 +2210,37 @@ SkinnedMeshRenderer:
     m_Center: {x: 0.011181787, y: 0.86385417, z: -0.07234474}
     m_Extent: {x: 0.30468, y: 0.23909, z: 0.23907855}
   m_DirtyAABB: 0
+--- !u!1 &4325024668463704947
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6880975575717298749}
+  m_Layer: 0
+  m_Name: LeftHandSlot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6880975575717298749
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4325024668463704947}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.0086, y: 0.01, z: -0.0384}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6822219155147697384}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4343294525559991374
 GameObject:
   m_ObjectHideFlags: 0
@@ -2270,6 +2303,37 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2598320473404398431}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4613526612965334490
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6421025616212504557}
+  m_Layer: 0
+  m_Name: RightHandSlot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6421025616212504557
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4613526612965334490}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.0079, y: 0.008, z: -0.0352}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6056547290995988039}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4953703141873981316
 GameObject:
@@ -2592,6 +2656,37 @@ Transform:
   - {fileID: 2141850016063645679}
   m_Father: {fileID: 4156744201534613346}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5965559607169583810
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4144967987112450635}
+  m_Layer: 0
+  m_Name: LeftForearmSlot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4144967987112450635
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5965559607169583810}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.8914024, y: -0.000000038964437, z: 0.45321277, w: -0.00000001981056}
+  m_LocalPosition: {x: 0.028, y: 0.13, z: -0.021}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1232210287386503999}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5980872209264592302
 GameObject:
   m_ObjectHideFlags: 0
@@ -2764,71 +2859,56 @@ MonoBehaviour:
   loadouts:
   - displayName: Sword + shield
     items:
-    - model: {fileID: 919132149155446097, guid: d45aa743ac823c14d8643f9df0fcfe4d, type: 3}
+    - model: {fileID: 4752905374514790809, guid: 7c57bf43033d30345841e6b25bdcce22, type: 3}
       hand: 0
-      material: {fileID: 2100000, guid: 1fef6512d5141964e94355eabd90f032, type: 2}
-    - model: {fileID: 919132149155446097, guid: 056f8fd6736ddc945b0cf4de47a22248, type: 3}
-      hand: 2
-      material: {fileID: 2100000, guid: de39c4df083cb0b4d8f32add3921fcbd, type: 2}
+    - model: {fileID: 7884228143032605617, guid: 778b31c6cd0924648a888342ad325080, type: 3}
+      hand: 1
   - displayName: Sword
     items:
-    - model: {fileID: 919132149155446097, guid: d45aa743ac823c14d8643f9df0fcfe4d, type: 3}
+    - model: {fileID: 4752905374514790809, guid: 7c57bf43033d30345841e6b25bdcce22, type: 3}
       hand: 0
-      material: {fileID: 2100000, guid: 1fef6512d5141964e94355eabd90f032, type: 2}
   - displayName: Axe + round shield
     items:
-    - model: {fileID: 919132149155446097, guid: 62ac2ad17eb918d41bc377fe289f7bc2, type: 3}
+    - model: {fileID: 3945905034661691783, guid: b599ae6306e3cdf40b2ee80c9fbb5dca, type: 3}
       hand: 0
-      material: {fileID: 2100000, guid: f85b063c991cf7646a00800f370b0115, type: 2}
-    - model: {fileID: 919132149155446097, guid: f07c40a4c51ee4e4e845f42d879f9b79, type: 3}
-      hand: 2
-      material: {fileID: 0}
+    - model: {fileID: 475790692273455469, guid: 0d50abea1d2030e4d9e814bd8bc95ce4, type: 3}
+      hand: 1
   - displayName: Mace
     items:
-    - model: {fileID: 919132149155446097, guid: ec0a2286378e97b458e9eabace85d1c9, type: 3}
+    - model: {fileID: 3382129778431760866, guid: cfcc1adcdff609d419b3c814e8788be8, type: 3}
       hand: 0
-      material: {fileID: 2100000, guid: 6df8491411d91b546a97ae509280432c, type: 2}
   - displayName: Dagger
     items:
-    - model: {fileID: 919132149155446097, guid: e4b625b879e59544197ccafcc201eddb, type: 3}
+    - model: {fileID: 2778408268400942382, guid: cca0c9f74c861024cb9e3e2e736248c6, type: 3}
       hand: 0
-      material: {fileID: 2100000, guid: 56feb08beb6fb65499a8e0862ac6208d, type: 2}
   - displayName: Two daggers
     items:
-    - model: {fileID: 919132149155446097, guid: e4b625b879e59544197ccafcc201eddb, type: 3}
+    - model: {fileID: 2778408268400942382, guid: cca0c9f74c861024cb9e3e2e736248c6, type: 3}
       hand: 0
-      material: {fileID: 2100000, guid: 56feb08beb6fb65499a8e0862ac6208d, type: 2}
-    - model: {fileID: 919132149155446097, guid: e4b625b879e59544197ccafcc201eddb, type: 3}
+    - model: {fileID: 2778408268400942382, guid: cca0c9f74c861024cb9e3e2e736248c6, type: 3}
       hand: 1
-      material: {fileID: 2100000, guid: 56feb08beb6fb65499a8e0862ac6208d, type: 2}
   - displayName: Longsword (2H)
     items:
-    - model: {fileID: 919132149155446097, guid: 1c4324266da1a8d40811184e962b15db, type: 3}
+    - model: {fileID: 3645448109424570990, guid: 18992c04fd0e77044bc2caddc05c5982, type: 3}
       hand: 0
-      material: {fileID: 0}
   - displayName: Battle axe (2H)
     items:
-    - model: {fileID: 919132149155446097, guid: 0c45aa7b0786a7c428fc024b5bc9329a, type: 3}
+    - model: {fileID: 2148625221273557676, guid: 12ecbe7db5561f04d85046f972e0d81e, type: 3}
       hand: 0
-      material: {fileID: 0}
   - displayName: Longbow
     items:
-    - model: {fileID: 919132149155446097, guid: 5bf8ccd0ed5451c49882a697edae36c3, type: 3}
+    - model: {fileID: 5905351391346489589, guid: 3a5b980d769fb45489aaa0ea58cb287b, type: 3}
       hand: 1
-      material: {fileID: 0}
-    - model: {fileID: 919132149155446097, guid: 78040aff5a185924f8ebfcba672d8544, type: 3}
+    - model: {fileID: 5008945123204479150, guid: 821de85c5c8ca704dbcc135eaa12ffd1, type: 3}
       hand: 0
-      material: {fileID: 0}
   - displayName: Staff
     items:
-    - model: {fileID: 919132149155446097, guid: 8999a7d9a39d4844580afdb38399fb36, type: 3}
+    - model: {fileID: 1934886050350770491, guid: 26376102f16a4d747a09c785619934c4, type: 3}
       hand: 0
-      material: {fileID: 0}
   - displayName: Spellbook
     items:
-    - model: {fileID: 919132149155446097, guid: 3cfe90bd39cf6534fb5508945904e113, type: 3}
+    - model: {fileID: 4889192210915407258, guid: 69ae54605ca537c4cbd9224dce8dc592, type: 3}
       hand: 1
-      material: {fileID: 0}
   gripLeft:
   - bone: LeftHandThumb1
     localRotation: {x: 0.017013934, y: -0.76783246, z: -0.3076165, w: 0.56170803}
@@ -2891,13 +2971,6 @@ MonoBehaviour:
     localRotation: {x: -0.4960559, y: -0.053224757, z: 0.11570349, w: -0.8588996}
   - bone: RightHandPinky3
     localRotation: {x: -0.21345729, y: 0.013616385, z: 0.36632425, w: -0.90557015}
-  placeholderMaterial: {fileID: 2100000, guid: 531693aede88e77448518923a6a8bf60, type: 2}
-  forearmSocketOffset: {x: 0.028, y: 0.13, z: -0.021}
-  forearmSocketEuler: {x: 0, y: 126.1, z: 180}
-  rightHandOffset: {x: -0.028, y: 0.008, z: -0.038}
-  rightHandEuler: {x: 0, y: 0, z: 0}
-  leftHandOffset: {x: 0.038, y: 0.01, z: -0.037}
-  leftHandEuler: {x: 0, y: 0, z: 0}
 --- !u!1 &6077060544750161325
 GameObject:
   m_ObjectHideFlags: 0
@@ -2989,7 +3062,8 @@ Transform:
   m_LocalPosition: {x: -0.0071665198, y: 0.036532752, z: -0.0074945763}
   m_LocalScale: {x: 0.9999999, y: 0.9999998, z: 0.9999999}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 6421025616212504557}
   m_Father: {fileID: 335878461417799032}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6320878788648578738

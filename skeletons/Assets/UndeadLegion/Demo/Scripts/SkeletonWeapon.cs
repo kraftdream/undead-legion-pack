@@ -4,26 +4,26 @@ using UnityEngine;
 namespace UndeadLegion.Demo
 {
     /// <summary>
-    /// Hangs weapon meshes on the skeleton's socket bones at runtime.
+    /// Hangs weapon prefabs on the skeleton's hand slots at runtime.
     ///
-    /// The sockets are bones of the shared skeleton (`RightWeaponSocket`,
-    /// `LeftWeaponSocket`, children of the hands; CLAUDE.md 2): a weapon exported by
-    /// tools/export_weapons.py has its grip at the origin and its length along +Y, so it
-    /// attaches with an IDENTITY local transform. Shields go on the left forearm instead,
-    /// on a socket this component creates under `LeftForeArm`.
+    /// Two editable transforms meet: a SLOT on the character (`RightHandSlot` under the
+    /// `RightWeaponSocket` bone, `LeftHandSlot` under `LeftWeaponSocket`, `LeftForearmSlot`
+    /// under `LeftForeArm`; saved in the character prefab, move/rotate them there) and a
+    /// `Grip` child in every weapon prefab (Prefabs/Weapons/W_*.prefab; move/rotate it on
+    /// the weapon). Equip() places the weapon so its Grip coincides with the slot in position
+    /// AND rotation. Grip +Y is the hilt direction, +Z the back of the hand (CLAUDE.md 2).
     /// </summary>
     [DisallowMultipleComponent]
     public class SkeletonWeapon : MonoBehaviour
     {
-        public enum Hand { Right, Left, LeftForearm }
+        public enum Hand { Right, Left, LeftForearm }   // LeftForearm: kept for strapped items; shields now go on Left
 
         [System.Serializable]
         public class Item
         {
+            [Tooltip("Weapon prefab (Prefabs/Weapons/W_<Name>) with a child named Grip")]
             public GameObject model;
             public Hand hand = Hand.Right;
-            [Tooltip("The weapon's own material (M_Weapon_<Name>); empty = the placeholder")]
-            public Material material;
         }
 
         [System.Serializable]
@@ -44,23 +44,15 @@ namespace UndeadLegion.Demo
         [Tooltip("Finger bone local rotations of the authored grip (sampled from Skeleton@Grip by the prefab builder); applied after the Animator to a hand that holds an item.")]
         public List<GripBone> gripLeft = new List<GripBone>();
         public List<GripBone> gripRight = new List<GripBone>();
-        [Tooltip("Applied to a weapon renderer whose item has no material of its own (untextured meshes).")]
-        public Material placeholderMaterial;
-        // Shield socket on LeftForeArm: mid-forearm (+Y is the bone axis towards the hand) and
-        // 3.5 cm out on the side away from the spine; the rotation maps the shield mesh's face
-        // normal (+Z) to that outward direction and its top (+Y) towards the elbow. Measured on
-        // the Knight 2026-09-20 (outward = (0.81, 0, -0.59) in forearm space).
-        [Tooltip("Shield socket: offset from the LeftForeArm bone (bone-local metres, +Y along the bone towards the hand) and rotation.")]
-        public Vector3 forearmSocketOffset = new Vector3(0.028f, 0.13f, -0.021f);
-        public Vector3 forearmSocketEuler = new Vector3(0f, 126.1f, 180f);
-        // Hand sockets sit at the palm centre (rig convention); with the grip pose the ring of
-        // curled fingers is ~3 cm along the fingers and ~4 cm towards the palm side from there
-        // (measured: finger-ring centroid in socket space), so the hilt moves into the fist.
-        [Tooltip("Hand-held items: extra offset (socket-local metres) and rotation (degrees) applied on top of the socket bone, so the hilt sits inside the curled fingers rather than at the palm centre.")]
-        public Vector3 rightHandOffset = new Vector3(-0.028f, 0.008f, -0.038f);
-        public Vector3 rightHandEuler = Vector3.zero;
-        public Vector3 leftHandOffset = new Vector3(0.038f, 0.010f, -0.037f);
-        public Vector3 leftHandEuler = Vector3.zero;
+        public const string RightSlotName = "RightHandSlot", LeftSlotName = "LeftHandSlot", ForearmSlotName = "LeftForearmSlot", GripName = "Grip";
+        // defaults used only when a prefab has no slot yet (the prefab builder creates them
+        // and keeps whatever you moved them to): measured 2026-09-20 as the centroid of the
+        // curled fingers in socket space, and mid-forearm on the outside for the shield
+        // the user tuned these on the Warrior in the editor (2026-09-21); they hold for all six
+        public static readonly Vector3 DefaultRightSlotPos = new Vector3(-0.0079f, 0.008f, -0.0352f);
+        public static readonly Vector3 DefaultLeftSlotPos = new Vector3(0.0086f, 0.010f, -0.0384f);
+        public static readonly Vector3 DefaultForearmSlotPos = new Vector3(0.028f, 0.13f, -0.021f);
+        public static readonly Vector3 DefaultForearmSlotEuler = new Vector3(0f, 126.1f, 180f);
 
         readonly List<GameObject> _spawned = new List<GameObject>();
         Transform _right, _left, _forearm;
@@ -105,24 +97,47 @@ namespace UndeadLegion.Demo
             EnsureSockets();
         }
 
-        /// <summary>Resolve the socket transforms (also usable from editor tooling, where Awake does not run).</summary>
+        /// <summary>Find the three slots, creating any missing one at its default under the
+        /// socket bone (also usable from editor tooling, where Awake does not run).</summary>
         public void EnsureSockets()
         {
-            if (_right != null && _left != null) return;
+            if (_right != null && _left != null && _forearm != null) return;
+            Transform rightBone = null, leftBone = null, forearmBone = null;
             foreach (var t in GetComponentsInChildren<Transform>(true))
             {
-                if (t.name == "RightWeaponSocket") _right = t;
-                else if (t.name == "LeftWeaponSocket") _left = t;
-                else if (t.name == "LeftForeArm") _forearm = t;
+                if (t.name == "RightWeaponSocket") rightBone = t;
+                else if (t.name == "LeftWeaponSocket") leftBone = t;
+                else if (t.name == "LeftForeArm") forearmBone = t;
             }
-            if (_forearm != null)
+            _right = Slot(rightBone, RightSlotName, DefaultRightSlotPos, Vector3.zero);
+            _left = Slot(leftBone, LeftSlotName, DefaultLeftSlotPos, Vector3.zero);
+            _forearm = Slot(forearmBone, ForearmSlotName, DefaultForearmSlotPos, DefaultForearmSlotEuler);
+        }
+
+        public static Transform Slot(Transform bone, string name, Vector3 defaultPos, Vector3 defaultEuler)
+        {
+            if (bone == null) return null;
+            var s = bone.Find(name);
+            if (s == null)
             {
-                var s = new GameObject("LeftForeArmSocket").transform;
-                s.SetParent(_forearm, false);
-                s.localPosition = forearmSocketOffset;
-                s.localRotation = Quaternion.Euler(forearmSocketEuler);
-                _forearm = s;
+                s = new GameObject(name).transform;
+                s.SetParent(bone, false);
+                s.localPosition = defaultPos;
+                s.localRotation = Quaternion.Euler(defaultEuler);
+                s.localScale = Vector3.one;
             }
+            return s;
+        }
+
+        /// <summary>Place `weapon` so that its Grip child coincides with `slot` (position and rotation).</summary>
+        public static void AlignGrip(Transform weapon, Transform slot)
+        {
+            var grip = weapon.Find(GripName);
+            if (grip == null) { weapon.SetPositionAndRotation(slot.position, slot.rotation); return; }
+            // rotation first (the grip's rotation relative to the weapon root is fixed), then translate
+            Quaternion gripRel = Quaternion.Inverse(weapon.rotation) * grip.rotation;
+            weapon.rotation = slot.rotation * Quaternion.Inverse(gripRel);
+            weapon.position += slot.position - grip.position;
         }
 
         public void Equip(int index)
@@ -141,17 +156,8 @@ namespace UndeadLegion.Demo
                 if (socket == null) { Debug.LogWarning("SkeletonWeapon: no socket for " + it.hand + " on " + name, this); continue; }
                 var go = Instantiate(it.model, socket, false);
                 go.name = it.model.name;
-                go.transform.localPosition = it.hand == Hand.Right ? rightHandOffset : it.hand == Hand.Left ? leftHandOffset : Vector3.zero;
-                go.transform.localRotation = it.hand == Hand.Right ? Quaternion.Euler(rightHandEuler) : it.hand == Hand.Left ? Quaternion.Euler(leftHandEuler) : Quaternion.identity;
                 go.transform.localScale = Vector3.one;
-                var use = it.material != null ? it.material : placeholderMaterial;
-                if (use != null)
-                    foreach (var r in go.GetComponentsInChildren<Renderer>())
-                    {
-                        var mats = r.sharedMaterials;
-                        for (int i = 0; i < mats.Length; i++) mats[i] = use;
-                        r.sharedMaterials = mats;
-                    }
+                AlignGrip(go.transform, socket);
                 _spawned.Add(go);
             }
         }

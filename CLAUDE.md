@@ -21,7 +21,7 @@ and importing the exports into Unity 6000.4 through the editor bridge.
 | Skeleton Mage        | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | **yes** | **yes** |
 | Skeleton Necromancer | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | **yes** | **yes** |
 | Skeleton Warrior     | done | done | **yes** | **yes** | valid | **yes** | **yes** |
-| Weapons (13 meshes)  | done | 5 textured (sword, dagger, axe, mace, heater shield), 8 untextured | n/a | `SM_*.fbx` ×13 | n/a | `M_Weapon_<Name>` ×5 + placeholder | **yes** (12 loadouts) |
+| Weapons (13 meshes)  | done | 6 textured (sword, dagger, axe, mace, both shields), 7 untextured | n/a | `SM_*.fbx` ×13 | n/a | `M_Weapon_<Name>` ×6 + placeholder | **yes** (11 loadouts, `W_*` prefabs) |
 
 Shared clips so far: `Idle`, `Idle_02`, `Idle_03` (loops, 8 / 12 / 12 s) +
 `Twitch_01..03` (additive), on `AC_Skeleton`. Armour materials render both faces
@@ -76,9 +76,9 @@ clip `Test_RootMotion` stays in the anim file, not in Unity.
   `H1Sword`, `H1Dagger`, `H1Axe`, `H1Mace`, `H1HeaterShield` have UVs and 512² PBR maps
   (`Weapons/<lower>_{color,normal,roughness[,metallic]}.png`, packed by
   `tools/pack_textures.py -- Weapons` into `Textures/Weapons/`, materials
-  `M_Weapon_<Name>` made by the import setup, assigned per loadout item). Still
-  untextured on the placeholder: round shield, longsword, battle axe, longbow, staff,
-  spellbook, arrow. Several meshes were rescaled in prod.blend (longsword 1.15 m, staff
+  `M_Weapon_<Name>` made by the import setup, assigned inside the `W_*` weapon prefab).
+  The round shield got its maps on 2026-09-21 (commit `10740f3`). Still untextured on
+  the placeholder: longsword, battle axe, longbow, staff, spellbook, arrow. Several meshes were rescaled in prod.blend (longsword 1.15 m, staff
   1.24 m, heater shield 0.70 m at pack scale); the grips carried over at the same
   relative position along the length. The **Arrow** in prod.blend is 2 cm long, so it is
   still exported from `weapons.blend` (`--only Arrow`). **`H1Wand`** in prod.blend is the
@@ -132,19 +132,34 @@ Grip convention, in the socket's own bone frame, identical in Unity and Unreal:
 - **+Z = out of the back of the hand**
 - +X completes the right-handed frame (roughly along the fingers)
 
-A weapon mesh is authored with its grip point at the origin and its blade along +Y in
-the engine, and attaches to the socket with an identity local transform **plus the
-component's per-hand offset** (`SkeletonWeapon.rightHandOffset` / `leftHandOffset`, socket
-space, default (−0.028, 0.008, −0.038) / (0.038, 0.010, −0.037) m): the socket bone sits at
-the palm centre, but with the grip pose the ring of curled fingers is ~3 cm along the
-fingers and ~4 cm to the palm side of it (measured as the centroid of the twelve finger
-bones in socket space), and that is where the hilt has to be. The ring's axis is within
-3.5° of the socket's +Y, so no rotation offset. The shield socket is a child of
-`LeftForeArm` at mid-forearm, 3.5 cm out on the side away from the spine, rotated so the
-mesh's face normal (+Z, its thin axis) points that way and its top towards the elbow
-(`forearmSocketOffset` (0.028, 0.13, −0.021), `forearmSocketEuler` (0, 126.1, 180)). All
-four are inspector fields; the defaults live in the script so a prefab rebuild keeps them.
-Check any change with `weapon_shots.py ... RightWeaponSocket` (close-up mode).
+**Slots and grips (2026-09-20, user request: "slots in skeleton hands that I can
+configure, and slots on each weapon where it connects, respecting rotation").** Two
+editable transforms meet at attach time:
+
+- **Hand slots** on the character prefab: `RightHandSlot` (child of the
+  `RightWeaponSocket` bone), `LeftHandSlot` (under `LeftWeaponSocket`), plus a
+  `LeftForearmSlot` (under `LeftForeArm`) that nothing uses since shields moved to the
+  hand. Move/rotate them in the prefab with the gizmo. The prefab builder creates missing
+  ones at the defaults (`SkeletonWeapon.Default*`: right (−0.0079, 0.008, −0.0352), left
+  (0.0086, 0.010, −0.0384) — the user's own tuning on the Warrior, 2026-09-21, copied to
+  the other five) and **carries edited ones over on every rebuild** (proved: an edited
+  Warrior slot survived Rebuild Character Prefabs). All six share one skeleton, so one
+  set of slot values fits all; tune on any character and copy (the copy is a 20-line
+  `execute_code`: read the poses from one prefab, `LoadPrefabContents` the others).
+- **Weapon prefabs** `Prefabs/Weapons/W_<Name>.prefab`: `Mesh` (the `SM_*` model with its
+  material) + a child `Grip`. Move/rotate `Grip` on the weapon. Created once by the prefab
+  builder (Grip at identity, since the export already puts the grip at the mesh origin,
+  blade +Y, back-of-hand +Z); an existing weapon prefab is never overwritten, delete it to
+  regenerate. Loadouts reference these prefabs, not the FBX. **Shields are hand-held**
+  (user decision 2026-09-21, `Hand.Left`): their Grip starts 4.5 cm behind the boss and
+  rolled −90° about the face normal, so the fist closes on a handle behind the plate and
+  the plate's top points towards the wrist; the grip finger pose applies to that hand.
+- `SkeletonWeapon.AlignGrip(weapon, slot)` places the weapon so `Grip` coincides with the
+  slot in position and rotation (verified to 0.00000 m / 0.000° after moving either).
+
+The per-weapon table in `tools/export_weapons.py` still sets the mesh origin (the
+starting point for `Grip`); `tools/unity/grip_sheet.py` renders every loadout close-up
+for review.
 
 **Fingers close on whatever a hand holds (2026-09-20).** The grip is hand-authored in
 `Animations/skeleton_anim.blend` on the individual finger controls of both hands (the
