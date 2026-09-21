@@ -39,7 +39,9 @@ GRIP = {
     "H2MagicStuff":  (Vector((0, 0, 0.0)), 0),
     # "H1Wand" (new in prod.blend) is NOT exported: it is the staff mesh squashed to 0.39 m in
     # length only, which renders as a thick block; the Wand loadout waits for a real mesh.
-    "H1Spellbook":   (Vector((0, 0, 0.0)), 0),
+    # held by the spine (x = -0.125 edge, mid-thickness), spine along the hilt axis, pages
+    # towards the palm (-Z in the socket = -Y in Blender, so the fore-edge direction +x rolls to -y)
+    "H1Spellbook":   (Vector((-0.125, -0.033, 0.0)), -90),
     "H1HeaterShield": (Vector((0, -0.008, -0.02)), 0),
     "H1RoundShield": (Vector((0, -0.02, 0.0)), 0),
     "Arrow":         (Vector((0, 0, -0.10)), 0),
@@ -48,7 +50,7 @@ GRIP = {
 OLD_EXTENT = {
     "H1Sword": (-0.079, 0.298), "H1Dagger": (-0.063, 0.177), "H1Axe": (-0.067, 0.216), "H1Mace": (-0.076, 0.241),
     "H2Longsword": (-0.088, 0.349), "H2Axe": (-0.090, 0.306), "H2Longbow": (-0.175, 0.169), "H2MagicStuff": (-0.146, 0.203),
-    "H1Spellbook": (-0.086, 0.085), "H1HeaterShield": (-0.176, 0.122), "H1RoundShield": (-0.109, 0.109), "Arrow": (-0.117, 0.118),
+ "H1HeaterShield": (-0.176, 0.122), "H1RoundShield": (-0.109, 0.109), "Arrow": (-0.117, 0.118),
 }
 
 import sys

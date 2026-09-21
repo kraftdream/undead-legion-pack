@@ -78,6 +78,11 @@ textured weapons' maps into `Textures/Weapons/`; `python tools/unity/weapon_shot
 <loadout> [Character]` renders a character playing a clip with a loadout equipped on
 the socket bones, in edit mode.
 
+`python tools/unity/grip_sheet.py <out.png> [clip] [character] [t]` renders every weapon
+loadout close-up on the holding hands (one row per loadout) to review the hand slots
+(`RightHandSlot`/`LeftHandSlot`/`LeftForearmSlot` in the character prefab) and each weapon
+prefab's `Grip` (`Prefabs/Weapons/W_*.prefab`).
+
 ## Unity menu items (Demo/Editor)
 
 `Undead Legion/1. Import Setup` → texture + model importers, materials.
