@@ -64,6 +64,13 @@ FINGER_LIFE = float(arg("--finger-life", "0.12"))
 HUNCH = math.radians(float(arg("--hunch", "0")))
 ARM_POSE = arg("--arm-pose", "")
 ARM_KEYS = [(float(k.split(":")[0]), k.split(":")[1]) for k in arg("--arm-keys", "").split(",") if k]  # "0:bow_side,0.3:bow_draw,..."
+BLEND_FROM = arg("--blend-from", "")           # ACTION[:frame]: start the clip on this pose and crossfade into the source
+BLEND_IN = int(arg("--blend-in", "18"))         # frames of that crossfade
+BLEND_TO = arg("--blend-to", "")               # ACTION[:frame]: end the clip on this pose, crossfading over the last --blend-out frames
+BLEND_OUT = int(arg("--blend-out", "20"))
+ELBOW_POLE = "--elbow-pole" in argv
+GROUND = arg("--ground", "")
+GROUND_IGNORE = [k for k in arg("--ground-ignore", "").split(",") if k]   # mesh-name substrings left out of the floor measure (Robe,Skirt for kneels: hems hang through the floor)                   # action mode: "twoway" = lowest point on the floor every frame (a clip whose stance changes: kneel -> stand)             # arm IK with a pole vector held outward (authored hands: no elbow inside the body)
 HEAD_DAMP = float(arg("--head-damp", "1.0"))    # 0..1: scales the neck+head rotation away from rest (1 = as authored)
 TRAVEL_AXIS = arg("--travel-axis", "auto")
 LOCK_L = float(arg("--lock-left-hand", "0"))   # >0: pin the left hand on the right hand's weapon this far down the handle (rig m)
@@ -157,7 +164,7 @@ ARM_POSES = {
                            "R": (Vector((-0.44, -0.04, 0.80)), _norm((-1, 0, 0.25)), _norm((0, 1, 0)))},
 }
 for _t, _n in ARM_KEYS:
-    assert _n in ARM_POSES, "unknown arm pose %s" % _n
+    assert _n in ARM_POSES or _n in ("base", "base_out"), "unknown arm pose %s" % _n   # base/base_out come from --blend-from
 assert ARM_POSE == "" or ARM_POSE in ARM_POSES, "unknown --arm-pose %r (have %s)" % (ARM_POSE, sorted(ARM_POSES))
 
 
@@ -246,6 +253,45 @@ def socket_frame(pos, y, z):
         m[i][0], m[i][1], m[i][2] = x[i], y[i], z[i]
     m.translation = Vector(pos)
     return m
+
+# ------------------------------------------------------------- 1b. blend-from pose
+BASE = None
+if BLEND_FROM:
+    bname, _, bframe = BLEND_FROM.partition(":")
+    bact = bpy.data.actions[bname]
+    rig.animation_data.action = bact
+    if hasattr(rig.animation_data, "action_slot") and bact.slots:
+        rig.animation_data.action_slot = bact.slots[0]
+    scene.frame_set(int(bframe) if bframe else int(round(bact.frame_range[0]))); update()
+    BASE = {"rot": {tgt: world_rot(pbs[tgt]) for tgt in TARGETS},
+            "hips": (rig.matrix_world @ pbs["torso"].matrix).translation.copy(),
+            "fist": {n: (pbs[n].rotation_euler.x if pbs[n].rotation_mode != 'QUATERNION' else FIST) for n in FINGERS}}
+    # the base's hand socket frames in TORSO-REST space, so they follow the torso like the presets
+    torso_base = (rig.matrix_world @ pbs["torso"].matrix).copy()
+    to_rest = TORSO_REST @ torso_base.inverted()
+    for side in ("L", "R"):
+        sock = to_rest @ (rig.matrix_world @ pbs["DEF-weapon." + side].matrix)
+        pos = sock.translation.copy(); y = (sock.to_3x3() @ Vector((0, 1, 0))).normalized(); z = (sock.to_3x3() @ Vector((0, 0, 1))).normalized()
+        ARM_POSES.setdefault("base", {})[side] = (pos, y, z)
+        ARM_POSES.setdefault("base_out", {})[side] = (pos - y * (0.36 + 0.02) if side == "R" else pos, y, z)   # right hand: the blade slid out along the hilt
+    rig.animation_data.action = None
+    zero_pose()
+    log("blend-from %s: hips %s, right hilt axis %s, %d frames of crossfade" % (BLEND_FROM, tuple(round(v, 3) for v in BASE["hips"]), tuple(round(v, 2) for v in ARM_POSES["base"]["R"][1]), BLEND_IN))
+
+END = None
+if BLEND_TO:
+    ename, _, eframe = BLEND_TO.partition(":")
+    eact = bpy.data.actions[ename]
+    rig.animation_data.action = eact
+    if hasattr(rig.animation_data, "action_slot") and eact.slots:
+        rig.animation_data.action_slot = eact.slots[0]
+    scene.frame_set(int(eframe) if eframe else int(round(eact.frame_range[0]))); update()
+    END = {"rot": {tgt: world_rot(pbs[tgt]) for tgt in TARGETS},
+           "hips": (rig.matrix_world @ pbs["torso"].matrix).translation.copy(),
+           "fist": {n: (pbs[n].rotation_euler.x if pbs[n].rotation_mode != 'QUATERNION' else FIST) for n in FINGERS}}
+    rig.animation_data.action = None
+    zero_pose()
+    log("blend-to %s over the last %d frames" % (BLEND_TO, BLEND_OUT))
 
 # ------------------------------------------------------------- 2. source
 before = set(bpy.data.objects)
@@ -448,7 +494,7 @@ rig.animation_data.action = act
 if hasattr(rig.animation_data, "action_slot"):
     rig.animation_data.action_slot = act.slots.new('OBJECT', rig.name)
 
-DRIVEN = sorted(TARGETS) + FINGERS + ["root"] + (["hand_ik.L", "hand_ik.R"] if (ARM_POSE or ARM_KEYS or LOCK_L > 0) else [])
+DRIVEN = sorted(TARGETS) + FINGERS + ["root"] + (["hand_ik.L", "hand_ik.R"] if (ARM_POSE or ARM_KEYS or LOCK_L > 0) else []) + (["upper_arm_ik_target.L", "upper_arm_ik_target.R"] if ELBOW_POLE else [])
 STATIC = [c for c in controls() if c not in DRIVEN]
 _rnd = __import__("random").Random(7)
 FINGER_WAVE = {n: (_rnd.choice([1, 1, 2]), _rnd.uniform(0, 2 * math.pi), _rnd.uniform(0.6, 1.0)) for n in FINGERS}
@@ -461,6 +507,9 @@ def key_frame(f):
         pb.keyframe_insert("rotation_quaternion" if pb.rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group=n)
     for b in IKFK_ARMS + IKFK_LEGS:
         pbs[b].keyframe_insert('["IK_FK"]', frame=f, group=b)
+    if ELBOW_POLE:
+        for b in IKFK_ARMS:
+            pbs[b].keyframe_insert('["pole_vector"]', frame=f, group=b)
         if "IK_Stretch" in pbs[b]:
             pbs[b].keyframe_insert('["IK_Stretch"]', frame=f, group=b)
 
@@ -493,6 +542,20 @@ def pose(f, dz=0.0, f_travel=None):
     if HUNCH:
         targets["spine_fk.003"] = Quaternion((1, 0, 0), HUNCH) @ targets["spine_fk.003"]
     hips, root = hips_target(f if f_travel is None else f_travel, src)
+    if BASE is not None and f < BLEND_IN:
+        wb = smooth01(f / float(BLEND_IN))
+        for tgt in targets:
+            targets[tgt] = BASE["rot"][tgt].slerp(targets[tgt], wb)
+        hips = BASE["hips"].lerp(hips, wb)
+        for n in FINGERS:
+            pbs[n].rotation_euler = (BASE["fist"][n] + (pbs[n].rotation_euler.x - BASE["fist"][n]) * wb, 0, 0)
+    if END is not None and f > N_OUT - 1 - BLEND_OUT:
+        we = smooth01((f - (N_OUT - 1 - BLEND_OUT)) / float(BLEND_OUT))
+        for tgt in targets:
+            targets[tgt] = targets[tgt].slerp(END["rot"][tgt], we)
+        hips = hips.lerp(END["hips"], we)
+        for n in FINGERS:
+            pbs[n].rotation_euler = (pbs[n].rotation_euler.x + (END["fist"][n] - pbs[n].rotation_euler.x) * we, 0, 0)
     hips = hips + Vector((0, 0, dz))
     pbs["root"].location = (root.x, root.y, root.z)      # root points +Y, its local frame = world at rest
     update()
@@ -533,6 +596,14 @@ def pose(f, dz=0.0, f_travel=None):
             pbs["upper_arm_parent." + side]["IK_FK"] = ikfk
             target = follow @ socket_frame(pos, y, z) @ HAND_FROM_SOCKET[side]
             pbs["hand_ik." + side].matrix = rig.matrix_world.inverted() @ target
+            if ELBOW_POLE:
+                # pole vector held outward, back and down from the shoulder so the elbow never folds into the body
+                pbs["upper_arm_parent." + side]["pole_vector"] = True
+                sh = (rig.matrix_world @ pbs["DEF-upper_arm." + side].matrix).translation
+                out = Vector((1, 0, 0)) if side == "L" else Vector((-1, 0, 0))
+                pole = sh + out * 0.30 + Vector((0, 0.25, 0)) - Vector((0, 0, 0.15))
+                m = pbs["upper_arm_ik_target." + side].matrix.copy(); m.translation = rig.matrix_world.inverted() @ pole
+                pbs["upper_arm_ik_target." + side].matrix = m
         update()
     if LOCK_L > 0:
         # two-handed grip: the left hand's socket frame = the right hand's socket frame moved
@@ -559,7 +630,8 @@ for lc in bpy.context.view_layer.layer_collection.children:
         lc.exclude = False; _EXCLUDED.append(lc)
 update()
 REF_MESHES = [o for o in bpy.data.objects if o.type == 'MESH' and o.name.startswith("Skeleton")
-              and any(m.type == 'ARMATURE' and m.object == rig for m in o.modifiers)]
+              and any(m.type == 'ARMATURE' and m.object == rig for m in o.modifiers)
+              and not any(k in o.name for k in GROUND_IGNORE)]
 assert REF_MESHES, "no skinned reference meshes in the anim file"
 _co_buf = {}
 
@@ -593,6 +665,8 @@ if MODE == "idle":
     dz = [0.0] * N_OUT
 elif MODE == "loco":
     dz = smooth_series([-m for m in raw_min], 3)                 # two-way: lowest point on the floor
+elif MODE == "action" and GROUND == "twoway":
+    dz = smooth_series([-m for m in raw_min], 3)
 elif MODE == "action":
     med = sorted(raw_min)[len(raw_min) // 2]
     dz = smooth_series([max(0.0, -(m - med)) - med for m in raw_min], 3)  # stance to floor + lift-only
