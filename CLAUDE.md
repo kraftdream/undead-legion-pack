@@ -21,7 +21,7 @@ and importing the exports into Unity 6000.4 through the editor bridge.
 | Skeleton Mage        | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | **yes** | **yes** |
 | Skeleton Necromancer | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | **yes** | **yes** |
 | Skeleton Warrior     | done | done | **yes** | **yes** | valid | **yes** | **yes** |
-| Weapons (13 meshes)  | done | 12 textured (8 full PBR; staff, recurve bow, wand colour + normal; arrow colour only), spellbook untextured | n/a | `SM_*.fbx` ×13 | n/a | `M_Weapon_<Name>` ×12 + placeholder | **yes** (12 loadouts, `W_*` prefabs) |
+| Weapons (12 meshes)  | done | all textured (8 full PBR; staff, recurve bow, wand colour + normal; arrow colour only) | n/a | `SM_*.fbx` ×12 | n/a | `M_Weapon_<Name>` ×12 (+ unused placeholder) | **yes** (11 loadouts, `W_*` prefabs) |
 
 Shared clips so far: `Idle`, `Idle_02`, `Idle_03` (loops, 8 / 12 / 12 s) +
 `Twitch_01..03` (additive), on `AC_Skeleton`. Armour materials render both faces
@@ -85,7 +85,9 @@ clip `Test_RootMotion` stays in the anim file, not in Unity.
   the length axis first (the old 2 cm arrow and the `--only Arrow` export from
   `weapons.blend` are gone). Grips carried over by relative position along the length as
   before (`OLD_EXTENT`); new entries: recurve bow at the riser's middle (roll 90 like the
-  longbow), wand 10 cm up the shaft. Still untextured: `H1Spellbook` (no UVs). The prefab
+  longbow), wand 10 cm up the shaft. `H1Spellbook` (no UVs, never textured) was removed from
+  the pack on 2026-09-21 at the user's request: not exported, no loadout, its `SM_`/`W_`
+  assets deleted (the mesh stays in prod.blend). The prefab
   builder now swaps the placeholder for the weapon's own material on an EXISTING `W_*`
   prefab (the Grip is still never touched). `Weapons/prod.blend1` keeps arriving from the
   remote as a tracked file (autosaves are ignored by our `.gitignore`, §5).
