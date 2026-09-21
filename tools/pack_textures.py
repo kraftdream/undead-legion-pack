@@ -90,7 +90,7 @@ def copy_maps(char):
 # Weapons (2026-09-20): Weapons/<lower>_{color,normal,roughness[,metallic]}.png per textured
 # weapon -> Textures/Weapons/<Name>_{color,normal,metallicsmoothness}.png, named after the
 # SM_<Name> mesh so the import setup can pair them.
-WEAPON_MAPS = {"H1Sword": "h1sword", "H1Dagger": "h1dagger", "H1Axe": "h1axe", "H1Mace": "h1mace", "H1HeaterShield": "h1heatershield"}
+WEAPON_MAPS = {"H1Sword": "h1sword", "H1Dagger": "h1dagger", "H1Axe": "h1axe", "H1Mace": "h1mace", "H1HeaterShield": "h1heatershield", "H1RoundShield": "h1roundshield"}
 
 
 def pack_weapons():

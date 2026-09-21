@@ -77,21 +77,6 @@
    "arm_pose": "wand_front"
   },
   {
-   "name": "Idle_OneHanded",
-   "glb": "idle_1h",
-   "mode": "idle",
-   "seed": 34,
-   "frames": 300,
-   "loop": 240,
-   "blend": 40,
-   "src_start": 40,
-   "time_scale": 2.0,
-   "smooth": 2,
-   "fist": 0.9,
-   "prompt": "A person stands in a relaxed guard holding a sword low in the right hand and a shield on the left forearm, slowly shifting weight.",
-   "arm_pose": "sword_side"
-  },
-  {
    "name": "Walk_Fwd",
    "glb": "walk_fwd",
    "mode": "loco",
@@ -482,6 +467,45 @@
    "fist": 0.9,
    "prompt": "A person raises a sword overhead with the right hand and shouts, rallying others.",
    "layer": "upper"
+  },
+  {
+   "name": "Impaled_Rise",
+   "glb": "rise_a",
+   "mode": "action",
+   "seed": 51,
+   "frames": 150,
+   "smooth": 1,
+   "fist": 0.6,
+   "blend_from": "Impaled_Base",
+   "blend_in": 18,
+   "elbow_pole": true,
+   "arm_keys": [
+    [
+     0.0,
+     "base"
+    ],
+    [
+     0.16,
+     "base"
+    ],
+    [
+     0.5,
+     "base_out"
+    ],
+    [
+     0.72,
+     "free"
+    ]
+   ],
+   "layer": "full",
+   "prompt": "A person kneels on one knee, hunched forward with both hands at the stomach, slowly pulls a sword out of their stomach with the right hand, then stands up straight and lowers the arms.",
+   "_note": "user-chosen candidate 2026-09-21 (rise_a); starts on the hand-posed Impaled_Base and crossfades into the generated motion",
+   "src_end": 90,
+   "ground": "twoway",
+   "ground_ignore": "Robe,Skirt",
+   "blend_to": "Idle",
+   "blend_out": 20,
+   "lift": 0.009
   }
  ]
 }

@@ -21,7 +21,7 @@ and importing the exports into Unity 6000.4 through the editor bridge.
 | Skeleton Mage        | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | **yes** | **yes** |
 | Skeleton Necromancer | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | **yes** | **yes** |
 | Skeleton Warrior     | done | done | **yes** | **yes** | valid | **yes** | **yes** |
-| Weapons (13 meshes)  | done | 5 textured (sword, dagger, axe, mace, heater shield), 8 untextured | n/a | `SM_*.fbx` ×13 | n/a | `M_Weapon_<Name>` ×5 + placeholder | **yes** (12 loadouts) |
+| Weapons (13 meshes)  | done | 6 textured (sword, dagger, axe, mace, both shields), 7 untextured | n/a | `SM_*.fbx` ×13 | n/a | `M_Weapon_<Name>` ×6 + placeholder | **yes** (11 loadouts, `W_*` prefabs) |
 
 Shared clips so far: `Idle`, `Idle_02`, `Idle_03` (loops, 8 / 12 / 12 s) +
 `Twitch_01..03` (additive), on `AC_Skeleton`. Armour materials render both faces
@@ -33,13 +33,14 @@ it, and every exported model imports in Unity with the **same 68-bone hierarchy*
 mesh nodes at identity rotation.
 
 **First clips exist (2026-09-19), so the skeleton is frozen.** As of 2026-09-20 there
-are **34 clips** in `Assets/UndeadLegion/Animations/` (`Skeleton@<Name>.fbx`, 30 fps,
+are **35 clips** in `Assets/UndeadLegion/Animations/` (`Skeleton@<Name>.fbx`, 30 fps,
 every one verified on all six models with `verify_clip.py` + `ground_clip.py`) plus
 `AC_Skeleton.controller` (Base: every clip as a state; Twitch: additive layer):
 
 | Group | Clips |
 |---|---|
-| Idles (loop) | `Idle`, `Idle_02`, `Idle_03`; weapon idles `Idle_OneHanded`, `Idle_TwoHanded` (axe on the shoulder), `Idle_Propped` (leaning on the staff), `Idle_Bow`, `Idle_Staff`, `Idle_Wand` |
+| Idles (loop) | `Idle`, `Idle_02`, `Idle_03` (hand-fixed 2026-09-21: blades forward, Idle grounded, Idle_02 upright with hanging arms); weapon idles `Idle_TwoHanded` (axe on the shoulder), `Idle_Propped` (leaning on the staff), `Idle_Bow`, `Idle_Staff`, `Idle_Wand` |
+| Impaled (hand-authored) | `Impaled_Idle` (loop: on its knees, hunched, sword through the belly), `Impaled_Rise` (one-shot: pulls it out, stands up, ends on the neutral standing pose) |
 | Twitch (additive) | `Twitch_01/02/03` head + jaw |
 | Locomotion (loop, root motion) | `Walk_Fwd`, `Walk_Back`, `Run_Fwd`, `Strafe_Left` (mirrored right), `Strafe_Right` |
 | One-handed | `Attack_1H_01` (slash), `Attack_1H_02` (thrust), `Shield_Bash`, `Block` |
@@ -76,9 +77,9 @@ clip `Test_RootMotion` stays in the anim file, not in Unity.
   `H1Sword`, `H1Dagger`, `H1Axe`, `H1Mace`, `H1HeaterShield` have UVs and 512² PBR maps
   (`Weapons/<lower>_{color,normal,roughness[,metallic]}.png`, packed by
   `tools/pack_textures.py -- Weapons` into `Textures/Weapons/`, materials
-  `M_Weapon_<Name>` made by the import setup, assigned per loadout item). Still
-  untextured on the placeholder: round shield, longsword, battle axe, longbow, staff,
-  spellbook, arrow. Several meshes were rescaled in prod.blend (longsword 1.15 m, staff
+  `M_Weapon_<Name>` made by the import setup, assigned inside the `W_*` weapon prefab).
+  The round shield got its maps on 2026-09-21 (commit `10740f3`). Still untextured on
+  the placeholder: longsword, battle axe, longbow, staff, spellbook, arrow. Several meshes were rescaled in prod.blend (longsword 1.15 m, staff
   1.24 m, heater shield 0.70 m at pack scale); the grips carried over at the same
   relative position along the length. The **Arrow** in prod.blend is 2 cm long, so it is
   still exported from `weapons.blend` (`--only Arrow`). **`H1Wand`** in prod.blend is the
@@ -132,19 +133,34 @@ Grip convention, in the socket's own bone frame, identical in Unity and Unreal:
 - **+Z = out of the back of the hand**
 - +X completes the right-handed frame (roughly along the fingers)
 
-A weapon mesh is authored with its grip point at the origin and its blade along +Y in
-the engine, and attaches to the socket with an identity local transform **plus the
-component's per-hand offset** (`SkeletonWeapon.rightHandOffset` / `leftHandOffset`, socket
-space, default (−0.028, 0.008, −0.038) / (0.038, 0.010, −0.037) m): the socket bone sits at
-the palm centre, but with the grip pose the ring of curled fingers is ~3 cm along the
-fingers and ~4 cm to the palm side of it (measured as the centroid of the twelve finger
-bones in socket space), and that is where the hilt has to be. The ring's axis is within
-3.5° of the socket's +Y, so no rotation offset. The shield socket is a child of
-`LeftForeArm` at mid-forearm, 3.5 cm out on the side away from the spine, rotated so the
-mesh's face normal (+Z, its thin axis) points that way and its top towards the elbow
-(`forearmSocketOffset` (0.028, 0.13, −0.021), `forearmSocketEuler` (0, 126.1, 180)). All
-four are inspector fields; the defaults live in the script so a prefab rebuild keeps them.
-Check any change with `weapon_shots.py ... RightWeaponSocket` (close-up mode).
+**Slots and grips (2026-09-20, user request: "slots in skeleton hands that I can
+configure, and slots on each weapon where it connects, respecting rotation").** Two
+editable transforms meet at attach time:
+
+- **Hand slots** on the character prefab: `RightHandSlot` (child of the
+  `RightWeaponSocket` bone), `LeftHandSlot` (under `LeftWeaponSocket`), plus a
+  `LeftForearmSlot` (under `LeftForeArm`) that nothing uses since shields moved to the
+  hand. Move/rotate them in the prefab with the gizmo. The prefab builder creates missing
+  ones at the defaults (`SkeletonWeapon.Default*`: right (−0.0079, 0.008, −0.0352), left
+  (0.0086, 0.010, −0.0384) — the user's own tuning on the Warrior, 2026-09-21, copied to
+  the other five) and **carries edited ones over on every rebuild** (proved: an edited
+  Warrior slot survived Rebuild Character Prefabs). All six share one skeleton, so one
+  set of slot values fits all; tune on any character and copy (the copy is a 20-line
+  `execute_code`: read the poses from one prefab, `LoadPrefabContents` the others).
+- **Weapon prefabs** `Prefabs/Weapons/W_<Name>.prefab`: `Mesh` (the `SM_*` model with its
+  material) + a child `Grip`. Move/rotate `Grip` on the weapon. Created once by the prefab
+  builder (Grip at identity, since the export already puts the grip at the mesh origin,
+  blade +Y, back-of-hand +Z); an existing weapon prefab is never overwritten, delete it to
+  regenerate. Loadouts reference these prefabs, not the FBX. **Shields are hand-held**
+  (user decision 2026-09-21, `Hand.Left`): their Grip starts 4.5 cm behind the boss and
+  rolled −90° about the face normal, so the fist closes on a handle behind the plate and
+  the plate's top points towards the wrist; the grip finger pose applies to that hand.
+- `SkeletonWeapon.AlignGrip(weapon, slot)` places the weapon so `Grip` coincides with the
+  slot in position and rotation (verified to 0.00000 m / 0.000° after moving either).
+
+The per-weapon table in `tools/export_weapons.py` still sets the mesh origin (the
+starting point for `Grip`); `tools/unity/grip_sheet.py` renders every loadout close-up
+for review.
 
 **Fingers close on whatever a hand holds (2026-09-20).** The grip is hand-authored in
 `Animations/skeleton_anim.blend` on the individual finger controls of both hands (the
@@ -599,6 +615,60 @@ entries from `build_state.json` (the signature already contained the new manifes
 so the old process had marked them built without the argument). Never run a manual
 retarget with `--save` while the batch is mid-clip: two Blender processes writing
 `skeleton_anim.blend` is a corrupt file.
+
+### Hand-authored clips and idle fixes (2026-09-21)
+
+The user's review of the idles: blades pointed into the model, Idle's feet floated, Idle_02
+was hunched with a bent left arm and looked sideways. `tools/anim_fix_idles.py` rewrites
+the three actions in place, no Kimodo: every frame, the forearm is pronated about its
+own axis until the socket's hilt axis points forward (12° out); Idle's torso is dropped
+10 mm (its hips sat above the IK legs' reach, which lifted both feet 9 mm); Idle_02's
+spine flex is scaled down (61° → 14° chest tilt after two passes: the fixer is NOT
+idempotent on Idle_02, run it once), the head re-aimed forward on the new spine, and
+both arms replaced by Idle's hanging arms resampled over its loop.
+
+`Idle_OneHanded` is retired (deleted from the project and the manifest). In its place,
+`tools/anim_author_impaled.py` builds two clips from a **hand-posed base**: the user
+posed a genuflect (left foot planted forward, right knee on the floor with that foot on
+its bent toes behind, hips low and forward, chest 42° down, head down) and it lives in the
+one-frame action `Impaled_Base` in the anim file (frame 1; keys must be INSERTED there,
+a pose without keys is lost on the next frame change). Edit that action and re-run the
+tool; everything in it is kept, arms included (the user posed the right fist on the hilt
+at the belly with the hilt axis pointing into the body; `--tool-arms` makes the tool pose
+them instead). `Impaled_Idle` (30 frames) is that base held still: skeletons do not
+breathe. `Impaled_Rise` (150 frames, 5 s) is a **Kimodo clip spliced onto the base**
+(user's choice among five candidates, `External Anims/Kimodo/rise_a.glb`, manifest
+entry with `blend_from: Impaled_Base`): `glb_retarget.py --blend-from` starts the clip on
+the base pose and crossfades every target and the hips into the generated motion over
+18 frames; `--arm-keys "0:base,0.1:base,0.3:base_out,0.45:free"` keeps the base's hands,
+slides the right hand out along the POSED hilt axis by a blade length, then hands the
+arms to the source; `--elbow-pole` drives the arm IK with a pole held outward (the first
+procedural pull folded the elbow into the body). Trimmed to 91 frames (`src_end 90`) with
+`--blend-to Idle --blend-out 20`: frames 70..90 crossfade every target and the hips into
+Idle's frame 1 so the clip ends upright and still (the source swayed on for 2.5 s more).
+Grounded `twoway` (the stance changes) and exported with `lift 0.009`: Unity's Humanoid
+floats this clip ~1 cm more than the idles at the default 15 mm. Kimodo cannot take a start pose (the
+port has no constraint input) and every prompt that mentioned the sword in the stomach
+skipped the kneel or collapsed instead; stand-up-only prompts knelt but as a head-down
+crouch. The old procedural rise (pull, gather, blend to Idle frame 1) was: brings the right
+foot forward to its stance, steps the left foot back to its stance while the hips rise
+(a gather in place, since the clip must end where Idle stands and in-place import would
+otherwise leave the character 0.6 m from its root), and from frame 100 blends every
+control to Idle's frame 1 (arms IK→FK, legs FK→IK). **Dynamic final pose**: the rise
+ends on the neutral standing pose and the showcase's return-to-idle crossfade lands on
+whichever idle follows, so one rise serves every idle (verified in play mode: kneel →
+rise → Idle, hips 0.56 → 0.99 m).
+
+Lessons: the user's IK-posed legs are reproduced by the analytic two-bone solve from
+the DEF bones (hip joint → ankle, knee towards the user's knee) plus explicit foot and
+TOE frames (the base's right foot rests on bent toes; leaving the toe at rest put it
+4.4 cm through the floor). No grounding pass on these two clips: the user grounded the
+base on the Knight, and a pass that lifted the rise's first frame 4 cm above the idle
+made the two clips not meet. Unity floor contact with the standard 15 mm lift: Knight
++7 mm, Archer/Assassin +6, Warrior −6; the Mage and Necromancer robes hang 7 cm through
+the floor while kneeling (hems weighted to the shins, no cloth: accepted). Earlier
+lessons from the first, fully procedural version still hold: grounding must ignore robes
+and skirts, and a per-frame shift must move the hips and only a still-kneeling foot.
 
 ### Root motion — decided 2026-09-19
 

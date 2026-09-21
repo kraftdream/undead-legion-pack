@@ -38,9 +38,9 @@ namespace UndeadLegion.DemoEditor
         /// (model, hand) pairs). Models are the SM_*.fbx from tools/export_weapons.py.</summary>
         static readonly object[][] LoadoutTable =
         {
-            new object[] { "Sword + shield", "SM_H1Sword", SkeletonWeapon.Hand.Right, "SM_H1HeaterShield", SkeletonWeapon.Hand.LeftForearm },
+            new object[] { "Sword + shield", "SM_H1Sword", SkeletonWeapon.Hand.Right, "SM_H1HeaterShield", SkeletonWeapon.Hand.Left },
             new object[] { "Sword", "SM_H1Sword", SkeletonWeapon.Hand.Right },
-            new object[] { "Axe + round shield", "SM_H1Axe", SkeletonWeapon.Hand.Right, "SM_H1RoundShield", SkeletonWeapon.Hand.LeftForearm },
+            new object[] { "Axe + round shield", "SM_H1Axe", SkeletonWeapon.Hand.Right, "SM_H1RoundShield", SkeletonWeapon.Hand.Left },
             new object[] { "Mace", "SM_H1Mace", SkeletonWeapon.Hand.Right },
             new object[] { "Dagger", "SM_H1Dagger", SkeletonWeapon.Hand.Right },
             new object[] { "Two daggers", "SM_H1Dagger", SkeletonWeapon.Hand.Right, "SM_H1Dagger", SkeletonWeapon.Hand.Left },
@@ -91,19 +91,74 @@ namespace UndeadLegion.DemoEditor
                 var lo = new SkeletonWeapon.Loadout { displayName = (string)row[0] };
                 for (int i = 1; i + 1 < row.Length; i += 2)
                 {
-                    var model = AssetDatabase.LoadAssetAtPath<GameObject>(string.Format("{0}/Models/Weapons/{1}.fbx", Root, row[i]));
+                    var model = EnsureWeaponPrefab((string)row[i]);
                     if (model == null) { Debug.LogWarning("[UndeadLegion] missing weapon model " + row[i]); continue; }
-                    // textured weapons have M_Weapon_<Name>.mat (import setup); the rest use the placeholder
-                    var mat = AssetDatabase.LoadAssetAtPath<Material>(string.Format("{0}/Materials/URP/M_Weapon_{1}.mat", Root, ((string)row[i]).Substring(3)));
-                    lo.items.Add(new SkeletonWeapon.Item { model = model, hand = (SkeletonWeapon.Hand)row[i + 1], material = mat });
+                    lo.items.Add(new SkeletonWeapon.Item { model = model, hand = (SkeletonWeapon.Hand)row[i + 1] });
                 }
                 if (lo.items.Count > 0) list.Add(lo);
             }
             return list;
         }
 
+        /// <summary>Prefabs/Weapons/W_<Name>.prefab: the SM_<Name> mesh with its material and a
+        /// child `Grip` (identity by default: the export already put the grip at the origin,
+        /// blade along +Y). Created once; an existing prefab is left alone so an edited Grip
+        /// survives every rebuild. Delete the prefab to regenerate it.</summary>
+        static GameObject EnsureWeaponPrefab(string sm)
+        {
+            string name = sm.StartsWith("SM_") ? sm.Substring(3) : sm;
+            string path = string.Format("{0}/Prefabs/Weapons/W_{1}.prefab", Root, name);
+            var existing = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (existing != null) return existing;
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>(string.Format("{0}/Models/Weapons/{1}.fbx", Root, sm));
+            if (model == null) return null;
+            var mat = AssetDatabase.LoadAssetAtPath<Material>(string.Format("{0}/Materials/URP/M_Weapon_{1}.mat", Root, name));
+            if (mat == null) mat = AssetDatabase.LoadAssetAtPath<Material>(Root + "/Materials/URP/M_Weapon_Placeholder.mat");
+            var root = new GameObject("W_" + name);
+            var mesh = (GameObject)PrefabUtility.InstantiatePrefab(model);
+            mesh.transform.SetParent(root.transform, false);
+            mesh.name = "Mesh";
+            foreach (var r in mesh.GetComponentsInChildren<Renderer>())
+            {
+                var mats = r.sharedMaterials;
+                for (int i = 0; i < mats.Length; i++) mats[i] = mat;
+                r.sharedMaterials = mats;
+            }
+            var grip = new GameObject(SkeletonWeapon.GripName).transform;
+            grip.SetParent(root.transform, false);
+            if (name.Contains("Shield"))
+            {
+                // hand-held shield (2026-09-21): the fist closes on a handle 4.5 cm behind the
+                // plate and the plate's top points towards the wrist (slot -X), so the Grip sits
+                // behind the mesh origin (the boss) and is rolled -90 deg about the face normal
+                grip.localPosition = new Vector3(0f, 0f, -0.045f);
+                grip.localRotation = Quaternion.Euler(0f, 0f, -90f);
+            }
+            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path));
+            var saved = PrefabUtility.SaveAsPrefabAsset(root, path);
+            Object.DestroyImmediate(root);
+            Debug.Log("[UndeadLegion] created weapon prefab " + path);
+            return saved;
+        }
+
+        /// <summary>Read a slot's local pose from the existing character prefab (null if absent).</summary>
+        static Transform ExistingSlot(string c, string slotName)
+        {
+            var old = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath(c));
+            if (old == null) return null;
+            foreach (var t in old.GetComponentsInChildren<Transform>(true)) if (t.name == slotName) return t;
+            return null;
+        }
+
         static bool Build(string c, AnimatorController controller)
         {
+            // the hand slots are the user's to edit: carry their poses over from the current prefab
+            var keep = new System.Collections.Generic.Dictionary<string, Transform>();
+            foreach (var n in new[] { SkeletonWeapon.RightSlotName, SkeletonWeapon.LeftSlotName, SkeletonWeapon.ForearmSlotName })
+            {
+                var t = ExistingSlot(c, n);
+                if (t != null) keep[n] = t;
+            }
             string modelPath = UndeadLegionImportSetup.ModelPath(c);
             var model = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
             if (model == null) { Debug.LogWarning("[UndeadLegion] missing model " + modelPath); return false; }
@@ -175,7 +230,11 @@ namespace UndeadLegion.DemoEditor
             if (weapon == null) weapon = go.AddComponent<SkeletonWeapon>();
             weapon.loadouts = Loadouts();
             SampleGrip(go, weapon);
-            weapon.placeholderMaterial = AssetDatabase.LoadAssetAtPath<Material>(Root + "/Materials/URP/M_Weapon_Placeholder.mat");
+            weapon.EnsureSockets();            // creates the three slots at their defaults
+            foreach (var kv in keep)
+                foreach (var t in go.GetComponentsInChildren<Transform>(true))
+                    if (t.name == kv.Key) { t.localPosition = kv.Value.localPosition; t.localRotation = kv.Value.localRotation; t.localScale = kv.Value.localScale; }
+            Debug.Log("[UndeadLegion] " + c + ": hand slots " + (keep.Count > 0 ? "kept from the previous prefab (" + keep.Count + ")" : "created at defaults"));
 
             string path = PrefabPath(c);
             System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path));
