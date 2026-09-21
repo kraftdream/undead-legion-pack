@@ -33,13 +33,14 @@ it, and every exported model imports in Unity with the **same 68-bone hierarchy*
 mesh nodes at identity rotation.
 
 **First clips exist (2026-09-19), so the skeleton is frozen.** As of 2026-09-20 there
-are **34 clips** in `Assets/UndeadLegion/Animations/` (`Skeleton@<Name>.fbx`, 30 fps,
+are **35 clips** in `Assets/UndeadLegion/Animations/` (`Skeleton@<Name>.fbx`, 30 fps,
 every one verified on all six models with `verify_clip.py` + `ground_clip.py`) plus
 `AC_Skeleton.controller` (Base: every clip as a state; Twitch: additive layer):
 
 | Group | Clips |
 |---|---|
-| Idles (loop) | `Idle`, `Idle_02`, `Idle_03`; weapon idles `Idle_OneHanded`, `Idle_TwoHanded` (axe on the shoulder), `Idle_Propped` (leaning on the staff), `Idle_Bow`, `Idle_Staff`, `Idle_Wand` |
+| Idles (loop) | `Idle`, `Idle_02`, `Idle_03` (hand-fixed 2026-09-21: blades forward, Idle grounded, Idle_02 upright with hanging arms); weapon idles `Idle_TwoHanded` (axe on the shoulder), `Idle_Propped` (leaning on the staff), `Idle_Bow`, `Idle_Staff`, `Idle_Wand` |
+| Impaled (hand-authored) | `Impaled_Idle` (loop: on its knees, hunched, sword through the belly), `Impaled_Rise` (one-shot: pulls it out, stands up, ends on the neutral standing pose) |
 | Twitch (additive) | `Twitch_01/02/03` head + jaw |
 | Locomotion (loop, root motion) | `Walk_Fwd`, `Walk_Back`, `Run_Fwd`, `Strafe_Left` (mirrored right), `Strafe_Right` |
 | One-handed | `Attack_1H_01` (slash), `Attack_1H_02` (thrust), `Shield_Bash`, `Block` |
@@ -614,6 +615,60 @@ entries from `build_state.json` (the signature already contained the new manifes
 so the old process had marked them built without the argument). Never run a manual
 retarget with `--save` while the batch is mid-clip: two Blender processes writing
 `skeleton_anim.blend` is a corrupt file.
+
+### Hand-authored clips and idle fixes (2026-09-21)
+
+The user's review of the idles: blades pointed into the model, Idle's feet floated, Idle_02
+was hunched with a bent left arm and looked sideways. `tools/anim_fix_idles.py` rewrites
+the three actions in place, no Kimodo: every frame, the forearm is pronated about its
+own axis until the socket's hilt axis points forward (12° out); Idle's torso is dropped
+10 mm (its hips sat above the IK legs' reach, which lifted both feet 9 mm); Idle_02's
+spine flex is scaled down (61° → 14° chest tilt after two passes: the fixer is NOT
+idempotent on Idle_02, run it once), the head re-aimed forward on the new spine, and
+both arms replaced by Idle's hanging arms resampled over its loop.
+
+`Idle_OneHanded` is retired (deleted from the project and the manifest). In its place,
+`tools/anim_author_impaled.py` builds two clips from a **hand-posed base**: the user
+posed a genuflect (left foot planted forward, right knee on the floor with that foot on
+its bent toes behind, hips low and forward, chest 42° down, head down) and it lives in the
+one-frame action `Impaled_Base` in the anim file (frame 1; keys must be INSERTED there,
+a pose without keys is lost on the next frame change). Edit that action and re-run the
+tool; everything in it is kept, arms included (the user posed the right fist on the hilt
+at the belly with the hilt axis pointing into the body; `--tool-arms` makes the tool pose
+them instead). `Impaled_Idle` (30 frames) is that base held still: skeletons do not
+breathe. `Impaled_Rise` (150 frames, 5 s) is a **Kimodo clip spliced onto the base**
+(user's choice among five candidates, `External Anims/Kimodo/rise_a.glb`, manifest
+entry with `blend_from: Impaled_Base`): `glb_retarget.py --blend-from` starts the clip on
+the base pose and crossfades every target and the hips into the generated motion over
+18 frames; `--arm-keys "0:base,0.1:base,0.3:base_out,0.45:free"` keeps the base's hands,
+slides the right hand out along the POSED hilt axis by a blade length, then hands the
+arms to the source; `--elbow-pole` drives the arm IK with a pole held outward (the first
+procedural pull folded the elbow into the body). Trimmed to 91 frames (`src_end 90`) with
+`--blend-to Idle --blend-out 20`: frames 70..90 crossfade every target and the hips into
+Idle's frame 1 so the clip ends upright and still (the source swayed on for 2.5 s more).
+Grounded `twoway` (the stance changes) and exported with `lift 0.009`: Unity's Humanoid
+floats this clip ~1 cm more than the idles at the default 15 mm. Kimodo cannot take a start pose (the
+port has no constraint input) and every prompt that mentioned the sword in the stomach
+skipped the kneel or collapsed instead; stand-up-only prompts knelt but as a head-down
+crouch. The old procedural rise (pull, gather, blend to Idle frame 1) was: brings the right
+foot forward to its stance, steps the left foot back to its stance while the hips rise
+(a gather in place, since the clip must end where Idle stands and in-place import would
+otherwise leave the character 0.6 m from its root), and from frame 100 blends every
+control to Idle's frame 1 (arms IK→FK, legs FK→IK). **Dynamic final pose**: the rise
+ends on the neutral standing pose and the showcase's return-to-idle crossfade lands on
+whichever idle follows, so one rise serves every idle (verified in play mode: kneel →
+rise → Idle, hips 0.56 → 0.99 m).
+
+Lessons: the user's IK-posed legs are reproduced by the analytic two-bone solve from
+the DEF bones (hip joint → ankle, knee towards the user's knee) plus explicit foot and
+TOE frames (the base's right foot rests on bent toes; leaving the toe at rest put it
+4.4 cm through the floor). No grounding pass on these two clips: the user grounded the
+base on the Knight, and a pass that lifted the rise's first frame 4 cm above the idle
+made the two clips not meet. Unity floor contact with the standard 15 mm lift: Knight
++7 mm, Archer/Assassin +6, Warrior −6; the Mage and Necromancer robes hang 7 cm through
+the floor while kneeling (hems weighted to the shins, no cloth: accepted). Earlier
+lessons from the first, fully procedural version still hold: grounding must ignore robes
+and skirts, and a per-frame shift must move the hips and only a still-kneeling foot.
 
 ### Root motion — decided 2026-09-19
 
