@@ -52,7 +52,7 @@ def retarget_args(c):
                     ("arm_pose", "--arm-pose"), ("head_damp", "--head-damp"), ("travel_axis", "--travel-axis"),
                     ("lock_left_hand", "--lock-left-hand"), ("lock_left_roll", "--lock-left-roll"),
                     ("blend_from", "--blend-from"), ("blend_in", "--blend-in"), ("ground", "--ground"),
-                    ("ground_ignore", "--ground-ignore"), ("blend_to", "--blend-to"), ("blend_out", "--blend-out")):
+                    ("ground_ignore", "--ground-ignore"), ("blend_to", "--blend-to"), ("blend_out", "--blend-out"), ("rename", "--rename"), ("plant_feet", "--plant-feet"), ("blend_from_lift", "--blend-from-lift")):
         if k in c:
             a += [flag, str(c[k])]
     if c.get("mirror"):
