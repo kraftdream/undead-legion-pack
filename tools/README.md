@@ -73,11 +73,15 @@ Grounding in Unity (`ground_clip.py`) can still differ from Blender's by a few c
 knee bends: the export merges Rigify's two-segment limbs into one bone and a robe hem
 weighted to the shin lands elsewhere (Death_02 Necromancer: -5.6 cm during the kneel).
 
-Weapons: `blender -b Weapons/prod.blend -P tools/export_weapons.py` (then
-`... Weapons/weapons.blend ... -- --only Arrow`) writes `Models/Weapons/SM_*.fbx` with the
-grip at the origin and the length along the socket's +Y (grip table inside the script,
-carried over to rescaled meshes); `blender -b -P tools/pack_textures.py -- Weapons` packs the
-textured weapons' maps into `Textures/Weapons/`; `python tools/unity/weapon_shots.py <out> <Clip>
+Weapons: `blender -b Weapons/prod.blend -P tools/export_weapons.py` writes every
+`Models/Weapons/SM_*.fbx` (13, the Arrow included since 4a70422) with the grip at the origin
+and the length along the socket's +Y (grip table inside the script, carried over to rescaled
+meshes; `PRE` rotates a mesh modelled along another axis first); `blender -b -P
+tools/pack_textures.py -- Weapons` copies colour/normal and packs a metallic-smoothness map
+for every weapon in `WEAPON_MAPS` that has a roughness map into `Textures/Weapons/`; then
+Unity menu 1 (materials, plain 0/0.35 metallic/smoothness when there is no packed map) and
+2 (new `W_*` prefabs, an existing one only swaps the placeholder for its material);
+`python tools/unity/grip_sheet.py <out.png>` to review every loadout's grip; `python tools/unity/weapon_shots.py <out> <Clip>
 <loadout> [Character]` renders a character playing a clip with a loadout equipped on
 the socket bones, in edit mode.
 

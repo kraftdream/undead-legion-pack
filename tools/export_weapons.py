@@ -1,7 +1,7 @@
 """Export the weapons with their grip at the origin, oriented for the socket convention.
 
     blender -b Weapons/prod.blend -P tools/export_weapons.py
-    blender -b Weapons/weapons.blend -P tools/export_weapons.py -- --only Arrow   # prod.blend's Arrow is 2 cm long
+    (--only A,B exports a subset; every mesh comes from prod.blend since 4a70422, the Arrow included)
 
 Writes skeletons/Assets/UndeadLegion/Models/Weapons/SM_<Weapon>.fbx, one per mesh, at
 the pack's 1.8x scale. Each mesh is moved so its GRIP POINT is the origin and rotated
@@ -35,10 +35,10 @@ GRIP = {
     # handle below it (H2Axe handle runs from -0.090 to about +0.15 in source metres)
     "H2Longsword":   (Vector((0, 0, 0.020)), 90),
     "H2Axe":         (Vector((0, 0, 0.040)), 0),
-    "H2Longbow":     (Vector((0, 0, 0.0)), 90),
+    "H2Recurvebow":  (Vector((0, 0, -0.005)), 90),   # replaced H2Longbow (commit 4a70422): held at the middle of the riser
     "H2MagicStuff":  (Vector((0, 0, 0.0)), 0),
-    # "H1Wand" (new in prod.blend) is NOT exported: it is the staff mesh squashed to 0.39 m in
-    # length only, which renders as a thick block; the Wand loadout waits for a real mesh.
+    # H1Wand (prod.blend, textured since 4a70422): a 0.39 m short staff; handle = the lower part
+    "H1Wand":        (Vector((0, 0, -0.10)), 0),
     # held by the spine (x = -0.125 edge, mid-thickness), spine along the hilt axis, pages
     # towards the palm (-Z in the socket = -Y in Blender, so the fore-edge direction +x rolls to -y)
     "H1Spellbook":   (Vector((-0.125, -0.033, 0.0)), -90),
@@ -49,9 +49,12 @@ GRIP = {
 # z extent (min, max) of each mesh in weapons.blend, where GRIP was tuned
 OLD_EXTENT = {
     "H1Sword": (-0.079, 0.298), "H1Dagger": (-0.063, 0.177), "H1Axe": (-0.067, 0.216), "H1Mace": (-0.076, 0.241),
-    "H2Longsword": (-0.088, 0.349), "H2Axe": (-0.090, 0.306), "H2Longbow": (-0.175, 0.169), "H2MagicStuff": (-0.146, 0.203),
+    "H2Longsword": (-0.088, 0.349), "H2Axe": (-0.090, 0.306), "H2MagicStuff": (-0.146, 0.203),
  "H1HeaterShield": (-0.176, 0.122), "H1RoundShield": (-0.109, 0.109), "Arrow": (-0.117, 0.118),
 }
+
+# meshes modelled along another axis: rotated onto +Z (the length axis) before anything else
+PRE = {"Arrow": Matrix.Rotation(math.radians(90), 4, 'X')}   # prod.blend's Arrow (real since 4a70422) lies along +Y, head at +Y
 
 import sys
 argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
@@ -66,6 +69,8 @@ for name, (grip, roll) in GRIP.items():
     ob = bpy.data.objects.new("SM_" + name, src.data.copy())
     bpy.context.scene.collection.objects.link(ob)
     ob.data.transform(src.matrix_world)                 # apply the object's own scale/rotation
+    if name in PRE:
+        ob.data.transform(PRE[name])
     zs = [v.co.z for v in ob.data.vertices]
     if name in OLD_EXTENT:
         o0, o1 = OLD_EXTENT[name]; n0, n1 = min(zs), max(zs)

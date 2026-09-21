@@ -944,15 +944,19 @@ MonoBehaviour:
     items:
     - model: {fileID: 2148625221273557676, guid: 12ecbe7db5561f04d85046f972e0d81e, type: 3}
       hand: 0
-  - displayName: Longbow
+  - displayName: Recurve bow
     items:
-    - model: {fileID: 5905351391346489589, guid: 3a5b980d769fb45489aaa0ea58cb287b, type: 3}
+    - model: {fileID: 5441438366863020905, guid: 4d6b09a14767e7c41a8799a9be313ef8, type: 3}
       hand: 1
     - model: {fileID: 5008945123204479150, guid: 821de85c5c8ca704dbcc135eaa12ffd1, type: 3}
       hand: 0
   - displayName: Staff
     items:
     - model: {fileID: 1934886050350770491, guid: 26376102f16a4d747a09c785619934c4, type: 3}
+      hand: 0
+  - displayName: Wand
+    items:
+    - model: {fileID: 6187504417604031065, guid: e90bfa4e678bd304d8474a0f8c070756, type: 3}
       hand: 0
   - displayName: Spellbook
     items:

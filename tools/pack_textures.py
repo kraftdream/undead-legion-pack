@@ -90,7 +90,8 @@ def copy_maps(char):
 # Weapons (2026-09-20): Weapons/<lower>_{color,normal,roughness[,metallic]}.png per textured
 # weapon -> Textures/Weapons/<Name>_{color,normal,metallicsmoothness}.png, named after the
 # SM_<Name> mesh so the import setup can pair them.
-WEAPON_MAPS = {"H1Sword": "h1sword", "H1Dagger": "h1dagger", "H1Axe": "h1axe", "H1Mace": "h1mace", "H1HeaterShield": "h1heatershield", "H1RoundShield": "h1roundshield"}
+WEAPON_MAPS = {"H1Sword": "h1sword", "H1Dagger": "h1dagger", "H1Axe": "h1axe", "H1Mace": "h1mace", "H1HeaterShield": "h1heatershield", "H1RoundShield": "h1roundshield",
+               "H2Axe": "h2axe", "H2Longsword": "h2longsword", "H2MagicStuff": "h2magicstuff", "H2Recurvebow": "h2recurvebow", "H1Wand": "h1wand", "Arrow": "arrow"}   # 4a70422: the last four have no roughness/metallic maps (colour + normal only, the Arrow colour only)
 
 
 def pack_weapons():
