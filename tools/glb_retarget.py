@@ -59,8 +59,8 @@ SRC_START = int(arg("--src-start", "-1"))      # -1 = auto
 SRC_END = int(arg("--src-end", "-1"))          # -1 = last source frame
 TIME_SCALE = float(arg("--time-scale", "1.0"))
 SMOOTH = int(arg("--smooth", "0"))
-FIST = float(arg("--fist", "0.3"))
-FINGER_LIFE = float(arg("--finger-life", "0.12"))
+FIST = float(arg("--fist", "0.3")) if "--fingers" not in argv else 0.0
+FINGER_LIFE = float(arg("--finger-life", "0.12")) if "--fingers" not in argv else 0.0
 HUNCH = math.radians(float(arg("--hunch", "0")))
 ARM_POSE = arg("--arm-pose", "")
 ARM_KEYS = [(float(k.split(":")[0]), k.split(":")[1]) for k in arg("--arm-keys", "").split(",") if k]  # "0:bow_side,0.3:bow_draw,..."
@@ -85,7 +85,12 @@ RENAME_TABLES = {
             "r_shoulder_JNT": "RightShoulder", "r_arm_JNT": "RightArm", "r_forearm_JNT": "RightForeArm", "r_hand_JNT": "RightHand", "r_handMiddle3_JNT": "RightHandMiddleEnd",
             "l_upleg_JNT": "LeftLeg", "l_leg_JNT": "LeftShin", "l_foot_JNT": "LeftFoot", "l_toebase_JNT": "LeftToeBase",
             "r_upleg_JNT": "RightLeg", "r_leg_JNT": "RightShin", "r_foot_JNT": "RightFoot", "r_toebase_JNT": "RightToeBase"},
-}   # mesh-name substrings left out of the floor measure (Robe,Skirt for kneels: hems hang through the floor)                   # action mode: "twoway" = lowest point on the floor every frame (a clip whose stance changes: kneel -> stand)             # arm IK with a pole vector held outward (authored hands: no elbow inside the body)
+    "mixamo": {"Spine": "Spine1", "Spine1": "Spine2", "Spine2": "Chest", "Neck": "Neck1",       # a Mixamo-named capture (fingers included)
+               "LeftUpLeg": "LeftLeg", "LeftLeg": "LeftShin", "RightUpLeg": "RightLeg", "RightLeg": "RightShin"},
+}
+FINGERS_COPY = "--fingers" in argv               # copy the source's finger joints (two phalanges per finger) instead of the constant curl   # mesh-name substrings left out of the floor measure (Robe,Skirt for kneels: hems hang through the floor)                   # action mode: "twoway" = lowest point on the floor every frame (a clip whose stance changes: kneel -> stand)             # arm IK with a pole vector held outward (authored hands: no elbow inside the body)
+STANCE = {k.split(":")[0]: float(k.split(":")[1]) for k in arg("--stance", "").split(",") if k}   # idle mode: "L:0.03,R:-0.03" moves each resting foot forward (+, rig m)
+HEADING = arg("--heading", "auto")             # auto: rotate the source so the hips' mean yaw vs the bind is 0 (a video capture faces wherever the performer stood); keep: as is; <deg>: fixed
 HEAD_DAMP = float(arg("--head-damp", "1.0"))    # 0..1: scales the neck+head rotation away from rest (1 = as authored)
 TRAVEL_AXIS = arg("--travel-axis", "auto")
 LOCK_L = float(arg("--lock-left-hand", "0"))   # >0: pin the left hand on the right hand's weapon this far down the handle (rig m)
@@ -125,11 +130,19 @@ LEG_MAP = [
 ]
 if FK_LEGS:
     MAP = MAP + LEG_MAP
+FINGER_MAP = []
+for P, s_ in (("Left", "L"), ("Right", "R")):
+    for jn, ctl in (("Thumb", "thumb"), ("Index", "f_index"), ("Middle", "f_middle"), ("Ring", "f_ring"), ("Pinky", "f_pinky")):
+        FINGER_MAP += [(P + "Hand" + jn + "1", ctl + ".01." + s_, True, P + "Hand" + jn + "2"),
+                       (P + "Hand" + jn + "2", ctl + ".02." + s_, True, P + "Hand" + jn + "3")]
+if FINGERS_COPY:
+    MAP = MAP + FINGER_MAP                       # the third phalanx follows its parent at rest (the capture's fingertips are noise)
 LEVELS = [["torso"], ["spine_fk"], ["spine_fk.001"], ["spine_fk.002"], ["spine_fk.003"],
           ["neck", "shoulder.L", "shoulder.R", "thigh_fk.L", "thigh_fk.R"],
           ["head", "upper_arm_fk.L", "upper_arm_fk.R", "shin_fk.L", "shin_fk.R"],
           ["forearm_fk.L", "forearm_fk.R", "foot_fk.L", "foot_fk.R"],
-          ["hand_fk.L", "hand_fk.R", "toe_fk.L", "toe_fk.R"]]
+          ["hand_fk.L", "hand_fk.R", "toe_fk.L", "toe_fk.R"],
+          [t for _, t, _, _ in FINGER_MAP if ".01." in t], [t for _, t, _, _ in FINGER_MAP if ".02." in t]]
 TARGETS = {t for _, t, _, _ in MAP}
 LEVELS = [[t for t in lv if t in TARGETS] for lv in LEVELS]
 IKFK_ARMS = ["upper_arm_parent.L", "upper_arm_parent.R"]
@@ -349,9 +362,12 @@ n_src = int(round(src_act.frame_range[1] - src_act.frame_range[0])) + 1
 f_src0 = int(round(src_act.frame_range[0]))
 log("source %s: %d joints, %d frames" % (os.path.basename(GLB), len(SRC_ARM.data.bones), n_src))
 if RENAME:
-    for old_n, new_n in RENAME_TABLES[RENAME].items():
-        if old_n in SRC_ARM.data.bones:
-            SRC_ARM.data.bones[old_n].name = new_n
+    # two phases: the mixamo table chains names (Spine -> Spine1 -> Spine2), a direct rename would collide
+    hit = [old_n for old_n in RENAME_TABLES[RENAME] if old_n in SRC_ARM.data.bones]
+    for old_n in hit:
+        SRC_ARM.data.bones[old_n].name = "__ren__" + RENAME_TABLES[RENAME][old_n]
+    for old_n in hit:
+        SRC_ARM.data.bones["__ren__" + RENAME_TABLES[RENAME][old_n]].name = RENAME_TABLES[RENAME][old_n]
     log("renamed %d source joints (%s)" % (len(RENAME_TABLES[RENAME]), RENAME))
 S = {b.name: b for b in SRC_ARM.data.bones}
 S_rest = {n: ((SRC_ARM.matrix_world @ b.matrix_local).to_quaternion(),
@@ -378,6 +394,8 @@ log("source hips rest z %.4f -> scale %.4f" % (hip_z_s, scale))
 A = {}
 for src, tgt, align, kid in MAP:
     if align:
+        if kid not in S_rest and kid.endswith("MiddleEnd"):
+            kid = kid.replace("MiddleEnd", "Middle1")            # knuckle instead of fingertip: same hand direction
         d_s = (S_rest[kid][1] - S_rest[src][1]).normalized()
         A[tgt] = T_rest[tgt][1].rotation_difference(d_s)
     else:
@@ -391,6 +409,21 @@ for i in range(n_src):
 if MIRROR:
     SRC = [_mirror_pose(p) for p in SRC]
     log("mirrored the source left<->right")
+if HEADING != "keep":
+    # hips yaw relative to the bind pose, mean over the clip (Kimodo ~0; the recorded idle stood 49 deg off,
+    # which the retarget copied onto the pelvis while the IK feet stayed at rest: both legs twisted 49 deg)
+    if HEADING == "auto":
+        sx = sy = 0.0
+        for p in SRC:
+            v = (p["Hips"][0] @ S_rest["Hips"][0].inverted()) @ Vector((0, 1, 0))
+            sx += v.x; sy += v.y
+        yaw = math.atan2(-sx, sy)                    # +yaw = counter-clockwise from above (Blender's Z rotation)
+    else:
+        yaw = math.radians(float(HEADING))
+    if abs(yaw) > math.radians(0.5):
+        Rz = Quaternion((0, 0, 1), -yaw)
+        SRC = [{n: (Rz @ q, Rz @ pos) for n, (q, pos) in p.items()} for p in SRC]
+        log("heading: removed %.1f deg of hips yaw from the source" % math.degrees(yaw))
 for o in new:
     bpy.data.objects.remove(o, do_unlink=True)
 for a in list(bpy.data.actions):
@@ -509,6 +542,15 @@ if MODE == "loco":
 if MODE == "action":
     d = SRC[SRC_START + LOOP]["Hips"][1] - hips0
     drift_v = Vector((d.x, d.y, 0)) / float(max(LOOP, 1))
+if MODE == "idle":
+    # a recorded idle drifts (video mocap: 8 cm over 5 s); the seam crossfade would slide the
+    # hips back over BLEND frames, so the partner is shifted like a loco loop and the drift
+    # is removed linearly (Kimodo idles drift ~0, so this changes nothing for them)
+    d = SRC[SRC_START + LOOP]["Hips"][1] - hips0
+    LOOP_SHIFT = Vector((d.x, d.y, 0))
+    drift_v = Vector((d.x, d.y, 0)) / float(LOOP)
+    if LOOP_SHIFT.length > 0.005:
+        log("idle drift over the loop (%.3f, %.3f) m removed" % (d.x, d.y))
 
 
 def hips_target(f, src):
@@ -524,7 +566,7 @@ def hips_target(f, src):
     elif MODE == "action":
         root = Vector((0, 0, 0)); local = h - drift_v * f
     else:
-        root = Vector((0, 0, 0)); local = h
+        root = Vector((0, 0, 0)); local = h - drift_v * (f % LOOP if LOOPING else f)
     # the torso is set in ARMATURE space (set_world), so its world target must include the
     # root's travel or the hips stay in place while root slides underneath, and Unity's
     # Humanoid root motion (derived from the hips, not from the Root bone) measures zero
@@ -571,6 +613,7 @@ def key_static(f):
 
 
 def pose(f, dz=0.0, f_travel=None):
+    global NEED_DROP
     zero_pose()
     for b in IKFK_ARMS:
         pbs[b]["IK_FK"] = 1.0
@@ -581,6 +624,12 @@ def pose(f, dz=0.0, f_travel=None):
         pb = pbs[n]; pb.rotation_mode = 'XYZ'
         life = FINGER_LIFE * amp * math.sin(2 * math.pi * k * f / float(max(LOOP, 1)) + ph) if MODE == "idle" else 0.0
         pb.rotation_euler = (max(0.0, FIST + life), 0, 0)
+    if STANCE and not FK_LEGS:
+        update()
+        for side, fwd in STANCE.items():
+            m = rig.matrix_world.inverted() @ Matrix.Translation((0, -fwd, 0)) @ (rig.matrix_world @ pbs["foot_ik." + side].matrix)
+            pbs["foot_ik." + side].matrix = m
+        update()
     src = sample(f)
     targets = {}
     for sname, tgt, _, _ in MAP:
@@ -614,6 +663,13 @@ def pose(f, dz=0.0, f_travel=None):
         update()
     if FK_LEGS:
         hinge_toes()          # before the plant measures the sole: the toe cap is what a pitched boot rests on
+    if not FK_LEGS:
+        # IK legs on resting feet: hips beyond PLANT_REACH of the leg leave the IK a straight leg whose
+        # roll is undetermined (the recorded idle rolled both legs 49 deg; Idle's knee sat at 177 deg)
+        NEED_DROP = 0.0
+        for side in ("L", "R"):
+            v = (rig.matrix_world @ pbs["DEF-thigh." + side].matrix).translation - (rig.matrix_world @ pbs["foot_ik." + side].matrix).translation
+            NEED_DROP = max(NEED_DROP, v.z - math.sqrt(max(0.0, (PLANT_REACH * LEG_LEN[side]) ** 2 - v.x * v.x - v.y * v.y)))
     if ARM_POSE:
         # authored hands on IK, following the torso's current transform (sway, hunch)
         torso_now = (rig.matrix_world @ pbs["torso"].matrix).copy()
@@ -657,7 +713,6 @@ def pose(f, dz=0.0, f_travel=None):
                 pbs["upper_arm_ik_target." + side].matrix = m
         update()
     if PLANT > 0 and PLANT_ACTIVE and FK_LEGS:
-        global NEED_DROP
         NEED_DROP = 0.0
         # blend-from: the first frame is the base pose verbatim, the planting fades in with the crossfade
         w_in = smooth01(f / float(BLEND_IN)) if (BASE is not None and f < BLEND_IN) else 1.0
@@ -760,12 +815,16 @@ def foot_min_z(side):
     return lowest if lowest < 1e8 else 0.0
 
 
-# pass 1: raw pose, measure the floor
-raw_min = []
+# pass 1: raw pose, measure the floor (and, idle mode, the legs' reach)
+raw_min = []; idle_need = []
 for f in range(N_OUT):
     scene.frame_set(f + 1)
     pose(f % LOOP if LOOPING else f, 0.0, f)
     raw_min.append(body_min_z())
+    idle_need.append(NEED_DROP)
+if MODE == "idle" and max(idle_need) > 1e-4:
+    HIP_DROP = [max(idle_need)] * N_OUT                      # constant: the sway keeps its shape, the knees keep a bend
+    log("reach: hips lowered by %.4f rig m (%.0f mm) so the IK legs never straighten" % (HIP_DROP[0], HIP_DROP[0] * 1800))
 
 # ground correction per frame (rig metres)
 if MODE == "idle":
