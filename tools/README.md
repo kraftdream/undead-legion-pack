@@ -74,7 +74,7 @@ knee bends: the export merges Rigify's two-segment limbs into one bone and a rob
 weighted to the shin lands elsewhere (Death_02 Necromancer: -5.6 cm during the kneel).
 
 Weapons: `blender -b Weapons/prod.blend -P tools/export_weapons.py` writes every
-`Models/Weapons/SM_*.fbx` (13, the Arrow included since 4a70422) with the grip at the origin
+`Models/Weapons/SM_*.fbx` (12, the Arrow included since 4a70422, the untextured spellbook dropped) with the grip at the origin
 and the length along the socket's +Y (grip table inside the script, carried over to rescaled
 meshes; `PRE` rotates a mesh modelled along another axis first); `blender -b -P
 tools/pack_textures.py -- Weapons` copies colour/normal and packs a metallic-smoothness map

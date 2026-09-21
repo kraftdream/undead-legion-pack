@@ -39,9 +39,8 @@ GRIP = {
     "H2MagicStuff":  (Vector((0, 0, 0.0)), 0),
     # H1Wand (prod.blend, textured since 4a70422): a 0.39 m short staff; handle = the lower part
     "H1Wand":        (Vector((0, 0, -0.10)), 0),
-    # held by the spine (x = -0.125 edge, mid-thickness), spine along the hilt axis, pages
-    # towards the palm (-Z in the socket = -Y in Blender, so the fore-edge direction +x rolls to -y)
-    "H1Spellbook":   (Vector((-0.125, -0.033, 0.0)), -90),
+    # H1Spellbook (no UVs, no textures) is not exported: removed from the pack on 2026-09-21 (user
+    # request); its grip was (-0.125, -0.033, 0) roll -90 (held by the spine, pages to the palm)
     "H1HeaterShield": (Vector((0, -0.008, -0.02)), 0),
     "H1RoundShield": (Vector((0, -0.02, 0.0)), 0),
     "Arrow":         (Vector((0, 0, -0.10)), 0),

@@ -49,7 +49,6 @@ namespace UndeadLegion.DemoEditor
             new object[] { "Recurve bow", "SM_H2Recurvebow", SkeletonWeapon.Hand.Left, "SM_Arrow", SkeletonWeapon.Hand.Right },
             new object[] { "Staff", "SM_H2MagicStuff", SkeletonWeapon.Hand.Right },
             new object[] { "Wand", "SM_H1Wand", SkeletonWeapon.Hand.Right },
-            new object[] { "Spellbook", "SM_H1Spellbook", SkeletonWeapon.Hand.Left },
         };
 
         static readonly string[] FingerBones = { "Thumb1", "Thumb2", "Thumb3", "Index1", "Index2", "Index3", "Middle1", "Middle2", "Middle3", "Ring1", "Ring2", "Ring3", "Pinky1", "Pinky2", "Pinky3" };
