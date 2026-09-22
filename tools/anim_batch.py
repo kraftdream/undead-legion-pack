@@ -52,7 +52,7 @@ def retarget_args(c):
                     ("arm_pose", "--arm-pose"), ("head_damp", "--head-damp"), ("travel_axis", "--travel-axis"),
                     ("lock_left_hand", "--lock-left-hand"), ("lock_left_roll", "--lock-left-roll"),
                     ("blend_from", "--blend-from"), ("blend_in", "--blend-in"), ("ground", "--ground"),
-                    ("ground_ignore", "--ground-ignore"), ("blend_to", "--blend-to"), ("blend_out", "--blend-out"), ("rename", "--rename"), ("plant_feet", "--plant-feet"), ("blend_from_lift", "--blend-from-lift"), ("heading", "--heading"), ("stance", "--stance"), ("still_joints", "--still-joints"), ("prop", "--prop"), ("prop_damp", "--prop-damp"), ("torso_ref", "--torso-ref"), ("hand_ref", "--hand-ref"), ("hand_offset", "--hand-offset"), ("wrist_twist", "--wrist-twist"), ("hand_clear", "--hand-clear")):
+                    ("ground_ignore", "--ground-ignore"), ("blend_to", "--blend-to"), ("blend_out", "--blend-out"), ("rename", "--rename"), ("plant_feet", "--plant-feet"), ("blend_from_lift", "--blend-from-lift"), ("heading", "--heading"), ("stance", "--stance"), ("still_joints", "--still-joints"), ("prop", "--prop"), ("prop_damp", "--prop-damp"), ("torso_ref", "--torso-ref"), ("hand_ref", "--hand-ref"), ("hand_offset", "--hand-offset"), ("wrist_twist", "--wrist-twist"), ("hand_clear", "--hand-clear"), ("aim_forward", "--aim-forward"), ("step_lift", "--step-lift"), ("wrist_limit", "--wrist-limit"), ("hips_drop", "--hips-drop"), ("aim_body", "--aim-body"), ("aim_line", "--aim-line"), ("aim_offset", "--aim-offset"), ("anchor", "--anchor"), ("anchor_gap", "--anchor-gap"), ("anchor_roll", "--anchor-roll"), ("time_warp", "--time-warp"), ("head_smooth", "--head-smooth"), ("pose_ref", "--pose-ref")):
         if k in c:
             a += [flag, str(c[k])]
     if c.get("mirror"):
@@ -63,6 +63,10 @@ def retarget_args(c):
         a.append("--fingers")
     if c.get("prop_vertical"):
         a.append("--prop-vertical")
+    if c.get("bow_square"):
+        a.append("--bow-square")
+    if c.get("head_aim"):
+        a.append("--head-aim")
     if c.get("arm_keys"):
         a += ["--arm-keys", ",".join("%g:%s" % (t, n) for t, n in c["arm_keys"])]
     return a

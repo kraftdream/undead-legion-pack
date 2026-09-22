@@ -55,3 +55,6 @@ __pycache__/
 # verify_clip.py leaves its throwaway controller here; never ship it
 /skeletons/Assets/_PipelineTest/
 /skeletons/Assets/_PipelineTest.meta
+
+# bone atlas sheets are regenerable (bone_atlas.py --sheets-from); the JSON and ATLAS.txt are tracked
+/Rig/atlas/sheets/

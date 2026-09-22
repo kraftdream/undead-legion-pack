@@ -67,8 +67,9 @@
    "still_joints": "RightHand",
    "hand_clear": "R",
    "prompt": "(not Kimodo) video mocap 'bow idle_default.glb' from the P: drive, 52-joint *_JNT skeleton with fingers, 280 frames at 30 fps; bow in the left hand (the extended one), arrow in the right",
-   "_note": "user-recorded 2026-09-22, replaces the Kimodo idle_bow build with the authored bow_side arm pose. still_joints RightHand: the tracker jittered the arrow hand (93 deg/s, a 43 deg step at source frame 83). hand_clear R: the right hand sank into the torso at source frames 42-56 ('right hand slightly overlaps with body'), pushed out to the chest outline through IK on those frames. The right foot lifts 4-5 cm in the source from frame 200 on; idle mode keeps the legs on IK at rest, so it never leaves the floor; slowed 2.5x on request (280 source frames -> 698 resampled; loop/blend/src_start in resampled frames)",
-   "time_scale": 2.5
+   "_note": "user-recorded 2026-09-22, replaces the Kimodo idle_bow build with the authored bow_side arm pose. still_joints RightHand: the tracker jittered the arrow hand (93 deg/s, a 43 deg step at source frame 83). hand_clear R: the right hand sank into the torso at source frames 42-56 ('right hand slightly overlaps with body'), pushed out to the chest outline through IK on those frames. The right foot lifts 4-5 cm in the source from frame 200 on; idle mode keeps the legs on IK at rest, so it never leaves the floor; slowed 2.5x on request (280 source frames -> 698 resampled; loop/blend/src_start in resampled frames); stance L:0.06,R:-0.06 (archer: left foot forward, right back; shared with the shots so the transitions do not slide the feet)",
+   "time_scale": 2.5,
+   "stance": "L:0.06,R:-0.06"
   },
   {
    "name": "Idle_Staff",
@@ -260,87 +261,32 @@
   },
   {
    "name": "Shoot_01",
-   "glb": "shoot_draw",
-   "mode": "action",
-   "seed": 25,
-   "frames": 150,
-   "time_scale": 1.0,
+   "glb": "shoot_mocap_3",
+   "mode": "upper",
+   "rename": "jnt",
+   "mirror": true,
+   "still_joints": "LeftHand",
    "smooth": 1,
-   "fist": 0.6,
-   "prompt": "A person holds a longbow in the left hand, draws an arrow back with the right hand, aims and releases it.",
-   "arm_keys": [
-    [
-     0.0,
-     "bow_side"
-    ],
-    [
-     0.18,
-     "bow_aim"
-    ],
-    [
-     0.42,
-     "bow_draw"
-    ],
-    [
-     0.6,
-     "bow_draw"
-    ],
-    [
-     0.66,
-     "bow_release"
-    ],
-    [
-     0.78,
-     "bow_release"
-    ],
-    [
-     1.0,
-     "bow_side"
-    ]
-   ],
-   "layer": "upper"
-  },
-  {
-   "name": "Shoot_02",
-   "glb": "shoot_quick",
-   "mode": "action",
-   "seed": 27,
-   "frames": 120,
-   "time_scale": 1.0,
-   "smooth": 1,
-   "fist": 0.6,
-   "prompt": "A person quickly raises a longbow in the left hand, nocks and shoots an arrow, then lowers the bow.",
-   "arm_keys": [
-    [
-     0.0,
-     "bow_side"
-    ],
-    [
-     0.15,
-     "bow_aim"
-    ],
-    [
-     0.35,
-     "bow_draw"
-    ],
-    [
-     0.45,
-     "bow_draw"
-    ],
-    [
-     0.5,
-     "bow_release"
-    ],
-    [
-     0.62,
-     "bow_release"
-    ],
-    [
-     1.0,
-     "bow_side"
-    ]
-   ],
-   "layer": "upper"
+   "blend_from": "Idle_Bow:1",
+   "blend_in": 10,
+   "blend_to": "Idle_Bow:1",
+   "blend_out": 20,
+   "layer": "upper",
+   "prompt": "(not Kimodo) video mocap 'bow attacks 2_default.glb' from the P: drive, *_JNT skeleton, 80 frames at 30 fps: the one shoot clip (user 2026-09-22: 'let's do only 1 shoot animation')",
+   "_note": "user-recorded 2026-09-22, the single shoot clip (Shoot_02 retired the same day). The file holds the bow in the RIGHT hand, so --mirror (bow left, arrow right, as in Idle_Bow). still_joints LeftHand = the file's drawing hand (183 deg/s, 29 deg steps). blend_from/to Idle_Bow:1 raise and lower the bow arm from the idle; mode upper keeps the legs on IK; aim_forward L turns the body into the archer's stance with the rear foot stepping back and the string hand's fingers along the shot; stance as Idle_Bow; hips_drop 0.056 rig m (10 cm) faded with the crossfades: 'lower the torso a bit, standing too high makes leg twitch'; aim_body 0: the pelvis and feet keep the idle's heading, the turn to the shot line is a spine twist (user: 'body twists too much, so he is not shooting forward'); aim_line sight: the line from the head to the bow hand points forward, not the hand-to-hand line (both hands sat 0.2 rig m right of the head, the bow arm crossed the body 50 deg to the right: 'still shoots diagonally, rotate the left arm to the left more'); aim_offset 10 (the sight line 10 deg left, the bow arm then 7-9 deg right of forward: the two cannot both be 0, the head sits 16 cm right of the bow shoulder); anchor 1: the draw arm is swung in FK until the string hand lies on the sight plane (the arrow passes under the eye), the elbow swivelled level on the back/out side, the hand rolled 45 deg from the forearm's zero twist so the back of the hand faces out; anchor_gap 0.028 rig m (5 cm) keeps the string hand off the skull ('should not come so close to the head'); bow_square turns the bow hand until the bow's limbs are perpendicular to the arrow ('twist the left hand so that bow is perpendicular to the arrow'), squared for the whole raised phase against the sight line after 'straighten the bow a bit more'; anchor_gap 0.083 after 'don't bring the arrow too close to the head (10cm less)'; time_warp 22:11 + blend_in 10: the wind-up before the pull twice as fast ('faster wind-up 50%'); head_aim + head_smooth 3: the head looks along the sight line, smoothed ('less head jerk': the capture's head swung 65 deg in 20 frames and ended 47 deg off the target); pose_ref Fire_Base:1@37: the user's 'fire' pose (saved on frame 37 of the generated clip, copied to Fire_Base by anim_pose_save.py: bow hand, draw upper arm/forearm/hand) applied as local deltas while drawn, exact on frame 37",
+   "stance": "L:0.06,R:-0.06",
+   "aim_forward": "L",
+   "hips_drop": 0.056,
+   "aim_body": 0.0,
+   "aim_line": "sight",
+   "aim_offset": 10,
+   "anchor": 1.0,
+   "anchor_gap": 0.083,
+   "bow_square": true,
+   "head_aim": true,
+   "head_smooth": 3,
+   "time_warp": "22:11",
+   "pose_ref": "Fire_Base:1@37"
   },
   {
    "name": "Cast_Wand_01",
