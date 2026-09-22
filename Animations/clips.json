@@ -12,10 +12,11 @@
    "smooth": 3,
    "fingers": true,
    "prompt": "(not Kimodo) video mocap 'VID20260921200208_default.glb' from the P: drive, Mixamo-named skeleton with fingers, 163 frames at 30 fps",
-   "_note": "user-recorded idle 2026-09-21, replaces the Kimodo idle_slow_b build; all bones from the capture except the legs (idle mode keeps them on IK at rest), fingers copied; source frames 130-132 have a right-hand tracking glitch (50 deg in one frame) and the hand jitters to the end, so the loop uses frames 20..128; slowed 3x on request (slerp resampling), loop/blend/src_start are in resampled frames, src_end in source frames; the performer stood 48 deg off the bind facing: --heading auto (default) removes it, or the pinned legs roll 49 deg; stance: right foot 10 cm forward, left 10 cm back (user request, mirrored and wider than Idle_02's)",
+   "_note": "user-recorded idle 2026-09-21, replaces the Kimodo idle_slow_b build; all bones from the capture except the legs (idle mode keeps them on IK at rest), fingers copied; source frames 130-132 have a right-hand tracking glitch (50 deg in one frame) and the hand jitters to the end, so the loop uses frames 20..128; slowed 3x on request (slerp resampling), loop/blend/src_start are in resampled frames, src_end in source frames; the performer stood 48 deg off the bind facing: --heading auto (default) removes it, or the pinned legs roll 49 deg; stance: right foot 10 cm forward, left 10 cm back (user request, mirrored and wider than Idle_02's); wrist_twist L:-60 (user 2026-09-22: 'rotate the left hand counterclockwise 60 degree'; +60 turned it the wrong way, 'the opposite direction'), about the forearm axis",
    "src_end": 128,
    "time_scale": 3.0,
-   "stance": "L:-0.055,R:0.055"
+   "stance": "L:-0.055,R:0.055",
+   "wrist_twist": "L:-60"
   },
   {
    "name": "Idle_TwoHanded",
@@ -56,18 +57,18 @@
   },
   {
    "name": "Idle_Bow",
-   "glb": "idle_bow",
+   "glb": "idle_bow_mocap",
    "mode": "idle",
-   "seed": 8,
-   "frames": 300,
-   "loop": 240,
-   "blend": 40,
-   "src_start": 40,
-   "time_scale": 2.0,
-   "smooth": 2,
-   "fist": 0.8,
-   "prompt": "A person stands holding a longbow upright in the left hand at the side, right arm relaxed, slowly looking around.",
-   "arm_pose": "bow_side"
+   "rename": "jnt",
+   "loop": 596,
+   "blend": 100,
+   "src_start": 100,
+   "smooth": 3,
+   "still_joints": "RightHand",
+   "hand_clear": "R",
+   "prompt": "(not Kimodo) video mocap 'bow idle_default.glb' from the P: drive, 52-joint *_JNT skeleton with fingers, 280 frames at 30 fps; bow in the left hand (the extended one), arrow in the right",
+   "_note": "user-recorded 2026-09-22, replaces the Kimodo idle_bow build with the authored bow_side arm pose. still_joints RightHand: the tracker jittered the arrow hand (93 deg/s, a 43 deg step at source frame 83). hand_clear R: the right hand sank into the torso at source frames 42-56 ('right hand slightly overlaps with body'), pushed out to the chest outline through IK on those frames. The right foot lifts 4-5 cm in the source from frame 200 on; idle mode keeps the legs on IK at rest, so it never leaves the floor; slowed 2.5x on request (280 source frames -> 698 resampled; loop/blend/src_start in resampled frames)",
+   "time_scale": 2.5
   },
   {
    "name": "Idle_Staff",
