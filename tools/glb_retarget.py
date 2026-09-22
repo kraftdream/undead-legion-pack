@@ -100,6 +100,13 @@ TORSO_REF_POSE = None; HAND_REF_POS = None; TORSO_TRACE = []; TORSO_FIX = None
 PROP_VERTICAL = "--prop-vertical" in argv        # the weapon hangs straight down: floor point directly below the hand, the hand pinned at the staff's top height
 PROP_DAMP = float(arg("--prop-damp", "0.2"))    # the propping hand keeps this fraction of its motion about its mean position (it rests on the staff)
 PROP_TRACE = []
+WRIST_TWIST = {k.split(":")[0]: math.radians(float(k.split(":")[1])) for k in arg("--wrist-twist", "").split(",") if k}   # "L:60": turn that forearm about its own axis every frame (+ = counterclockwise seen from the hand looking up the arm)
+HAND_CLEAR = {}                                 # "R:0.22,0.18": keep that hand's socket outside an ellipse around the torso (rig m half-widths sideways, front-back)
+for k in arg("--hand-clear", "").split(";"):
+    if k:
+        side_, _, ab = k.partition(":")
+        HAND_CLEAR[side_] = tuple(float(v) for v in ab.split(",")) if ab else (0.22, 0.18)
+HAND_CLEAR_LOG = {}
 STILL = [k for k in arg("--still-joints", "").split(",") if k]   # source joints (renamed, pre-mirror names) whose rotation vs their parent is frozen to the clip's typical value (a hand the tracker lost)
 STANCE = {k.split(":")[0]: float(k.split(":")[1]) for k in arg("--stance", "").split(",") if k}   # idle mode: "L:0.03,R:-0.03" moves each resting foot forward (+, rig m)
 HEADING = arg("--heading", "auto")             # auto: rotate the source so the hips' mean yaw vs the bind is 0 (a video capture faces wherever the performer stood); keep: as is; <deg>: fixed
@@ -624,7 +631,7 @@ rig.animation_data.action = act
 if hasattr(rig.animation_data, "action_slot"):
     rig.animation_data.action_slot = act.slots.new('OBJECT', rig.name)
 
-DRIVEN = sorted(TARGETS) + FINGERS + ["root"] + (["hand_ik.L", "hand_ik.R"] if (ARM_POSE or ARM_KEYS or LOCK_L > 0 or PROP) else []) + (["upper_arm_ik_target.L", "upper_arm_ik_target.R"] if ELBOW_POLE else []) + (["foot_ik.L", "foot_ik.R", "toe_ik.L", "toe_ik.R"] if PLANT > 0 else [])
+DRIVEN = sorted(TARGETS) + FINGERS + ["root"] + (["hand_ik.L", "hand_ik.R"] if (ARM_POSE or ARM_KEYS or LOCK_L > 0 or PROP or HAND_CLEAR) else []) + (["upper_arm_ik_target.L", "upper_arm_ik_target.R"] if ELBOW_POLE else []) + (["foot_ik.L", "foot_ik.R", "toe_ik.L", "toe_ik.R"] if PLANT > 0 else [])
 STATIC = [c for c in controls() if c not in DRIVEN]
 _rnd = __import__("random").Random(7)
 FINGER_WAVE = {n: (_rnd.choice([1, 1, 2]), _rnd.uniform(0, 2 * math.pi), _rnd.uniform(0.6, 1.0)) for n in FINGERS}
@@ -708,6 +715,31 @@ def pose(f, dz=0.0, f_travel=None):
     for level in LEVELS:
         for tgt in level:
             set_world(pbs[tgt], targets[tgt], hips if tgt == "torso" else None)
+        update()
+    for side, (ca, cb) in HAND_CLEAR.items():
+        # a captured hand that sinks into the torso (the bow idle, source frames 42-56): push the socket
+        # out to the chest's outline in the horizontal plane and let the arm follow through IK, blended
+        # in over the first 3 cm of push so an untouched frame stays pure FK
+        sock = rig.matrix_world @ pbs["DEF-weapon." + side].matrix
+        hips_w = (rig.matrix_world @ pbs["DEF-spine"].matrix).translation
+        dx = sock.translation.x - hips_w.x; dy = sock.translation.y - (hips_w.y + 0.02)
+        r = math.sqrt((dx / ca) ** 2 + (dy / cb) ** 2)
+        if r < 1.0 and r > 1e-6:
+            new_xy = Vector((hips_w.x + dx / r, hips_w.y + 0.02 + dy / r, sock.translation.z))
+            push = (new_xy - sock.translation).length
+            wgt = min(1.0, push / 0.03)
+            # Rigify's IK_FK blends the FK and IK poses, so a partial weight lands the hand short of the
+            # outline: overshoot the IK target by 1/weight so the BLENDED hand sits exactly on it
+            frame_m = sock.copy(); frame_m.translation = sock.translation + (new_xy - sock.translation) / max(wgt, 1e-3)
+            pbs["upper_arm_parent." + side]["IK_FK"] = 1.0 - wgt
+            pbs["hand_ik." + side].matrix = rig.matrix_world.inverted() @ frame_m @ HAND_FROM_SOCKET[side]
+            update()
+            HAND_CLEAR_LOG[side] = max(HAND_CLEAR_LOG.get(side, 0.0), push)
+    for side, ang in WRIST_TWIST.items():
+        # pronate / supinate: rotate the FK forearm about its own axis (the hand and fingers follow)
+        fa = pbs["forearm_fk." + side]
+        axis = ((rig.matrix_world @ fa.matrix).to_3x3() @ Vector((0, 1, 0))).normalized()
+        set_world(fa, Quaternion(axis, ang) @ world_rot(fa))
         update()
     if FK_LEGS:
         hinge_toes()          # before the plant measures the sole: the toe cap is what a pitched boot rests on
@@ -1006,6 +1038,8 @@ final_min = []
 for f in range(N_OUT):
     scene.frame_set(f + 1); update(); final_min.append(body_min_z())
 log("body min z after correction %.4f..%.4f" % (min(final_min), max(final_min)))
+for side_, push_ in HAND_CLEAR_LOG.items():
+    log("hand-clear %s: pushed out of the torso by up to %.3f rig m (%.0f mm in the engine)" % (side_, push_, push_ * 1800))
 
 if LOOPING:
     def ang(a, b):

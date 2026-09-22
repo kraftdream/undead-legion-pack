@@ -672,7 +672,10 @@ finished action and lowers the torso by the reach constant if the wider stance n
 per frame after keying it, on controls keyed only on frame 1: every frame re-evaluated the
 previous frame's shifted key and the feet ran 10 m away (the anim file was saved so; Idle_02
 was restored from `HEAD` by appending the action from `git show HEAD:…blend`). Any tool that
-keys a control per frame must read every frame's original value first. The wrists are the capture's (no forward-blade fix applied), and the
+keys a control per frame must read every frame's original value first. The wrists are the capture's, except that the LEFT forearm is turned 60° about its own
+axis (manifest `wrist_twist "L:-60"`, 2026-09-22, "rotate the left hand counterclockwise 60
+degree"; the user's counterclockwise is NEGATIVE about the forearm's bone axis, i.e. seen
+from the elbow looking down the arm; +60 went the wrong way), and the
 motion is brisker than the other idles (head ~40°/s in the source): `time_scale` +
 `smooth` in the manifest are the knobs if it should read heavier.
 
@@ -722,6 +725,23 @@ the floor (the first try aimed the palm normal and gripped along Z; a sign slip 
 staff off the back of the hand, the bounds check caught it); the demo lists it as "Staff
 (propped)" (the plain "Staff" keeps the shaft grip for Idle_Staff). Legs on IK with the
 reach drop (28 mm), 12.0 s loop (`time_scale 3.0`, slowed 3× on request), seam 0.0000°, lowest vertex +2.8..+7.5 mm, hands 20–24°/s after the freeze.
+
+### Recorded bow idle (2026-09-22)
+
+`Idle_Bow` is the user's capture `P:\bow idle_default.glb` (`External Anims/Kimodo/
+idle_bow_mocap.glb`, `*_JNT` skeleton with finger joints, 280 frames), bow in the left
+hand (the extended one in the file, no mirror needed), arrow in the right; `time_scale 2.5 smooth 3 loop 596 blend 100 src_start 100` (19.9 s;
+built at real time first, then "make it 2.5 times slower"). The user's two notes from Blender, and how they are
+met: "right hand slightly overlaps with body from frame 42 to 52" → **`hand_clear R`**: on
+any frame where the right socket lies inside an ellipse round the torso (0.22 rig m
+sideways, 0.18 front-back, centred on the hips; the Knight's chest is ±0.18 / −0.08..+0.12)
+it is pushed out to the outline in the horizontal plane and the arm follows on IK, the
+IK/FK weight ramping over the first 3 cm of push so untouched frames stay pure FK; "right
+feet detached from ground from frame 220" → nothing to do: idle mode keeps both legs on IK
+at rest (the source foot rises 4–5 cm from frame 200 on and is never copied). Plus
+`still_joints RightHand`: the tracker jittered the arrow hand (93°/s, a 43° step at source
+frame 83). Fingers are in the file but not copied (both hands hold items, so the engine's
+grip pose replaces them anyway).
 
 ### Hand-authored clips and idle fixes (2026-09-21)
 
