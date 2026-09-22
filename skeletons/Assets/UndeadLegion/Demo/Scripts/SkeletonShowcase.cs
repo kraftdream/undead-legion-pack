@@ -265,7 +265,7 @@ namespace UndeadLegion.Demo
             new ClipSection { title = "Two-handed", idlePreference = new[] { "Idle_TwoHanded", "Idle" },
                 members = new[] { "Attack_2H_01", "Attack_2H_02" } },
             new ClipSection { title = "Bow", idlePreference = new[] { "Idle_Bow", "Idle" },
-                members = new[] { "Shoot_01", "Shoot_02" } },
+                members = new[] { "Shoot_01" } },
             new ClipSection { title = "Magic", idlePreference = new[] { "Idle_Staff", "Idle_Wand", "Idle" },
                 members = new[] { "Cast_Wand_01", "Cast_Wand_02", "Cast_Staff_01", "Cast_Staff_02" } },
             new ClipSection { title = "Specials", idlePreference = new[] { "Idle" },

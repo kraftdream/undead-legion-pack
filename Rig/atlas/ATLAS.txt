@@ -1,0 +1,2735 @@
+Bone atlas of RIG-Meta-Rig, measured from the identity rest pose on the bare Knight body.
+Directions: forward / left / up in the character's frame. rot delta 0.35 rad, IK_FK per record.
+
+chest   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0992 turn  0.348 lin 0.502  asym 1.004   move             down 0.343
+        chest_fwd              down 0.343
+        fingers_L              forward 0.326
+        fingers_R              back 0.326
+        back_of_hand_R         down 0.301, forward 0.101
+        back_of_hand_L         down 0.301, forward 0.101
+  rotY   peak  0.1297 turn  0.329 lin 0.5    asym 0.988   move             right 0.287, up 0.160
+        fingers_R              right 0.287, up 0.160
+        fingers_L              left 0.325
+        hilt_R                 down 0.287, right 0.091
+        hilt_L                 up 0.301
+        back_of_hand_L         down 0.167, left 0.124
+  rotZ   peak  0.0964 turn  0.348 lin 0.502  asym 0.997   move             left 0.343
+        chest_fwd              left 0.343
+        hilt_L                 forward 0.264, left 0.224
+        hilt_R                 back 0.325, left 0.120
+        back_of_hand_L         left 0.250, back 0.189
+        back_of_hand_R         left 0.300, forward 0.092
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.028
+        index_L_tip            left 0.028
+        pinky_L_tip            left 0.028
+        handL_centroid         left 0.028
+        middle_L_tip           left 0.028
+        thumb_L_tip            left 0.028
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.028
+        thumb_R_tip            back 0.028
+        jaw_tip                back 0.028
+        middle_L_tip           back 0.028
+        index_L_tip            back 0.028
+        thumb_L_tip            back 0.028
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             
+        handR_min_z            +0.02826
+        middle_R_tip           up 0.028
+        socket_R_pos           up 0.028
+        chest_min_z            +0.02826
+        mesh_max_z             +0.02826
+
+f_index.01.L   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0205 turn  0.000 lin 0.502  asym 1.0     move             right 0.018, up 0.007, back 0.005
+        index_L_tip            right 0.018, up 0.007, back 0.005
+        handL_centroid         right 0.002
+  rotY   peak  0.0091 turn  0.000 lin 0.502  asym 1.0     move             left 0.009, back 0.003
+        index_L_tip            left 0.009, back 0.003
+  rotZ   peak  0.0210 turn  0.000 lin 0.502  asym 1.0     move             forward 0.021
+        index_L_tip            forward 0.021
+        handL_centroid         forward 0.002, up 0.000
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.027, down 0.007
+        index_L_tip            back 0.027, down 0.007
+        handL_centroid         back 0.004, down 0.001
+        handL_min_z            -0.00415
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.027, forward 0.007
+        index_L_tip            down 0.027, forward 0.007
+        handL_min_z            -0.02450
+        handL_centroid         down 0.004, forward 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.028
+        index_L_tip            right 0.028
+        handL_centroid         right 0.005
+
+f_index.01.L.001   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.022, down 0.017
+        index_L_tip            left 0.022, down 0.017
+        handL_min_z            -0.01541
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             up 0.019, forward 0.017, left 0.012
+        index_L_tip            up 0.019, forward 0.017, left 0.012
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.022, right 0.014, down 0.011
+        index_L_tip            forward 0.022, right 0.014, down 0.011
+        handL_min_z            -0.00934
+
+f_index.01.R   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0205 turn  0.000 lin 0.502  asym 1.0     move             left 0.018, up 0.007, back 0.005
+        index_R_tip            left 0.018, up 0.007, back 0.005
+        handR_centroid         left 0.002
+  rotY   peak  0.0091 turn  0.000 lin 0.502  asym 1.0     move             left 0.007, forward 0.005
+        index_R_tip            left 0.007, forward 0.005
+  rotZ   peak  0.0210 turn  0.000 lin 0.502  asym 1.0     move             back 0.020, up 0.006
+        index_R_tip            back 0.020, up 0.006
+        handR_centroid         back 0.002
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.027, up 0.007
+        index_R_tip            forward 0.027, up 0.007
+        handR_centroid         forward 0.004, up 0.001
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.027, forward 0.007
+        index_R_tip            down 0.027, forward 0.007
+        handR_min_z            -0.02450
+        handR_centroid         down 0.004, forward 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.028
+        index_R_tip            left 0.028
+        handR_centroid         left 0.005
+
+f_index.01.R.001   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.022, up 0.017
+        index_R_tip            left 0.022, up 0.017
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             up 0.019, forward 0.017, right 0.012
+        index_R_tip            up 0.019, forward 0.017, right 0.012
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.022, left 0.014, down 0.011
+        index_R_tip            forward 0.022, left 0.014, down 0.011
+        handR_min_z            -0.00934
+
+f_index.01_master.L   [XYZ, IK_FK 1]
+  rotX   peak  0.0205 turn  0.000 lin 0.502  asym 1.0     move             right 0.018, up 0.007, back 0.005
+        index_L_tip            right 0.018, up 0.007, back 0.005
+        handL_centroid         right 0.002
+  rotY   peak  0.0091 turn  0.000 lin 0.502  asym 1.0     move             left 0.009, back 0.003
+        index_L_tip            left 0.009, back 0.003
+  rotZ   peak  0.0210 turn  0.000 lin 0.502  asym 1.0     move             forward 0.021
+        index_L_tip            forward 0.021
+        handL_centroid         forward 0.002, up 0.000
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.027, down 0.007
+        index_L_tip            back 0.027, down 0.007
+        handL_centroid         back 0.004, down 0.001
+        handL_min_z            -0.00415
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.027, forward 0.007
+        index_L_tip            down 0.027, forward 0.007
+        handL_min_z            -0.02450
+        handL_centroid         down 0.004, forward 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.028
+        index_L_tip            right 0.028
+        handL_centroid         right 0.005
+
+f_index.01_master.R   [XYZ, IK_FK 1]
+  rotX   peak  0.0205 turn  0.000 lin 0.502  asym 1.0     move             left 0.018, up 0.007, back 0.005
+        index_R_tip            left 0.018, up 0.007, back 0.005
+        handR_centroid         left 0.002
+  rotY   peak  0.0091 turn  0.000 lin 0.502  asym 1.0     move             left 0.007, forward 0.005
+        index_R_tip            left 0.007, forward 0.005
+  rotZ   peak  0.0210 turn  0.000 lin 0.502  asym 1.0     move             back 0.020, up 0.006
+        index_R_tip            back 0.020, up 0.006
+        handR_centroid         back 0.002
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.027, up 0.007
+        index_R_tip            forward 0.027, up 0.007
+        handR_centroid         forward 0.004, up 0.001
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.027, forward 0.007
+        index_R_tip            down 0.027, forward 0.007
+        handR_min_z            -0.02450
+        handR_centroid         down 0.004, forward 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.028
+        index_R_tip            left 0.028
+        handR_centroid         left 0.005
+
+f_index.02.L   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0129 turn  0.000 lin 0.502  asym 1.0     move             right 0.011, up 0.007
+        index_L_tip            right 0.011, up 0.007
+  rotY   peak  0.0028 turn  0.000 lin 0.502  asym 1.0     move             left 0.002, back 0.001
+        index_L_tip            left 0.002, back 0.001
+  rotZ   peak  0.0128 turn  0.000 lin 0.502  asym 1.0     move             forward 0.012, right 0.004
+        index_L_tip            forward 0.012, right 0.004
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.026, left 0.009
+        index_L_tip            back 0.026, left 0.009
+        handL_centroid         back 0.003, left 0.001
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.027, back 0.007
+        index_L_tip            down 0.027, back 0.007
+        handL_min_z            -0.02406
+        handL_centroid         down 0.003, back 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.026, back 0.007
+        index_L_tip            right 0.026, back 0.007
+        handL_centroid         right 0.003, back 0.001
+
+f_index.02.R   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0129 turn  0.000 lin 0.502  asym 1.0     move             left 0.011, up 0.007
+        index_R_tip            left 0.011, up 0.007
+  rotY   peak  0.0028 turn  0.000 lin 0.502  asym 1.0     move             forward 0.002, left 0.002
+        index_R_tip            forward 0.002, left 0.002
+  rotZ   peak  0.0128 turn  0.000 lin 0.502  asym 1.0     move             back 0.010, up 0.006, right 0.004
+        index_R_tip            back 0.010, up 0.006, right 0.004
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.026, left 0.009
+        index_R_tip            forward 0.026, left 0.009
+        handR_centroid         forward 0.003, left 0.001
+        handR_min_z            -0.00299
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.027, back 0.007
+        index_R_tip            down 0.027, back 0.007
+        handR_min_z            -0.02406
+        handR_centroid         down 0.003, back 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.026, back 0.007
+        index_R_tip            left 0.026, back 0.007
+        handR_centroid         left 0.003, back 0.001
+
+f_index.03.L   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0058 turn  0.000 lin 0.502  asym 1.0     move             up 0.004, back 0.004, left 0.001
+        index_L_tip            up 0.004, back 0.004, left 0.001
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0058 turn  0.000 lin 0.502  asym 1.0     move             right 0.005, up 0.003, forward 0.002
+        index_L_tip            right 0.005, up 0.003, forward 0.002
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.025, down 0.012
+        index_L_tip            left 0.025, down 0.012
+        handL_min_z            -0.00887
+        handL_centroid         left 0.001, down 0.001
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.019, back 0.017, right 0.012
+        index_L_tip            down 0.019, back 0.017, right 0.012
+        handL_min_z            -0.01650
+        handL_centroid         down 0.001, back 0.001, right 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.022, up 0.017
+        index_L_tip            back 0.022, up 0.017
+        handL_centroid         back 0.001, up 0.001
+
+f_index.03.R   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0058 turn  0.000 lin 0.502  asym 1.0     move             up 0.004, back 0.004, right 0.001
+        index_R_tip            up 0.004, back 0.004, right 0.001
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0058 turn  0.000 lin 0.502  asym 1.0     move             right 0.006, down 0.002
+        index_R_tip            right 0.006, down 0.002
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.025, up 0.012
+        index_R_tip            left 0.025, up 0.012
+        handR_centroid         left 0.001, up 0.001
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.019, back 0.017, left 0.012
+        index_R_tip            down 0.019, back 0.017, left 0.012
+        handR_min_z            -0.01650
+        handR_centroid         down 0.001, back 0.001, left 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.022, up 0.017
+        index_R_tip            back 0.022, up 0.017
+        handR_centroid         back 0.001, up 0.001
+
+f_middle.01.L   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0215 turn  0.000 lin 0.502  asym 1.0     move             right 0.021
+        middle_L_tip           right 0.021
+        handL_min_z            +0.00280
+        handL_centroid         right 0.002
+  rotY   peak  0.0083 turn  0.000 lin 0.502  asym 1.0     move             left 0.008, back 0.002
+        middle_L_tip           left 0.008, back 0.002
+  rotZ   peak  0.0222 turn  0.000 lin 0.502  asym 1.0     move             forward 0.022
+        middle_L_tip           forward 0.022
+        handL_min_z            +0.00266
+        handL_centroid         forward 0.002, up 0.001
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.027, down 0.007
+        middle_L_tip           back 0.027, down 0.007
+        handL_min_z            -0.00722
+        handL_centroid         back 0.004, down 0.001
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.027, forward 0.008
+        middle_L_tip           down 0.027, forward 0.008
+        handL_min_z            -0.02679
+        handL_centroid         down 0.004, forward 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.028
+        middle_L_tip           right 0.028
+        handL_min_z            -0.00535
+        handL_centroid         right 0.004
+
+f_middle.01.L.001   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.024, down 0.014
+        middle_L_tip           forward 0.024, down 0.014
+        handL_min_z            -0.01558
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             up 0.023, forward 0.015, left 0.006
+        middle_L_tip           up 0.023, forward 0.015, left 0.006
+        handL_min_z            +0.00280
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.027, up 0.007
+        middle_L_tip           right 0.027, up 0.007
+        handL_min_z            +0.00280
+
+f_middle.01.R   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0215 turn  0.000 lin 0.502  asym 1.0     move             left 0.021
+        middle_R_tip           left 0.021
+        handR_min_z            +0.00280
+        handR_centroid         left 0.002
+  rotY   peak  0.0083 turn  0.000 lin 0.502  asym 1.0     move             left 0.007, forward 0.005
+        middle_R_tip           left 0.007, forward 0.005
+  rotZ   peak  0.0222 turn  0.000 lin 0.502  asym 1.0     move             back 0.022
+        middle_R_tip           back 0.022
+        handR_min_z            +0.00280
+        handR_centroid         back 0.002
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.027, up 0.007
+        middle_R_tip           forward 0.027, up 0.007
+        handR_centroid         forward 0.004, up 0.001
+        handR_min_z            +0.00280
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.027, forward 0.008
+        middle_R_tip           down 0.027, forward 0.008
+        handR_min_z            -0.02679
+        handR_centroid         down 0.004, forward 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.028
+        middle_R_tip           left 0.028
+        handR_min_z            -0.00535
+        handR_centroid         left 0.004
+
+f_middle.01.R.001   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.024, up 0.014
+        middle_R_tip           back 0.024, up 0.014
+        handR_min_z            +0.00280
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             up 0.023, forward 0.015, right 0.006
+        middle_R_tip           up 0.023, forward 0.015, right 0.006
+        handR_min_z            +0.00280
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.027, up 0.007
+        middle_R_tip           left 0.027, up 0.007
+        handR_min_z            +0.00280
+
+f_middle.01_master.L   [XYZ, IK_FK 1]
+  rotX   peak  0.0215 turn  0.000 lin 0.502  asym 1.0     move             right 0.021
+        middle_L_tip           right 0.021
+        handL_min_z            +0.00280
+        handL_centroid         right 0.002
+  rotY   peak  0.0083 turn  0.000 lin 0.502  asym 1.0     move             left 0.008, back 0.002
+        middle_L_tip           left 0.008, back 0.002
+  rotZ   peak  0.0222 turn  0.000 lin 0.502  asym 1.0     move             forward 0.022
+        middle_L_tip           forward 0.022
+        handL_min_z            +0.00266
+        handL_centroid         forward 0.002, up 0.001
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.027, down 0.007
+        middle_L_tip           back 0.027, down 0.007
+        handL_min_z            -0.00722
+        handL_centroid         back 0.004, down 0.001
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.027, forward 0.008
+        middle_L_tip           down 0.027, forward 0.008
+        handL_min_z            -0.02679
+        handL_centroid         down 0.004, forward 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.028
+        middle_L_tip           right 0.028
+        handL_min_z            -0.00535
+        handL_centroid         right 0.004
+
+f_middle.01_master.R   [XYZ, IK_FK 1]
+  rotX   peak  0.0215 turn  0.000 lin 0.502  asym 1.0     move             left 0.021
+        middle_R_tip           left 0.021
+        handR_min_z            +0.00280
+        handR_centroid         left 0.002
+  rotY   peak  0.0083 turn  0.000 lin 0.502  asym 1.0     move             left 0.007, forward 0.005
+        middle_R_tip           left 0.007, forward 0.005
+  rotZ   peak  0.0222 turn  0.000 lin 0.502  asym 1.0     move             back 0.022
+        middle_R_tip           back 0.022
+        handR_min_z            +0.00280
+        handR_centroid         back 0.002
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.027, up 0.007
+        middle_R_tip           forward 0.027, up 0.007
+        handR_centroid         forward 0.004, up 0.001
+        handR_min_z            +0.00280
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.027, forward 0.008
+        middle_R_tip           down 0.027, forward 0.008
+        handR_min_z            -0.02679
+        handR_centroid         down 0.004, forward 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.028
+        middle_R_tip           left 0.028
+        handR_min_z            -0.00535
+        handR_centroid         left 0.004
+
+f_middle.02.L   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0131 turn  0.000 lin 0.502  asym 1.0     move             right 0.012, up 0.004
+        middle_L_tip           right 0.012, up 0.004
+        handL_min_z            +0.00280
+  rotY   peak  0.0025 turn  0.000 lin 0.502  asym 1.0     move             left 0.002, back 0.001
+        middle_L_tip           left 0.002, back 0.001
+  rotZ   peak  0.0132 turn  0.000 lin 0.502  asym 1.0     move             forward 0.013
+        middle_L_tip           forward 0.013
+        handL_min_z            -0.00181
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.028
+        middle_L_tip           back 0.028
+        handL_centroid         back 0.003
+        handL_min_z            +0.00280
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.028
+        middle_L_tip           down 0.028
+        handL_min_z            -0.02787
+        handL_centroid         down 0.003
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.028
+        middle_L_tip           right 0.028
+        handL_centroid         right 0.003
+        handL_min_z            +0.00129
+
+f_middle.02.R   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0131 turn  0.000 lin 0.502  asym 1.0     move             left 0.012, up 0.004
+        middle_R_tip           left 0.012, up 0.004
+        handR_min_z            +0.00280
+  rotY   peak  0.0025 turn  0.000 lin 0.502  asym 1.0     move             left 0.002, forward 0.001
+        middle_R_tip           left 0.002, forward 0.001
+  rotZ   peak  0.0132 turn  0.000 lin 0.502  asym 1.0     move             back 0.012, up 0.006
+        middle_R_tip           back 0.012, up 0.006
+        handR_min_z            +0.00280
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.028
+        middle_R_tip           forward 0.028
+        handR_min_z            -0.00446
+        handR_centroid         forward 0.003
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.028
+        middle_R_tip           down 0.028
+        handR_min_z            -0.02787
+        handR_centroid         down 0.003
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.028
+        middle_R_tip           left 0.028
+        handR_centroid         left 0.003
+        handR_min_z            +0.00129
+
+f_middle.03.L   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0058 turn  0.000 lin 0.502  asym 1.0     move             right 0.005, up 0.002
+        middle_L_tip           right 0.005, up 0.002
+        handL_min_z            +0.00205
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0058 turn  0.000 lin 0.502  asym 1.0     move             forward 0.005, down 0.002
+        middle_L_tip           forward 0.005, down 0.002
+        handL_min_z            -0.00189
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.024, up 0.014
+        middle_L_tip           back 0.024, up 0.014
+        handL_min_z            +0.00280
+        handL_centroid         back 0.001, up 0.001
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.023, back 0.015, right 0.006
+        middle_L_tip           down 0.023, back 0.015, right 0.006
+        handL_min_z            -0.02320
+        handL_centroid         down 0.001, back 0.001, right 0.000
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.027, up 0.008
+        middle_L_tip           right 0.027, up 0.008
+        handL_min_z            +0.00280
+        handL_centroid         right 0.002, up 0.000
+
+f_middle.03.R   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0058 turn  0.000 lin 0.502  asym 1.0     move             left 0.005, up 0.002
+        middle_R_tip           left 0.005, up 0.002
+        handR_min_z            +0.00205
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0058 turn  0.000 lin 0.502  asym 1.0     move             back 0.004, up 0.004, right 0.001
+        middle_R_tip           back 0.004, up 0.004, right 0.001
+        handR_min_z            +0.00280
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.024, down 0.014
+        middle_R_tip           forward 0.024, down 0.014
+        handR_min_z            -0.01412
+        handR_centroid         forward 0.001, down 0.001
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.023, back 0.015, left 0.006
+        middle_R_tip           down 0.023, back 0.015, left 0.006
+        handR_min_z            -0.02320
+        handR_centroid         down 0.001, back 0.001, left 0.000
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.027, up 0.008
+        middle_R_tip           left 0.027, up 0.008
+        handR_min_z            +0.00280
+        handR_centroid         left 0.002, up 0.000
+
+f_pinky.01.L   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0158 turn  0.000 lin 0.502  asym 1.0     move             right 0.015
+        pinky_L_tip            right 0.015
+        handL_centroid         right 0.001
+  rotY   peak  0.0074 turn  0.000 lin 0.502  asym 1.0     move             left 0.006, up 0.003, back 0.003
+        pinky_L_tip            left 0.006, up 0.003, back 0.003
+  rotZ   peak  0.0173 turn  0.000 lin 0.502  asym 1.0     move             forward 0.017, left 0.005
+        pinky_L_tip            forward 0.017, left 0.005
+        handL_centroid         forward 0.001
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.027
+        pinky_L_tip            back 0.027
+        handL_centroid         back 0.003
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.025, left 0.013
+        pinky_L_tip            down 0.025, left 0.013
+        handL_centroid         down 0.003, left 0.002
+        handL_min_z            -0.00217
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.025, down 0.011, forward 0.008
+        pinky_L_tip            right 0.025, down 0.011, forward 0.008
+        handL_centroid         right 0.003, down 0.001, forward 0.001
+
+f_pinky.01.L.001   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.023, forward 0.014, down 0.010
+        pinky_L_tip            right 0.023, forward 0.014, down 0.010
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             up 0.020, forward 0.019
+        pinky_L_tip            up 0.020, forward 0.019
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.017, up 0.017, back 0.015
+        pinky_L_tip            right 0.017, up 0.017, back 0.015
+
+f_pinky.01.R   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0158 turn  0.000 lin 0.502  asym 1.0     move             left 0.015
+        pinky_R_tip            left 0.015
+        handR_centroid         left 0.001
+  rotY   peak  0.0074 turn  0.000 lin 0.502  asym 1.0     move             left 0.005, forward 0.005, down 0.002
+        pinky_R_tip            left 0.005, forward 0.005, down 0.002
+  rotZ   peak  0.0173 turn  0.000 lin 0.502  asym 1.0     move             back 0.015, left 0.007, up 0.005
+        pinky_R_tip            back 0.015, left 0.007, up 0.005
+        handR_centroid         back 0.001, left 0.000
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.027
+        pinky_R_tip            forward 0.027
+        handR_centroid         forward 0.003
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.025, right 0.013
+        pinky_R_tip            down 0.025, right 0.013
+        handR_centroid         down 0.003, right 0.002
+        handR_min_z            -0.00217
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.025, down 0.011, forward 0.008
+        pinky_R_tip            left 0.025, down 0.011, forward 0.008
+        handR_centroid         left 0.003, down 0.001, forward 0.001
+
+f_pinky.01.R.001   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.023, back 0.014, up 0.010
+        pinky_R_tip            right 0.023, back 0.014, up 0.010
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             up 0.020, forward 0.019
+        pinky_R_tip            up 0.020, forward 0.019
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.017, up 0.017, back 0.015
+        pinky_R_tip            left 0.017, up 0.017, back 0.015
+
+f_pinky.01_master.L   [XYZ, IK_FK 1]
+  rotX   peak  0.0158 turn  0.000 lin 0.502  asym 1.0     move             right 0.015
+        pinky_L_tip            right 0.015
+        handL_centroid         right 0.001
+  rotY   peak  0.0074 turn  0.000 lin 0.502  asym 1.0     move             left 0.006, up 0.003, back 0.003
+        pinky_L_tip            left 0.006, up 0.003, back 0.003
+  rotZ   peak  0.0173 turn  0.000 lin 0.502  asym 1.0     move             forward 0.017, left 0.005
+        pinky_L_tip            forward 0.017, left 0.005
+        handL_centroid         forward 0.001
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.027
+        pinky_L_tip            back 0.027
+        handL_centroid         back 0.003
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.025, left 0.013
+        pinky_L_tip            down 0.025, left 0.013
+        handL_centroid         down 0.003, left 0.002
+        handL_min_z            -0.00217
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.025, down 0.011, forward 0.008
+        pinky_L_tip            right 0.025, down 0.011, forward 0.008
+        handL_centroid         right 0.003, down 0.001, forward 0.001
+
+f_pinky.01_master.R   [XYZ, IK_FK 1]
+  rotX   peak  0.0158 turn  0.000 lin 0.502  asym 1.0     move             left 0.015
+        pinky_R_tip            left 0.015
+        handR_centroid         left 0.001
+  rotY   peak  0.0074 turn  0.000 lin 0.502  asym 1.0     move             left 0.005, forward 0.005, down 0.002
+        pinky_R_tip            left 0.005, forward 0.005, down 0.002
+  rotZ   peak  0.0173 turn  0.000 lin 0.502  asym 1.0     move             back 0.015, left 0.007, up 0.005
+        pinky_R_tip            back 0.015, left 0.007, up 0.005
+        handR_centroid         back 0.001, left 0.000
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.027
+        pinky_R_tip            forward 0.027
+        handR_centroid         forward 0.003
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.025, right 0.013
+        pinky_R_tip            down 0.025, right 0.013
+        handR_centroid         down 0.003, right 0.002
+        handR_min_z            -0.00217
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.025, down 0.011, forward 0.008
+        pinky_R_tip            left 0.025, down 0.011, forward 0.008
+        handR_centroid         left 0.003, down 0.001, forward 0.001
+
+f_pinky.02.L   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0109 turn  0.000 lin 0.502  asym 1.0     move             right 0.010, forward 0.004
+        pinky_L_tip            right 0.010, forward 0.004
+  rotY   peak  0.0030 turn  0.000 lin 0.502  asym 1.0     move             left 0.003, back 0.001
+        pinky_L_tip            left 0.003, back 0.001
+  rotZ   peak  0.0112 turn  0.000 lin 0.502  asym 1.0     move             forward 0.010, left 0.004, down 0.003
+        pinky_L_tip            forward 0.010, left 0.004, down 0.003
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.026, right 0.010
+        pinky_L_tip            back 0.026, right 0.010
+        handL_centroid         back 0.003, right 0.001
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.027
+        pinky_L_tip            down 0.027
+        handL_min_z            -0.00414
+        handL_centroid         down 0.003
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.026, forward 0.008, down 0.007
+        pinky_L_tip            right 0.026, forward 0.008, down 0.007
+        handL_centroid         right 0.003, forward 0.001, down 0.001
+
+f_pinky.02.R   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0109 turn  0.000 lin 0.502  asym 1.0     move             left 0.010, forward 0.004
+        pinky_R_tip            left 0.010, forward 0.004
+  rotY   peak  0.0030 turn  0.000 lin 0.502  asym 1.0     move             left 0.002, forward 0.002, down 0.001
+        pinky_R_tip            left 0.002, forward 0.002, down 0.001
+  rotZ   peak  0.0112 turn  0.000 lin 0.502  asym 1.0     move             back 0.008, up 0.006, left 0.004
+        pinky_R_tip            back 0.008, up 0.006, left 0.004
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.026, right 0.010
+        pinky_R_tip            forward 0.026, right 0.010
+        handR_centroid         forward 0.003, right 0.001
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.027
+        pinky_R_tip            down 0.027
+        handR_min_z            -0.00414
+        handR_centroid         down 0.003
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.026, forward 0.008, down 0.007
+        pinky_R_tip            left 0.026, forward 0.008, down 0.007
+        handR_centroid         left 0.003, forward 0.001, down 0.001
+
+f_pinky.03.L   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0054 turn  0.000 lin 0.502  asym 1.0     move             right 0.004, forward 0.004, down 0.002
+        pinky_L_tip            right 0.004, forward 0.004, down 0.002
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0054 turn  0.000 lin 0.502  asym 1.0     move             left 0.004, forward 0.003, down 0.002
+        pinky_L_tip            left 0.004, forward 0.003, down 0.002
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.019, up 0.016, back 0.014
+        pinky_L_tip            right 0.019, up 0.016, back 0.014
+        handL_centroid         right 0.001, up 0.001, back 0.001
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.020, back 0.019
+        pinky_L_tip            down 0.020, back 0.019
+        handL_centroid         down 0.001, back 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.021, forward 0.015, down 0.012
+        pinky_L_tip            right 0.021, forward 0.015, down 0.012
+        handL_centroid         right 0.001, forward 0.001, down 0.001
+
+f_pinky.03.R   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0054 turn  0.000 lin 0.502  asym 1.0     move             left 0.004, forward 0.004, down 0.002
+        pinky_R_tip            left 0.004, forward 0.004, down 0.002
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0054 turn  0.000 lin 0.502  asym 1.0     move             up 0.004, left 0.004, back 0.002
+        pinky_R_tip            up 0.004, left 0.004, back 0.002
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.019, down 0.016, forward 0.014
+        pinky_R_tip            right 0.019, down 0.016, forward 0.014
+        handR_centroid         right 0.001, down 0.001, forward 0.001
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.020, back 0.019
+        pinky_R_tip            down 0.020, back 0.019
+        handR_centroid         down 0.001, back 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.021, forward 0.015, down 0.012
+        pinky_R_tip            left 0.021, forward 0.015, down 0.012
+        handR_centroid         left 0.001, forward 0.001, down 0.001
+
+f_ring.01.L   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0203 turn  0.000 lin 0.502  asym 1.0     move             right 0.020
+        ring_L_tip             right 0.020
+        handL_centroid         right 0.002
+  rotY   peak  0.0081 turn  0.000 lin 0.502  asym 1.0     move             left 0.007, back 0.003
+        ring_L_tip             left 0.007, back 0.003
+  rotZ   peak  0.0210 turn  0.000 lin 0.502  asym 1.0     move             forward 0.021
+        ring_L_tip             forward 0.021
+        handL_centroid         forward 0.002
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.028
+        ring_L_tip             back 0.028
+        handL_centroid         back 0.004
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.027, left 0.008
+        ring_L_tip             down 0.027, left 0.008
+        handL_min_z            -0.02199
+        handL_centroid         down 0.004, left 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.027, down 0.008
+        ring_L_tip             right 0.027, down 0.008
+        handL_centroid         right 0.004, down 0.001
+        handL_min_z            -0.00302
+
+f_ring.01.L.001   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.024, down 0.012, right 0.009
+        ring_L_tip             forward 0.024, down 0.012, right 0.009
+        handL_min_z            -0.00823
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             up 0.024, forward 0.014
+        ring_L_tip             up 0.024, forward 0.014
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.026, up 0.009
+        ring_L_tip             right 0.026, up 0.009
+
+f_ring.01.R   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0203 turn  0.000 lin 0.502  asym 1.0     move             left 0.020
+        ring_R_tip             left 0.020
+        handR_centroid         left 0.002
+  rotY   peak  0.0081 turn  0.000 lin 0.502  asym 1.0     move             left 0.006, forward 0.006
+        ring_R_tip             left 0.006, forward 0.006
+  rotZ   peak  0.0210 turn  0.000 lin 0.502  asym 1.0     move             back 0.020, up 0.006
+        ring_R_tip             back 0.020, up 0.006
+        handR_centroid         back 0.002
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.028
+        ring_R_tip             forward 0.028
+        handR_centroid         forward 0.004
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.027, right 0.008
+        ring_R_tip             down 0.027, right 0.008
+        handR_min_z            -0.02199
+        handR_centroid         down 0.004, right 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.027, down 0.008
+        ring_R_tip             left 0.027, down 0.008
+        handR_centroid         left 0.004, down 0.001
+        handR_min_z            -0.00302
+
+f_ring.01.R.001   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.024, up 0.012, right 0.009
+        ring_R_tip             back 0.024, up 0.012, right 0.009
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             up 0.024, forward 0.014
+        ring_R_tip             up 0.024, forward 0.014
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.026, up 0.009
+        ring_R_tip             left 0.026, up 0.009
+
+f_ring.01_master.L   [XYZ, IK_FK 1]
+  rotX   peak  0.0203 turn  0.000 lin 0.502  asym 1.0     move             right 0.020
+        ring_L_tip             right 0.020
+        handL_centroid         right 0.002
+  rotY   peak  0.0081 turn  0.000 lin 0.502  asym 1.0     move             left 0.007, back 0.003
+        ring_L_tip             left 0.007, back 0.003
+  rotZ   peak  0.0210 turn  0.000 lin 0.502  asym 1.0     move             forward 0.021
+        ring_L_tip             forward 0.021
+        handL_centroid         forward 0.002
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.028
+        ring_L_tip             back 0.028
+        handL_centroid         back 0.004
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.027, left 0.008
+        ring_L_tip             down 0.027, left 0.008
+        handL_min_z            -0.02199
+        handL_centroid         down 0.004, left 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.027, down 0.008
+        ring_L_tip             right 0.027, down 0.008
+        handL_centroid         right 0.004, down 0.001
+        handL_min_z            -0.00302
+
+f_ring.01_master.R   [XYZ, IK_FK 1]
+  rotX   peak  0.0203 turn  0.000 lin 0.502  asym 1.0     move             left 0.020
+        ring_R_tip             left 0.020
+        handR_centroid         left 0.002
+  rotY   peak  0.0081 turn  0.000 lin 0.502  asym 1.0     move             left 0.006, forward 0.006
+        ring_R_tip             left 0.006, forward 0.006
+  rotZ   peak  0.0210 turn  0.000 lin 0.502  asym 1.0     move             back 0.020, up 0.006
+        ring_R_tip             back 0.020, up 0.006
+        handR_centroid         back 0.002
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.028
+        ring_R_tip             forward 0.028
+        handR_centroid         forward 0.004
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.027, right 0.008
+        ring_R_tip             down 0.027, right 0.008
+        handR_min_z            -0.02199
+        handR_centroid         down 0.004, right 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.027, down 0.008
+        ring_R_tip             left 0.027, down 0.008
+        handR_centroid         left 0.004, down 0.001
+        handR_min_z            -0.00302
+
+f_ring.02.L   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0122 turn  0.000 lin 0.502  asym 1.0     move             right 0.012, up 0.003
+        ring_L_tip             right 0.012, up 0.003
+  rotY   peak  0.0023 turn  0.000 lin 0.502  asym 1.0     move             left 0.002, back 0.001
+        ring_L_tip             left 0.002, back 0.001
+  rotZ   peak  0.0123 turn  0.000 lin 0.502  asym 1.0     move             forward 0.012
+        ring_L_tip             forward 0.012
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.027, up 0.007
+        ring_L_tip             back 0.027, up 0.007
+        handL_centroid         back 0.003, up 0.001
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.027, back 0.007
+        ring_L_tip             down 0.027, back 0.007
+        handL_min_z            -0.02258
+        handL_centroid         down 0.003, back 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.028
+        ring_L_tip             right 0.028
+        handL_centroid         right 0.003
+
+f_ring.02.R   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0122 turn  0.000 lin 0.502  asym 1.0     move             left 0.012, up 0.003
+        ring_R_tip             left 0.012, up 0.003
+  rotY   peak  0.0023 turn  0.000 lin 0.502  asym 1.0     move             forward 0.002, left 0.001, down 0.000
+        ring_R_tip             forward 0.002, left 0.001, down 0.000
+  rotZ   peak  0.0123 turn  0.000 lin 0.502  asym 1.0     move             back 0.010, up 0.007
+        ring_R_tip             back 0.010, up 0.007
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.027, down 0.007
+        ring_R_tip             forward 0.027, down 0.007
+        handR_centroid         forward 0.003, down 0.001
+        handR_min_z            -0.00280
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.027, back 0.007
+        ring_R_tip             down 0.027, back 0.007
+        handR_min_z            -0.02258
+        handR_centroid         down 0.003, back 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.028
+        ring_R_tip             left 0.028
+        handR_centroid         left 0.003
+
+f_ring.03.L   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0072 turn  0.000 lin 0.502  asym 1.0     move             right 0.007, forward 0.002, up 0.002
+        ring_L_tip             right 0.007, forward 0.002, up 0.002
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0072 turn  0.000 lin 0.502  asym 1.0     move             forward 0.007, down 0.003
+        ring_L_tip             forward 0.007, down 0.003
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.024, up 0.014
+        ring_L_tip             back 0.024, up 0.014
+        handL_centroid         back 0.001, up 0.001
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.024, back 0.014
+        ring_L_tip             down 0.024, back 0.014
+        handL_min_z            -0.01937
+        handL_centroid         down 0.001, back 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.028
+        ring_L_tip             right 0.028
+        handL_centroid         right 0.002
+
+f_ring.03.R   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0072 turn  0.000 lin 0.502  asym 1.0     move             left 0.007, forward 0.002, up 0.002
+        ring_R_tip             left 0.007, forward 0.002, up 0.002
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0072 turn  0.000 lin 0.502  asym 1.0     move             back 0.005, up 0.005
+        ring_R_tip             back 0.005, up 0.005
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.024, down 0.014
+        ring_R_tip             forward 0.024, down 0.014
+        handR_min_z            -0.00975
+        handR_centroid         forward 0.001, down 0.001
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.024, back 0.014
+        ring_R_tip             down 0.024, back 0.014
+        handR_min_z            -0.01937
+        handR_centroid         down 0.001, back 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.028
+        ring_R_tip             left 0.028
+        handR_centroid         left 0.002
+
+foot_fk.L   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0552 turn  0.344 lin 0.502  asym 1.0     move             down 0.337
+        foot_L_fwd             down 0.337
+        toe_L_tip              down 0.050, back 0.023
+        footL_min_z            -0.04033
+        mesh_min_z             -0.04033
+        footL_centroid         down 0.020, back 0.016
+  rotY   peak  0.0067 turn  0.141 lin 0.502  asym 1.0     move             right 0.112, down 0.086
+        foot_L_fwd             right 0.112, down 0.086
+        toe_L_tip              right 0.006, down 0.002
+        footL_min_z            -0.00580
+        mesh_min_z             -0.00580
+        footL_centroid         left 0.003, up 0.002
+  rotZ   peak  0.0548 turn  0.323 lin 0.502  asym 1.0     move             right 0.319
+        foot_L_fwd             right 0.319
+        toe_L_tip              right 0.055
+        footL_centroid         right 0.025
+        footL_min_z            -0.00523
+        mesh_min_z             -0.00523
+
+foot_fk.R   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0552 turn  0.344 lin 0.502  asym 1.0     move             down 0.337
+        foot_R_fwd             down 0.337
+        toe_R_tip              down 0.050, back 0.023
+        footR_min_z            -0.04033
+        mesh_min_z             -0.04033
+        footR_centroid         down 0.019, back 0.016
+  rotY   peak  0.0067 turn  0.141 lin 0.502  asym 1.0     move             right 0.133, up 0.047
+        foot_R_fwd             right 0.133, up 0.047
+        footR_min_z            -0.00821
+        mesh_min_z             -0.00821
+        toe_R_tip              right 0.007
+        footR_centroid         left 0.003, down 0.001
+  rotZ   peak  0.0548 turn  0.323 lin 0.502  asym 1.0     move             right 0.316
+        foot_R_fwd             right 0.316
+        toe_R_tip              right 0.051, back 0.017
+        footR_centroid         right 0.022, back 0.009
+
+foot_tweak.L   [ZXY, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0026 turn  0.141 lin 0.502  asym 1.0     move             right 0.112, down 0.086
+        foot_L_fwd             right 0.112, down 0.086
+        footL_centroid         left 0.002, up 0.001
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0283 turn  0.273 lin 0.5    asym 1.0     move             right 0.270
+        foot_L_fwd             right 0.270
+        leg_L_tip              left 0.028
+        leg_L_mid_off          right 0.012
+        footL_centroid         left 0.009
+  locY   peak  0.0283 turn  0.246 lin 0.5    asym 1.0     move             up 0.214, right 0.116
+        foot_L_fwd             up 0.214, right 0.116
+        leg_L_tip              forward 0.026, down 0.010
+        footL_min_z            -0.02110
+        mesh_min_z             -0.02110
+        leg_L_mid_off          back 0.011
+  locZ   peak  0.0283 turn  0.276 lin 0.5    asym 1.0     move             up 0.272
+        foot_L_fwd             up 0.272
+        footL_min_z            -0.02954
+        mesh_min_z             -0.02954
+        leg_L_tip              down 0.026, back 0.011
+        leg_L_extension        +0.02690
+
+foot_tweak.R   [ZXY, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0025 turn  0.141 lin 0.502  asym 1.0     move             right 0.133, up 0.047
+        foot_R_fwd             right 0.133, up 0.047
+        footR_centroid         left 0.002
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0283 turn  0.294 lin 0.5    asym 1.0     move             right 0.291
+        foot_R_fwd             right 0.291
+        leg_R_tip              left 0.028
+        leg_R_mid_off          right 0.012
+        footR_centroid         left 0.010
+        footR_min_z            -0.00253
+  locY   peak  0.0283 turn  0.246 lin 0.5    asym 1.0     move             up 0.214, left 0.116
+        foot_R_fwd             up 0.214, left 0.116
+        leg_R_tip              forward 0.026, down 0.010
+        footR_min_z            -0.02110
+        mesh_min_z             -0.02110
+        leg_R_mid_off          back 0.011
+  locZ   peak  0.0283 turn  0.276 lin 0.5    asym 1.0     move             up 0.272
+        foot_R_fwd             up 0.272
+        footR_min_z            -0.02954
+        mesh_min_z             -0.02954
+        leg_R_tip              down 0.026, back 0.011
+        leg_R_extension        +0.02690
+
+forearm_fk.L   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0877 turn  0.347 lin 0.502  asym 1.0     move             back 0.302, down 0.152
+        fingers_L              back 0.302, down 0.152
+        back_of_hand_L         up 0.236, back 0.124, right 0.110
+        hilt_L                 up 0.143, back 0.120, right 0.066
+        middle_L_tip           forward 0.077, up 0.037
+        ring_L_tip             forward 0.079, up 0.033
+  rotY   peak  0.0203 turn  0.348 lin 0.502  asym 1.0     move             back 0.286, down 0.185, right 0.072
+        hilt_L                 back 0.286, down 0.185, right 0.072
+        back_of_hand_L         right 0.311, forward 0.127
+        fingers_L              right 0.045, forward 0.024
+        index_L_tip            back 0.014, left 0.014
+        thumb_L_tip            back 0.018, down 0.007, left 0.006
+  rotZ   peak  0.0876 turn  0.346 lin 0.502  asym 1.0     move             right 0.302, down 0.168
+        fingers_L              right 0.302, down 0.168
+        hilt_L                 down 0.212, left 0.148, forward 0.123
+        back_of_hand_L         up 0.171, back 0.087, right 0.061
+        middle_L_tip           left 0.077, up 0.041
+        ring_L_tip             left 0.073, up 0.044
+  locX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+
+forearm_fk.R   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0877 turn  0.347 lin 0.502  asym 1.0     move             forward 0.302, up 0.152
+        fingers_R              forward 0.302, up 0.152
+        back_of_hand_R         up 0.236, back 0.124, left 0.110
+        hilt_R                 up 0.143, back 0.120, left 0.066
+        middle_R_tip           forward 0.077, up 0.037
+        ring_R_tip             forward 0.079, up 0.033
+  rotY   peak  0.0203 turn  0.348 lin 0.502  asym 1.0     move             forward 0.224, up 0.201, right 0.175
+        hilt_R                 forward 0.224, up 0.201, right 0.175
+        back_of_hand_R         right 0.268, back 0.216
+        fingers_R              left 0.037, forward 0.036
+        index_R_tip            forward 0.017, left 0.009, up 0.005
+        thumb_R_tip            forward 0.018, up 0.010
+  rotZ   peak  0.0876 turn  0.346 lin 0.502  asym 1.0     move             left 0.337
+        fingers_R              left 0.337
+        hilt_R                 up 0.253, back 0.122
+        back_of_hand_R         down 0.186, forward 0.079
+        middle_R_tip           left 0.086
+        ring_R_tip             left 0.083
+  locX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+
+forearm_tweak.L   [ZXY, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     swivel:arm_L     right 0.026, down 0.012
+        arm_L_mid              right 0.026, down 0.012
+        arm_L_mid_off          right 0.026, down 0.012
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.023, forward 0.012, left 0.011
+        arm_L_mid              down 0.023, forward 0.012, left 0.011
+        arm_L_mid_off          forward 0.007
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     swivel:arm_L     forward 0.025, up 0.011
+        arm_L_mid              forward 0.025, up 0.011
+        arm_L_mid_off          forward 0.027
+
+forearm_tweak.R   [ZXY, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     swivel:arm_R     right 0.026, up 0.012
+        arm_R_mid              right 0.026, up 0.012
+        arm_R_mid_off          right 0.026, up 0.012
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.023, forward 0.012, right 0.011
+        arm_R_mid              down 0.023, forward 0.012, right 0.011
+        arm_R_mid_off          forward 0.007
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     swivel:arm_R     forward 0.025, up 0.011
+        arm_R_mid              forward 0.025, up 0.011
+        arm_R_mid_off          forward 0.027
+
+hand_fk.L   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0330 turn  0.348 lin 0.502  asym 1.0     move             back 0.304, down 0.155
+        fingers_L              back 0.304, down 0.155
+        back_of_hand_L         up 0.238, back 0.140, right 0.080
+        hilt_L                 up 0.162, back 0.095, right 0.055
+        ring_L_tip             forward 0.033
+        middle_L_tip           forward 0.032
+  rotY   peak  0.0187 turn  0.348 lin 0.502  asym 1.0     move             right 0.319, forward 0.123
+        back_of_hand_L         right 0.319, forward 0.123
+        hilt_L                 back 0.305, down 0.142, right 0.089
+        thumb_L_tip            back 0.018, down 0.005
+        index_L_tip            back 0.013, left 0.010
+        pinky_L_tip            left 0.012, up 0.006, forward 0.006
+  rotZ   peak  0.0329 turn  0.348 lin 0.502  asym 1.0     move             right 0.304, down 0.171
+        fingers_L              right 0.304, down 0.171
+        hilt_L                 down 0.236, left 0.135, forward 0.094
+        back_of_hand_L         up 0.161, right 0.092, back 0.064
+        middle_L_tip           left 0.031, up 0.009
+        index_L_tip            left 0.032
+
+hand_fk.R   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0330 turn  0.348 lin 0.502  asym 1.0     move             forward 0.304, up 0.155
+        fingers_R              forward 0.304, up 0.155
+        back_of_hand_R         up 0.238, back 0.140, left 0.080
+        hilt_R                 up 0.162, back 0.095, left 0.055
+        ring_R_tip             forward 0.033
+        middle_R_tip           forward 0.032
+  rotY   peak  0.0187 turn  0.348 lin 0.502  asym 1.0     move             forward 0.244, right 0.193, up 0.156
+        hilt_R                 forward 0.244, right 0.193, up 0.156
+        back_of_hand_R         right 0.269, back 0.220
+        thumb_R_tip            forward 0.017, up 0.007
+        index_R_tip            forward 0.015, left 0.006
+        pinky_R_tip            left 0.014, down 0.005
+  rotZ   peak  0.0329 turn  0.348 lin 0.502  asym 1.0     move             left 0.341
+        fingers_R              left 0.341
+        hilt_R                 up 0.270, back 0.091
+        back_of_hand_R         down 0.184, forward 0.062
+        middle_R_tip           left 0.032
+        index_R_tip            left 0.030, up 0.009, back 0.007
+
+hand_tweak.L   [ZXY, IK_FK 1]
+  rotX   peak  0.0330 turn  0.348 lin 0.502  asym 1.0     move             back 0.304, down 0.155
+        fingers_L              back 0.304, down 0.155
+        back_of_hand_L         up 0.238, back 0.140, right 0.080
+        hilt_L                 up 0.162, back 0.095, right 0.055
+        ring_L_tip             forward 0.033
+        middle_L_tip           forward 0.032
+  rotY   peak  0.0187 turn  0.348 lin 0.502  asym 1.0     move             back 0.305, down 0.142, right 0.089
+        hilt_L                 back 0.305, down 0.142, right 0.089
+        back_of_hand_L         right 0.319, forward 0.123
+        thumb_L_tip            back 0.018, down 0.005
+        index_L_tip            back 0.013, left 0.010
+        pinky_L_tip            left 0.012, up 0.006, forward 0.006
+  rotZ   peak  0.0329 turn  0.348 lin 0.502  asym 1.0     move             right 0.304, down 0.171
+        fingers_L              right 0.304, down 0.171
+        hilt_L                 down 0.236, left 0.135, forward 0.094
+        back_of_hand_L         up 0.161, right 0.092, back 0.064
+        middle_L_tip           left 0.031, up 0.009
+        index_L_tip            left 0.032
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.027, down 0.010
+        handL_centroid         right 0.027, down 0.010
+        pinky_L_tip            right 0.027, down 0.010
+        ring_L_tip             right 0.027, down 0.010
+        arm_L_tip              right 0.027, down 0.010
+        thumb_L_tip            right 0.027, down 0.010
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.025, forward 0.009, left 0.009
+        handL_centroid         down 0.025, forward 0.009, left 0.009
+        pinky_L_tip            down 0.025, forward 0.009, left 0.009
+        ring_L_tip             down 0.025, forward 0.009, left 0.009
+        thumb_L_tip            down 0.025, forward 0.009, left 0.009
+        middle_L_tip           down 0.025, forward 0.009, left 0.009
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.027, up 0.008
+        handL_centroid         forward 0.027, up 0.008
+        pinky_L_tip            forward 0.027, up 0.008
+        middle_L_tip           forward 0.027, up 0.008
+        arm_L_tip              forward 0.027, up 0.008
+        socket_L_pos           forward 0.027, up 0.008
+
+hand_tweak.R   [ZXY, IK_FK 1]
+  rotX   peak  0.0330 turn  0.348 lin 0.502  asym 1.0     move             forward 0.304, up 0.155
+        fingers_R              forward 0.304, up 0.155
+        back_of_hand_R         up 0.238, back 0.140, left 0.080
+        hilt_R                 up 0.162, back 0.095, left 0.055
+        ring_R_tip             forward 0.033
+        middle_R_tip           forward 0.032
+  rotY   peak  0.0187 turn  0.348 lin 0.502  asym 1.0     move             forward 0.244, right 0.193, up 0.156
+        hilt_R                 forward 0.244, right 0.193, up 0.156
+        back_of_hand_R         right 0.269, back 0.220
+        thumb_R_tip            forward 0.017, up 0.007
+        index_R_tip            forward 0.015, left 0.006
+        pinky_R_tip            left 0.014, down 0.005
+  rotZ   peak  0.0329 turn  0.348 lin 0.502  asym 1.0     move             left 0.341
+        fingers_R              left 0.341
+        hilt_R                 up 0.270, back 0.091
+        back_of_hand_R         down 0.184, forward 0.062
+        middle_R_tip           left 0.032
+        index_R_tip            left 0.030, up 0.009, back 0.007
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.027, up 0.010
+        handR_centroid         right 0.027, up 0.010
+        pinky_R_tip            right 0.027, up 0.010
+        ring_R_tip             right 0.027, up 0.010
+        arm_R_tip              right 0.027, up 0.010
+        index_R_tip            right 0.027, up 0.010
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.025, forward 0.009, right 0.009
+        handR_centroid         down 0.025, forward 0.009, right 0.009
+        pinky_R_tip            down 0.025, forward 0.009, right 0.009
+        thumb_R_tip            down 0.025, forward 0.009, right 0.009
+        ring_R_tip             down 0.025, forward 0.009, right 0.009
+        arm_R_tip              down 0.025, forward 0.009, right 0.009
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.027, up 0.008
+        handR_centroid         forward 0.027, up 0.008
+        middle_R_tip           forward 0.027, up 0.008
+        ring_R_tip             forward 0.027, up 0.008
+        thumb_R_tip            forward 0.027, up 0.008
+        index_R_tip            forward 0.027, up 0.008
+
+head   [XYZ, IK_FK 1]
+  rotX   peak  0.0267 turn  0.348 lin 0.502  asym 1.0     move             down 0.343
+        head_aim               down 0.343
+        head_up                forward 0.343
+        jaw_tip                back 0.019, down 0.019
+        lowerjaw_centroid      down 0.014, back 0.012
+        lowerjaw_min_z         -0.01692
+  rotY   peak  0.0244 turn  0.341 lin 0.502  asym 1.0     move             left 0.336
+        head_aim               left 0.336
+        head_up                right 0.068
+        jaw_tip                left 0.024
+        lowerjaw_centroid      left 0.017
+        head_min_z             -0.00158
+  rotZ   peak  0.0109 turn  0.341 lin 0.502  asym 1.0     move             right 0.336
+        head_up                right 0.336
+        head_aim               right 0.069
+        jaw_tip                left 0.011
+        head_centroid          right 0.009
+        head_min_z             -0.00870
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.028
+        head_centroid          left 0.028
+        head_pos               left 0.028
+        lowerjaw_centroid      left 0.028
+        jaw_tip                left 0.028
+        neck_centroid          left 0.010
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             up 0.028
+        head_centroid          up 0.028
+        jaw_tip                up 0.028
+        lowerjaw_centroid      up 0.028
+        head_pos               up 0.028
+        lowerjaw_min_z         +0.02767
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.028
+        head_centroid          forward 0.028
+        head_pos               forward 0.028
+        jaw_tip                forward 0.028
+        lowerjaw_centroid      forward 0.028
+        neck_centroid          forward 0.010
+
+hips   [QUATERNION, IK_FK 1]
+  rotX   peak  0.2151 turn  0.348 lin 0.501  asym 0.996   move             down 0.343
+        pelvis_fwd             down 0.343
+        foot_L_fwd             down 0.343
+        foot_R_fwd             down 0.343
+        toe_R_tip              back 0.214
+        toe_L_tip              back 0.214
+  rotY   peak  0.2122 turn  0.000 lin 0.502  asym 0.999   move             right 0.212
+        toe_L_tip              right 0.212
+        toe_R_tip              right 0.197, up 0.077
+        footL_centroid         right 0.210
+        footR_centroid         right 0.196, up 0.073
+        leg_L_tip              right 0.197
+  rotZ   peak  0.0699 turn  0.348 lin 0.501  asym 0.996   move             left 0.343
+        pelvis_fwd             left 0.343
+        foot_R_fwd             left 0.343
+        foot_L_fwd             left 0.343
+        toe_L_tip              back 0.052, left 0.046
+        toe_R_tip              left 0.061, forward 0.032
+  locX   peak  0.0286 turn  0.000 lin 0.5    asym 1.0     move             left 0.029
+        pelvis_centroid        left 0.029
+        footL_centroid         left 0.028
+        leg_L_root             left 0.028
+        toe_L_tip              left 0.028
+        leg_R_root             left 0.028
+  locY   peak  0.0287 turn  0.000 lin 0.5    asym 0.997   move             back 0.029
+        pelvis_centroid        back 0.029
+        leg_L_root             back 0.028
+        leg_L_tip              back 0.028
+        leg_R_mid              back 0.028
+        footL_centroid         back 0.028
+  locZ   peak  0.0285 turn  0.000 lin 0.501  asym 1.003   move             up 0.029
+        pelvis_centroid        up 0.029
+        footR_min_z            +0.02826
+        mesh_min_z             +0.02826
+        footL_min_z            +0.02826
+        pelvis_min_z           +0.02826
+
+lowerjaw   [XYZ, IK_FK 1]
+  rotX   peak  0.0299 turn  0.000 lin 0.519  asym 1.085   move             up 0.028, forward 0.010
+        jaw_tip                up 0.028, forward 0.010
+        jaw_dz                 -0.02816
+        jaw_gap                -0.02600
+        lowerjaw_centroid      up 0.013, forward 0.004
+        lowerjaw_min_z         +0.01242
+  rotY   peak  0.0134 turn  0.000 lin 0.502  asym 1.0     move             right 0.013
+        jaw_tip                right 0.013
+        lowerjaw_centroid      right 0.006
+  rotZ   peak  0.0127 turn  0.000 lin 0.502  asym 1.0     move             left 0.012
+        jaw_tip                left 0.012
+        lowerjaw_centroid      left 0.007
+        jaw_dz                 -0.00218
+        jaw_gap                -0.00130
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.028
+        jaw_tip                right 0.028
+        lowerjaw_centroid      right 0.027
+        jaw_gap                +0.00411
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.028
+        jaw_tip                down 0.028
+        jaw_dz                 +0.02810
+        lowerjaw_min_z         -0.02810
+        jaw_gap                +0.02784
+        lowerjaw_centroid      down 0.027
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.028
+        jaw_tip                forward 0.028
+        lowerjaw_centroid      forward 0.027
+        jaw_gap                +0.00923
+        jaw_dz                 +0.00293
+        lowerjaw_min_z         -0.00293
+
+lowerjaw.001   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0140 turn  0.000 lin 0.502  asym 1.0     move             up 0.014
+        jaw_tip                up 0.014
+        jaw_dz                 -0.01365
+        jaw_gap                -0.01320
+        lowerjaw_min_z         +0.01126
+        lowerjaw_centroid      up 0.007
+  rotY   peak  0.0026 turn  0.000 lin 0.502  asym 1.0     move             left 0.003
+        jaw_tip                left 0.003
+        lowerjaw_min_z         -0.00214
+  rotZ   peak  0.0138 turn  0.000 lin 0.502  asym 1.0     move             left 0.014
+        jaw_tip                left 0.014
+        lowerjaw_centroid      left 0.006
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.028
+        jaw_tip                right 0.028
+        lowerjaw_centroid      right 0.024
+        jaw_gap                +0.00411
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.028
+        jaw_tip                forward 0.028
+        lowerjaw_centroid      forward 0.023
+        jaw_gap                +0.01189
+        jaw_dz                 +0.00594
+        lowerjaw_min_z         -0.00594
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             up 0.028
+        jaw_tip                up 0.028
+        jaw_dz                 -0.02762
+        jaw_gap                -0.02644
+        lowerjaw_min_z         +0.02642
+        lowerjaw_centroid      up 0.023
+
+neck   [XYZ, IK_FK 1]
+  rotX   peak  0.0268 turn  0.000 lin 0.502  asym 1.0     move             forward 0.024, down 0.012
+        head_centroid          forward 0.024, down 0.012
+        head_pos               forward 0.024, down 0.012
+        jaw_tip                forward 0.024, down 0.012
+        lowerjaw_centroid      forward 0.024, down 0.012
+        lowerjaw_min_z         -0.01188
+  rotY   peak  0.0001 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0268 turn  0.000 lin 0.502  asym 1.0     move             right 0.026
+        head_centroid          right 0.026
+        head_pos               right 0.026
+        lowerjaw_centroid      right 0.026
+        jaw_tip                right 0.026
+        neck_centroid          right 0.010
+  locX   peak  0.0283 turn  0.033 lin 0.5    asym 1.0     move             left 0.032
+        chest_fwd              left 0.032
+        head_pos               left 0.028
+        neck_pos               left 0.028
+        head_centroid          left 0.028
+        jaw_tip                left 0.028
+  locY   peak  0.0283 turn  0.003 lin 0.5    asym 1.0     move             up 0.027, forward 0.008
+        neck_pos               up 0.027, forward 0.008
+        head_pos               up 0.027, forward 0.008
+        head_centroid          up 0.027, forward 0.008
+        lowerjaw_centroid      up 0.027, forward 0.008
+        jaw_tip                up 0.027, forward 0.008
+  locZ   peak  0.0283 turn  0.326 lin 0.5    asym 1.0     move             down 0.321
+        chest_fwd              down 0.321
+        jaw_tip                forward 0.027, down 0.008
+        lowerjaw_centroid      forward 0.027, down 0.008
+        head_centroid          forward 0.027, down 0.008
+        head_pos               forward 0.027, down 0.008
+
+palm.L   [YXZ, IK_FK 1]
+  rotX   peak  0.0238 turn  0.000 lin 0.502  asym 1.0     move             right 0.024
+        pinky_L_tip            right 0.024
+        ring_L_tip             right 0.011
+        handL_centroid         right 0.004
+        middle_L_tip           right 0.002
+  rotY   peak  0.0081 turn  0.000 lin 0.502  asym 1.0     move             left 0.007, up 0.003
+        pinky_L_tip            left 0.007, up 0.003
+        ring_L_tip             left 0.006, back 0.004
+        middle_L_tip           left 0.003, back 0.002
+  rotZ   peak  0.0247 turn  0.000 lin 0.502  asym 1.0     move             forward 0.025
+        pinky_L_tip            forward 0.025
+        ring_L_tip             forward 0.019
+        middle_L_tip           forward 0.010
+        handL_centroid         forward 0.005
+        handL_min_z            +0.00121
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.028
+        pinky_L_tip            back 0.028
+        ring_L_tip             back 0.018
+        handL_centroid         back 0.010
+        middle_L_tip           back 0.009, down 0.003, left 0.002
+        handL_min_z            -0.00307
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.025, left 0.011
+        pinky_L_tip            down 0.025, left 0.011
+        ring_L_tip             down 0.017, left 0.007, forward 0.005
+        handL_min_z            -0.01220
+        handL_centroid         down 0.009, left 0.004, forward 0.003
+        middle_L_tip           down 0.008, forward 0.004, left 0.002
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.026, down 0.011
+        pinky_L_tip            right 0.026, down 0.011
+        ring_L_tip             right 0.017, down 0.007
+        handL_centroid         right 0.010, down 0.004
+        middle_L_tip           right 0.009, down 0.003
+        handL_min_z            -0.00291
+
+palm.R   [YXZ, IK_FK 1]
+  rotX   peak  0.0238 turn  0.000 lin 0.502  asym 1.0     move             left 0.024
+        pinky_R_tip            left 0.024
+        ring_R_tip             left 0.011
+        handR_centroid         left 0.004
+        middle_R_tip           left 0.002
+  rotY   peak  0.0081 turn  0.000 lin 0.502  asym 1.0     move             left 0.007, forward 0.004, down 0.002
+        pinky_R_tip            left 0.007, forward 0.004, down 0.002
+        ring_R_tip             left 0.005, forward 0.005
+        middle_R_tip           left 0.003, forward 0.002
+  rotZ   peak  0.0247 turn  0.000 lin 0.502  asym 1.0     move             back 0.024, up 0.007
+        pinky_R_tip            back 0.024, up 0.007
+        ring_R_tip             back 0.019
+        middle_R_tip           back 0.010
+        handR_centroid         back 0.005
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.028
+        pinky_R_tip            forward 0.028
+        ring_R_tip             forward 0.018
+        handR_centroid         forward 0.010
+        middle_R_tip           forward 0.009, up 0.003, left 0.002
+        handR_min_z            +0.00280
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.025, right 0.011
+        pinky_R_tip            down 0.025, right 0.011
+        ring_R_tip             down 0.017, right 0.007, forward 0.005
+        handR_min_z            -0.01220
+        handR_centroid         down 0.009, right 0.004, forward 0.003
+        middle_R_tip           down 0.008, forward 0.004, right 0.002
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.026, down 0.011
+        pinky_R_tip            left 0.026, down 0.011
+        ring_R_tip             left 0.017, down 0.007
+        handR_centroid         left 0.010, down 0.004
+        middle_R_tip           left 0.009, down 0.003
+        handR_min_z            -0.00291
+
+root   [QUATERNION, IK_FK 1]
+  rotX   peak  0.3132 turn  0.348 lin 0.502  asym 1.0     move             down 0.343
+        pelvis_fwd             down 0.343
+        foot_L_fwd             down 0.343
+        chest_fwd              down 0.343
+        foot_R_fwd             down 0.343
+        head_aim               down 0.343
+  rotY   peak  0.3132 turn  0.348 lin 0.502  asym 1.0     move             left 0.343
+        head_up                left 0.343
+        fingers_R              right 0.287, up 0.160
+        fingers_L              left 0.325
+        head_centroid          left 0.308
+        head_pos               left 0.299
+  rotZ   peak  0.0939 turn  0.348 lin 0.502  asym 1.0     move             left 0.343
+        pelvis_fwd             left 0.343
+        chest_fwd              left 0.343
+        foot_R_fwd             left 0.343
+        head_aim               left 0.343
+        foot_L_fwd             left 0.343
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.028
+        index_L_tip            left 0.028
+        pinky_L_tip            left 0.028
+        handL_centroid         left 0.028
+        middle_L_tip           left 0.028
+        thumb_L_tip            left 0.028
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.028
+        thumb_R_tip            back 0.028
+        jaw_tip                back 0.028
+        middle_L_tip           back 0.028
+        index_L_tip            back 0.028
+        thumb_L_tip            back 0.028
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             
+        handR_min_z            +0.02826
+        middle_R_tip           up 0.028
+        socket_R_pos           up 0.028
+        mesh_max_z             +0.02826
+        head_min_z             +0.02826
+
+shin_fk.L   [QUATERNION, IK_FK 1]
+  rotX   peak  0.1140 turn  0.348 lin 0.502  asym 1.0     move             down 0.342
+        foot_L_fwd             down 0.342
+        toe_L_tip              back 0.111
+        footL_centroid         back 0.104
+        leg_L_tip              back 0.089, up 0.025
+        leg_L_mid_off          forward 0.039, down 0.012
+  rotY   peak  0.0546 turn  0.347 lin 0.502  asym 1.0     move             right 0.341
+        foot_L_fwd             right 0.341
+        toe_L_tip              right 0.054
+        footL_centroid         right 0.023
+        footL_min_z            -0.00233
+        mesh_min_z             -0.00233
+  rotZ   peak  0.1021 turn  0.034 lin 0.502  asym 1.0     move             right 0.102
+        footL_centroid         right 0.102
+        toe_L_tip              right 0.101
+        leg_L_tip              right 0.091
+        leg_L_mid_off          left 0.040
+        foot_L_fwd             left 0.034
+  locX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+
+shin_fk.R   [QUATERNION, IK_FK 1]
+  rotX   peak  0.1140 turn  0.348 lin 0.502  asym 1.0     move             down 0.342
+        foot_R_fwd             down 0.342
+        toe_R_tip              back 0.111
+        footR_centroid         back 0.104
+        leg_R_tip              back 0.089, up 0.025
+        leg_R_mid_off          forward 0.039, down 0.012
+  rotY   peak  0.0546 turn  0.347 lin 0.502  asym 1.0     move             right 0.340
+        foot_R_fwd             right 0.340
+        toe_R_tip              right 0.051, back 0.019
+        footR_centroid         right 0.021, back 0.009
+  rotZ   peak  0.1018 turn  0.034 lin 0.502  asym 1.0     move             right 0.098, up 0.028
+        footR_centroid         right 0.098, up 0.028
+        toe_R_tip              right 0.096, up 0.032
+        leg_R_tip              right 0.090
+        leg_R_mid_off          left 0.039
+        foot_R_fwd             left 0.034
+  locX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+
+shin_tweak.L   [ZXY, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     swivel:leg_L     left 0.028
+        leg_L_mid              left 0.028
+        leg_L_mid_off          left 0.028
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.028
+        leg_L_mid              down 0.028
+        leg_L_mid_off          back 0.001, right 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     swivel:leg_L     back 0.028
+        leg_L_mid              back 0.028
+        leg_L_mid_off          back 0.028
+
+shin_tweak.R   [ZXY, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0001 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     swivel:leg_R     left 0.028
+        leg_R_mid              left 0.028
+        leg_R_mid_off          left 0.028
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.028
+        leg_R_mid              down 0.028
+        leg_R_mid_off          back 0.001, left 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     swivel:leg_R     back 0.028
+        leg_R_mid              back 0.028
+        leg_R_mid_off          back 0.028
+
+shoulder.L   [YXZ, IK_FK 1]
+  rotX   peak  0.1484 turn  0.348 lin 0.502  asym 1.0     move             down 0.334, left 0.086
+        hilt_L                 down 0.334, left 0.086
+        fingers_L              right 0.261, forward 0.146, down 0.092
+        back_of_hand_L         right 0.129, forward 0.072, down 0.038
+        ring_L_tip             left 0.102, up 0.091, back 0.057
+        middle_L_tip           left 0.105, up 0.085, back 0.059
+  rotY   peak  0.1369 turn  0.348 lin 0.502  asym 1.0     move             down 0.334, forward 0.091
+        back_of_hand_L         down 0.334, forward 0.091
+        fingers_L              forward 0.285, left 0.166, up 0.096
+        middle_L_tip           back 0.117, right 0.067
+        index_L_tip            back 0.116, right 0.066
+        ring_L_tip             back 0.115, right 0.066
+  rotZ   peak  0.0930 turn  0.343 lin 0.502  asym 1.0     move             forward 0.262, left 0.222
+        hilt_L                 forward 0.262, left 0.222
+        back_of_hand_L         left 0.255, back 0.182
+        fingers_L              forward 0.140, right 0.082
+        pinky_L_tip            back 0.091
+        ring_L_tip             back 0.088
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.025, left 0.014
+        thumb_L_tip            forward 0.025, left 0.014
+        pinky_L_tip            forward 0.025, left 0.014
+        index_L_tip            forward 0.025, left 0.014
+        handL_centroid         forward 0.025, left 0.014
+        ring_L_tip             forward 0.025, left 0.014
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.025, back 0.014
+        thumb_L_tip            left 0.025, back 0.014
+        index_L_tip            left 0.025, back 0.014
+        ring_L_tip             left 0.025, back 0.014
+        middle_L_tip           left 0.025, back 0.014
+        handL_centroid         left 0.025, back 0.014
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             up 0.028
+        middle_L_tip           up 0.028
+        arm_L_mid              up 0.028
+        arm_L_root             up 0.028
+        handL_centroid         up 0.028
+        arm_L_tip              up 0.028
+
+shoulder.R   [YXZ, IK_FK 1]
+  rotX   peak  0.1484 turn  0.348 lin 0.502  asym 1.0     move             down 0.334, right 0.086
+        hilt_R                 down 0.334, right 0.086
+        fingers_R              right 0.261, back 0.146, up 0.092
+        back_of_hand_R         left 0.129, forward 0.072, down 0.038
+        ring_R_tip             right 0.102, up 0.091, back 0.057
+        middle_R_tip           right 0.105, up 0.085, back 0.059
+  rotY   peak  0.1369 turn  0.348 lin 0.502  asym 1.0     move             up 0.282, back 0.185, left 0.085
+        back_of_hand_R         up 0.282, back 0.185, left 0.085
+        fingers_R              forward 0.236, up 0.203, right 0.146
+        middle_R_tip           forward 0.102, up 0.067, right 0.062
+        index_R_tip            forward 0.102, up 0.063, right 0.061
+        ring_R_tip             forward 0.100, up 0.066, right 0.061
+  rotZ   peak  0.0930 turn  0.343 lin 0.502  asym 1.0     move             back 0.322, left 0.119
+        hilt_R                 back 0.322, left 0.119
+        back_of_hand_R         left 0.302, forward 0.083
+        fingers_R              left 0.125, forward 0.103
+        pinky_R_tip            forward 0.092
+        ring_R_tip             forward 0.087
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.025, left 0.014
+        middle_R_tip           back 0.025, left 0.014
+        thumb_R_tip            back 0.025, left 0.014
+        ring_R_tip             back 0.025, left 0.014
+        arm_R_root             back 0.025, left 0.014
+        index_R_tip            back 0.025, left 0.014
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.025, back 0.014
+        pinky_R_tip            right 0.025, back 0.014
+        ring_R_tip             right 0.025, back 0.014
+        handR_centroid         right 0.025, back 0.014
+        arm_R_mid              right 0.025, back 0.014
+        thumb_R_tip            right 0.025, back 0.014
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             up 0.028
+        index_R_tip            up 0.028
+        socket_R_pos           up 0.028
+        arm_R_mid              up 0.028
+        arm_R_tip              up 0.028
+        arm_R_root             up 0.028
+
+spine_fk   [QUATERNION, IK_FK 1]
+  rotX   peak  0.2063 turn  0.348 lin 0.502  asym 1.0     move             down 0.343
+        foot_R_fwd             down 0.343
+        foot_L_fwd             down 0.343
+        pelvis_fwd             down 0.343
+        toe_R_tip              back 0.205
+        toe_L_tip              back 0.205
+  rotY   peak  0.1127 turn  0.338 lin 0.502  asym 1.0     move             left 0.332
+        foot_R_fwd             left 0.332
+        pelvis_fwd             left 0.332
+        foot_L_fwd             left 0.332
+        toe_R_tip              left 0.110
+        toe_L_tip              left 0.095, back 0.058
+  rotZ   peak  0.1887 turn  0.086 lin 0.502  asym 1.0     move             left 0.175, up 0.069
+        footL_centroid         left 0.175, up 0.069
+        footR_centroid         left 0.188
+        toe_L_tip              left 0.168, up 0.072
+        toe_R_tip              left 0.183
+        leg_L_tip              left 0.170, up 0.062
+  locX   peak  0.0288 turn  0.000 lin 0.5    asym 1.0     move             left 0.029
+        pelvis_centroid        left 0.029
+        leg_L_root             left 0.028
+        leg_R_root             left 0.028
+        toe_R_tip              left 0.028
+        footR_centroid         left 0.028
+  locY   peak  0.0288 turn  0.000 lin 0.5    asym 0.999   move             up 0.028, forward 0.007
+        pelvis_centroid        up 0.028, forward 0.007
+        toe_L_tip              up 0.027, forward 0.007
+        footL_centroid         up 0.027, forward 0.007
+        toe_R_tip              up 0.027, forward 0.007
+        leg_L_mid              up 0.027, forward 0.007
+  locZ   peak  0.0287 turn  0.000 lin 0.501  asym 1.006   move             forward 0.028
+        pelvis_centroid        forward 0.028
+        footL_centroid         forward 0.027, down 0.007
+        toe_L_tip              forward 0.027, down 0.007
+        leg_L_tip              forward 0.027, down 0.007
+        leg_R_tip              forward 0.027, down 0.007
+
+spine_fk.001   [QUATERNION, IK_FK 1]
+  rotX   peak  0.2237 turn  0.348 lin 0.502  asym 1.0     move             down 0.343
+        foot_L_fwd             down 0.343
+        foot_R_fwd             down 0.343
+        pelvis_fwd             down 0.343
+        toe_L_tip              back 0.223
+        toe_R_tip              back 0.222
+  rotY   peak  0.1102 turn  0.339 lin 0.502  asym 1.0     move             left 0.334
+        foot_L_fwd             left 0.334
+        foot_R_fwd             left 0.334
+        pelvis_fwd             left 0.334
+        toe_R_tip              left 0.107
+        toe_L_tip              left 0.092, back 0.056
+  rotZ   peak  0.2085 turn  0.080 lin 0.502  asym 1.0     move             left 0.195, up 0.073
+        footL_centroid         left 0.195, up 0.073
+        footR_centroid         left 0.208
+        toe_R_tip              left 0.204
+        toe_L_tip              left 0.189, up 0.075
+        leg_L_tip              left 0.190, up 0.065
+  locX   peak  0.0285 turn  0.000 lin 0.5    asym 1.0     move             left 0.029
+        pelvis_centroid        left 0.029
+        leg_L_root             left 0.028
+        leg_L_tip              left 0.028
+        footL_centroid         left 0.028
+        leg_L_mid              left 0.028
+  locY   peak  0.0285 turn  0.000 lin 0.5    asym 1.0     move             up 0.028
+        pelvis_centroid        up 0.028
+        footL_centroid         up 0.028
+        toe_L_tip              up 0.028
+        leg_L_mid              up 0.028
+        leg_L_tip              up 0.028
+  locZ   peak  0.0285 turn  0.000 lin 0.5    asym 1.002   move             forward 0.028
+        pelvis_centroid        forward 0.028
+        toe_L_tip              forward 0.028
+        footL_centroid         forward 0.028
+        toe_R_tip              forward 0.028
+        footR_centroid         forward 0.028
+
+spine_fk.002   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0882 turn  0.348 lin 0.502  asym 1.0     move             down 0.343
+        chest_fwd              down 0.343
+        fingers_R              back 0.328
+        fingers_L              forward 0.324
+        back_of_hand_L         down 0.301, forward 0.103
+        back_of_hand_R         down 0.301, forward 0.098
+  rotY   peak  0.0961 turn  0.346 lin 0.502  asym 1.0     move             left 0.340
+        chest_fwd              left 0.340
+        hilt_R                 back 0.322, left 0.114
+        hilt_L                 forward 0.262, left 0.218
+        back_of_hand_R         left 0.316, forward 0.091
+        back_of_hand_L         left 0.266, back 0.188
+  rotZ   peak  0.1219 turn  0.340 lin 0.502  asym 1.0     move             right 0.299, down 0.161
+        fingers_L              right 0.299, down 0.161
+        fingers_R              left 0.336
+        hilt_R                 up 0.303
+        hilt_L                 down 0.282, left 0.112
+        back_of_hand_L         right 0.140, up 0.120
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.028
+        index_L_tip            left 0.028
+        thumb_L_tip            left 0.028
+        handL_centroid         left 0.028
+        arm_L_tip              left 0.028
+        socket_L_pos           left 0.028
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             up 0.028
+        index_R_tip            up 0.028
+        middle_R_tip           up 0.028
+        socket_R_pos           up 0.028
+        arm_L_mid              up 0.028
+        arm_R_root             up 0.028
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.028
+        jaw_tip                forward 0.028
+        lowerjaw_centroid      forward 0.028
+        ring_L_tip             forward 0.028
+        ring_R_tip             forward 0.028
+        thumb_R_tip            forward 0.028
+
+spine_fk.003   [QUATERNION, IK_FK 1]
+  rotX   peak  0.1130 turn  0.348 lin 0.502  asym 1.0     move             down 0.343
+        chest_fwd              down 0.343
+        fingers_L              forward 0.327
+        fingers_R              back 0.325
+        back_of_hand_R         down 0.301, forward 0.102
+        back_of_hand_L         down 0.301, forward 0.099
+  rotY   peak  0.1001 turn  0.348 lin 0.502  asym 1.0     move             forward 0.262, left 0.227
+        hilt_L                 forward 0.262, left 0.227
+        hilt_R                 back 0.323, left 0.123
+        chest_fwd              left 0.341
+        back_of_hand_L         left 0.234, back 0.187
+        back_of_hand_R         left 0.284, forward 0.093
+  rotZ   peak  0.1364 turn  0.318 lin 0.502  asym 1.0     move             left 0.313
+        fingers_R              left 0.313
+        fingers_L              right 0.275, down 0.157
+        hilt_L                 down 0.289, left 0.075
+        hilt_R                 up 0.297
+        back_of_hand_R         down 0.171, right 0.150
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.028
+        middle_L_tip           left 0.028
+        index_L_tip            left 0.028
+        thumb_L_tip            left 0.028
+        handL_centroid         left 0.028
+        pinky_L_tip            left 0.028
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             up 0.028
+        ring_R_tip             up 0.028
+        socket_R_pos           up 0.028
+        index_R_tip            up 0.028
+        pinky_R_tip            up 0.028
+        head_centroid          up 0.028
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.028
+        pinky_L_tip            forward 0.028
+        thumb_L_tip            forward 0.028
+        ring_R_tip             forward 0.028
+        pinky_R_tip            forward 0.028
+        middle_L_tip           forward 0.028
+
+thigh_fk.L   [QUATERNION, IK_FK 1]
+  rotX   peak  0.1830 turn  0.348 lin 0.502  asym 1.0     move             down 0.341
+        foot_L_fwd             down 0.341
+        toe_L_tip              back 0.183
+        footL_centroid         back 0.175
+        leg_L_tip              back 0.159
+        leg_L_mid              back 0.071
+  rotY   peak  0.0455 turn  0.348 lin 0.502  asym 1.0     move             right 0.341
+        foot_L_fwd             right 0.341
+        toe_L_tip              right 0.045
+        footL_centroid         right 0.014
+        leg_L_tip              left 0.008, back 0.004
+        leg_L_mid_off          right 0.004, forward 0.002
+  rotZ   peak  0.1773 turn  0.007 lin 0.502  asym 1.0     move             right 0.177
+        toe_L_tip              right 0.177
+        footL_centroid         right 0.176
+        leg_L_tip              right 0.163
+        leg_L_mid              right 0.072
+        footL_min_z            +0.00274
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.028
+        leg_L_root             left 0.028
+        leg_L_tip              left 0.028
+        leg_L_mid              left 0.028
+        footL_centroid         left 0.028
+        toe_L_tip              left 0.028
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.028
+        leg_L_root             down 0.028
+        leg_L_mid              down 0.028
+        leg_L_tip              down 0.028
+        footL_centroid         down 0.028
+        toe_L_tip              down 0.028
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.028
+        leg_L_tip              back 0.028
+        leg_L_root             back 0.028
+        footL_centroid         back 0.028
+        leg_L_mid              back 0.028
+        toe_L_tip              back 0.028
+
+thigh_fk.R   [QUATERNION, IK_FK 1]
+  rotX   peak  0.1830 turn  0.348 lin 0.502  asym 1.0     move             down 0.341
+        foot_R_fwd             down 0.341
+        toe_R_tip              back 0.183
+        footR_centroid         back 0.175
+        leg_R_tip              back 0.159
+        leg_R_mid              back 0.071
+  rotY   peak  0.0455 turn  0.348 lin 0.502  asym 1.0     move             right 0.341
+        foot_R_fwd             right 0.341
+        toe_R_tip              right 0.044, back 0.011
+        footR_centroid         right 0.014
+        leg_R_tip              forward 0.007, left 0.006
+        leg_R_mid_off          back 0.003, right 0.003
+  rotZ   peak  0.1773 turn  0.007 lin 0.502  asym 1.0     move             right 0.169, up 0.053
+        toe_R_tip              right 0.169, up 0.053
+        footR_centroid         right 0.169, up 0.049
+        leg_R_tip              right 0.159, up 0.041
+        leg_R_mid              right 0.069, up 0.020
+        footR_min_z            +0.04255
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.028
+        leg_R_root             left 0.028
+        toe_R_tip              left 0.028
+        footR_centroid         left 0.028
+        leg_R_tip              left 0.028
+        leg_R_mid              left 0.028
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.028
+        leg_R_tip              down 0.028
+        leg_R_mid              down 0.028
+        leg_R_root             down 0.028
+        footR_centroid         down 0.028
+        toe_R_tip              down 0.028
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.028
+        footR_centroid         back 0.028
+        toe_R_tip              back 0.028
+        leg_R_tip              back 0.028
+        leg_R_mid              back 0.028
+        leg_R_root             back 0.028
+
+thigh_tweak.L   [ZXY, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+
+thigh_tweak.R   [ZXY, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+
+thumb.01.L   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0221 turn  0.000 lin 0.502  asym 1.0     move             back 0.017, left 0.013, down 0.004
+        thumb_L_tip            back 0.017, left 0.013, down 0.004
+        handL_centroid         back 0.002, left 0.001, down 0.001
+  rotY   peak  0.0057 turn  0.000 lin 0.502  asym 1.0     move             left 0.004, forward 0.004
+        thumb_L_tip            left 0.004, forward 0.004
+  rotZ   peak  0.0214 turn  0.000 lin 0.502  asym 1.0     move             back 0.015, right 0.015, up 0.005
+        thumb_L_tip            back 0.015, right 0.015, up 0.005
+        handL_centroid         back 0.002, right 0.002, up 0.000
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.022, forward 0.018
+        thumb_L_tip            left 0.022, forward 0.018
+        handL_centroid         left 0.004, forward 0.003
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.023, forward 0.012, right 0.012
+        thumb_L_tip            down 0.023, forward 0.012, right 0.012
+        handL_centroid         down 0.004, forward 0.002, right 0.002
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.018, down 0.017, left 0.013
+        thumb_L_tip            back 0.018, down 0.017, left 0.013
+        handL_centroid         back 0.003, down 0.003, left 0.003
+
+thumb.01.L.001   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.026, back 0.009
+        thumb_L_tip            left 0.026, back 0.009
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             up 0.028
+        thumb_L_tip            up 0.028
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.027, left 0.009
+        thumb_L_tip            forward 0.027, left 0.009
+
+thumb.01.R   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0221 turn  0.000 lin 0.502  asym 1.0     move             back 0.017, right 0.013, down 0.004
+        thumb_R_tip            back 0.017, right 0.013, down 0.004
+        handR_centroid         back 0.002, right 0.001, down 0.001
+  rotY   peak  0.0057 turn  0.000 lin 0.502  asym 1.0     move             left 0.005, back 0.003
+        thumb_R_tip            left 0.005, back 0.003
+  rotZ   peak  0.0214 turn  0.000 lin 0.502  asym 1.0     move             right 0.018, forward 0.012
+        thumb_R_tip            right 0.018, forward 0.012
+        handR_centroid         right 0.002, forward 0.001
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.022, back 0.018
+        thumb_R_tip            left 0.022, back 0.018
+        handR_centroid         left 0.004, back 0.003
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.023, forward 0.012, left 0.012
+        thumb_R_tip            down 0.023, forward 0.012, left 0.012
+        handR_centroid         down 0.004, forward 0.002, left 0.002
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.018, down 0.017, right 0.013
+        thumb_R_tip            back 0.018, down 0.017, right 0.013
+        handR_centroid         back 0.003, down 0.003, right 0.003
+
+thumb.01.R.001   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.026, forward 0.009
+        thumb_R_tip            left 0.026, forward 0.009
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             up 0.028
+        thumb_R_tip            up 0.028
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.027, right 0.009
+        thumb_R_tip            forward 0.027, right 0.009
+
+thumb.01_master.L   [XYZ, IK_FK 1]
+  rotX   peak  0.0221 turn  0.000 lin 0.502  asym 1.0     move             back 0.017, left 0.013, down 0.004
+        thumb_L_tip            back 0.017, left 0.013, down 0.004
+        handL_centroid         back 0.002, left 0.001, down 0.001
+  rotY   peak  0.0057 turn  0.000 lin 0.502  asym 1.0     move             left 0.004, forward 0.004
+        thumb_L_tip            left 0.004, forward 0.004
+  rotZ   peak  0.0214 turn  0.000 lin 0.502  asym 1.0     move             back 0.015, right 0.015, up 0.005
+        thumb_L_tip            back 0.015, right 0.015, up 0.005
+        handL_centroid         back 0.002, right 0.002, up 0.000
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.022, forward 0.018
+        thumb_L_tip            left 0.022, forward 0.018
+        handL_centroid         left 0.004, forward 0.003
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.023, forward 0.012, right 0.012
+        thumb_L_tip            down 0.023, forward 0.012, right 0.012
+        handL_centroid         down 0.004, forward 0.002, right 0.002
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.018, down 0.017, left 0.013
+        thumb_L_tip            back 0.018, down 0.017, left 0.013
+        handL_centroid         back 0.003, down 0.003, left 0.003
+
+thumb.01_master.R   [XYZ, IK_FK 1]
+  rotX   peak  0.0221 turn  0.000 lin 0.502  asym 1.0     move             back 0.017, right 0.013, down 0.004
+        thumb_R_tip            back 0.017, right 0.013, down 0.004
+        handR_centroid         back 0.002, right 0.001, down 0.001
+  rotY   peak  0.0057 turn  0.000 lin 0.502  asym 1.0     move             left 0.005, back 0.003
+        thumb_R_tip            left 0.005, back 0.003
+  rotZ   peak  0.0214 turn  0.000 lin 0.502  asym 1.0     move             right 0.018, forward 0.012
+        thumb_R_tip            right 0.018, forward 0.012
+        handR_centroid         right 0.002, forward 0.001
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.022, back 0.018
+        thumb_R_tip            left 0.022, back 0.018
+        handR_centroid         left 0.004, back 0.003
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.023, forward 0.012, left 0.012
+        thumb_R_tip            down 0.023, forward 0.012, left 0.012
+        handR_centroid         down 0.004, forward 0.002, left 0.002
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.018, down 0.017, right 0.013
+        thumb_R_tip            back 0.018, down 0.017, right 0.013
+        handR_centroid         back 0.003, down 0.003, right 0.003
+
+thumb.02.L   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0142 turn  0.000 lin 0.502  asym 1.0     move             back 0.013, left 0.006
+        thumb_L_tip            back 0.013, left 0.006
+        handL_centroid         back 0.001, left 0.000
+  rotY   peak  0.0014 turn  0.000 lin 0.502  asym 1.0     move             left 0.001, forward 0.001
+        thumb_L_tip            left 0.001, forward 0.001
+  rotZ   peak  0.0141 turn  0.000 lin 0.502  asym 1.0     move             right 0.012, back 0.006, up 0.004
+        thumb_L_tip            right 0.012, back 0.006, up 0.004
+        handL_centroid         right 0.001, back 0.000, up 0.000
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.025, forward 0.012
+        thumb_L_tip            left 0.025, forward 0.012
+        handL_centroid         left 0.004, forward 0.002
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.027, right 0.007
+        thumb_L_tip            down 0.027, right 0.007
+        handL_centroid         down 0.004, right 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.025, left 0.010, down 0.008
+        thumb_L_tip            back 0.025, left 0.010, down 0.008
+        handL_centroid         back 0.004, left 0.002, down 0.001
+
+thumb.02.R   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0142 turn  0.000 lin 0.502  asym 1.0     move             back 0.013, right 0.006
+        thumb_R_tip            back 0.013, right 0.006
+        handR_centroid         back 0.001, right 0.000
+  rotY   peak  0.0014 turn  0.000 lin 0.502  asym 1.0     move             left 0.001
+        thumb_R_tip            left 0.001
+  rotZ   peak  0.0141 turn  0.000 lin 0.502  asym 1.0     move             right 0.013, forward 0.005
+        thumb_R_tip            right 0.013, forward 0.005
+        handR_centroid         right 0.001, forward 0.000
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.025, back 0.012
+        thumb_R_tip            left 0.025, back 0.012
+        handR_centroid         left 0.004, back 0.002
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.027, left 0.007
+        thumb_R_tip            down 0.027, left 0.007
+        handR_centroid         down 0.004, left 0.001
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.025, right 0.010, down 0.008
+        thumb_R_tip            back 0.025, right 0.010, down 0.008
+        handR_centroid         back 0.004, right 0.002, down 0.001
+
+thumb.03.L   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0061 turn  0.000 lin 0.502  asym 1.0     move             back 0.006, left 0.002
+        thumb_L_tip            back 0.006, left 0.002
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0061 turn  0.000 lin 0.502  asym 1.0     move             right 0.005, up 0.002, back 0.002
+        thumb_L_tip            right 0.005, up 0.002, back 0.002
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.026, forward 0.009
+        thumb_L_tip            left 0.026, forward 0.009
+        handL_centroid         left 0.003, forward 0.001
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.028
+        thumb_L_tip            down 0.028
+        handL_centroid         down 0.003
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.027, left 0.009
+        thumb_L_tip            back 0.027, left 0.009
+        handL_centroid         back 0.003, left 0.001
+
+thumb.03.R   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0061 turn  0.000 lin 0.502  asym 1.0     move             back 0.006, right 0.002
+        thumb_R_tip            back 0.006, right 0.002
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0061 turn  0.000 lin 0.502  asym 1.0     move             right 0.006, forward 0.002
+        thumb_R_tip            right 0.006, forward 0.002
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.026, back 0.009
+        thumb_R_tip            left 0.026, back 0.009
+        handR_centroid         left 0.003, back 0.001
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.028
+        thumb_R_tip            down 0.028
+        handR_centroid         down 0.003
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.027, right 0.009
+        thumb_R_tip            back 0.027, right 0.009
+        handR_centroid         back 0.003, right 0.001
+
+toe_fk.L   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0245 turn  0.000 lin 0.502  asym 1.0     move             up 0.024
+        toe_L_tip              up 0.024
+        footL_centroid         up 0.004, forward 0.001
+  rotY   peak  0.0021 turn  0.000 lin 0.502  asym 1.0     move             
+        footL_min_z            -0.00526
+        mesh_min_z             -0.00526
+        footL_centroid         up 0.002, left 0.001
+  rotZ   peak  0.0245 turn  0.000 lin 0.502  asym 1.0     move             left 0.023, back 0.008
+        toe_L_tip              left 0.023, back 0.008
+        footL_centroid         left 0.003, back 0.003
+  locX   peak  0.0283 turn  0.280 lin 0.5    asym 1.0     move             right 0.275
+        foot_L_fwd             right 0.275
+        toe_L_tip              right 0.028
+        footL_centroid         right 0.018
+  locY   peak  0.0283 turn  0.072 lin 0.5    asym 1.0     move             left 0.054, down 0.047
+        foot_L_fwd             left 0.054, down 0.047
+        toe_L_tip              forward 0.028
+        footL_centroid         forward 0.019
+        footL_min_z            -0.00247
+        mesh_min_z             -0.00247
+  locZ   peak  0.0283 turn  0.327 lin 0.5    asym 1.0     move             up 0.323
+        foot_L_fwd             up 0.323
+        toe_L_tip              up 0.028
+        footL_centroid         up 0.018
+        footL_min_z            -0.00603
+        mesh_min_z             -0.00603
+
+toe_fk.R   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0245 turn  0.000 lin 0.502  asym 1.0     move             up 0.024
+        toe_R_tip              up 0.024
+        footR_centroid         up 0.004, forward 0.001
+  rotY   peak  0.0020 turn  0.000 lin 0.502  asym 1.0     move             
+        footR_min_z            -0.00865
+        mesh_min_z             -0.00865
+        footR_centroid         left 0.002, down 0.001
+  rotZ   peak  0.0245 turn  0.000 lin 0.502  asym 1.0     move             left 0.024
+        toe_R_tip              left 0.024
+        footR_centroid         left 0.004, forward 0.001
+  locX   peak  0.0283 turn  0.303 lin 0.5    asym 1.0     move             right 0.295
+        foot_R_fwd             right 0.295
+        toe_R_tip              right 0.028
+        footR_centroid         right 0.018
+        footR_min_z            -0.00172
+        mesh_min_z             -0.00172
+  locY   peak  0.0283 turn  0.072 lin 0.5    asym 1.0     move             right 0.054, down 0.047
+        foot_R_fwd             right 0.054, down 0.047
+        toe_R_tip              forward 0.028
+        footR_centroid         forward 0.019
+        footR_min_z            -0.00247
+        mesh_min_z             -0.00247
+  locZ   peak  0.0283 turn  0.327 lin 0.5    asym 1.0     move             up 0.323
+        foot_R_fwd             up 0.323
+        toe_R_tip              up 0.028
+        footR_centroid         up 0.018
+        footR_min_z            -0.00603
+        mesh_min_z             -0.00603
+
+torso   [QUATERNION, IK_FK 1]
+  rotX   peak  0.2004 turn  0.348 lin 0.502  asym 1.0     move             down 0.343
+        foot_L_fwd             down 0.343
+        pelvis_fwd             down 0.343
+        chest_fwd              down 0.343
+        foot_R_fwd             down 0.343
+        head_aim               down 0.343
+  rotY   peak  0.1964 turn  0.348 lin 0.502  asym 1.0     move             left 0.343
+        head_up                left 0.343
+        fingers_L              left 0.325
+        fingers_R              right 0.287, up 0.160
+        hilt_R                 down 0.287, right 0.091
+        hilt_L                 up 0.301
+  rotZ   peak  0.0974 turn  0.348 lin 0.502  asym 1.0     move             left 0.343
+        pelvis_fwd             left 0.343
+        chest_fwd              left 0.343
+        foot_L_fwd             left 0.343
+        foot_R_fwd             left 0.343
+        head_aim               left 0.343
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             left 0.028
+        index_L_tip            left 0.028
+        pinky_L_tip            left 0.028
+        handL_centroid         left 0.028
+        middle_L_tip           left 0.028
+        thumb_L_tip            left 0.028
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.028
+        thumb_R_tip            back 0.028
+        jaw_tip                back 0.028
+        middle_L_tip           back 0.028
+        index_L_tip            back 0.028
+        thumb_L_tip            back 0.028
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             
+        handR_min_z            +0.02826
+        middle_R_tip           up 0.028
+        socket_R_pos           up 0.028
+        mesh_max_z             +0.02826
+        head_min_z             +0.02826
+
+tweak_lowerjaw   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0001 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0030 turn  0.000 lin 0.5    asym 0.994   move             right 0.003
+        lowerjaw_centroid      right 0.003
+  locY   peak  0.0031 turn  0.000 lin 0.478  asym 0.953   move             down 0.003
+        lowerjaw_centroid      down 0.003
+  locZ   peak  0.0031 turn  0.000 lin 0.497  asym 0.922   move             forward 0.003
+        lowerjaw_centroid      forward 0.003
+
+tweak_lowerjaw.001   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0026 turn  0.000 lin 0.502  asym 1.0     move             left 0.003
+        jaw_tip                left 0.003
+        lowerjaw_min_z         -0.00214
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0071 turn  0.000 lin 0.503  asym 1.038   move             right 0.007
+        lowerjaw_centroid      right 0.007
+        jaw_tip                left 0.007
+  locY   peak  0.0161 turn  0.000 lin 0.262  asym 0.438   move             
+        lowerjaw_min_z         -0.02329
+        jaw_tip                down 0.013, back 0.010
+        jaw_dz                 +0.01285
+        jaw_gap                +0.01245
+        lowerjaw_centroid      forward 0.008, up 0.003
+  locZ   peak  0.0064 turn  0.000 lin 0.521  asym 1.27    move             up 0.006, forward 0.003
+        lowerjaw_centroid      up 0.006, forward 0.003
+        jaw_tip                back 0.005, down 0.003
+        jaw_dz                 +0.00312
+        jaw_gap                +0.00278
+
+tweak_lowerjaw.002   [QUATERNION, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0350 turn  0.000 lin 0.5    asym 1.003   move             right 0.035
+        jaw_tip                right 0.035
+        lowerjaw_centroid      right 0.016
+        jaw_gap                +0.00530
+  locY   peak  0.0351 turn  0.000 lin 0.5    asym 1.082   move             forward 0.035
+        jaw_tip                forward 0.035
+        lowerjaw_centroid      forward 0.016, down 0.004
+        jaw_gap                +0.01395
+        jaw_dz                 +0.00538
+        lowerjaw_min_z         -0.00350
+  locZ   peak  0.0379 turn  0.000 lin 0.493  asym 0.862   move             up 0.036, forward 0.012
+        jaw_tip                up 0.036, forward 0.012
+        jaw_dz                 -0.03588
+        jaw_gap                -0.03272
+        lowerjaw_centroid      up 0.016
+        lowerjaw_min_z         +0.01166
+
+tweak_spine   [ZXY, IK_FK 1]
+  rotX   peak  0.1946 turn  0.348 lin 0.502  asym 1.0     move             down 0.343
+        foot_R_fwd             down 0.343
+        foot_L_fwd             down 0.343
+        toe_R_tip              back 0.193
+        toe_L_tip              back 0.193
+        footL_centroid         back 0.186
+  rotY   peak  0.1127 turn  0.338 lin 0.502  asym 1.0     move             left 0.332
+        foot_L_fwd             left 0.332
+        foot_R_fwd             left 0.332
+        pelvis_fwd             left 0.332
+        toe_R_tip              left 0.110
+        toe_L_tip              left 0.095, back 0.058
+  rotZ   peak  0.1753 turn  0.086 lin 0.502  asym 1.0     move             left 0.161, up 0.067
+        footL_centroid         left 0.161, up 0.067
+        footR_centroid         left 0.175
+        toe_L_tip              left 0.154, up 0.070
+        toe_R_tip              left 0.169
+        leg_L_tip              left 0.156, up 0.059
+  locX   peak  0.0283 turn  0.197 lin 0.5    asym 1.0     move             right 0.193
+        pelvis_fwd             right 0.193
+        leg_L_root             left 0.028
+        leg_L_tip              left 0.028
+        footL_centroid         left 0.028
+        leg_L_mid              left 0.028
+  locY   peak  0.0283 turn  0.210 lin 0.5    asym 1.0     move             down 0.209
+        pelvis_fwd             down 0.209
+        toe_L_tip              up 0.027, forward 0.007
+        footL_centroid         up 0.027, forward 0.007
+        leg_L_mid              up 0.027, forward 0.007
+        toe_R_tip              up 0.027, forward 0.007
+  locZ   peak  0.0283 turn  0.695 lin 0.5    asym 1.0     move             up 0.651, back 0.241
+        pelvis_fwd             up 0.651, back 0.241
+        footL_centroid         forward 0.027, down 0.007
+        leg_L_mid              forward 0.027, down 0.007
+        toe_L_tip              forward 0.027, down 0.007
+        leg_L_tip              forward 0.027, down 0.007
+
+tweak_spine.001   [ZXY, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0002 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0054 turn  0.195 lin 0.501  asym 1.016   move             left 0.192
+        pelvis_fwd             left 0.192
+        pelvis_centroid        left 0.005
+  locY   peak  0.0055 turn  0.277 lin 0.501  asym 1.078   move             up 0.275
+        pelvis_fwd             up 0.275
+        pelvis_centroid        up 0.005
+  locZ   peak  0.0049 turn  0.523 lin 0.526  asym 1.258   move             down 0.504, back 0.137
+        pelvis_fwd             down 0.504, back 0.137
+        pelvis_centroid        forward 0.004, down 0.002
+
+tweak_spine.002   [ZXY, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0005 turn  0.000 lin None   asym None    inert            
+  locY   peak  0.0004 turn  0.000 lin None   asym None    inert            
+  locZ   peak  0.0007 turn  0.000 lin None   asym None    inert            
+
+tweak_spine.003   [ZXY, IK_FK 1]
+  rotX   peak  0.1130 turn  0.332 lin 0.502  asym 1.0     move             forward 0.327
+        fingers_L              forward 0.327
+        fingers_R              back 0.325
+        back_of_hand_R         down 0.301, forward 0.102
+        back_of_hand_L         down 0.301, forward 0.099
+        hilt_R                 down 0.164, back 0.072
+  rotY   peak  0.1001 turn  0.348 lin 0.502  asym 1.0     move             forward 0.262, left 0.227
+        hilt_L                 forward 0.262, left 0.227
+        hilt_R                 back 0.323, left 0.123
+        chest_fwd              left 0.341
+        back_of_hand_L         left 0.234, back 0.187
+        back_of_hand_R         left 0.284, forward 0.093
+  rotZ   peak  0.1364 turn  0.318 lin 0.502  asym 1.0     move             left 0.313
+        fingers_R              left 0.313
+        fingers_L              right 0.275, down 0.157
+        hilt_L                 down 0.289, left 0.075
+        hilt_R                 up 0.297
+        back_of_hand_R         down 0.171, right 0.150
+  locX   peak  0.0283 turn  0.032 lin 0.5    asym 1.0     move             right 0.032
+        chest_fwd              right 0.032
+        middle_L_tip           left 0.028
+        index_L_tip            left 0.028
+        thumb_L_tip            left 0.028
+        handL_centroid         left 0.028
+  locY   peak  0.0283 turn  0.042 lin 0.5    asym 1.0     move             down 0.042
+        chest_fwd              down 0.042
+        chest_min_z            +0.03016
+        ring_R_tip             up 0.028
+        socket_R_pos           up 0.028
+        index_R_tip            up 0.028
+  locZ   peak  0.0283 turn  0.319 lin 0.5    asym 1.0     move             up 0.314
+        chest_fwd              up 0.314
+        pinky_L_tip            forward 0.028
+        thumb_L_tip            forward 0.028
+        ring_R_tip             forward 0.028
+        pinky_R_tip            forward 0.028
+
+tweak_spine.004   [ZXY, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0005 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0283 turn  0.032 lin 0.5    asym 1.0     move             left 0.032
+        chest_fwd              left 0.032
+        neck_pos               left 0.028
+        chest_centroid         left 0.012
+        neck_centroid          left 0.012
+        chest_min_z            -0.00461
+  locY   peak  0.0283 turn  0.026 lin 0.5    asym 1.0     move             up 0.026, forward 0.011
+        neck_pos               up 0.026, forward 0.011
+        neck_min_z             +0.02703
+        chest_fwd              down 0.026
+        chest_centroid         up 0.011, forward 0.004
+        neck_centroid          up 0.011, forward 0.004
+  locZ   peak  0.0283 turn  0.334 lin 0.5    asym 1.0     move             down 0.329
+        chest_fwd              down 0.329
+        neck_pos               forward 0.026, down 0.011
+        chest_centroid         forward 0.011, down 0.005
+        neck_centroid          forward 0.011, down 0.005
+        neck_min_z             -0.01153
+
+tweak_spine.005   [ZXY, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0003 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0143 turn  0.000 lin 0.5    asym 0.999   move             left 0.014
+        neck_centroid          left 0.014
+        neck_min_z             -0.00395
+  locY   peak  0.0142 turn  0.000 lin 0.497  asym 0.944   move             up 0.014
+        neck_centroid          up 0.014
+        neck_min_z             -0.00280
+  locZ   peak  0.0150 turn  0.000 lin 0.497  asym 0.929   move             forward 0.015
+        neck_centroid          forward 0.015
+
+upper_arm_fk.L   [QUATERNION, IK_FK 1]
+  rotX   peak  0.1405 turn  0.347 lin 0.502  asym 1.0     move             back 0.302, down 0.152
+        fingers_L              back 0.302, down 0.152
+        back_of_hand_L         up 0.236, back 0.124, right 0.110
+        hilt_L                 up 0.143, back 0.120, right 0.066
+        middle_L_tip           forward 0.132, up 0.043
+        ring_L_tip             forward 0.134, up 0.039
+  rotY   peak  0.0417 turn  0.335 lin 0.502  asym 1.0     move             right 0.270, forward 0.143, down 0.137
+        back_of_hand_L         right 0.270, forward 0.143, down 0.137
+        hilt_L                 back 0.312, right 0.113
+        fingers_L              left 0.116, forward 0.058, up 0.050
+        thumb_L_tip            right 0.030, back 0.026, down 0.012
+        index_L_tip            right 0.027, back 0.023, down 0.011
+  rotZ   peak  0.1376 turn  0.321 lin 0.502  asym 1.0     move             right 0.281, down 0.156
+        fingers_L              right 0.281, down 0.156
+        hilt_L                 down 0.292, left 0.081
+        back_of_hand_L         right 0.189, up 0.105
+        ring_L_tip             left 0.116, up 0.075
+        middle_L_tip           left 0.118, up 0.070
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.026, down 0.012
+        pinky_L_tip            right 0.026, down 0.012
+        ring_L_tip             right 0.026, down 0.012
+        arm_L_root             right 0.026, down 0.012
+        arm_L_tip              right 0.026, down 0.012
+        arm_L_mid              right 0.026, down 0.012
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.026, left 0.012
+        ring_L_tip             down 0.026, left 0.012
+        arm_L_root             down 0.026, left 0.012
+        thumb_L_tip            down 0.026, left 0.012
+        pinky_L_tip            down 0.026, left 0.012
+        middle_L_tip           down 0.026, left 0.012
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.028
+        thumb_L_tip            forward 0.028
+        ring_L_tip             forward 0.028
+        arm_L_root             forward 0.028
+        pinky_L_tip            forward 0.028
+        arm_L_mid              forward 0.028
+
+upper_arm_fk.R   [QUATERNION, IK_FK 1]
+  rotX   peak  0.1405 turn  0.347 lin 0.502  asym 1.0     move             forward 0.302, up 0.152
+        fingers_R              forward 0.302, up 0.152
+        back_of_hand_R         up 0.236, back 0.124, left 0.110
+        hilt_R                 up 0.143, back 0.120, left 0.066
+        middle_R_tip           forward 0.132, up 0.043
+        ring_R_tip             forward 0.134, up 0.039
+  rotY   peak  0.0417 turn  0.335 lin 0.502  asym 1.0     move             back 0.238, right 0.207, up 0.114
+        back_of_hand_R         back 0.238, right 0.207, up 0.114
+        hilt_R                 forward 0.253, right 0.202, up 0.077
+        fingers_R              right 0.126, up 0.058
+        thumb_R_tip            right 0.036, up 0.016, forward 0.014
+        index_R_tip            right 0.032, up 0.014, forward 0.012
+  rotZ   peak  0.1376 turn  0.321 lin 0.502  asym 1.0     move             left 0.317
+        fingers_R              left 0.317
+        hilt_R                 up 0.303
+        back_of_hand_R         down 0.163, right 0.142
+        ring_R_tip             left 0.134
+        middle_R_tip           left 0.135
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             right 0.026, up 0.012
+        ring_R_tip             right 0.026, up 0.012
+        index_R_tip            right 0.026, up 0.012
+        handR_centroid         right 0.026, up 0.012
+        arm_R_root             right 0.026, up 0.012
+        arm_R_mid              right 0.026, up 0.012
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             down 0.026, right 0.012
+        pinky_R_tip            down 0.026, right 0.012
+        handR_centroid         down 0.026, right 0.012
+        thumb_R_tip            down 0.026, right 0.012
+        arm_R_mid              down 0.026, right 0.012
+        arm_R_tip              down 0.026, right 0.012
+  locZ   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             forward 0.028
+        ring_R_tip             forward 0.028
+        thumb_R_tip            forward 0.028
+        pinky_R_tip            forward 0.028
+        handR_centroid         forward 0.028
+        middle_R_tip           forward 0.028
+
+upper_arm_tweak.L   [ZXY, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+
+upper_arm_tweak.R   [ZXY, IK_FK 1]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+
+foot_heel_ik.L   [ZXY, IK_FK 0]
+  rotX   peak  0.0776 turn  0.341 lin 0.669  asym 0.183   move             down 0.335
+        foot_L_fwd             down 0.335
+        leg_L_mid              forward 0.076
+        leg_L_mid_off          forward 0.069
+        leg_L_tip              up 0.027, forward 0.016
+        leg_L_extension        -0.02718
+  rotY   peak  0.0287 turn  0.072 lin 0.746  asym 0.718   move             up 0.071
+        foot_L_fwd             up 0.071
+        leg_L_mid_off          forward 0.029
+        leg_L_mid              forward 0.028
+        leg_L_tip              left 0.015, up 0.008
+        toe_L_tip              up 0.011
+  rotZ   peak  0.0292 turn  0.348 lin 0.502  asym 0.991   move             left 0.343
+        foot_L_fwd             left 0.343
+        leg_L_tip              right 0.027, forward 0.011
+        leg_L_mid              forward 0.018, right 0.012
+        leg_L_mid_off          forward 0.013
+        footL_centroid         right 0.010, forward 0.003
+
+foot_heel_ik.R   [ZXY, IK_FK 0]
+  rotX   peak  0.0776 turn  0.341 lin 0.669  asym 0.183   move             down 0.335
+        foot_R_fwd             down 0.335
+        leg_R_mid              forward 0.076
+        leg_R_mid_off          forward 0.069
+        leg_R_tip              up 0.027, forward 0.016
+        leg_R_extension        -0.02718
+  rotY   peak  0.0206 turn  0.072 lin 0.747  asym 1.392   move             down 0.071
+        foot_R_fwd             down 0.071
+        leg_R_mid              forward 0.020, left 0.005
+        leg_R_mid_off          forward 0.019
+        leg_R_tip              left 0.012
+        footR_centroid         up 0.006, left 0.002
+  rotZ   peak  0.0290 turn  0.344 lin 0.504  asym 1.009   move             left 0.337
+        foot_R_fwd             left 0.337
+        leg_R_tip              right 0.029
+        leg_R_mid              right 0.013, back 0.009
+        footR_centroid         right 0.011
+        leg_R_mid_off          back 0.009
+
+foot_ik.L   [QUATERNION, IK_FK 0]
+  rotX   peak  0.0552 turn  0.341 lin 0.502  asym 1.0     move             down 0.335
+        foot_L_fwd             down 0.335
+        toe_L_tip              down 0.050, back 0.022
+        footL_min_z            -0.04065
+        mesh_min_z             -0.04065
+        footL_centroid         down 0.020, back 0.015
+  rotY   peak  0.0133 turn  0.072 lin 0.502  asym 1.0     move             up 0.071
+        foot_L_fwd             up 0.071
+        toe_L_tip              right 0.013
+        footL_centroid         right 0.012
+        footL_min_z            -0.00646
+        mesh_min_z             -0.00646
+  rotZ   peak  0.0536 turn  0.348 lin 0.502  asym 1.0     move             left 0.343
+        foot_L_fwd             left 0.343
+        toe_L_tip              left 0.050, back 0.019
+        footL_centroid         left 0.020, back 0.010
+  locX   peak  0.0283 turn  0.032 lin 0.5    asym 1.0     move             down 0.032
+        foot_L_fwd             down 0.032
+        toe_L_tip              left 0.028
+        footL_centroid         left 0.028
+        leg_L_tip              left 0.028
+        leg_L_mid              left 0.012, back 0.009
+  locY   peak  0.0283 turn  0.027 lin 0.5    asym 0.998   move             back 0.028
+        footL_centroid         back 0.028
+        toe_L_tip              back 0.028
+        leg_L_tip              back 0.028
+        foot_L_fwd             down 0.027
+        leg_L_mid              back 0.021
+  locZ   peak  0.0717 turn  0.000 lin 0.675  asym 0.112   move             forward 0.071
+        leg_L_mid              forward 0.071
+        leg_L_mid_off          forward 0.071
+        toe_L_tip              up 0.028
+        footL_min_z            +0.02826
+        footL_centroid         up 0.028
+
+foot_ik.R   [QUATERNION, IK_FK 0]
+  rotX   peak  0.0552 turn  0.341 lin 0.502  asym 1.0     move             down 0.335
+        foot_R_fwd             down 0.335
+        toe_R_tip              down 0.050, back 0.022
+        footR_min_z            -0.04065
+        mesh_min_z             -0.04065
+        footR_centroid         down 0.020, back 0.015
+  rotY   peak  0.0133 turn  0.072 lin 0.502  asym 1.0     move             down 0.071
+        foot_R_fwd             down 0.071
+        toe_R_tip              right 0.013
+        footR_centroid         right 0.011, up 0.004
+        footR_min_z            -0.00355
+        mesh_min_z             -0.00355
+  rotZ   peak  0.0536 turn  0.348 lin 0.502  asym 1.0     move             left 0.343
+        foot_R_fwd             left 0.343
+        toe_R_tip              left 0.054
+        footR_centroid         left 0.022
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 0.995   move             left 0.028
+        footR_centroid         left 0.028
+        leg_R_tip              left 0.028
+        toe_R_tip              left 0.028
+        leg_R_mid              left 0.012, forward 0.010
+        leg_R_mid_off          forward 0.010
+  locY   peak  0.0283 turn  0.027 lin 0.5    asym 0.998   move             back 0.028
+        footR_centroid         back 0.028
+        toe_R_tip              back 0.028
+        leg_R_tip              back 0.028
+        foot_R_fwd             down 0.027
+        leg_R_mid              back 0.021
+  locZ   peak  0.0717 turn  0.000 lin 0.675  asym 0.112   move             forward 0.071
+        leg_R_mid              forward 0.071
+        leg_R_mid_off          forward 0.071
+        footR_min_z            +0.02826
+        toe_R_tip              up 0.028
+        leg_R_tip              up 0.028
+
+foot_spin_ik.L   [QUATERNION, IK_FK 0]
+  rotX   peak  0.0776 turn  0.341 lin 0.669  asym 0.134   move             down 0.335
+        foot_L_fwd             down 0.335
+        leg_L_mid              forward 0.076
+        leg_L_mid_off          forward 0.069
+        leg_L_tip              up 0.027, forward 0.016
+        leg_L_extension        -0.02718
+  rotY   peak  0.0107 turn  0.042 lin 0.889  asym 0.845   move             up 0.039, left 0.016
+        foot_L_fwd             up 0.039, left 0.016
+        leg_L_mid              back 0.010, left 0.005
+        leg_L_tip              left 0.010
+        leg_L_mid_off          back 0.009
+        footL_min_z            -0.00841
+  rotZ   peak  0.0292 turn  0.348 lin 0.502  asym 0.991   move             left 0.343
+        foot_L_fwd             left 0.343
+        leg_L_tip              right 0.027, forward 0.011
+        toe_L_tip              left 0.023, back 0.008
+        leg_L_mid              forward 0.018, right 0.012
+        leg_L_mid_off          forward 0.013
+  locX   peak  0.0283 turn  0.036 lin 0.5    asym 1.0     move             down 0.035
+        foot_L_fwd             down 0.035
+        toe_L_tip              left 0.028
+        footL_centroid         left 0.027
+        leg_L_tip              left 0.027
+        leg_L_mid              left 0.012, back 0.011
+  locY   peak  0.0283 turn  0.021 lin 0.5    asym 0.998   move             back 0.028
+        footL_centroid         back 0.028
+        toe_L_tip              back 0.028
+        leg_L_tip              back 0.027
+        foot_L_fwd             down 0.021
+        leg_L_mid              back 0.021
+  locZ   peak  0.0717 turn  0.000 lin 0.675  asym 0.112   move             forward 0.071
+        leg_L_mid              forward 0.071
+        leg_L_mid_off          forward 0.071
+        toe_L_tip              up 0.028
+        footL_min_z            +0.02826
+        footL_centroid         up 0.028
+
+foot_spin_ik.R   [QUATERNION, IK_FK 0]
+  rotX   peak  0.0776 turn  0.341 lin 0.669  asym 0.134   move             down 0.335
+        foot_R_fwd             down 0.335
+        leg_R_mid              forward 0.076
+        leg_R_mid_off          forward 0.069
+        leg_R_tip              up 0.027, forward 0.016
+        leg_R_extension        -0.02718
+  rotY   peak  0.0111 turn  0.081 lin 0.504  asym 0.965   move             down 0.079
+        foot_R_fwd             down 0.079
+        leg_R_tip              left 0.011
+        leg_R_mid              back 0.008, left 0.005
+        leg_R_mid_off          back 0.009
+        footR_min_z            -0.00550
+  rotZ   peak  0.0290 turn  0.344 lin 0.504  asym 1.009   move             left 0.337
+        foot_R_fwd             left 0.337
+        leg_R_tip              right 0.029
+        toe_R_tip              left 0.024
+        leg_R_mid              right 0.013, back 0.009
+        leg_R_mid_off          back 0.009
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 0.995   move             left 0.028
+        footR_centroid         left 0.028
+        leg_R_tip              left 0.028
+        toe_R_tip              left 0.028
+        leg_R_mid              forward 0.015, left 0.012
+        leg_R_mid_off          forward 0.012
+  locY   peak  0.0283 turn  0.021 lin 0.5    asym 0.998   move             back 0.028
+        footR_centroid         back 0.028
+        toe_R_tip              back 0.028
+        leg_R_tip              back 0.027
+        foot_R_fwd             down 0.021
+        leg_R_mid              back 0.021
+  locZ   peak  0.0717 turn  0.000 lin 0.675  asym 0.112   move             forward 0.071
+        leg_R_mid              forward 0.071
+        leg_R_mid_off          forward 0.071
+        footR_min_z            +0.02826
+        toe_R_tip              up 0.028
+        leg_R_tip              up 0.028
+
+hand_ik.L   [QUATERNION, IK_FK 0]
+  rotX   peak  0.0330 turn  0.348 lin 0.502  asym 1.0     move             back 0.304, down 0.155
+        fingers_L              back 0.304, down 0.155
+        back_of_hand_L         up 0.238, back 0.140, right 0.080
+        hilt_L                 up 0.162, back 0.095, right 0.055
+        ring_L_tip             forward 0.033
+        middle_L_tip           forward 0.032
+  rotY   peak  0.0187 turn  0.348 lin 0.502  asym 1.0     move             right 0.319, forward 0.123
+        back_of_hand_L         right 0.319, forward 0.123
+        hilt_L                 back 0.305, down 0.142, right 0.089
+        thumb_L_tip            back 0.018, down 0.005
+        index_L_tip            back 0.013, left 0.010
+        pinky_L_tip            left 0.012, up 0.006, forward 0.006
+  rotZ   peak  0.0329 turn  0.348 lin 0.502  asym 1.0     move             right 0.304, down 0.171
+        fingers_L              right 0.304, down 0.171
+        hilt_L                 down 0.236, left 0.135, forward 0.094
+        back_of_hand_L         up 0.161, right 0.092, back 0.064
+        middle_L_tip           left 0.031, up 0.009
+        index_L_tip            left 0.032
+  locX   peak  0.0415 turn  0.000 lin 0.367  asym 0.467   move             forward 0.039, left 0.010
+        arm_L_mid              forward 0.039, left 0.010
+        arm_L_mid_off          forward 0.040
+        handL_centroid         left 0.027
+        ring_L_tip             left 0.027
+        pinky_L_tip            left 0.027
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.028
+        handL_centroid         back 0.028
+        pinky_L_tip            back 0.028
+        middle_L_tip           back 0.028
+        socket_L_pos           back 0.028
+        arm_L_tip              back 0.028
+  locZ   peak  0.0325 turn  0.000 lin 0.579  asym 1.197   move             back 0.032
+        arm_L_mid_off          back 0.032
+        arm_L_mid              back 0.032
+        handL_centroid         up 0.028
+        middle_L_tip           up 0.028
+        pinky_L_tip            up 0.028
+
+hand_ik.R   [QUATERNION, IK_FK 0]
+  rotX   peak  0.0330 turn  0.348 lin 0.502  asym 1.0     move             forward 0.304, up 0.155
+        fingers_R              forward 0.304, up 0.155
+        back_of_hand_R         up 0.238, back 0.140, left 0.080
+        hilt_R                 up 0.162, back 0.095, left 0.055
+        ring_R_tip             forward 0.033
+        middle_R_tip           forward 0.032
+  rotY   peak  0.0187 turn  0.348 lin 0.502  asym 1.0     move             right 0.269, back 0.220
+        back_of_hand_R         right 0.269, back 0.220
+        hilt_R                 forward 0.244, right 0.193, up 0.156
+        thumb_R_tip            forward 0.017, up 0.007
+        index_R_tip            forward 0.015, left 0.006
+        pinky_R_tip            left 0.014, down 0.005
+  rotZ   peak  0.0329 turn  0.348 lin 0.502  asym 1.0     move             left 0.341
+        fingers_R              left 0.341
+        hilt_R                 up 0.270, back 0.091
+        back_of_hand_R         down 0.184, forward 0.062
+        middle_R_tip           left 0.032
+        index_R_tip            left 0.030, up 0.009, back 0.007
+  locX   peak  0.0283 turn  0.000 lin 0.5    asym 0.964   move             left 0.028
+        handR_centroid         left 0.028
+        thumb_R_tip            left 0.028
+        arm_R_tip              left 0.028
+        socket_R_pos           left 0.028
+        pinky_R_tip            left 0.028
+  locY   peak  0.0283 turn  0.000 lin 0.5    asym 1.0     move             back 0.028
+        handR_centroid         back 0.028
+        thumb_R_tip            back 0.028
+        index_R_tip            back 0.028
+        middle_R_tip           back 0.028
+        arm_R_tip              back 0.028
+  locZ   peak  0.0325 turn  0.000 lin 0.579  asym 1.197   move             back 0.032
+        arm_R_mid_off          back 0.032
+        arm_R_mid              back 0.032
+        handR_centroid         up 0.028
+        socket_R_pos           up 0.028
+        ring_R_tip             up 0.028
+
+thigh_ik.L   [ZXY, IK_FK 0]
+  rotX   peak  0.0189 turn  0.000 lin 0.004  asym 0.008   swivel:leg_L     back 0.019
+        leg_L_mid              back 0.019
+        leg_L_mid_off          back 0.019
+  rotY   peak  0.0040 turn  0.000 lin 0.502  asym 1.0     move             right 0.004, forward 0.002
+        leg_L_mid_off          right 0.004, forward 0.002
+        leg_L_mid              right 0.004, forward 0.002
+  rotZ   peak  0.0002 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0182 turn  0.017 lin 0.652  asym 0.871   move             left 0.028
+        leg_L_root             left 0.028
+        leg_L_mid              left 0.016, back 0.009
+        foot_L_fwd             down 0.017
+        leg_L_mid_off          back 0.009
+        leg_L_tip              up 0.001
+  locY   peak  0.0727 turn  0.000 lin 0.674  asym 0.407   root_shift:leg_L forward 0.071
+        leg_L_mid              forward 0.071
+        leg_L_mid_off          forward 0.071
+        leg_L_root             down 0.028
+        leg_L_extension        -0.02820
+  locZ   peak  0.0114 turn  0.000 lin 0.313  asym 0.636   move             back 0.028
+        leg_L_root             back 0.028
+        leg_L_mid              back 0.011
+        leg_L_mid_off          forward 0.004
+
+thigh_ik.R   [ZXY, IK_FK 0]
+  rotX   peak  0.0189 turn  0.000 lin 0.004  asym 0.008   swivel:leg_R     back 0.019
+        leg_R_mid              back 0.019
+        leg_R_mid_off          back 0.019
+  rotY   peak  0.0040 turn  0.000 lin 0.502  asym 1.0     move             back 0.003, right 0.003
+        leg_R_mid_off          back 0.003, right 0.003
+        leg_R_mid              back 0.003, right 0.003
+  rotZ   peak  0.0002 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0158 turn  0.000 lin 0.528  asym 1.148   move             left 0.028
+        leg_R_root             left 0.028
+        leg_R_mid              left 0.016
+  locY   peak  0.0727 turn  0.000 lin 0.674  asym 0.407   root_shift:leg_R forward 0.071
+        leg_R_mid              forward 0.071
+        leg_R_mid_off          forward 0.071
+        leg_R_root             down 0.028
+        leg_R_extension        -0.02820
+  locZ   peak  0.0114 turn  0.000 lin 0.313  asym 0.636   move             back 0.028
+        leg_R_root             back 0.028
+        leg_R_mid              back 0.011
+        leg_R_mid_off          forward 0.004
+
+thigh_ik_target.L   [QUATERNION, IK_FK 0]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+
+thigh_ik_target.R   [QUATERNION, IK_FK 0]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+
+thigh_parent.L   [QUATERNION, IK_FK 0]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+
+thigh_parent.R   [QUATERNION, IK_FK 0]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+
+toe_ik.L   [QUATERNION, IK_FK 0]
+  rotX   peak  0.0245 turn  0.000 lin 0.502  asym 1.0     move             up 0.024
+        toe_L_tip              up 0.024
+        footL_centroid         up 0.004, forward 0.001
+  rotY   peak  0.0021 turn  0.000 lin 0.502  asym 1.0     move             
+        footL_min_z            -0.00526
+        mesh_min_z             -0.00526
+        footL_centroid         up 0.002, left 0.001
+  rotZ   peak  0.0245 turn  0.000 lin 0.502  asym 1.0     move             left 0.023, back 0.008
+        toe_L_tip              left 0.023, back 0.008
+        footL_centroid         left 0.003, back 0.003
+  locX   peak  0.0283 turn  0.280 lin 0.5    asym 1.0     move             right 0.275
+        foot_L_fwd             right 0.275
+        toe_L_tip              right 0.028
+        footL_centroid         right 0.018
+  locY   peak  0.0283 turn  0.072 lin 0.5    asym 1.0     move             left 0.054, down 0.047
+        foot_L_fwd             left 0.054, down 0.047
+        toe_L_tip              forward 0.028
+        footL_centroid         forward 0.019
+        footL_min_z            -0.00247
+        mesh_min_z             -0.00247
+  locZ   peak  0.0283 turn  0.327 lin 0.5    asym 1.0     move             up 0.323
+        foot_L_fwd             up 0.323
+        toe_L_tip              up 0.028
+        footL_centroid         up 0.018
+        footL_min_z            -0.00603
+        mesh_min_z             -0.00603
+
+toe_ik.R   [QUATERNION, IK_FK 0]
+  rotX   peak  0.0245 turn  0.000 lin 0.502  asym 1.0     move             up 0.024
+        toe_R_tip              up 0.024
+        footR_centroid         up 0.004, forward 0.001
+  rotY   peak  0.0020 turn  0.000 lin 0.502  asym 1.0     move             
+        footR_min_z            -0.00865
+        mesh_min_z             -0.00865
+        footR_centroid         left 0.002, down 0.001
+  rotZ   peak  0.0245 turn  0.000 lin 0.502  asym 1.0     move             left 0.024
+        toe_R_tip              left 0.024
+        footR_centroid         left 0.004, forward 0.001
+  locX   peak  0.0283 turn  0.303 lin 0.5    asym 1.0     move             right 0.295
+        foot_R_fwd             right 0.295
+        toe_R_tip              right 0.028
+        footR_centroid         right 0.018
+        footR_min_z            -0.00172
+        mesh_min_z             -0.00172
+  locY   peak  0.0283 turn  0.072 lin 0.5    asym 1.0     move             right 0.054, down 0.047
+        foot_R_fwd             right 0.054, down 0.047
+        toe_R_tip              forward 0.028
+        footR_centroid         forward 0.019
+        footR_min_z            -0.00247
+        mesh_min_z             -0.00247
+  locZ   peak  0.0283 turn  0.327 lin 0.5    asym 1.0     move             up 0.323
+        foot_R_fwd             up 0.323
+        toe_R_tip              up 0.028
+        footR_centroid         up 0.018
+        footR_min_z            -0.00603
+        mesh_min_z             -0.00603
+
+upper_arm_ik.L   [ZXY, IK_FK 0]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0131 turn  0.000 lin 0.489  asym 1.0     move             right 0.026, down 0.012
+        arm_L_root             right 0.026, down 0.012
+        arm_L_mid              right 0.012, down 0.005
+        arm_L_mid_off          forward 0.002, up 0.001, left 0.001
+        arm_L_extension        +0.00128
+  locY   peak  0.0414 turn  0.000 lin 0.565  asym 1.194   root_shift:arm_L back 0.035, down 0.020, left 0.010
+        arm_L_mid              back 0.035, down 0.020, left 0.010
+        arm_L_mid_off          back 0.034
+        arm_L_root             down 0.026, left 0.012
+        arm_L_extension        -0.02721
+  locZ   peak  0.0040 turn  0.000 lin 0.277  asym 2.221   root_shift:arm_L forward 0.028
+        arm_L_root             forward 0.028
+        arm_L_mid_off          back 0.011
+        arm_L_extension        -0.00604
+        arm_L_mid              forward 0.004, up 0.002
+
+upper_arm_ik.R   [ZXY, IK_FK 0]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0131 turn  0.000 lin 0.489  asym 1.0     move             right 0.026, up 0.012
+        arm_R_root             right 0.026, up 0.012
+        arm_R_mid              right 0.011, up 0.006
+        arm_R_mid_off          forward 0.002, left 0.002
+        arm_R_extension        +0.00128
+  locY   peak  0.0414 turn  0.000 lin 0.565  asym 1.194   root_shift:arm_R back 0.035, down 0.020, right 0.010
+        arm_R_mid              back 0.035, down 0.020, right 0.010
+        arm_R_mid_off          back 0.034
+        arm_R_root             down 0.026, right 0.012
+        arm_R_extension        -0.02721
+  locZ   peak  0.0040 turn  0.000 lin 0.277  asym 2.221   root_shift:arm_R forward 0.028
+        arm_R_root             forward 0.028
+        arm_R_mid_off          back 0.011
+        arm_R_extension        -0.00604
+        arm_R_mid              forward 0.004, up 0.002
+
+upper_arm_ik_target.L   [QUATERNION, IK_FK 0]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0029 turn  0.000 lin 0.502  asym 1.014   move             left 0.003, up 0.001
+        arm_L_mid_off          left 0.003, up 0.001
+        arm_L_mid              left 0.003, up 0.001
+  locY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locZ   peak  0.0014 turn  0.000 lin 0.497  asym 0.972   move             left 0.001, up 0.001
+        arm_L_mid_off          left 0.001, up 0.001
+        arm_L_mid              left 0.001, up 0.001
+
+upper_arm_ik_target.R   [QUATERNION, IK_FK 0]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locX   peak  0.0030 turn  0.000 lin 0.499  asym 0.986   move             left 0.003, down 0.001
+        arm_R_mid_off          left 0.003, down 0.001
+        arm_R_mid              left 0.003, down 0.001
+  locY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  locZ   peak  0.0014 turn  0.000 lin 0.497  asym 0.972   move             right 0.001, up 0.001
+        arm_R_mid_off          right 0.001, up 0.001
+        arm_R_mid              right 0.001, up 0.001
+
+upper_arm_parent.L   [QUATERNION, IK_FK 0]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            
+
+upper_arm_parent.R   [QUATERNION, IK_FK 0]
+  rotX   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotY   peak  0.0000 turn  0.000 lin None   asym None    inert            
+  rotZ   peak  0.0000 turn  0.000 lin None   asym None    inert            

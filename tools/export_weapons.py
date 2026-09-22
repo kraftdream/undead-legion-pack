@@ -55,30 +55,40 @@ OLD_EXTENT = {
 # meshes modelled along another axis: rotated onto +Z (the length axis) before anything else
 PRE = {"Arrow": Matrix.Rotation(math.radians(90), 4, 'X')}   # prod.blend's Arrow (real since 4a70422) lies along +Y, head at +Y
 
-import sys
-argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
-ONLY = set(argv[argv.index("--only") + 1].split(",")) if "--only" in argv else None   # e.g. the Arrow, still exported from weapons.blend
-os.makedirs(OUT, exist_ok=True)
-for name, (grip, roll) in GRIP.items():
-    if ONLY is not None and name not in ONLY:
-        continue
-    src = bpy.data.objects.get(name)
-    if src is None:
-        print("[weapons] missing", name); continue
-    ob = bpy.data.objects.new("SM_" + name, src.data.copy())
-    bpy.context.scene.collection.objects.link(ob)
-    ob.data.transform(src.matrix_world)                 # apply the object's own scale/rotation
+
+def export_local_mesh(src, name, log=print):
+    """A copy of src's mesh data in the EXPORT-LOCAL frame at source scale: the object transform
+    and PRE applied, the grip point at the origin, the length axis +Z, the roll about it. The
+    1.8x scale is NOT applied (tools/anim_weapon_ref.py attaches this in the Blender-scale anim
+    file); the export applies it afterwards."""
+    grip, roll = GRIP[name]
+    me = src.data.copy()
+    me.transform(src.matrix_world)                      # apply the object's own scale/rotation
     if name in PRE:
-        ob.data.transform(PRE[name])
-    zs = [v.co.z for v in ob.data.vertices]
+        me.transform(PRE[name])
+    zs = [v.co.z for v in me.vertices]
     if name in OLD_EXTENT:
         o0, o1 = OLD_EXTENT[name]; n0, n1 = min(zs), max(zs)
         if abs((n1 - n0) - (o1 - o0)) > 0.005 or abs(n0 - o0) > 0.005:
             t = (grip.z - o0) / (o1 - o0)
             grip = Vector((grip.x, grip.y, n0 + t * (n1 - n0)))
-            print("[weapons] %-15s extent %.3f..%.3f (was %.3f..%.3f): grip carried over to z %.3f" % (name, n0, n1, o0, o1, grip.z))
-    M = Matrix.Rotation(math.radians(roll), 4, 'Z') @ Matrix.Translation(-grip)
-    ob.data.transform(M)
+            log("[weapons] %-15s extent %.3f..%.3f (was %.3f..%.3f): grip carried over to z %.3f" % (name, n0, n1, o0, o1, grip.z))
+    me.transform(Matrix.Rotation(math.radians(roll), 4, 'Z') @ Matrix.Translation(-grip))
+    return me
+
+
+import sys
+argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+ONLY = set(argv[argv.index("--only") + 1].split(",")) if "--only" in argv else None   # e.g. the Arrow, still exported from weapons.blend
+for name, (grip, roll) in (GRIP.items() if __name__ == "__main__" else ()):
+    if ONLY is not None and name not in ONLY:
+        continue
+    src = bpy.data.objects.get(name)
+    if src is None:
+        print("[weapons] missing", name); continue
+    os.makedirs(OUT, exist_ok=True)
+    ob = bpy.data.objects.new("SM_" + name, export_local_mesh(src, name))
+    bpy.context.scene.collection.objects.link(ob)
     ob.data.transform(Matrix.Scale(SCALE, 4))
     # the Tripo meshes are wound inside out in places (a fully inverted mesh is invisible
     # under back-face culling): make the winding consistent and outward

@@ -45,7 +45,7 @@ every one verified on all six models with `verify_clip.py` + `ground_clip.py`) p
 | Locomotion (loop, root motion) | `Walk_Fwd`, `Walk_Back`, `Run_Fwd`, `Strafe_Left` (mirrored right), `Strafe_Right` |
 | One-handed | `Attack_1H_01` (slash), `Attack_1H_02` (thrust), `Shield_Bash`, `Block` |
 | Two-handed | `Attack_2H_01` (overhead chop), `Attack_2H_02` (horizontal sweep) — left hand locked on the handle |
-| Bow | `Shoot_01` (slow draw), `Shoot_02` (quick) — authored arm keys over the generated body |
+| Bow | `Shoot_01` (the user's video mocap, 2026-09-22: one shoot clip, draw and release with a step into the archer's stance; `Shoot_02` retired) |
 | Magic | `Cast_Wand_01/02`, `Cast_Staff_01/02` (both hands on the staff) |
 | Specials | `Summon` (necromancer, arms overhead), `AOE_Cast` (mage slam), `Taunt` (warrior, chest beat + arms wide), `Cutthroat` (assassin), `Rally` (knight, sword raised) |
 | Death | `Death_01` (struck, falls on the back), `Death_02` (kneels, crumples sideways) |
@@ -621,6 +621,50 @@ so the old process had marked them built without the argument). Never run a manu
 retarget with `--save` while the batch is mid-clip: two Blender processes writing
 `skeleton_anim.blend` is a corrupt file.
 
+### The bone atlas (2026-09-22) — measure a control before trusting its axis name
+
+`tools/bone_atlas.py` (ported from the creatures pack) probes every rotation and
+translation axis of every animator-facing control on `RIG-Meta-Rig` from its identity
+rest pose and records what moved, on the **bare Knight body** (`SkeletonKnight_Body`,
+never an armour module), in the character's frame (forward / left / up). Output in
+`Rig/atlas/`: `atlas.json` (708 channels, tracked), `ATLAS.txt` (readable, tracked),
+`sheets/<control>.png` + `index.html` (one row per channel, −delta | rest | +delta with
+red / grey / green borders; 53 MB, gitignored, regenerate with `--sheets-from`).
+`tools/atlas_query.py Rig/atlas/atlas.json <probe>` answers "which channel moves X" by
+sorting the recorded response. The harness validates itself first (root translation moves
+every landmark exactly, restore is drift-free, and the known jaw sign is reproduced). FK
+controls are probed with `IK_FK = 1`, the IK controls with `IK_FK = 0`; each record says
+which. Why: this week's defects were each one unmeasured fact about one channel (the toe
+hinge, the jaw sign, a wrist's "counterclockwise", the arrow along the fingers).
+
+    blender -b Animations/skeleton_anim.blend -P tools/bone_atlas.py -- --out Rig/atlas [--render] [--only torso,head]
+    python tools/atlas_query.py Rig/atlas/atlas.json jaw_dz hilt_R fingers_R foot_L_fwd footL_min_z index_R_tip
+    python tools/atlas_query.py Rig/atlas/atlas.json --bone hand_fk.R --shape swivel --inert
+
+**Measured facts to cite** (delta +0.35 rad; "L/R" = the same channel on each side):
+
+| Want | Channel (+0.35 rad does…) | Note |
+|---|---|---|
+| open the mouth | `lowerjaw` rotX **negative** (+X closes: jaw_dz −0.028) | matches `anim_twitch.py`; `lowerjaw.001` rotX is the second jaw segment (half the effect) |
+| look down / look left | `head` rotX → aim down; `head` rotY → aim **left** (rotZ is the head roll, 0.07) | `neck` rotX moves the head 2.4 cm forward, rotY is inert |
+| chest pitch / yaw | `chest` or `spine_fk.003` rotX → chest faces down, rotZ → left | `hips` rotX tilts the PELVIS only (chest facing unchanged) |
+| turn the hilt (weapon roll) | `hand_fk` rotY (or `hand_ik` rotY, or `forearm_fk` rotY: pronation) | **per-side sign**: R +Y turns the hilt forward/up, L +Y turns it back/down |
+| point the fingers | `hand_fk` rotX → fingers forward+up; rotZ → fingers left (both sides) | the socket's +X IS the finger direction |
+| spread the arm | `shoulder` rotZ: R +Z swings the hand forward, **L +Z swings it back** | `shoulder` rotX lifts the arm up and outward on both sides |
+| raise the arm (FK) | `upper_arm_fk` rotX → hand forward+up (same sign both sides); rotZ → hand left on BOTH sides (not mirrored) | |
+| elbow direction | `forearm_tweak` locX/locZ and `shin_tweak` locX/locZ are true **swivels** (tip and root fixed, extension unchanged); `thigh_ik` rotX swivels the knee | the arm pole targets are live in the file's rest state (`pole_vector` on), the leg pole targets are **inert** |
+| lower the sole / lift the toes | `foot_ik` rotX −0.35 lifts the sole 4 cm (rotX pitches about the ankle); `toe_ik` rotX +0.35 lifts the toe tip 2.4 cm; `foot_ik` rotZ yaws the foot left | `foot_fk` rotX identical with `IK_FK = 1` |
+| curl a finger | `f_*.01_master` rotX; `thumb.01_master` rotX | `f_*.01.L.001`, `thumb.01.L.001` and every finger's rotY are inert; `f_*.02/.03` move only their own tip (the hand centroid cannot see them: probe the fingertips, `index_R_tip` etc.) |
+| reach limit | `hand_ik` locZ: linearity 0.58, asymmetry 1.20 | the arm saturates 3 cm above the rest hand: a placed hand target beyond it straightens the elbow (the 97 % reach rule in the retarget) |
+
+Rule kept from the creatures pack: **a channel's sign is per side** (Rigify computes bone
+rolls against a world target, so left and right local axes are not mirror images). Anything
+authored as a socket-frame offset must be verified from the side on ONE hand before it is
+copied to the other, and the atlas is where to look it up. The engine-side facts that the
+atlas cannot see stay documented where they were found: Unity's slot **+X is Blender's −X**
+(the FBX import flips that axis, §"Recorded bow shots"), and Humanoid **toes have one muscle**
+about the T-pose's world sideways axis (§"Feet").
+
 ### Recorded idle (2026-09-21)
 
 `Idle_03` is no longer the Kimodo `idle_slow_b` build: the user recorded an idle with a
@@ -742,6 +786,165 @@ at rest (the source foot rises 4–5 cm from frame 200 on and is never copied). 
 `still_joints RightHand`: the tracker jittered the arrow hand (93°/s, a 43° step at source
 frame 83). Fingers are in the file but not copied (both hands hold items, so the engine's
 grip pose replaces them anyway).
+
+### Recorded bow shots (2026-09-22)
+
+`Shoot_01` (slow draw, `P:\bow attacks_default.glb`, 117 frames) and `Shoot_02` (quick,
+`P:\bow attacks_default (1).glb`, 75 frames) replace the Kimodo builds; copies in
+`External Anims/Kimodo/shoot_mocap_1.glb` / `_2.glb`. Both files hold the bow in the RIGHT
+hand and draw with the left, so they are `mirror`ed (bow left, arrow right, as Idle_Bow);
+`still_joints LeftHand` (the file's drawing hand, lost by the tracker near the face:
+346°/s, 80° steps; the wrist is frozen, the arm's draw stays). The user: "both start with
+bow hand in already raised position, so maybe add some transition" → `blend_from Idle_Bow:1`
+over 20 frames (15 on the quick shot) raises the bow arm from the idle, `blend_to Idle_Bow:1`
+over the last 20 (15) lowers it, so the clip starts and ends on the idle's frame. New
+retarget **mode `upper`**: a one-shot with the legs on IK at rest exactly like the idle (an
+upper-body clip that the demo plays over Idle_Bow or a walk; the file's feet lift up to
+5 cm and are never copied), hips drift removed, no grounding, and the reach drop following
+the need per frame (running max ±5 frames, smoothed) so the blend-from frames keep the
+idle's height and the transition does not pop. `hand_clear` now applies only below the
+shoulders (a drawing hand at the cheek is not inside the torso).
+
+**The user's review ("shoots diagonally, should shoot in front of itself; left leg forward,
+right back; the arrow points wrong in the hand").** The capture is a real archer: the shot
+line sits ~80° from the hips (side-on stance), and after the heading removal (mean hips
+yaw) the shot went diagonally. A squarely facing pelvis with the shot ahead would need an
+80–100° spine twist (tried: grotesque), so **`aim_forward L`** turns the WHOLE body per
+frame until the shot line (draw hand → bow hand, both raised) points forward, the feet
+turning with it about the rig origin (the legs never twist), fading with the idle crossfades:
+the transition from Idle_Bow is a pivot into the archer's stance (the IK feet slide round
+over the 20-frame blend). Measured in pass 1 on the posed rig, applied in pass 2 (the
+targets are world rotations, so a per-frame yaw on all of them turns the body as a unit);
+the foot controls are keyed per frame when it is on. **Stance** `L:0.06,R:-0.06` on the
+shots AND on Idle_Bow (the archer's front foot toward the target; ±0.08 cost the idle a
+6 cm crouch to keep the knees bent). **The string hand**: the tracker had lost that wrist,
+the medoid freeze happened to present the thumb side to the bow, and the arrow (gripped
+along the hilt axis) stuck out of the fist; now, while both hands are raised, the hand is
+re-aimed so its fingers (socket +X) run along the shot line and the back of the hand faces
+away from the head, and the Arrow prefab's Grip holds the shaft along the fingers
+(`Euler(0,0,-90)`: the fingers are the slot's **−X** in Unity, the FBX import flips the
+handedness of that axis; +90 pointed the arrow straight up, measured, not guessed). The
+arrow therefore points at the bow at full draw and hangs down the leg in the idle. The
+performer aims ~25° downward at full draw (the bow hand below the draw hand): kept.
+**Second review (user: "a slight step back instead of feet shifting; the right forearm
+snaps in Unity but not in Blender").** The step: the FRONT foot (the larger forward stance)
+now pivots in place and the rear foot steps round it with a 4 cm lift arc (`--step-lift`,
+profile on the crossfade weight, so up on the way in, down on the way out), and the hips
+move back by half the rear foot's displacement so the body steps rather than the foot
+alone (pivoting about the front foot with the hips fixed swung the rear foot beyond the leg
+and it hung 8 cm in the air). The snap: at full draw the right hand sat **150–176° twisted
+on its forearm** — Blender keys the hand in world space and shows nothing, Unity's Humanoid
+splits that twist between hand and forearm and wraps at ±180°, snapping the forearm 178°
+on six frames. Two causes, both in the string-hand aim: the palm reference "away from the
+head" collapsed when the hand reached the cheek (a 167° hand flip in ONE Blender frame,
+which the twist limiter then chased); it is now "away from the chest centre". And
+`limit_wrist()` (default `--wrist-limit 60`) keeps every aimed hand's twist about the
+forearm axis within 60°, moving the excess into forearm pronation while the hand keeps its
+world rotation; the hand aim also takes the shortest quaternion path. Result: Unity's
+largest forearm step 23° / 27° (was 179° / 177°), the same as Blender's; wrist twist ≤ 71°;
+lowest vertex +2..+7 mm on all six (the robe dip went with the wide foot swing). Rule: a
+hand's twist relative to its forearm is what Humanoid distributes; keep it human. Then
+"lower the torso a bit (like 10 cm), since standing too high makes leg twitch": manifest
+`hips_drop 0.056` (rig m), a deliberate crouch on top of the reach drop, faded with the
+idle crossfades so the join stays exact; knees 123–151° through the clip (the per-frame
+reach drop then has nothing left to do), Necromancer robe −4 mm in the crouch (accepted).
+
+**"Body twists too much, so he is not shooting forward, are you adding extra twist?"**
+(user, from a Unity screenshot). Yes: `--aim-forward` turned the WHOLE body (pelvis, feet
+and all) by the shot-line error, so the character faced 41–57° away and shot forward only
+across its own chest. Manifest `aim_body 0.0` (`--aim-body S`, S = the share of the turn the
+pelvis and feet take; 1 = the old behaviour): the pelvis is HELD on the idle's heading
+(pass 1 records the capture's pelvis yaw, −20..8°, smoothed; the hold cancels it) and the
+turn is spread up the spine (`spine_fk.001` a third, `.002` two thirds, chest and above the
+full turn), so the feet stay put and the shot line still ends up forward. ⚠ The hold did
+nothing at first: Rigify's pelvis FK control `spine_fk` is a CHILD of the spine pivot
+`spine_fk.001`, so posing it in the pelvis-first level order and then setting its parent
+dragged it along. `pose()` now re-applies `spine_fk` after the whole chain. Measured at the
+draw: Blender pelvis 0°, chest −64°, feet 0°, shot line 0°; Unity hips 2–4°, chest 62–65°,
+shot yaw 0°; forearm step 16°, seam and in-place unchanged, lowest vertex +6..+11 mm.
+
+**"Still shoots diagonally, rotate the left arm to the left more."** The hand-to-hand line was
+dead ahead, but BOTH hands sat 0.2 rig m to the right of the head (the capture's draw hand was
+never at the cheek), so the bow arm crossed the body 43–54° to the right and that is what reads
+as the aim. Three lines can read as "where he shoots" and they cannot all be forward: the head
+sits 16 cm right of the bow shoulder. Manifest `aim_line sight` (`--aim-line shot|sight|arm`:
+which line the turn aims, hand→hand, head→bow hand or bow shoulder→bow hand) with
+`aim_offset 10` (`--aim-offset DEG`, + = left): the sight line 10° left, the bow arm 7–9° right
+of forward, the arrow 11–15° left (with `arm` the bow arm was 0 but the arrow 18–24° left).
+And `anchor 1` (`--anchor 0..1`), the archer's anchor: while both hands are raised the draw arm
+is swung in FK about the vertical through its shoulder until the string hand lies on the
+vertical plane through the head and the bow hand (the arrow passes under the eye; 22 cm of
+swing), then swivelled about the shoulder→hand axis until the elbow is LEVEL on the back/out
+side, and the hand is rebuilt from the forearm's zero-twist hand: fingers along the shot, then
+`--anchor-roll 45` about the fingers with the sign chosen once so the back of the hand faces out.
+Four things failed on the way, all of them 170–180° one-frame flips that Blender shows as much as
+Unity: an IK anchor with an elbow pole (the captured FK arm and the IK arm differed by ~180° of
+forearm roll and the IK/FK crossfade flipped the hand); a world palm reference (chest or
+lateral) for the anchored hand (it sat 90–180° from the forearm's roll, and `limit_wrist` clamped
+to ±60° from the wrong side); "elbow back along the arrow" as the swivel target (projected
+onto the plane normal to the shoulder→hand axis it pointed straight UP, the elbow rose 16 cm above
+the shoulder and dropped 180° at the release); and per-frame sign choices (the swing's two roots,
+the swivel's ±180°, the level target's side) — every one now takes last frame's side
+(`ANCHOR_PREV`, reset on frame 0), and the anchor's own weight is the raised mask smoothed 24×
+(a 120° swivel needs ~16 frames). Measured at the draw in Unity: draw hand 13 cm from the head,
+elbow 50°, level with the hand and behind it; wrist twist +45° constant; largest forearm step
+20°; sight −10°, bow arm +7..9°, hips 2–4°; lowest vertex +5..+11 mm.
+Then, from the user's top view: "twist the left hand so that bow is perpendicular to the arrow;
+right hand should not come so close to the head, slightly less (5 cm)". Manifest `bow_square`
+(`--bow-square`): while drawn, the bow hand takes the least rotation that puts its hilt axis
+(socket +Y = the bow's limbs) perpendicular to the arrow (draw socket → bow socket), the cant
+kept; the limbs were 36° from the arrow (nearly along it), now 90° in 3D and 95° from above.
+`anchor_gap 0.028` (`--anchor-gap`, rig m) keeps the anchored hand that far out of the sight
+plane on the side it came from: 5 cm lateral gap, 15 cm from the head centre in a straight line.
+Forearm step 19°, lowest vertex unchanged.
+Next round (top view again): "straighten the bow a bit more; don't bring the arrow too close to
+the head (10 cm less); faster wind-up before the model starts to pull the string (50 %); less head
+jerk". The bow had been squared only while BOTH hands were raised, so through the pull it still
+lay along the arrow (1–30° at the frames the user looked at); `bow_square` now runs for the whole
+raised phase (`BOW_UP`, the bow arm up, smoothed 8×) against the sight line, blending to the
+arrow itself (draw socket → bow socket) while drawn — with the gap the arrow runs 12° off the
+sight line and squaring to the sight left the limbs at 77°; now 86–88°. `anchor_gap 0.083` (15 cm
+lateral; hand centre 21 cm from the head centre). **`time_warp 22:11`** (`--time-warp A:B`,
+before `time_scale`: source frames 0..A played over B frames, the rest unchanged; the pull begins
+at source frame ~22) with `blend_in 10`, so the clip is 69 frames (2.3 s). **`head_aim`**
+(`--head-aim`): while the bow arm is raised the head's yaw is turned onto the sight line; the
+capture's head swung 65° in 20 frames and ended 47° off the target, which was the jerk. Plus
+`head_smooth 3` (`--head-smooth N`: extra low-pass passes on the neck + head source rotations
+only). Head yaw now +27 → +10 over the raise and steady at +10 (= the sight) through the draw;
+forearm step 20°, lowest vertex +5..+11 mm.
+
+**The user's "fire" pose (saved on frame 37 of the generated Shoot_01, with the reference bow
+and arrow attached).** `tools/anim_pose_save.py -- --from Shoot_01:37 --to Fire_Base` keeps it
+(a rebuild recreates Shoot_01, frame 37 included), and manifest **`pose_ref "Fire_Base:1@37"`**
+(`--pose-ref ACTION:frame@at`) makes the retarget use it: just before the final pass it
+generates output frame `at`, reads every control's local transform, reads the reference's, and
+keeps the deltas (here 4 controls: forearm_fk.R 40°, hand_fk.L 29°, upper_arm_fk.R 26°,
+hand_fk.R 11° — the draw arm and the bow hand); `pose()` then applies them last, after every
+other pass, weighted by the anchor mask scaled so frame `at` is the reference exactly. Controls
+with a delta are keyed every frame. Frame 37 no longer differs from its neighbours (the deltas
+ride on the capture's motion), the raise and the release are untouched. It is a LOCAL delta,
+so the user may pose anything (torso, head, fingers) and it will be carried through the drawn
+phase; a control they did not touch gets no delta.
+
+### Weapons in the anim file, placed as Unity places them (2026-09-22)
+
+The user asked for the bow and arrow in Blender "the same way it is in Unity" to pose a
+reference. `tools/anim_weapon_ref.py -- --attach H2Recurvebow:L,Arrow:R --save` appends the
+meshes from `Weapons/prod.blend`, puts each in the export-local frame (`export_weapons.
+export_local_mesh`: grip at the origin, length +Z, roll; the 1.8× is left out, the anim file is
+in Blender metres) and parents it to `DEF-weapon.L/R` with a Child Of constraint whose local
+matrix is Unity's `AlignGrip`: `M · Slot · Grip⁻¹ · C`, the slot and Grip poses read from
+`Animations/unity_grips.json` (`tools/unity/dump_grips.py` writes it from `PF_SkeletonArcher`
+and every `W_*` prefab; re-dump after editing either in Unity). `M = diag(−1,1,1)` is the
+X flip between Unity's slot frame and the Blender socket bone, `C: (x,y,z) → (−x, z, −y)` maps
+Blender export-local mesh axes to Unity's mesh-local axes (Z-up → Y-up plus the flip); the
+product is a proper rotation. Verified on Shoot_01 frame 36: the constraint reproduces the
+bone-frame placement to 0.00000 m, the bow's limbs are 88° to the arrow (Unity: 86–88°), and
+the arrow's mesh +Y runs 175° from the draw-hand → bow-hand line, exactly as Unity measures it
+(`unity_arrow_check`: −0.93; the user set the arrow's Grip at (0, 0.464, 0) / Euler(0,0,90) so
+the model reads right there). Objects `Ref_H2Recurvebow` / `Ref_Arrow` in collection
+`Ref_Weapons`; reference only (clip exports are rig-only; grounding takes only skinned
+`Skeleton*` meshes); `--remove --save` deletes them.
 
 ### Hand-authored clips and idle fixes (2026-09-21)
 

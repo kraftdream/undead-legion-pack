@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &5008945123204479150
+--- !u!1 &2240429604910823095
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,7 +8,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 3789571701205616292}
+  - component: {fileID: 6387264315039741077}
   m_Layer: 0
   m_Name: W_Arrow
   m_TagString: Untagged
@@ -16,24 +16,24 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &3789571701205616292
+--- !u!4 &6387264315039741077
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5008945123204479150}
+  m_GameObject: {fileID: 2240429604910823095}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 3528226342315962897}
-  - {fileID: 4007633286962886170}
+  - {fileID: 5209691163159264132}
+  - {fileID: 1099919270181585632}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &8133390394483991200
+--- !u!1 &9012493441190642892
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,7 +41,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 4007633286962886170}
+  - component: {fileID: 1099919270181585632}
   m_Layer: 0
   m_Name: Grip
   m_TagString: Untagged
@@ -49,28 +49,28 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &4007633286962886170
+--- !u!4 &1099919270181585632
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8133390394483991200}
+  m_GameObject: {fileID: 9012493441190642892}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 1, w: 0}
-  m_LocalPosition: {x: 0, y: 0.461, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
+  m_LocalPosition: {x: -0, y: 0.464, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3789571701205616292}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 180}
---- !u!1001 &3998209482438366714
+  m_Father: {fileID: 6387264315039741077}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
+--- !u!1001 &5748339147901508719
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 3789571701205616292}
+    m_TransformParent: {fileID: 6387264315039741077}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 78040aff5a185924f8ebfcba672d8544, type: 3}
       propertyPath: m_LocalPosition.x
@@ -116,14 +116,6 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 19e60e7e9cc9c7f48b792fff49140a3c, type: 2}
-    - target: {fileID: -7511558181221131132, guid: 78040aff5a185924f8ebfcba672d8544, type: 3}
-      propertyPath: 'm_Materials.Array.data[1]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 531693aede88e77448518923a6a8bf60, type: 2}
-    - target: {fileID: -7511558181221131132, guid: 78040aff5a185924f8ebfcba672d8544, type: 3}
-      propertyPath: 'm_Materials.Array.data[2]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 531693aede88e77448518923a6a8bf60, type: 2}
     - target: {fileID: 919132149155446097, guid: 78040aff5a185924f8ebfcba672d8544, type: 3}
       propertyPath: m_Name
       value: Mesh
@@ -133,8 +125,8 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 78040aff5a185924f8ebfcba672d8544, type: 3}
---- !u!4 &3528226342315962897 stripped
+--- !u!4 &5209691163159264132 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 78040aff5a185924f8ebfcba672d8544, type: 3}
-  m_PrefabInstance: {fileID: 3998209482438366714}
+  m_PrefabInstance: {fileID: 5748339147901508719}
   m_PrefabAsset: {fileID: 0}

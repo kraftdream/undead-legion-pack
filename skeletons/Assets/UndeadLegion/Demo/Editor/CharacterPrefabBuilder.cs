@@ -169,6 +169,15 @@ namespace UndeadLegion.DemoEditor
                 grip.localPosition = new Vector3(0f, Mathf.Min(top, foot + ProppedHandHeight), 0f);
                 grip.localRotation = Quaternion.Euler(0f, 0f, 180f);
             }
+            else if (name == "Arrow")
+            {
+                // held between the fingers of the string hand: the shaft (weapon +Y, head at +Y) runs
+                // along the fingers, which is the slot's -X in Unity (Blender's socket +X; the FBX
+                // import flips the handedness of that axis), so it points at the bow at full draw and
+                // hangs down the leg when the hand hangs (Shoot_01/02 aim the string hand's fingers at
+                // the bow; measured: the shot line reads (-1, 0, 0) in the slot frame at full draw)
+                grip.localRotation = Quaternion.Euler(0f, 0f, -90f);
+            }
             else if (name.Contains("Shield"))
             {
                 // hand-held shield (2026-09-21): the fist closes on a handle 4.5 cm behind the
