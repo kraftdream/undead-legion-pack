@@ -685,6 +685,75 @@ arm attacks: Knight boots −4..+1 mm on every frame of the stab, the other five
 lowest frame (a sole under an opaque floor is invisible, a gap is not). Rule: **a shared clip can
 only ever put ONE model's sole exactly on the floor; choose the highest and let the rest sink.**
 The 15 mm default lift stays for the IK-legged idles measured on the Knight alone.
+**Then, editing in Blender: "on some frames foot_ik.R controls the right leg (frame 13 of the right
+stab), on frame 14 it detaches; also happened in some actions with hands".** The retarget keyed the
+IK/FK switch per frame: the plant set the leg to IK only on the frames it touched (partial weights
+while the foot lands or lifts, pure FK where the boot already sat on the floor), and every hand pass
+(hand clearance, gate, arm keys, prop, arm IK) does the same to its arm. **`--ik-always`** (manifest
+`ik_always`, default `auto`): a limb that any pass puts on IK now stays on IK for the whole clip;
+on the frames no pass touched, `bake_ik_limbs()` runs last in `pose()` and puts the IK target and
+pole on the DEF result (the FK pose, or the plant's blend), so the pose is unchanged and the IK
+control is live on every frame. `auto` = legs whenever `plant_feet` is on. Measured on the rebuilt
+right stab against the previous build: feet, hips, spine and arms 0.0 mm, knees within 6 mm (the
+pole is now REFINED: `ik_pole()` corrects the residual swivel about the hip→ankle axis until the
+knee lies in the FK knee's plane, 0.00° — Rigify's pole angle is a rest-pose fit and a pole placed
+in the plane left a 3–7° swivel; the remaining knee offset on planted frames is the plant's own
+lift of the ankle, 11 mm at frame 3), thigh roll within 1.6° (stripped at export anyway). Both
+legs' `IK_FK` keys are 0.0 on all 24 frames. **Arms are opt-in** (`ik_always arms|both`): the
+pole reproduces upper arm, elbow, wrist and hand exactly, but the IK forearm has no twist of its
+own, so the capture's forearm pronation on FK frames (21° on this stab) is lost — decide per clip.
+Two things learned on the way: Rigify's `thigh_ik` / `upper_arm_ik` control is NOT the chain's
+start (aligning it to the FK bone moved the knee 15–38 mm, the elbow 45–70 mm), the pole is the
+only handle on the swivel; and "IK knee vs FK knee" is the wrong check on a planted frame — the
+plant lowers the ankle, so the knee legitimately differs; compare against the previous build.
+
+**The user's first NLA edit (2026-09-23): "added a new action Attack_R_Stab_Fix with the feet fixed;
+the regular Attack_R_Stab now looks different; can we use the fix to update the stab animations? and
+get rid of the drift on the left foot".** Their setup: Attack_R_Stab pushed down as an NLA strip
+(Replace), the fix as the ACTIVE action in Combine mode (20 fcurves: `foot_ik.L/R`, 1–2 keys each).
+Two lessons: (1) selecting Attack_R_Stab as the active action over its own strip in Combine mode
+applies it TWICE (that was "looks different"); (2) switching the active action away from the fix
+left it with no user and the first save dropped it — an action must have a fake user (the shield)
+to survive. **`tools/anim_nla_bake.py -- --result Attack_R_Stab --mirror-to Attack_L_Stab
+--pin-foot L --save`** flattens the stack: the evaluated pose of all 123 controls (loc/rot/scale +
+IK_FK / pole_vector / IK_Stretch) per frame into a fresh action, the old one kept as
+`<name>_base` (fake user), every NLA track removed; proved flat = stack to 0.00 mm on every DEF
+bone. `--pin-foot L[:frame]` then holds that foot's IK control (and toe) at one world transform for
+the whole clip (frame 1's: where the idle crossfade lands it; the capture's rear foot drifted 6 cm
+sideways and 7 cm fore-aft while planted): knee 136–153°, DEF foot on the pin to 0.0 mm on every
+frame. `--mirror-to` writes the X-flip (Paste-X-Flipped rule; landmarks within 2.1 mm of the exact
+mirror). Manifest **`hand_edited true`** on both stabs: the batch no longer regenerates them (a
+rebuild from the recording would erase the fix); **`anim_batch.py <names> --export-only`** exports,
+verifies and ground-fits what is in the anim file. Root motion unchanged (18 cm, yaw 355° / 5°);
+after the fit the Archer sinks 10–13 mm at its lowest frame (the fix widened the sole spread).
+⚠ A headless `--save` overwrites the file under the user's open session: reload before editing on.
+
+**Slice round (2026-09-23): "speed it up 1.7 times; after the animation the model's forward direction
+changes 20–30°; it stops too suddenly, use 5–6 more reference frames".** `time_scale 0.4525`
+(0.7692 / 1.7), `unwind_yaw` and the range extended: the recording's hand speed (measured on the
+source armature) is still 1.1 m/s at frame 171, settles to ~0.5 at 174 and the performer walks off
+from 180, so `src_end 176` (34 frames, 1.10 s; the hand ends at 1.5 m/s in Unity, decelerating,
+was 3.2). The turn: a hips-only unwind left Unity's root-motion yaw at −13° because **Unity derives
+root rotation from the BODY orientation, which weights the chest about 2:1 over the hips** (measured:
+hips net 0°, chest net −19°, root rotation −13°; the follow-through leaves the torso turned).
+**`unwind_ref body`** (`--unwind-ref hips|body`) cancels (hips + 2·chest)/3 instead: root-motion
+yaw 356.7° / 3.3° (R / L). Lowest vertex after the fit: the Archer sinks ≤ 9 mm.
+Then the user's `Attack_R_Slice_Fix` (foot_ik.L/R + hand_fk.R, Combine over the strip): "reuse it
+to remove the right foot drift, plus the left foot drift after the step forward, from frame 20; then
+bake". Traced through the stack: the right (rear) foot wandered 8 cm sideways and 6 cm fore-aft
+while planted, the left steps forward over frames 13–19 and then slid 2–3 cm. `--pin-foot` now takes
+`SIDE[:ref[:from[:to]]]`: **`--pin-foot "R,L:20:20"`** holds the right foot at its frame 1 transform
+for all 34 frames (knee 144–157°) and the left at its frame 20 transform from frame 20 (knee 127–139°),
+DEF feet on their pins to 0.0 mm; then `--mirror-to Attack_L_Slice --save`, both flagged
+`hand_edited`, exported with `--export-only`: root motion 32 cm, yaw 356.7° / 3.7°, the six boots
+sink ≤ 9 mm after the fit. Then "speed up by 35 % from frame 21 to 34": the clip is a baked action
+now, so the warp runs on it: **`anim_nla_bake.py -- --result Attack_R_Slice --speed-segment 21:34:1.35
+--mirror-to Attack_L_Slice --save`** (with no NLA the "stack" is the action itself; the segment is
+resampled at fractional frames through Blender's own curve evaluation, `frame_set(f, subframe)`,
+ending exactly on 34): 34 → 31 frames (1.00 s), the segment 14 → 11. A re-bake keeps the FIRST
+`_base` (the generated clip) and just replaces the current action. ⚠ `anim_batch --export-only`
+skips a clip whose manifest entry has not changed since its last build (the signature check): add
+`--force` after a bake that touched only the anim file.
 
 **Multi-frame pose references** (built for the swing, kept): `pose_ref` takes several
 `ACTION:frame@at`; the first ramps in over `pose_ref_in` frames, the deltas interpolate between
