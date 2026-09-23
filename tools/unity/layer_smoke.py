@@ -5,8 +5,9 @@
 Selects the Knight with a sword, plays Walk_Fwd, then clicks Attack_R_Slice (a right-arm
 clip: must land on the RightArm layer while Base stays on Walk_Fwd), then Attack_2H_01
 (a full-stop clip: must take the Base layer, and Walk_Fwd must resume after it), then the
-held block: Block_L_Idle toggled on (LeftArm layer holds it), Attack_R_Stab over it (RightArm
-layer, the block stays), Block_L_Idle toggled off (LeftArm back to Empty). Prints
+held block: Block_L_Idle toggled on (LeftArm layer holds it), Attack_R_Stab over it (standing,
+so it plays full-body on Base and the LeftArm layer keeps the block up), Block_L_Idle toggled
+off (LeftArm back to Empty). Prints
 the state of every layer at each step and writes <out_dir>/layer_<step>.png. Same
 play-mode driving rules as demo_smoke.py (kick the loop, wait for shaders, stop at the end).
 """

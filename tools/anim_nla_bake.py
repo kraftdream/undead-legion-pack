@@ -26,7 +26,8 @@ def arg(k, d=None): return argv[argv.index(k) + 1] if k in argv else d
 RESULT = arg("--result"); MIRROR_TO = arg("--mirror-to", ""); SAVE = "--save" in argv
 KEEP_OLD = arg("--keep-old", RESULT + "_base")
 FRAMES = arg("--frames", "")
-SPEED_SEGMENT = arg("--speed-segment", "")        # "A:B:F": after the bake (and pin), frames A..B of the result are resampled F times faster (Blender's own curve evaluation at fractional frames), the frames after B shift earlier (user: "speed up by 35% from frame 21 to 34")
+SPEED_SEGMENT = arg("--speed-segment", "")
+FK_ARM = arg("--fk-arm", "")                      # "L" / "R" / "LR": after the bake, that arm is put on FK on every frame, the FK chain set to the arm's current (IK) result: lossless, and upper_arm_fk / forearm_fk / hand_fk then control it (user, on Block_L_Idle whose left arm was IK throughout: "upper_arm_fk_l and its children won't change the mesh")        # "A:B:F": after the bake (and pin), frames A..B of the result are resampled F times faster (Blender's own curve evaluation at fractional frames), the frames after B shift earlier (user: "speed up by 35% from frame 21 to 34")
 PIN_FOOT = arg("--pin-foot", "")                  # "L" / "L:1" / "L,R" / "L:20:20:34": SIDE[:ref[:from[:to]]] - after the bake, that foot's IK control (and toe) is held from frame `from` to `to` (default: the whole clip) at the WORLD transform it has on frame `ref` (default: the first frame): a planted foot that the capture let drift (user: "get rid of the drift on the left feet"; "left foot drift after the step forward, from frame 20")
 assert RESULT, "--result NAME is required"
 
@@ -185,6 +186,44 @@ def pin_feet(act):
             side, p0, p1, fr_, foot_m.translation.x, foot_m.translation.y, foot_m.translation.z, knee_min, knee_max, worst_gap))
 
 
+def fk_arms(act):
+    """Convert an arm from IK to FK for the whole clip without changing the pose: per frame, read the DEF
+    upper arm / forearm / hand world rotations, set the FK controls to reproduce them (rest relation
+    FK control -> DEF bone, measured on the zero pose) and switch IK_FK to 1."""
+    ad.action = act
+    chain = [("upper_arm_fk", "DEF-upper_arm"), ("forearm_fk", "DEF-forearm"), ("hand_fk", "DEF-hand")]
+    for side in FK_ARM:
+        if side not in ("L", "R"):
+            continue
+        # rest relation, on the zero pose
+        ad.action = None
+        for pb in pbs: pb.matrix_basis.identity()
+        bpy.context.view_layer.update()
+        rel = {c: (rig.matrix_world @ pbs[d + "." + side].matrix).to_quaternion().inverted() @ (rig.matrix_world @ pbs[c + "." + side].matrix).to_quaternion() for c, d in chain}
+        ad.action = act
+        worst = 0.0
+        for f in range(F0, F1 + 1):
+            scene.frame_set(f)
+            target = {c: (rig.matrix_world @ pbs[d + "." + side].matrix).copy() for c, d in chain}
+            pbs["upper_arm_parent." + side]["IK_FK"] = 1.0
+            bpy.context.view_layer.update()
+            for c, d in chain:
+                pb = pbs[c + "." + side]
+                q = target[c].to_quaternion() @ rel[c]
+                m = pb.matrix.copy(); r = (rig.matrix_world.to_3x3().inverted() @ q.to_matrix()).to_4x4(); r.translation = m.translation
+                pb.matrix = r
+                bpy.context.view_layer.update()
+            for c, d in chain:
+                pb = pbs[c + "." + side]
+                pb.keyframe_insert("location", frame=f, group=c + "." + side)
+                pb.keyframe_insert("rotation_quaternion" if pb.rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group=c + "." + side)
+            pbs["upper_arm_parent." + side].keyframe_insert('["IK_FK"]', frame=f, group="upper_arm_parent." + side)
+            for c, d in chain:
+                m = rig.matrix_world @ pbs[d + "." + side].matrix
+                worst = max(worst, (m.translation - target[c].translation).length * 1000, math.degrees(m.to_quaternion().rotation_difference(target[c].to_quaternion()).angle))
+        log("arm %s on FK for frames %d..%d: DEF upper arm / forearm / hand reproduced within %.2f (mm or deg) on every frame" % (side, F0, F1, worst))
+
+
 # 2. check that the flat action reproduces the stack: DEF bones before vs after
 DEF = [b.name for b in pbs if b.name.startswith("DEF-")]
 ref = {}
@@ -217,6 +256,9 @@ if PIN_FOOT:
                     rec[p_] = pb[p_]
             fr[n] = rec
         poses[f] = fr
+
+if FK_ARM:
+    fk_arms(baked)
 
 if SPEED_SEGMENT:
     A_, B_, FX = SPEED_SEGMENT.split(":"); A_ = int(A_); B_ = int(B_); FX = float(FX)

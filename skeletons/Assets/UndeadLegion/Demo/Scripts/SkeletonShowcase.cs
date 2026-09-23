@@ -401,9 +401,12 @@ namespace UndeadLegion.Demo
                 ToggleHeld(clip, masked);
                 return;
             }
-            // an arm/upper clip goes to its masked layer while a locomotion loop runs (the legs keep walking)
-            // or while a block is held (the other arm keeps blocking); otherwise it plays full-body on Base
-            if (masked >= 0 && ((_current != null && _current.isLooping && IsLocomotion(_current)) || _held.Count > 0))
+            // an arm/upper clip goes to its masked layer only while a locomotion loop runs (the legs keep
+            // walking); standing, it plays full-body on Base, steps included. A held block does not change
+            // that: its layer overrides the left arm over whatever Base plays, so the shield stays up
+            // through a full-body attack (2026-09-23: routing every attack to the arm layer while a block
+            // was held left the legs still on the idle - "stab/slice attacks stop moving the legs")
+            if (masked >= 0 && _current != null && _current.isLooping && IsLocomotion(_current))
             {
                 PlayOnTheMove(clip);
                 return;
