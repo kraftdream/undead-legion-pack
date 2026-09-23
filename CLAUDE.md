@@ -806,6 +806,42 @@ the vambrace rolls; drop the key to get the FK forearm back. The Kimodo / JNT bu
 these four (`arm_pose two_handed_shoulder`, the prop/hunch/torso_ref passes) are history in the
 manifest notes.
 
+Then "reuse it to get rid of feet drift" (the pin tool on the 2H attacks; the two idles have none —
+their feet sit at the rest stance on every frame): traced per frame, the rear LEFT foot wandered 5 cm
+while planted and lifted its heel 5 cm mid-lunge (a real pivot, not drift), the RIGHT foot slid before
+and after its lunge step. Two new pin modes in `anim_nla_bake.py`: **`SIDE:ref:from:to:xy`** holds only
+the horizontal position and keeps each frame's own height and rotation (the heel lift survives), and
+**`SIDE:auto`** finds a stepping foot's planted phases itself (ankle within 12 mm rig of the clip's
+lowest, ≥ 3 frames) and holds each at its middle frame (2H_01: 1–11, 29–36, 54–57; 2H_02: 1–8,
+26–34, 55–59). Also **`--action NAME`**: with no fix stack the tool used to flatten whatever action was
+ACTIVE (a dry run on the 2H clips produced the idle's feet); a plain clip is now named explicitly. Both
+attacks flagged `hand_edited`, exported with `--export-only --force`.
+
+**A fix from an unsaved session (Idle_Propped, 2026-09-23 late).** The user had `Idle_Propped_Fix`
+open but did not want to save over the anim file (my later saves would have been lost): **File > Save
+Copy** to a side path (`GitHub/skeleton_anim.blend`, outside the repo), the bake run ON THE COPY
+(`anim_nla_bake.py -- --result Idle_Propped --save`, flat = stack to 0.00 mm), then the flat clip and
+the fix action appended into the anim file (`transfer_action.py`: the old clip becomes `_base`, the
+NLA cleared, the appended action made active) and exported with `--export-only --force`. The fix:
+one held key on torso, chest, head, both feet, both hands and both elbow poles. Rule: **never ask
+the user to save their session over a file the tools have touched since; a Save Copy is the bridge.**
+The fix lowered the propping hand to 0.97 m and hunched the chest to 37°, so the staff gripped at its
+top went 27 cm through the floor: `ProppedHandHeight` 0.97 (prefab Grip moved in place, grips
+re-dumped); measured with the staff attached: foot 0.00 m, top 1.24 m, nearly vertical, elbow 84°.
+
+**Idles bob in Unity (2026-09-23, "in Blender the feet are static, in Unity they drift up/down slightly
+in Idle_TwoHanded").** Measured per frame on the Knight: both boots together at +10..+16 mm, following
+the hips sway (0.94–0.98 m) — Humanoid's leg reconstruction moves the whole body a few mm with the
+hips on top of the constant 15 mm lift; Blender's IK feet never move. Both feet track together, so
+`ground_fit true` on Idle_TwoHanded and Idle_Propped (the per-frame Root fit, now on idles too):
+Knight boots within ±2 / ±4 mm of the floor on every frame, the highest model's sole at 0, the
+others sinking ≤ 10 mm; the fit curve's first and last frames differ by under 1 mm, so the loop seam
+holds. Rule: a looping idle can take the per-frame fit as long as its seam is checked in the curve.
+Then "closed grip on the left hand" for Idle_TwoHanded: the left hand rides the shaft but holds no
+item, so the engine gives it no grip pose; the clip is hand-edited (no retarget), so `anim_nla_bake.py
+--hand-grip L` does what the retarget's `hand_grip` does, on the baked action (25 finger controls,
+verified 0.00° against the Grip fist on every frame).
+
 **Multi-frame pose references** (built for the swing, kept): `pose_ref` takes several
 `ACTION:frame@at`; the first ramps in over `pose_ref_in` frames, the deltas interpolate between
 refs, and `pose_ref_tail return` goes from the last ref's pose straight to the blend-to pose by

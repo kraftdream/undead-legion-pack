@@ -56,7 +56,7 @@ namespace UndeadLegion.DemoEditor
 
         /// <summary>Height of the propping hand's socket in Idle_Propped (engine metres), from the
         /// user's reference pose (Propped_Base); the "Staff (propped)" grip is placed this far up.</summary>
-        const float ProppedHandHeight = 1.24f;   // 2026-09-23: the user's mannequin recording rests the hand on the staff's TOP (slot at 1.15-1.17 m; the staff is 1.24 m and the retarget aims it at a floor point ahead from the hand, so the foot lands on the floor with the grip at the top). Was 0.80 for the earlier capture
+        const float ProppedHandHeight = 0.97f;   // 2026-09-23: the socket height Unity measures in the user's fixed Idle_Propped (hand at 0.97 m, chest hunched 37 deg); the grip sits this far up the 1.24 m staff so the foot meets the floor. Was 1.24 (hand on the top) before the fix, 0.80 for the earlier capture
 
         static readonly string[] FingerBones = { "Thumb1", "Thumb2", "Thumb3", "Index1", "Index2", "Index3", "Middle1", "Middle2", "Middle3", "Ring1", "Ring2", "Ring3", "Pinky1", "Pinky2", "Pinky3" };
 

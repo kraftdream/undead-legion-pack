@@ -26,6 +26,8 @@ def arg(k, d=None): return argv[argv.index(k) + 1] if k in argv else d
 RESULT = arg("--result"); MIRROR_TO = arg("--mirror-to", ""); SAVE = "--save" in argv
 KEEP_OLD = arg("--keep-old", RESULT + "_base")
 FRAMES = arg("--frames", "")
+SOURCE = arg("--action", "")
+HAND_GRIP = arg("--hand-grip", "")                # "L" / "R" / "LR": after the bake, that hand's finger controls take the `Grip` action's fist on every frame (the pose the engine puts on a hand that holds an item; an empty hand on a two-hander's shaft gets none)                      # flatten THIS action instead of the rig's current stack (a plain clip with no fix on top: the tool otherwise reads whatever action happens to be active)
 SPEED_SEGMENT = arg("--speed-segment", "")
 FK_ARM = arg("--fk-arm", "")                      # "L" / "R" / "LR": after the bake, that arm is put on FK on every frame, the FK chain set to the arm's current (IK) result: lossless, and upper_arm_fk / forearm_fk / hand_fk then control it (user, on Block_L_Idle whose left arm was IK throughout: "upper_arm_fk_l and its children won't change the mesh")        # "A:B:F": after the bake (and pin), frames A..B of the result are resampled F times faster (Blender's own curve evaluation at fractional frames), the frames after B shift earlier (user: "speed up by 35% from frame 21 to 34")
 PIN_FOOT = arg("--pin-foot", "")                  # "L" / "L:1" / "L,R" / "L:20:20:34": SIDE[:ref[:from[:to]]] - after the bake, that foot's IK control (and toe) is held from frame `from` to `to` (default: the whole clip) at the WORLD transform it has on frame `ref` (default: the first frame): a planted foot that the capture let drift (user: "get rid of the drift on the left feet"; "left foot drift after the step forward, from frame 20")
@@ -55,6 +57,14 @@ def stack_range():
     return int(round(lo)), int(round(hi))
 
 
+if SOURCE:
+    src_act = bpy.data.actions[SOURCE]
+    for t in ad.nla_tracks:
+        t.mute = True
+    ad.action = src_act; ad.action_blend_type = 'REPLACE'; ad.action_influence = 1.0
+    if hasattr(ad, "action_slot") and src_act.slots:
+        ad.action_slot = src_act.slots[0]
+    log("source: action %s (NLA tracks muted)" % SOURCE)
 if FRAMES:
     F0, F1 = (int(v) for v in FRAMES.split(":"))
 else:
@@ -152,28 +162,32 @@ def write_action(name, frames_, mirror):
 
 
 def pin_feet(act):
-    """Hold each --pin-foot foot's IK control at one world transform for the whole clip (the legs are on IK on
-    every frame since ik_always). Reports the knee angle so a locked leg shows, and the DEF foot's distance
-    from the target so an unreachable pin shows."""
+    """Hold each --pin-foot foot's IK control on the floor spot for the whole clip or a frame range (the legs
+    are on IK on every frame since ik_always). Spec SIDE[:ref[:from[:to]]][:xy]: `ref` = the frame whose world
+    transform is held (default the first), `xy` = hold only the horizontal position and keep each frame's own
+    height and rotation (a planted rear foot that lifts its heel in a lunge). SIDE:auto[:xy] finds the foot's
+    planted phases itself (frames whose ankle sits within 12 mm rig of the clip's lowest, 3+ frames long) and
+    holds each at its middle frame (a stepping foot: before the step, the landing, the return). Reports the
+    knee angle so a locked leg shows, and the DEF foot's distance from the target so an unreachable pin shows."""
     ad.action = act
-    for spec in PIN_FOOT.split(","):
-        if not spec:
-            continue
-        parts = spec.split(":"); side = parts[0]
-        fr_ = int(parts[1]) if len(parts) > 1 and parts[1] else F0
-        p0 = int(parts[2]) if len(parts) > 2 and parts[2] else F0
-        p1 = int(parts[3]) if len(parts) > 3 and parts[3] else F1
+
+    def hold(side, fr_, p0, p1, xy):
         scene.frame_set(fr_)
         foot_m = (rig.matrix_world @ pbs["foot_ik." + side].matrix).copy()
         toe_m = (rig.matrix_world @ pbs["toe_ik." + side].matrix).copy()
         worst_gap = 0.0; knee_min = 180.0; knee_max = 0.0
         for f in range(p0, p1 + 1):
             scene.frame_set(f)
-            pb = pbs["foot_ik." + side]; pb.matrix = rig.matrix_world.inverted() @ foot_m
+            tgt = foot_m
+            if xy:
+                tgt = (rig.matrix_world @ pbs["foot_ik." + side].matrix).copy()
+                tgt.translation = Vector((foot_m.translation.x, foot_m.translation.y, tgt.translation.z))
+            pb = pbs["foot_ik." + side]; pb.matrix = rig.matrix_world.inverted() @ tgt
             pbs["thigh_parent." + side]["IK_FK"] = 0.0
             bpy.context.view_layer.update()
-            pt = pbs["toe_ik." + side]; pt.matrix = rig.matrix_world.inverted() @ toe_m
-            bpy.context.view_layer.update()
+            if not xy:
+                pt = pbs["toe_ik." + side]; pt.matrix = rig.matrix_world.inverted() @ toe_m
+                bpy.context.view_layer.update()
             for n in ("foot_ik." + side, "toe_ik." + side):
                 pbs[n].keyframe_insert("location", frame=f, group=n)
                 pbs[n].keyframe_insert("rotation_quaternion" if pbs[n].rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group=n)
@@ -181,47 +195,37 @@ def pin_feet(act):
             hip = (rig.matrix_world @ pbs["DEF-thigh." + side].matrix).translation; knee = (rig.matrix_world @ pbs["DEF-shin." + side].matrix).translation
             ank = (rig.matrix_world @ pbs["DEF-foot." + side].matrix).translation
             a_ = math.degrees((hip - knee).angle(ank - knee)); knee_min = min(knee_min, a_); knee_max = max(knee_max, a_)
-            worst_gap = max(worst_gap, (ank - foot_m.translation).length * 1000)
-        log("pinned foot %s on frames %d..%d at frame %d's world transform (%.3f, %.3f, %.3f): knee %.0f..%.0f deg, DEF foot within %.1f mm of the pin on every pinned frame" % (
-            side, p0, p1, fr_, foot_m.translation.x, foot_m.translation.y, foot_m.translation.z, knee_min, knee_max, worst_gap))
+            worst_gap = max(worst_gap, (ank - tgt.translation).length * 1000)
+        log("pinned foot %s on frames %d..%d at frame %d's %s (%.3f, %.3f, %.3f): knee %.0f..%.0f deg, DEF foot within %.1f mm of the pin on every pinned frame" % (
+            side, p0, p1, fr_, "horizontal position (height and rotation kept)" if xy else "world transform", foot_m.translation.x, foot_m.translation.y, foot_m.translation.z, knee_min, knee_max, worst_gap))
 
-
-def fk_arms(act):
-    """Convert an arm from IK to FK for the whole clip without changing the pose: per frame, read the DEF
-    upper arm / forearm / hand world rotations, set the FK controls to reproduce them (rest relation
-    FK control -> DEF bone, measured on the zero pose) and switch IK_FK to 1."""
-    ad.action = act
-    chain = [("upper_arm_fk", "DEF-upper_arm"), ("forearm_fk", "DEF-forearm"), ("hand_fk", "DEF-hand")]
-    for side in FK_ARM:
-        if side not in ("L", "R"):
+    for spec in PIN_FOOT.split(","):
+        if not spec:
             continue
-        # rest relation, on the zero pose
-        ad.action = None
-        for pb in pbs: pb.matrix_basis.identity()
-        bpy.context.view_layer.update()
-        rel = {c: (rig.matrix_world @ pbs[d + "." + side].matrix).to_quaternion().inverted() @ (rig.matrix_world @ pbs[c + "." + side].matrix).to_quaternion() for c, d in chain}
-        ad.action = act
-        worst = 0.0
-        for f in range(F0, F1 + 1):
-            scene.frame_set(f)
-            target = {c: (rig.matrix_world @ pbs[d + "." + side].matrix).copy() for c, d in chain}
-            pbs["upper_arm_parent." + side]["IK_FK"] = 1.0
-            bpy.context.view_layer.update()
-            for c, d in chain:
-                pb = pbs[c + "." + side]
-                q = target[c].to_quaternion() @ rel[c]
-                m = pb.matrix.copy(); r = (rig.matrix_world.to_3x3().inverted() @ q.to_matrix()).to_4x4(); r.translation = m.translation
-                pb.matrix = r
-                bpy.context.view_layer.update()
-            for c, d in chain:
-                pb = pbs[c + "." + side]
-                pb.keyframe_insert("location", frame=f, group=c + "." + side)
-                pb.keyframe_insert("rotation_quaternion" if pb.rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group=c + "." + side)
-            pbs["upper_arm_parent." + side].keyframe_insert('["IK_FK"]', frame=f, group="upper_arm_parent." + side)
-            for c, d in chain:
-                m = rig.matrix_world @ pbs[d + "." + side].matrix
-                worst = max(worst, (m.translation - target[c].translation).length * 1000, math.degrees(m.to_quaternion().rotation_difference(target[c].to_quaternion()).angle))
-        log("arm %s on FK for frames %d..%d: DEF upper arm / forearm / hand reproduced within %.2f (mm or deg) on every frame" % (side, F0, F1, worst))
+        parts = spec.split(":"); side = parts[0]
+        xy = parts[-1] == "xy"
+        if xy:
+            parts = parts[:-1]
+        if len(parts) > 1 and parts[1] == "auto":
+            zs = {}
+            for f in range(F0, F1 + 1):
+                scene.frame_set(f); zs[f] = (rig.matrix_world @ pbs["DEF-foot." + side].matrix).translation.z
+            zmin = min(zs.values()); planted = [f for f in range(F0, F1 + 1) if zs[f] <= zmin + 0.012]
+            phases = []
+            for f in planted:
+                if phases and f == phases[-1][1] + 1:
+                    phases[-1][1] = f
+                else:
+                    phases.append([f, f])
+            phases = [ph for ph in phases if ph[1] - ph[0] + 1 >= 3]
+            log("foot %s auto: lowest ankle %.3f, planted phases %s" % (side, zmin, ", ".join("%d..%d" % tuple(ph) for ph in phases)))
+            for p0, p1 in phases:
+                hold(side, (p0 + p1) // 2, p0, p1, xy)
+            continue
+        fr_ = int(parts[1]) if len(parts) > 1 and parts[1] else F0
+        p0 = int(parts[2]) if len(parts) > 2 and parts[2] else F0
+        p1 = min(F1, int(parts[3])) if len(parts) > 3 and parts[3] else F1
+        hold(side, fr_, max(F0, p0), p1, xy)
 
 
 # 2. check that the flat action reproduces the stack: DEF bones before vs after
@@ -256,6 +260,25 @@ if PIN_FOOT:
                     rec[p_] = pb[p_]
             fr[n] = rec
         poses[f] = fr
+
+if HAND_GRIP:
+    g_ = bpy.data.actions.get("Grip"); assert g_ is not None, "--hand-grip needs the Grip action"
+    ad.action = g_; scene.frame_set(1); bpy.context.view_layer.update()
+    grip_pose = {}
+    for pb in pbs:
+        n_ = pb.name
+        if n_.startswith(("thumb.", "f_index", "f_middle", "f_ring", "f_pinky")) and any(n_.endswith("." + s_) or ("." + s_ + ".") in n_ for s_ in HAND_GRIP if s_ in "LR"):
+            grip_pose[n_] = pb.matrix_basis.copy()
+    ad.action = baked
+    for f in range(F0, F1 + 1):
+        scene.frame_set(f)
+        for n_, m_ in grip_pose.items():
+            pbs[n_].matrix_basis = m_
+        for n_ in grip_pose:
+            pb = pbs[n_]
+            pb.keyframe_insert("location", frame=f, group=n_)
+            pb.keyframe_insert("rotation_quaternion" if pb.rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group=n_)
+    log("hand-grip %s: %d finger controls set to the Grip fist on frames %d..%d" % (HAND_GRIP, len(grip_pose), F0, F1))
 
 if FK_ARM:
     fk_arms(baked)
