@@ -2,9 +2,11 @@
 
     python tools/unity/layer_smoke.py [out_dir]
 
-Selects the Knight with a sword, plays Walk_Fwd, then clicks Attack_1H_01 (an on-the-move
-clip: must land on the UpperBody layer while Base stays on Walk_Fwd), then Attack_2H_01
-(a full-stop clip: must take the Base layer, and Walk_Fwd must resume after it). Prints
+Selects the Knight with a sword, plays Walk_Fwd, then clicks Attack_R_Slice (a right-arm
+clip: must land on the RightArm layer while Base stays on Walk_Fwd), then Attack_2H_01
+(a full-stop clip: must take the Base layer, and Walk_Fwd must resume after it), then the
+held block: Block_L_Idle toggled on (LeftArm layer holds it), Attack_R_Stab over it (RightArm
+layer, the block stays), Block_L_Idle toggled off (LeftArm back to Empty). Prints
 the state of every layer at each step and writes <out_dir>/layer_<step>.png. Same
 play-mode driving rules as demo_smoke.py (kick the loop, wait for shaders, stop at the end).
 """
@@ -62,7 +64,7 @@ def run(out_dir):
         print("walk:       ", probe(PLAY % "Walk_Fwd"))
         time.sleep(2.0)
         print("walking:    ", probe())
-        print("1H on move: ", probe(PLAY % "Attack_1H_01"))
+        print("R on move:  ", probe(PLAY % "Attack_R_Slice"))
         time.sleep(1.2)
         print("mid attack: ", probe())
         shot("walk_attack")
@@ -74,6 +76,18 @@ def run(out_dir):
         shot("fullstop")
         time.sleep(4.0)
         print("resumed:    ", probe())
+        print("block on:   ", probe(PLAY % "Block_L_Idle"))
+        time.sleep(1.5)
+        print("holding:    ", probe())
+        print("R stab held:", probe(PLAY % "Attack_R_Stab"))
+        time.sleep(1.2)
+        print("mid stab:   ", probe())
+        shot("block_stab")
+        time.sleep(3.5)
+        print("after stab: ", probe())
+        print("block off:  ", probe(PLAY % "Block_L_Idle"))
+        time.sleep(1.5)
+        print("released:   ", probe())
         r = c.call("read_console", {"action": "get", "types": ["error", "warning"], "count": 20, "format": "plain"}, timeout=120)
         print("console:", r.get("message"), json.dumps(r.get("data"))[:800])
     finally:

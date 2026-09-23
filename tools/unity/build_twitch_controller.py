@@ -62,31 +62,34 @@ var idleState = baseSm.AddState("Idle"); idleState.motion = idle; baseSm.default
 foreach (var cl in idleClips) { var vs = baseSm.AddState(cl.name); vs.motion = cl; }
 sb.AppendLine("base layer: Idle + " + idleClips.Count + " more states");
 
-// ---- upper-body mask: humanoid parts Body/Head/Arms/Fingers on, Root + legs + IK goals off;
-// the extra (non-humanoid) transforms follow the same cut: everything under Spine1 on
-string maskPath = dir + "AM_UpperBody.mask";
-var mask = AssetDatabase.LoadAssetAtPath<AvatarMask>(maskPath);
-bool newMask = mask == null;
-if (newMask) mask = new AvatarMask();
-foreach (AvatarMaskBodyPart part in System.Enum.GetValues(typeof(AvatarMaskBodyPart))) {
-  if (part == AvatarMaskBodyPart.LastBodyPart) continue;
-  bool on = part == AvatarMaskBodyPart.Body || part == AvatarMaskBodyPart.Head
-         || part == AvatarMaskBodyPart.LeftArm || part == AvatarMaskBodyPart.RightArm
-         || part == AvatarMaskBodyPart.LeftFingers || part == AvatarMaskBodyPart.RightFingers;
-  mask.SetHumanoidBodyPartActive(part, on);
-}
+// ---- masks: humanoid parts on/off + the extra (non-humanoid) transforms under a bone. UpperBody:
+// Body/Head/Arms/Fingers, transforms under Spine1. LeftArm / RightArm (2026-09-22, the per-arm attack
+// set): that arm + its fingers only, transforms under that Shoulder, so a left block and a right
+// stab compose over whatever the base and upper-body layers play (the torso stays with them)
 string modelPath = "Assets/UndeadLegion/Models/SkeletonKnight/SK_SkeletonKnight.fbx";
 var modelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
-if (mask.transformCount == 0) mask.AddTransformPath(modelPrefab.transform, true);   // adding again duplicates every path
-else if (mask.transformCount > 80) { while (mask.transformCount > 0) mask.RemoveTransformPath(modelPrefab.transform, true); mask.AddTransformPath(modelPrefab.transform, true); }
-int upperPaths = 0;
-for (int i = 0; i < mask.transformCount; i++) {
-  string tp = mask.GetTransformPath(i);
-  bool on = tp.Contains("/Spine1");           // Spine1 and every descendant (arms, neck, head, jaw, palms, sockets)
-  mask.SetTransformActive(i, on); if (on) upperPaths++;
-}
-if (newMask) AssetDatabase.CreateAsset(mask, maskPath); else EditorUtility.SetDirty(mask);
-sb.AppendLine("mask " + maskPath + ": " + upperPaths + "/" + mask.transformCount + " transform paths upper");
+System.Func<string, AvatarMaskBodyPart[], string, AvatarMask> makeMask = (mname, parts, pathKey) => {
+  string mpath_ = dir + mname + ".mask";
+  var mk_ = AssetDatabase.LoadAssetAtPath<AvatarMask>(mpath_); bool fresh_ = mk_ == null; if (fresh_) mk_ = new AvatarMask();
+  foreach (AvatarMaskBodyPart part_ in System.Enum.GetValues(typeof(AvatarMaskBodyPart))) {
+    if (part_ == AvatarMaskBodyPart.LastBodyPart) continue;
+    mk_.SetHumanoidBodyPartActive(part_, System.Array.IndexOf(parts, part_) >= 0);
+  }
+  if (mk_.transformCount == 0) mk_.AddTransformPath(modelPrefab.transform, true);   // adding again duplicates every path
+  else if (mk_.transformCount > 80) { while (mk_.transformCount > 0) mk_.RemoveTransformPath(modelPrefab.transform, true); mk_.AddTransformPath(modelPrefab.transform, true); }
+  int onPaths_ = 0;
+  for (int ii_ = 0; ii_ < mk_.transformCount; ii_++) {
+    string tp_ = mk_.GetTransformPath(ii_);
+    bool on_ = tp_.Contains("/" + pathKey + "/") || tp_.EndsWith("/" + pathKey);
+    mk_.SetTransformActive(ii_, on_); if (on_) onPaths_++;
+  }
+  if (fresh_) AssetDatabase.CreateAsset(mk_, mpath_); else EditorUtility.SetDirty(mk_);
+  sb.AppendLine("mask " + mpath_ + ": " + onPaths_ + "/" + mk_.transformCount + " transform paths on");
+  return mk_;
+};
+var mask = makeMask("AM_UpperBody", new AvatarMaskBodyPart[]{ AvatarMaskBodyPart.Body, AvatarMaskBodyPart.Head, AvatarMaskBodyPart.LeftArm, AvatarMaskBodyPart.RightArm, AvatarMaskBodyPart.LeftFingers, AvatarMaskBodyPart.RightFingers }, "Spine1");
+var maskL = makeMask("AM_LeftArm", new AvatarMaskBodyPart[]{ AvatarMaskBodyPart.LeftArm, AvatarMaskBodyPart.LeftFingers }, "LeftShoulder");
+var maskR = makeMask("AM_RightArm", new AvatarMaskBodyPart[]{ AvatarMaskBodyPart.RightArm, AvatarMaskBodyPart.RightFingers }, "RightShoulder");
 
 // twitch clips loop (for the loop layers); the trigger layer's exit-time transition still ends them after one pass
 foreach (var tn in new string[]{ "Twitch_01", "Twitch_02", "Twitch_03" }) {
@@ -96,28 +99,36 @@ foreach (var tn in new string[]{ "Twitch_01", "Twitch_02", "Twitch_03" }) {
   for (int i = 0; i < tclips.Length; i++) if (!tclips[i].loopTime) { tclips[i].loopTime = true; dirty = true; }
   if (dirty) { timp.clipAnimations = tclips; timp.SaveAndReimport(); sb.AppendLine("set loopTime on " + tn); }
 }
-ctrl.AddLayer("UpperBody");
+ctrl.AddLayer("UpperBody"); ctrl.AddLayer("LeftArm"); ctrl.AddLayer("RightArm");
 ctrl.AddLayer("Twitch");
 ctrl.AddLayer("TwitchLoop_01"); ctrl.AddLayer("TwitchLoop_02"); ctrl.AddLayer("TwitchLoop_03");
 var layers = ctrl.layers;
-for (int i = 3; i < 6; i++) { layers[i].blendingMode = UnityEditor.Animations.AnimatorLayerBlendingMode.Additive; layers[i].defaultWeight = 0f; }
-layers[1].blendingMode = UnityEditor.Animations.AnimatorLayerBlendingMode.Override;
-layers[1].defaultWeight = 1f;
-layers[1].avatarMask = mask;
-layers[2].blendingMode = UnityEditor.Animations.AnimatorLayerBlendingMode.Additive;
-layers[2].defaultWeight = 1f;
+for (int i = 5; i < 8; i++) { layers[i].blendingMode = UnityEditor.Animations.AnimatorLayerBlendingMode.Additive; layers[i].defaultWeight = 0f; }
+for (int i = 1; i < 4; i++) { layers[i].blendingMode = UnityEditor.Animations.AnimatorLayerBlendingMode.Override; layers[i].defaultWeight = 1f; }
+layers[1].avatarMask = mask; layers[2].avatarMask = maskL; layers[3].avatarMask = maskR;
+layers[4].blendingMode = UnityEditor.Animations.AnimatorLayerBlendingMode.Additive;
+layers[4].defaultWeight = 1f;
 ctrl.layers = layers;
-var upSm = ctrl.layers[1].stateMachine;
-var empty = upSm.AddState("Empty"); upSm.defaultState = empty;
-int nUpper = 0;
-foreach (var nm in new string[]{ %UPPER% }) {
-  var cl = load(nm); if (cl == null) { sb.AppendLine("missing upper clip " + nm); continue; }
-  var st = upSm.AddState(nm); st.motion = cl;
-  var back = st.AddTransition(empty); back.hasExitTime = true; back.exitTime = 1f; back.duration = 0.15f; back.hasFixedDuration = true;
-  nUpper++;
-}
-sb.AppendLine("upper-body layer: Empty + " + nUpper + " states (masked at Spine1)");
-var sm = ctrl.layers[2].stateMachine;
+// masked layers: Empty (default) + the clips the manifest tags for them. A one-shot returns to Empty
+// at exit time; a LOOPING clip (Block_L_Idle) has no exit: it holds until the demo plays Empty
+// ("left arm stuck in block action until released")
+System.Action<int, string, string[]> fillLayer = (li, label, names) => {
+  var lsm_ = ctrl.layers[li].stateMachine;
+  var empty_ = lsm_.AddState("Empty"); lsm_.defaultState = empty_;
+  int n_ = 0, held_ = 0;
+  foreach (var nm_ in names) {
+    var cl_ = load(nm_); if (cl_ == null) { sb.AppendLine("missing " + label + " clip " + nm_); continue; }
+    var st_ = lsm_.AddState(nm_); st_.motion = cl_;
+    if (cl_.isLooping) held_++;
+    else { var back_ = st_.AddTransition(empty_); back_.hasExitTime = true; back_.exitTime = 1f; back_.duration = 0.25f; back_.hasFixedDuration = true; }   // 0.25 s: the arm clips end mid-action and the Animator carries the return
+    n_++;
+  }
+  sb.AppendLine(label + " layer: Empty + " + n_ + " states (" + held_ + " held loops)");
+};
+fillLayer(1, "upper-body", new string[]{ %UPPER% });
+fillLayer(2, "left-arm", new string[]{ %LEFT% });
+fillLayer(3, "right-arm", new string[]{ %RIGHT% });
+var sm = ctrl.layers[4].stateMachine;
 var rest = sm.AddState("Rest"); sm.defaultState = rest;
 int n = 0;
 for (int i = 0; i < 3; i++) {
@@ -132,11 +143,11 @@ for (int i = 0; i < 3; i++) {
 int nLoop = 0;
 for (int i = 0; i < 3; i++) {
   var clip = load("Twitch_0" + (i + 1)); if (clip == null) continue;
-  var lsm = ctrl.layers[3 + i].stateMachine; var ls = lsm.AddState("Twitch_0" + (i + 1)); ls.motion = clip; lsm.defaultState = ls; nLoop++;
+  var lsm = ctrl.layers[5 + i].stateMachine; var ls = lsm.AddState("Twitch_0" + (i + 1)); ls.motion = clip; lsm.defaultState = ls; nLoop++;
 }
 sb.AppendLine("twitch loop layers: " + nLoop + " (additive, weight 0 until toggled)");
 EditorUtility.SetDirty(ctrl); AssetDatabase.SaveAssets();
-sb.AppendLine("controller " + path + ": layers=" + ctrl.layers.Length + " twitch states=" + n + " layer2 mode=" + ctrl.layers[2].blendingMode);
+sb.AppendLine("controller " + path + ": layers=" + ctrl.layers.Length + " twitch states=" + n + " twitch layer mode=" + ctrl.layers[4].blendingMode);
 
 // measure
 string model = "Assets/UndeadLegion/Models/SkeletonKnight/SK_SkeletonKnight.fbx";
@@ -181,48 +192,60 @@ sb.AppendLine("base Idle alone: Head moved " + Quaternion.Angle(headA[0], headA[
   sb.AppendLine(string.Format("TwitchLoop_01 toggled on over Idle: head/jaw peak {0:F1} deg in the first pass, {1:F1} deg in the second pass (frames 75..200, {2} frames visibly twitching), Hips diff {3:F2} deg", p1, p2, act2, ph));
 }
 
-// ---- layering proof: Walk_Fwd on Base + Attack_1H_01 on UpperBody must give the walk's legs
-// and the attack's arms; compared per frame against each clip played alone on the base layer
+// ---- layering proof: Walk_Fwd on Base + Attack_R_Slice on RightArm must give the walk's legs and
+// spine and the attack's right arm; compared per frame against each clip played alone on the base
+// layer. Then Block_L_Idle held on LeftArm under the same mix must keep the block's left arm
 Transform lLeg = null, rArm = null, spine1 = null, lFoot = null;
 foreach (var t in go.GetComponentsInChildren<Transform>(true)) { if (t.name == "LeftUpLeg") lLeg = t; if (t.name == "RightArm") rArm = t; if (t.name == "Spine1") spine1 = t; if (t.name == "LeftFoot") lFoot = t; }
-int nf = 60;
+var sliceClip = load("Attack_R_Slice"); int nf = Mathf.Min(60, sliceClip != null ? Mathf.RoundToInt(sliceClip.length * sliceClip.frameRate) - 1 : 60);   // within the clip: after it the arm layer exits to Empty by design
 var legWalk = new Quaternion[nf]; var armAtk = new Quaternion[nf]; var sp1Atk = new Quaternion[nf]; var footWalk = new Vector3[nf];
 var legMix = new Quaternion[nf]; var armMix = new Quaternion[nf]; var sp1Mix = new Quaternion[nf]; var footMix = new Vector3[nf]; var armWalk = new Quaternion[nf];
-int up = an.GetLayerIndex("UpperBody");
-for (int run = 0; run < 3; run++) {
+int lArmL = an.GetLayerIndex("LeftArm"), rArmL = an.GetLayerIndex("RightArm");
+Transform lArm = null; foreach (var t in go.GetComponentsInChildren<Transform>(true)) if (t.name == "LeftArm") lArm = t;
+var sp1Walk = new Quaternion[nf]; var lArmBlock = new Quaternion[nf]; var lArmMix = new Quaternion[nf]; var armMix2 = new Quaternion[nf];
+for (int run = 0; run < 5; run++) {
   an.Rebind(); an.Update(0f);
   an.SetLayerWeight(an.GetLayerIndex("Twitch"), 0f);
-  if (run == 0) { an.Play("Walk_Fwd", 0, 0f); an.Play("Empty", up, 0f); }
-  if (run == 1) { an.Play("Attack_1H_01", 0, 0f); an.Play("Empty", up, 0f); }
-  if (run == 2) { an.Play("Walk_Fwd", 0, 0f); an.Play("Attack_1H_01", up, 0f); }
+  if (run == 0) { an.Play("Walk_Fwd", 0, 0f); }
+  if (run == 1) { an.Play("Attack_R_Slice", 0, 0f); }
+  if (run == 2) { an.Play("Walk_Fwd", 0, 0f); an.Play("Attack_R_Slice", rArmL, 0f); }
+  if (run == 3) { an.Play("Block_L_Idle", 0, 0f); }
+  if (run == 4) { an.Play("Walk_Fwd", 0, 0f); an.Play("Block_L_Idle", lArmL, 0f); an.Play("Attack_R_Slice", rArmL, 0f); }
   an.Update(0f);
   for (int f = 0; f < nf; f++) {
     an.Update(1f / 30f);
-    if (run == 0) { legWalk[f] = lLeg.localRotation; footWalk[f] = lFoot.position - hips.position; armWalk[f] = rArm.localRotation; }
+    if (run == 0) { legWalk[f] = lLeg.localRotation; footWalk[f] = lFoot.position - hips.position; armWalk[f] = rArm.localRotation; sp1Walk[f] = spine1.localRotation; }
     if (run == 1) { armAtk[f] = rArm.localRotation; sp1Atk[f] = spine1.localRotation; }
     if (run == 2) { legMix[f] = lLeg.localRotation; armMix[f] = rArm.localRotation; sp1Mix[f] = spine1.localRotation; footMix[f] = lFoot.position - hips.position; }
+    if (run == 3) { lArmBlock[f] = lArm.localRotation; }
+    if (run == 4) { lArmMix[f] = lArm.localRotation; armMix2[f] = rArm.localRotation; }
   }
 }
-float legDev = 0, armDev = 0, sp1Dev = 0, footDev = 0, armVsWalk = 0, legRange = 0, armRange = 0;
+float legDev = 0, armDev = 0, sp1Dev = 0, footDev = 0, armVsWalk = 0, legRange = 0, armRange = 0, blockDev = 0, armDev2 = 0, sp1Range = 0;
 for (int f = 0; f < nf; f++) {
   legDev = Mathf.Max(legDev, Quaternion.Angle(legWalk[f], legMix[f]));
   armDev = Mathf.Max(armDev, Quaternion.Angle(armAtk[f], armMix[f]));
-  sp1Dev = Mathf.Max(sp1Dev, Quaternion.Angle(sp1Atk[f], sp1Mix[f]));
+  sp1Dev = Mathf.Max(sp1Dev, Quaternion.Angle(sp1Walk[f], sp1Mix[f]));
+  sp1Range = Mathf.Max(sp1Range, Quaternion.Angle(sp1Atk[0], sp1Atk[f]));
   footDev = Mathf.Max(footDev, (footWalk[f] - footMix[f]).magnitude);
   armVsWalk = Mathf.Max(armVsWalk, Quaternion.Angle(armWalk[f], armMix[f]));
   legRange = Mathf.Max(legRange, Quaternion.Angle(legWalk[0], legWalk[f]));
   armRange = Mathf.Max(armRange, Quaternion.Angle(armAtk[0], armAtk[f]));
+  blockDev = Mathf.Max(blockDev, Quaternion.Angle(lArmBlock[f], lArmMix[f]));
+  armDev2 = Mathf.Max(armDev2, Quaternion.Angle(armAtk[f], armMix2[f]));
 }
-sb.AppendLine(string.Format("layering (Walk_Fwd base + Attack_1H_01 upper, {0} frames): LeftUpLeg follows the walk within {1:F2} deg (walk swings {2:F1} deg), LeftFoot within {3:F1} mm; RightArm follows the attack within {4:F2} deg (attack swings {5:F1} deg; it differs from the walk's arm by up to {6:F1} deg); Spine1 follows the attack within {7:F2} deg", nf, legDev, legRange, footDev * 1000f, armDev, armRange, armVsWalk, sp1Dev));
+sb.AppendLine(string.Format("layering (Walk_Fwd base + Attack_R_Slice right arm, {0} frames): LeftUpLeg follows the walk within {1:F2} deg (walk swings {2:F1} deg), LeftFoot within {3:F1} mm; RightArm follows the attack within {4:F2} deg (attack swings {5:F1} deg; it differs from the walk's arm by up to {6:F1} deg); Spine1 follows the WALK within {7:F2} deg (the attack alone swings it {8:F1} deg: arm layers are arm-only)", nf, legDev, legRange, footDev * 1000f, armDev, armRange, armVsWalk, sp1Dev, sp1Range));
+sb.AppendLine(string.Format("held block: Walk_Fwd + Block_L_Idle on LeftArm + Attack_R_Slice on RightArm: LeftArm follows the block within {0:F2} deg, RightArm follows the attack within {1:F2} deg", blockDev, armDev2));
 GameObject.DestroyImmediate(go);
 return sb.ToString();
 '''
 
 if __name__ == "__main__":
     manifest = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "Animations", "clips.json")
-    upper = [c["name"] for c in json.load(open(manifest))["clips"] if c.get("layer") == "upper"]
-    print("upper-body clips from the manifest:", ", ".join(upper))
-    code = CODE.replace("%UPPER%", ", ".join('"%s"' % u for u in upper))
+    clips = json.load(open(manifest))["clips"]
+    tagged = lambda tag: [c["name"] for c in clips if c.get("layer") == tag]
+    print("from the manifest: upper", ", ".join(tagged("upper")), "| left", ", ".join(tagged("left")), "| right", ", ".join(tagged("right")))
+    code = CODE.replace("%UPPER%", ", ".join('"%s"' % u for u in tagged("upper"))).replace("%LEFT%", ", ".join('"%s"' % u for u in tagged("left"))).replace("%RIGHT%", ", ".join('"%s"' % u for u in tagged("right")))
     c = Client()
     try:
         c.call("refresh_unity", {"mode": "force", "scope": "all", "compile": "request", "wait_for_ready": True}, timeout=600)

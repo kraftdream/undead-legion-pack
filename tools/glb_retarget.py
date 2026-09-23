@@ -57,9 +57,16 @@ assert MODE in ("idle", "loco", "action", "death", "upper"), MODE
 LOOP = int(arg("--loop", "0"))                 # 0 = auto (loco) / 120 (idle) / whole source (one-shots)
 BLEND = int(arg("--blend", "0"))               # 0 = auto
 SRC_START = int(arg("--src-start", "-1"))      # -1 = auto
-SRC_END = int(arg("--src-end", "-1"))          # -1 = last source frame
+SRC_END = int(arg("--src-end", "-1"))          # -1 = last source frame (RAW source frames, before --time-scale)
+SRC_BEGIN = int(arg("--src-begin", "0"))       # first RAW source frame to use (before --time-scale; --src-start counts resampled frames)
 TIME_SCALE = float(arg("--time-scale", "1.0"))
 SMOOTH = int(arg("--smooth", "0"))
+UNWIND_YAW = "--unwind-yaw" in argv             # remove the hips' NET yaw over the used range linearly (each frame turned about the vertical through its hips), so the clip ends facing where it started
+HAND_TILT = {}                                  # "R:-30": tilt that hand every frame about the world-horizontal axis perpendicular to its hilt (+ = blade up)
+for _ht in [v for v in arg("--hand-tilt", "").split(",") if v]:
+    _sd, _deg = _ht.split(":"); HAND_TILT[_sd] = math.radians(float(_deg))
+DRIFT = arg("--drift", "remove")                # action mode: "remove" slides the net hips travel out linearly (in place); "root" puts it on Root as root motion (the take's own step/lunge; Unity in-place import off)
+SPEED_SEGMENT = arg("--speed-segment", "")     # "A:B:F": OUTPUT frames A..B (after --time-scale, 1-based) play F times faster; the frames after shift earlier
 TIME_WARP = arg("--time-warp", "")             # "A:B": source frames 0..A are played over B frames (a faster wind-up), the rest unchanged
 HEAD_SMOOTH = int(arg("--head-smooth", "0"))   # extra [1,2,1] passes on the neck + head source rotations only (a jerky head)
 FIST = float(arg("--fist", "0.3")) if "--fingers" not in argv else 0.0
@@ -90,14 +97,46 @@ RENAME_TABLES = {
             "r_upleg_JNT": "RightLeg", "r_leg_JNT": "RightShin", "r_foot_JNT": "RightFoot", "r_toebase_JNT": "RightToeBase"},
     "mixamo": {"Spine": "Spine1", "Spine1": "Spine2", "Spine2": "Chest", "Neck": "Neck1",       # a Mixamo-named capture (fingers included)
                "LeftUpLeg": "LeftLeg", "LeftLeg": "LeftShin", "RightUpLeg": "RightLeg", "RightLeg": "RightShin"},
+    # an Unreal-mannequin skeleton (79 joints: spine_01..05, twist bones, metacarpals; a BVH in centimetres
+    # whose rest pose is every bone stacked straight up, so it needs --bind stacked)
+    "ue5": {"pelvis": "Hips", "spine_01": "Spine1", "spine_03": "Spine2", "spine_05": "Chest", "neck_01": "Neck1", "head": "Head",
+            "clavicle_l": "LeftShoulder", "upperarm_l": "LeftArm", "lowerarm_l": "LeftForeArm", "hand_l": "LeftHand", "middle_01_l": "LeftHandMiddleEnd",   # the KNUCKLE: rigid on the palm (the fingertip curls into a fist and pointed the hand backwards)
+            "clavicle_r": "RightShoulder", "upperarm_r": "RightArm", "lowerarm_r": "RightForeArm", "hand_r": "RightHand", "middle_01_r": "RightHandMiddleEnd",
+            "thigh_l": "LeftLeg", "calf_l": "LeftShin", "foot_l": "LeftFoot", "ball_l": "LeftToeBase",
+            "thigh_r": "RightLeg", "calf_r": "RightShin", "foot_r": "RightFoot", "ball_r": "RightToeBase"},
 }
+SHOULDERS = arg("--shoulders", "copy")          # copy: the clavicles follow the source; keep: they hold the blend-from pose (or rest) — a capture whose clavicle swings 90 deg back in a wind-up (the mannequin app)
+ARM_IK = arg("--arm-ik", "")                    # "R" / "L" / "LR": that arm is solved by the rig's own IK from the capture's HAND position (relative to the hips, scaled), the elbow on a pole that swings with the arm (out, back, a little down), the hand's roll from the IK forearm and its finger direction from the capture. Nothing of the capture's bone rolls reaches the rig
+ARM_ROLL_GEO = arg("--arm-roll-geometric", "")  # "R" / "L" / "LR": that arm's ROLLS come from geometry, not from the capture: the upper arm's twist from the elbow's bend plane, the forearm twist-free from its rest (a capture whose bone rolls are junk: the mannequin app, Humanoid arm twist at 170-230 %)
+ARM_ROLL_PREV = {}
+HAND_FROM_FOREARM = arg("--hand-from-forearm", "")   # "R" / "L" / "LR": that hand's ROLL comes from the forearm (zero wrist twist) and only its finger DIRECTION from the capture (a capture whose hand roll is junk: the mannequin app)
+WRIST_FIX = arg("--wrist-fix", "")              # "R" / "L" / "LR": run the wrist twist limiter on that hand every frame (a capture whose forearm twist bones carried the pronation: the hand arrived 90-150 deg twisted on the forearm and Humanoid flipped it)
+BIND = arg("--bind", "tpose")                   # tpose: the source's rest pose is a T-pose (skinned GLBs); stacked: every bone of the rest points straight up (an Unreal-mannequin BVH): the shoulders are aligned by direction too and the hips height is read from the animation
 FINGERS_COPY = "--fingers" in argv               # copy the source's finger joints (two phalanges per finger) instead of the constant curl   # mesh-name substrings left out of the floor measure (Robe,Skirt for kneels: hems hang through the floor)                   # action mode: "twoway" = lowest point on the floor every frame (a clip whose stance changes: kneel -> stand)             # arm IK with a pole vector held outward (authored hands: no elbow inside the body)
 PROP = arg("--prop", "")                        # "R:0.69": that hand props on a staff of this length (rig m): its palm is aimed at a floor point straight ahead, at the distance the staff reaches
 PROP_SIDE, PROP_LEN = (PROP.split(":")[0], float(PROP.split(":")[1])) if PROP else (None, 0.0)
 PROP_POINT = None                               # the floor point, found from the mean hand position in pass 1
 PROP_MEAN = None
-POSE_REF = arg("--pose-ref", "")               # "ACTION:frame@at": the user's reference pose for output frame `at`; every control's local delta (ref vs the generated frame) is applied while drawn/raised (weight = the anchor mask), exact on `at`
-POSE_DELTAS = None                              # {control: (loc delta, rot delta, w_at)} once measured
+STAB_AIM = arg("--stab-aim", "")                # "R" / "L": as that arm extends, swing it about the vertical through its shoulder until it points FORWARD and turn the hand so the hilt axis (blade) points forward too (a stab that drifted 25-30 deg off to the side)
+STAB_PITCH = math.radians(float(arg("--stab-pitch", "0")))   # deg: where the hilt axis (blade) pitches at full extension (0 = level)
+BLADE_ALONG = arg("--blade-along-arm", "")      # "R" / "L": that hand is rebuilt every frame so the hilt axis (blade) continues the FOREARM line (the weapon as an extension of the arm through a swing), from the forearm's zero-twist hand; fades with the blend-from/to crossfades
+BLADE_ALONG_ROLL = math.radians(float(arg("--blade-roll", "0")))
+STAB_YAW = math.radians(float(arg("--stab-yaw", "0")))        # deg, + = towards the body's left: where the blade points at full extension (a little inward keeps the wrist natural)
+STAB_ROLL = math.radians(float(arg("--stab-roll", "0")))      # deg: the hand's roll about the blade at full extension, from the forearm's zero-twist hand
+STAB_SHORTEN = float(arg("--stab-shorten", "0"))            # rig m: bend the elbow so the hand comes this much closer to the shoulder at full extension
+STAB_PREV = {}
+STAB_LOG = [0.0, 0.0, 0, 0.0]
+ONLY_ARM = arg("--only-arm", "")                # "R" / "L": copy ONLY that arm (shoulder, upper arm, forearm, hand) from the source; every other control holds the blend-from pose (a one-arm attack clip)
+ARM_CHAIN = {"R": {"shoulder.R", "upper_arm_fk.R", "forearm_fk.R", "hand_fk.R"}, "L": {"shoulder.L", "upper_arm_fk.L", "forearm_fk.L", "hand_fk.L"}}
+assert ONLY_ARM in ("", "L", "R")
+POSE_REF = arg("--pose-ref", "")               # "ACTION:frame@at[,ACTION:frame@at...]": the user's reference pose(s) for output frame(s) `at`; every control's local delta (ref vs the generated frame) is applied so that frame IS the reference; between refs the deltas interpolate
+POSE_REF_IN = int(arg("--pose-ref-in", "0"))   # frames over which the first ref's delta ramps in before it (0 = the anchor mask / full weight, the single-ref behaviour)
+POSE_REF_TAIL = arg("--pose-ref-tail", "hold")  # after the last ref: "hold" keeps its delta on the generated tail; "return" goes straight from that pose to the blend-to pose by the last frame ("continue to end frame from it")
+POSE_REF_MIRROR = "--pose-ref-mirror" in argv   # the refs were posed on the OTHER side (a mirrored clip): swap .L/.R and X-flip them
+POSE_DELTAS = None                              # {control: (loc delta, rot delta, w_at)} once measured (single ref)
+POSE_REFS = None                                # [(at, {control: (dloc, drot)})...] (multi ref)
+POSE_END_BASES = None                           # {control: matrix_basis} of the blend-to pose (tail "return")
+POSE_LAST_BASES = None                          # {control: matrix_basis} of the last ref (tail "return")
 TORSO_REF = arg("--torso-ref", "")             # ACTION[:frame]: the torso control's world rotation/position from that pose replace the clip's MEAN (the sway stays)
 HAND_OFFSET = Vector([float(v) for v in arg("--hand-offset", "0,0,0").split(",")])   # rig m, added to the reference/computed propping hand position
 HAND_REF = arg("--hand-ref", "")               # ACTION[:frame]: the propping hand's socket position from that pose (with --prop)
@@ -140,6 +179,12 @@ STANCE = {k.split(":")[0]: float(k.split(":")[1]) for k in arg("--stance", "").s
 HEADING = arg("--heading", "auto")             # auto: rotate the source so the hips' mean yaw vs the bind is 0 (a video capture faces wherever the performer stood); keep: as is; <deg>: fixed
 HEAD_DAMP = float(arg("--head-damp", "1.0"))    # 0..1: scales the neck+head rotation away from rest (1 = as authored)
 TRAVEL_AXIS = arg("--travel-axis", "auto")
+GATE = [float(v) for v in arg("--gate", "").split(",")] if arg("--gate", "") else None   # "MIN,MAX" rig m: two-handed gate; the left hand rides the right hand's handle where the CAPTURE put it, clamped to that range down the hilt
+GATE_SMOOTH = float(arg("--gate-smooth", "0.35"))   # 0..1: per-frame smoothing of the gated distance (1 = none)
+GATE_PREV = {}
+KNEE_POLE_PREV = {}                              # last frame's FK knee direction per side (the IK pole follows it; reset on frame 0)
+GATE_LOG = [9.0, -9.0, 0, 0.0, 0]              # min d, max d, clamped frames, max pull of the right hand, pulled frames
+GATE_PULL = "--no-gate-pull" not in argv        # when no point of the gated range is within the left arm's reach, pull the right hand in so both hands stay on the shaft
 LOCK_L = float(arg("--lock-left-hand", "0"))   # >0: pin the left hand on the right hand's weapon this far down the handle (rig m)
 LOCK_L_ROLL = math.radians(float(arg("--lock-left-roll", "0")))  # extra roll of the locked left hand about the handle
 MIRROR = "--mirror" in argv                     # swap left/right and flip the source across its forward axis (X -> -X)      # loco: auto = dominant axis, x = sideways (strafes), y = forward/back
@@ -156,8 +201,8 @@ MAP = [
     ("Chest",         "spine_fk.003",   False, None),
     ("Neck1",         "neck",           False, None),
     ("Head",          "head",           False, None),
-    ("LeftShoulder",  "shoulder.L",     False, None),
-    ("RightShoulder", "shoulder.R",     False, None),
+    ("LeftShoulder",  "shoulder.L",     BIND == "stacked", "LeftArm"),
+    ("RightShoulder", "shoulder.R",     BIND == "stacked", "RightArm"),
     ("LeftArm",       "upper_arm_fk.L", True,  "LeftForeArm"),
     ("LeftForeArm",   "forearm_fk.L",   True,  "LeftHand"),
     ("LeftHand",      "hand_fk.L",      True,  "LeftHandMiddleEnd"),
@@ -229,6 +274,10 @@ ARM_POSES = {
                            "R": (Vector((-0.10, -0.06, 0.80)), _FWD, _norm((-0.9, 0, 0.4)))},
     "bow_release":        {"L": (Vector((0.06, -0.42, 0.74)), _norm((0.08, 0, 1)), _FWD),
                            "R": (Vector((-0.22, -0.02, 0.74)), _norm((-0.3, -0.9, 0.3)), _norm((-0.9, 0, 0.4)))},
+    # shield up in a guard (Block_L_Idle, 2026-09-22): left fist in front of the chest, knuckles to the
+    # enemy, hilt axis DOWN so the hand-held shield's plate (its top points to the wrist) stands upright
+    # with its face forward; the right arm stays the capture's
+    "shield_block":       {"L": (Vector((0.14, -0.30, 0.66)), _norm((0.25, 0, -1)), _FWD)},
     # no override (a key that hands the arms back to the source)
     "free":               {},
     # both hands high overhead, palms forward (summoning chant)
@@ -313,9 +362,14 @@ log("mode %s | target hip pivot z %.4f" % (MODE, hip_z_t))
 TORSO_REST = (rig.matrix_world @ pbs["torso"].matrix).copy()
 PELVIS_FWD_LOCAL = (rig.matrix_world @ pbs["DEF-spine"].matrix).to_3x3().inverted() @ Vector((0, -1, 0))   # the pelvis bone's local axis that points forward at rest
 WRIST_REST = {}                                  # hand vs forearm at rest, for limit_wrist()
+WRIST_PREV = {}                                  # last frame's unwrapped wrist twist per side (reset on frame 0)
 for _side in ("L", "R"):
     WRIST_REST[_side] = world_rot(pbs["forearm_fk." + _side]).inverted() @ world_rot(pbs["hand_fk." + _side])
-HEAD_FACE_LOCAL = rig.data.bones["DEF-spine.006"].matrix_local.to_3x3().inverted() @ Vector((0, -1, 0))   # the head bone's axis that faces forward at rest
+HEAD_FACE_LOCAL = rig.data.bones["DEF-spine.006"].matrix_local.to_3x3().inverted() @ Vector((0, -1, 0))
+ARM_LEN_L = (rig.data.bones["DEF-forearm.L"].head_local - rig.data.bones["DEF-upper_arm.L"].head_local).length + (rig.data.bones["DEF-hand.L"].head_local - rig.data.bones["DEF-forearm.L"].head_local).length   # shoulder -> elbow -> wrist, rig m
+ARM_LEN_R = (rig.data.bones["DEF-forearm.R"].head_local - rig.data.bones["DEF-upper_arm.R"].head_local).length + (rig.data.bones["DEF-hand.R"].head_local - rig.data.bones["DEF-forearm.R"].head_local).length
+for _side in ("L", "R"):
+    WRIST_REST["DEF-" + _side] = world_rot(pbs["DEF-forearm." + _side]).inverted() @ world_rot(pbs["DEF-hand." + _side])   # the head bone's axis that faces forward at rest
 # hand IK control <- socket frame: the constant relation at rest between the hand control and the socket bone
 FOOTIK_FROM_FOOT = {s: (rig.matrix_world @ pbs["DEF-foot." + s].matrix).inverted() @ (rig.matrix_world @ pbs["foot_ik." + s].matrix) for s in ("L", "R")}
 LEG_LEN = {s: ((rig.matrix_world @ pbs["DEF-thigh." + s].matrix).translation - (rig.matrix_world @ pbs["DEF-shin." + s].matrix).translation).length
@@ -349,6 +403,12 @@ def limit_wrist(side):
     s_ = rel.y                                                            # twist about the hand's own Y (along the forearm)
     tw = 2.0 * math.atan2(s_, rel.w)
     tw = (tw + math.pi) % (2 * math.pi) - math.pi
+    if side in WRIST_PREV:
+        # continuous with last frame: a raw twist that crosses +-180 deg otherwise flips the sign of the
+        # excess and rolls the forearm 180 deg in one frame (the mannequin app's hands: 103-174 deg steps)
+        while tw - WRIST_PREV[side] > math.pi: tw -= 2 * math.pi
+        while tw - WRIST_PREV[side] < -math.pi: tw += 2 * math.pi
+    WRIST_PREV[side] = tw
     if abs(tw) <= WRIST_LIMIT:
         return
     excess = tw - math.copysign(WRIST_LIMIT, tw)
@@ -447,7 +507,16 @@ if HAND_REF:
 # ------------------------------------------------------------- 2. source
 before = set(bpy.data.objects)
 acts_before = set(bpy.data.actions)
-bpy.ops.import_scene.gltf(filepath=GLB)
+if GLB.lower().endswith(".blend"):
+    # a converted capture (tools/glb_nodes_to_armature.py): appended, so bones, rest and keys are exactly as saved
+    with bpy.data.libraries.load(os.path.abspath(GLB), link=False) as (_lsrc, _ldst):   # relative paths resolve against the open .blend, not the cwd
+        _ldst.objects = [n for n in _lsrc.objects]
+    for _o in _ldst.objects:
+        if _o is not None:
+            scene.collection.objects.link(_o)
+    update()
+else:
+    bpy.ops.import_scene.gltf(filepath=GLB)
 new = [o for o in bpy.data.objects if o not in before]
 SRC_ARM = next(o for o in new if o.type == 'ARMATURE')
 src_act = SRC_ARM.animation_data.action if SRC_ARM.animation_data else None
@@ -483,8 +552,36 @@ def _mirror_pose(p):
 if MIRROR:
     S_rest = _mirror_pose(S_rest)
 hip_z_s = S_rest["Hips"][1].z
+if BIND == "stacked":
+    # the stacked rest has the pelvis on the floor: take the hips height from the animation instead
+    zs_ = []
+    for i_ in range(0, min(30, n_src), 3):
+        scene.frame_set(f_src0 + i_); update()
+        zs_.append((SRC_ARM.matrix_world @ SRC_ARM.pose.bones["Hips"].matrix).translation.z)
+    hip_z_s = sum(zs_) / len(zs_)
+    log("bind stacked: hips height from the animation %.3f (the rest's was %.3f)" % (hip_z_s, S_rest["Hips"][1].z))
 scale = hip_z_t / hip_z_s
 log("source hips rest z %.4f -> scale %.4f" % (hip_z_s, scale))
+
+ALIGN_ROLL = "--align-roll" in argv             # align the arm/leg bones by direction AND roll (both binds referenced to the body's forward): a source whose bone rolls differ from the rig's by a constant (the mannequin app: forearm 138 deg off)
+
+
+def _frame_q(d, fwd):
+    """A rotation whose Y is the bone direction d and whose X is the body's forward projected off d."""
+    d = d.normalized(); x = (fwd - d * fwd.dot(d)).normalized(); z = x.cross(d).normalized(); x = d.cross(z).normalized()
+    m = Matrix.Identity(3)
+    for i in range(3):
+        m[i][0], m[i][1], m[i][2] = x[i], d[i], z[i]
+    return m.to_quaternion()
+
+
+if ALIGN_ROLL:
+    # each bind's forward = left x up, from its own shoulder joints (both binds stand upright)
+    _l_s = (S_rest["LeftArm"][1] - S_rest["RightArm"][1]); _l_s.z = 0.0
+    FWD_S = _l_s.normalized().cross(Vector((0, 0, 1))).normalized()
+    _l_t = (rig.matrix_world @ pbs["DEF-upper_arm.L"].matrix).translation - (rig.matrix_world @ pbs["DEF-upper_arm.R"].matrix).translation; _l_t.z = 0.0
+    FWD_T = _l_t.normalized().cross(Vector((0, 0, 1))).normalized()
+    log("align-roll: source bind forward %s, rig forward %s" % (tuple(round(v, 2) for v in FWD_S), tuple(round(v, 2) for v in FWD_T)))
 
 A = {}
 for src, tgt, align, kid in MAP:
@@ -492,7 +589,10 @@ for src, tgt, align, kid in MAP:
         if kid not in S_rest and kid.endswith("MiddleEnd"):
             kid = kid.replace("MiddleEnd", "Middle1")            # knuckle instead of fingertip: same hand direction
         d_s = (S_rest[kid][1] - S_rest[src][1]).normalized()
-        A[tgt] = T_rest[tgt][1].rotation_difference(d_s)
+        if ALIGN_ROLL:
+            A[tgt] = _frame_q(d_s, FWD_S) @ _frame_q(T_rest[tgt][1], FWD_T).inverted()
+        else:
+            A[tgt] = T_rest[tgt][1].rotation_difference(d_s)
     else:
         A[tgt] = Quaternion((1, 0, 0, 0))
 
@@ -549,6 +649,19 @@ def _lerp_pose(a, b, u):
 
 if SRC_END >= 0:
     SRC = SRC[:SRC_END + 1]
+if SRC_BEGIN > 0:
+    assert SRC_BEGIN < len(SRC), "--src-begin %d is past the source's %d frames" % (SRC_BEGIN, len(SRC))
+    SRC = SRC[SRC_BEGIN:]
+    log("source frames %d..%d used (%d)" % (SRC_BEGIN, SRC_BEGIN + len(SRC) - 1, len(SRC)))
+if UNWIND_YAW and len(SRC) > 2:
+    def _hips_yaw(p):
+        v = (p["Hips"][0] @ S_rest["Hips"][0].inverted()) @ Vector((0, 1, 0)); return math.atan2(-v.x, v.y)
+    y0 = _hips_yaw(SRC[0]); yN = _hips_yaw(SRC[-1]); dy = (yN - y0 + math.pi) % (2 * math.pi) - math.pi
+    for i, p in enumerate(SRC):
+        Rz = Quaternion((0, 0, 1), -dy * i / float(len(SRC) - 1)); hp = p["Hips"][1]
+        for n in list(p):
+            q, pos = p[n]; p[n] = (Rz @ q, hp + Rz @ (pos - hp))
+    log("unwind-yaw: the hips turned %.1f deg over the used range; removed linearly (the clip ends facing where it started)" % math.degrees(dy))
 if TIME_WARP:
     wa, wb = (int(v) for v in TIME_WARP.split(":"))
     assert 0 < wb <= wa < len(SRC), "time-warp A:B needs 0 < B <= A < source frames"
@@ -566,6 +679,15 @@ if TIME_SCALE != 1.0:
         k = min(m - 1, int(math.floor(t))); u = min(1.0, t - k)
         res.append(_lerp_pose(SRC[k], SRC[k + 1], u))
     log("time-scale x%.2f: %d -> %d source frames" % (TIME_SCALE, len(SRC), len(res)))
+    SRC = res
+if SPEED_SEGMENT:
+    sa, sb, sf = SPEED_SEGMENT.split(":"); sa = int(sa) - 1; sb = int(sb) - 1; sf = float(sf)
+    assert 0 <= sa < sb < len(SRC) and sf > 0, "speed-segment A:B:F needs 1 <= A < B <= frames"
+    nb = max(1, int(round((sb - sa) / sf)))
+    def _src_at(t):
+        k = min(len(SRC) - 2, int(math.floor(t))); return _lerp_pose(SRC[k], SRC[k + 1], t - k)
+    res = [SRC[i] for i in range(sa)] + [_src_at(sa + (j * (sb - sa)) / float(nb)) for j in range(nb)] + [SRC[i] for i in range(sb, len(SRC))]
+    log("speed-segment: frames %d..%d play %.2fx faster (%d -> %d frames), %d -> %d source frames" % (sa + 1, sb + 1, sf, sb - sa, nb, len(SRC), len(res)))
     SRC = res
 for _ in range(SMOOTH):
     SRC = [SRC[0]] + [_lerp_pose(_lerp_pose(SRC[i - 1], SRC[i + 1], 0.5), SRC[i], 0.5) for i in range(1, len(SRC) - 1)] + [SRC[-1]]
@@ -685,7 +807,12 @@ def hips_target(f, src):
         root = travel_v * f
         local = h - (travel_v + drift_v) * (f % LOOP)
     elif MODE == "action":
-        root = Vector((0, 0, 0)); local = h - drift_v * f
+        if DRIFT == "root":
+            # the net travel goes on Root as root motion (a lunge or a step in the take), the pose keeps
+            # its real path in world; with Apply Root Motion off the engine plays it in place
+            root = drift_v * f; local = h - drift_v * f
+        else:
+            root = Vector((0, 0, 0)); local = h - drift_v * f
     else:
         root = Vector((0, 0, 0)); local = h - drift_v * (f % LOOP if LOOPING else f)
     # the torso is set in ARMATURE space (set_world), so its world target must include the
@@ -706,20 +833,23 @@ rig.animation_data.action = act
 if hasattr(rig.animation_data, "action_slot"):
     rig.animation_data.action_slot = act.slots.new('OBJECT', rig.name)
 
-DRIVEN = sorted(TARGETS) + FINGERS + ["root"] + (["hand_ik.L", "hand_ik.R"] if (ARM_POSE or ARM_KEYS or LOCK_L > 0 or PROP or HAND_CLEAR) else []) + (["upper_arm_ik_target.L", "upper_arm_ik_target.R"] if ELBOW_POLE else []) + (["foot_ik.L", "foot_ik.R", "toe_ik.L", "toe_ik.R"] if (PLANT > 0 or AIM_FORWARD) else [])
+DRIVEN = sorted(TARGETS) + FINGERS + ["root"] + (["hand_ik.L", "hand_ik.R"] if (ARM_POSE or ARM_KEYS or LOCK_L > 0 or GATE or PROP or HAND_CLEAR or ARM_IK) else []) + (["upper_arm_ik_target.L", "upper_arm_ik_target.R"] if (ELBOW_POLE or ARM_IK) else []) + (["foot_ik.L", "foot_ik.R", "toe_ik.L", "toe_ik.R"] if (PLANT > 0 or AIM_FORWARD) else []) + (["thigh_ik_target.L", "thigh_ik_target.R"] if PLANT > 0 else [])
 STATIC = [c for c in controls() if c not in DRIVEN]
 _rnd = __import__("random").Random(7)
 FINGER_WAVE = {n: (_rnd.choice([1, 1, 2]), _rnd.uniform(0, 2 * math.pi), _rnd.uniform(0.6, 1.0)) for n in FINGERS}
 
 
 def key_frame(f):
-    for n in DRIVEN + ([c for c in POSE_DELTAS if c not in DRIVEN] if POSE_DELTAS else []):
+    for n in DRIVEN + ([c for c in POSE_DELTAS if c not in DRIVEN] if POSE_DELTAS else []) + ([c for c in POSE_ALL_CTRLS if c not in DRIVEN] if POSE_REFS else []):
         pb = pbs[n]
         pb.keyframe_insert("location", frame=f, group=n)
         pb.keyframe_insert("rotation_quaternion" if pb.rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group=n)
     for b in IKFK_ARMS + IKFK_LEGS:
         pbs[b].keyframe_insert('["IK_FK"]', frame=f, group=b)
-    if ELBOW_POLE:
+    if PLANT > 0:
+        for b in IKFK_LEGS:
+            pbs[b].keyframe_insert('["pole_vector"]', frame=f, group=b)
+    if ELBOW_POLE or ARM_IK:
         for b in IKFK_ARMS:
             pbs[b].keyframe_insert('["pole_vector"]', frame=f, group=b)
         if "IK_Stretch" in pbs[b]:
@@ -735,6 +865,8 @@ def key_static(f):
 
 def pose(f, dz=0.0, f_travel=None):
     global NEED_DROP, ANCHOR_ROLL_SIGN
+    if f == 0:
+        WRIST_PREV.clear(); ARM_ROLL_PREV.clear()
     zero_pose()
     for b in IKFK_ARMS:
         pbs[b]["IK_FK"] = 1.0
@@ -782,20 +914,57 @@ def pose(f, dz=0.0, f_travel=None):
         if HEAD_DAMP < 1.0 and tgt in ("neck", "head"):
             delta = Quaternion((1, 0, 0, 0)).slerp(delta, HEAD_DAMP)
         targets[tgt] = delta @ A[tgt] @ T_rest[tgt][0]
+    if SHOULDERS == "keep":
+        for tgt in ("shoulder.L", "shoulder.R"):
+            targets[tgt] = BASE["rot"][tgt] if BASE is not None else T_rest[tgt][0]
+    elif BIND == "stacked":
+        # the clavicles: aim only. Their delta from a stacked bind carried an arbitrary roll (the rig's
+        # shoulder rolled 108-112 deg and the pauldron swung away from the arm); a clavicle does not
+        # twist, so the rig's shoulder keeps its rest roll and only points at the upper arm joint
+        for sname, tgt, _, kid in MAP:
+            if tgt in ("shoulder.L", "shoulder.R") and kid in src:
+                d_ = (src[kid][1] - src[sname][1])
+                if d_.length > 1e-6:
+                    targets[tgt] = T_rest[tgt][1].rotation_difference(d_.normalized()) @ T_rest[tgt][0]
     if HUNCH:
         targets["spine_fk.003"] = Quaternion((1, 0, 0), HUNCH) @ targets["spine_fk.003"]
     hips, root = hips_target(f if f_travel is None else f_travel, src)
+    if ONLY_ARM:
+        # one-arm clip (user, 2026-09-22: "each should only control 1 arm"): the source drives that
+        # arm's chain, every other control and the hips hold the blend-from pose, so on the arm layer
+        # the arm reads over whatever plays and full-body the character stands in the idle's pose
+        assert BASE is not None, "--only-arm needs --blend-from (the pose the rest of the body holds)"
+        for tgt in targets:
+            if tgt not in ARM_CHAIN[ONLY_ARM]:
+                targets[tgt] = BASE["rot"][tgt]
+        hips = BASE["hips"].copy()
     if BASE is not None and f < BLEND_IN:
         wb = smooth01(f / float(BLEND_IN))
+        pre_ = {t_: targets[t_].copy() for t_ in ("forearm_fk.L", "forearm_fk.R", "hand_fk.L", "hand_fk.R") if t_ in targets}
         for tgt in targets:
             targets[tgt] = BASE["rot"][tgt].slerp(targets[tgt], wb)
+        # the hands crossfade RELATIVE to their forearms: slerping hand and forearm separately in world
+        # space swept the wrist twist through 180 deg and the limiter flipped it (a 122 deg forearm step)
+        for side_ in ("L", "R"):
+            fa_, hf_ = "forearm_fk." + side_, "hand_fk." + side_
+            if fa_ in pre_ and hf_ in pre_:
+                rel_a = BASE["rot"][fa_].inverted() @ BASE["rot"][hf_]; rel_b = pre_[fa_].inverted() @ pre_[hf_]
+                if rel_a.dot(rel_b) < 0: rel_b.negate()
+                targets[hf_] = targets[fa_] @ rel_a.slerp(rel_b, wb)
         hips = BASE["hips"].lerp(hips, wb)
         for n in FINGERS:
             pbs[n].rotation_euler = (BASE["fist"][n] + (pbs[n].rotation_euler.x - BASE["fist"][n]) * wb, 0, 0)
     if END is not None and f > N_OUT - 1 - BLEND_OUT:
         we = smooth01((f - (N_OUT - 1 - BLEND_OUT)) / float(BLEND_OUT))
+        pre_ = {t_: targets[t_].copy() for t_ in ("forearm_fk.L", "forearm_fk.R", "hand_fk.L", "hand_fk.R") if t_ in targets}
         for tgt in targets:
             targets[tgt] = targets[tgt].slerp(END["rot"][tgt], we)
+        for side_ in ("L", "R"):
+            fa_, hf_ = "forearm_fk." + side_, "hand_fk." + side_
+            if fa_ in pre_ and hf_ in pre_:
+                rel_a = pre_[fa_].inverted() @ pre_[hf_]; rel_b = END["rot"][fa_].inverted() @ END["rot"][hf_]
+                if rel_a.dot(rel_b) < 0: rel_b.negate()
+                targets[hf_] = targets[fa_] @ rel_a.slerp(rel_b, we)
         hips = hips.lerp(END["hips"], we)
         for n in FINGERS:
             pbs[n].rotation_euler = (pbs[n].rotation_euler.x + (END["fist"][n] - pbs[n].rotation_euler.x) * we, 0, 0)
@@ -861,6 +1030,113 @@ def pose(f, dz=0.0, f_travel=None):
             pbs["hand_ik." + side].matrix = rig.matrix_world.inverted() @ frame_m @ HAND_FROM_SOCKET[side]
             update()
             HAND_CLEAR_LOG[side] = max(HAND_CLEAR_LOG.get(side, 0.0), push)
+    if BLADE_ALONG:
+        # the swing (user, from a front view at the wind-up: "weapon should point in arrow direction",
+        # the arrow continuing the forearm): the hand is the forearm's zero-twist hand turned by the
+        # least rotation that lays the hilt axis along the forearm (elbow -> wrist), rolled BLADE_ROLL
+        # about it, blended with the capture's hand by the idle crossfades so the clip still starts
+        # and ends on the idle's wrist
+        bd = BLADE_ALONG
+        wa_ = 1.0
+        if BASE is not None and f < BLEND_IN:
+            wa_ = min(wa_, smooth01(f / float(BLEND_IN)))
+        if END is not None and f >= N_OUT - BLEND_OUT:
+            wa_ = min(wa_, smooth01((N_OUT - 1 - f) / float(max(1, BLEND_OUT))))
+        if wa_ > 1e-3:
+            hf_ = pbs["hand_fk." + bd]
+            sockb = rig.matrix_world @ pbs["DEF-weapon." + bd].matrix
+            q_cur = sockb.to_quaternion()
+            S_ = world_rot(hf_).inverted() @ q_cur
+            fa_q = world_rot(pbs["forearm_fk." + bd])
+            sq0 = fa_q @ WRIST_REST[bd] @ S_
+            y0 = (sq0 @ Vector((0, 1, 0))).normalized()
+            fwd_ = ((rig.matrix_world @ pbs["DEF-hand." + bd].matrix).translation - (rig.matrix_world @ pbs["DEF-forearm." + bd].matrix).translation).normalized()
+            q_new = Quaternion(fwd_, BLADE_ALONG_ROLL) @ (y0.rotation_difference(fwd_) @ sq0)
+            if q_cur.dot(q_new) < 0:
+                q_new.negate()
+            set_world(hf_, (q_cur.slerp(q_new, wa_) @ q_cur.inverted()) @ world_rot(hf_))
+            update()
+    if STAB_AIM:
+        # the stab aim (user, from a top view: "both the arm and the weapon (hand rotation) extend not
+        # forward for a stab attack"): weight = how far the hand is out from the shoulder horizontally
+        # (0 at 0.15 rig m, 1 at 0.27), smoothed; the arm is swung about the vertical through the
+        # shoulder by that share of its yaw error, then the hand is turned about the vertical by that
+        # share of the hilt axis's yaw error, so at full extension arm and blade point straight ahead
+        sd = STAB_AIM
+        sh_ = (rig.matrix_world @ pbs["DEF-upper_arm." + sd].matrix).translation
+        sock_ = rig.matrix_world @ pbs["DEF-weapon." + sd].matrix
+        v_ = sock_.translation - sh_; v_.z = 0.0
+        w_ = max(0.0, min(1.0, (v_.length - 0.15) / 0.12))
+        if f == 0:
+            STAB_PREV.clear()
+        if "w" in STAB_PREV:
+            w_ = STAB_PREV["w"] + (w_ - STAB_PREV["w"]) * 0.5
+        STAB_PREV["w"] = w_
+        if w_ > 1e-3 and v_.length > 1e-4:
+            if STAB_SHORTEN > 0:
+                # "don't make the arm extend that much": bend the elbow (FK forearm about the hinge
+                # axis) until the hand is STAB_SHORTEN * w closer to the shoulder; a nearly straight arm
+                # has no hinge plane, then the elbow is bent outward-and-down
+                sh3 = (rig.matrix_world @ pbs["DEF-upper_arm." + sd].matrix).translation
+                el3 = (rig.matrix_world @ pbs["DEF-forearm." + sd].matrix).translation
+                hd3 = (rig.matrix_world @ pbs["DEF-hand." + sd].matrix).translation
+                a_ = (el3 - sh3).length; b_ = (hd3 - el3).length; r0 = (hd3 - sh3).length
+                r1 = max(abs(a_ - b_) + 0.01, r0 - STAB_SHORTEN * w_)
+                th0 = math.acos(max(-1.0, min(1.0, (a_ * a_ + b_ * b_ - r0 * r0) / (2 * a_ * b_))))
+                th1 = math.acos(max(-1.0, min(1.0, (a_ * a_ + b_ * b_ - r1 * r1) / (2 * a_ * b_))))
+                # hinge axis: the capture's elbow plane where the arm is bent, blended towards an
+                # out-and-down elbow as it straightens (a straight arm's plane normal is noise: the first
+                # build rotated the forearm 45 deg about a random axis and flipped the arm at the peak),
+                # and kept on the same side as last frame
+                n_cap = (el3 - sh3).cross(hd3 - el3)
+                out3 = Vector((-1, 0, 0)) if sd == "R" else Vector((1, 0, 0))
+                n_fb = (hd3 - sh3).normalized().cross((out3 * 0.6 + Vector((0, 0, -1))).normalized()).normalized()
+                k_ = 1.0 if n_cap.length > 0.003 else 0.0                       # a bent elbow (> ~8 deg) defines its plane
+                if k_ and ("n" not in STAB_PREV or STAB_PREV["n"].dot(n_cap) >= 0):
+                    n_ = n_cap.normalized()                                       # the capture's own plane
+                elif "n" in STAB_PREV:
+                    n_ = STAB_PREV["n"].copy()                                    # straight (or crossed straight): keep last frame's plane
+                else:
+                    n_ = n_fb                                                     # first frame and straight: elbow out and down
+                STAB_PREV["n"] = n_.copy()
+                fa_ = pbs["forearm_fk." + sd]
+                # a POSITIVE turn of the forearm about (elbow - shoulder) x (hand - elbow) closes the elbow
+                # (the first build turned it the other way, opened the arm past straight and flipped the
+                # elbow to the other side every other frame: 130 deg forearm steps)
+                set_world(fa_, Quaternion(n_, (th0 - th1)) @ world_rot(fa_)); update()
+                hd4 = (rig.matrix_world @ pbs["DEF-hand." + sd].matrix).translation
+                if os.environ.get("STAB_DEBUG"):
+                    print("stab f%d w %.2f r0 %.3f r1 %.3f got %.3f th0 %.0f th1 %.0f k %.2f n (%.2f,%.2f,%.2f) ncap_len %.4f" % (f + 1, w_, r0, r1, (hd4 - sh3).length, math.degrees(th0), math.degrees(th1), k_, n_.x, n_.y, n_.z, n_cap.length))
+                STAB_LOG[3] = max(STAB_LOG[3], r0 - (rig.matrix_world @ pbs["DEF-hand." + sd].matrix).translation.__sub__(sh3).length)
+            sock_ = rig.matrix_world @ pbs["DEF-weapon." + sd].matrix
+            v_ = sock_.translation - sh_; v_.z = 0.0
+            yaw_arm = math.atan2(v_.x, -v_.y)
+            ua_ = pbs["upper_arm_fk." + sd]
+            set_world(ua_, Quaternion((0, 0, 1), -yaw_arm * w_) @ world_rot(ua_))
+            update()
+            sock_ = rig.matrix_world @ pbs["DEF-weapon." + sd].matrix
+            y_ = sock_.to_3x3() @ Vector((0, 1, 0)); y_.z = 0.0
+            if y_.length > 1e-4:
+                yaw_hilt = math.atan2(y_.x, -y_.y)
+                # the hand: built from the FOREARM's zero-twist hand (rest relation), turned by the least
+                # rotation that aims the hilt axis forward at STAB_PITCH, then rolled STAB_ROLL about the
+                # blade; blended with the capture's hand by w. Aiming the captured hand in world space and
+                # clamping its twist flipped the forearm 96-165 deg on two frames (the target sat ~180 deg
+                # twisted from the forearm there), exactly as the bow anchor did before the same fix
+                hf_ = pbs["hand_fk." + sd]
+                q_cur = sock_.to_quaternion()
+                S_ = world_rot(hf_).inverted() @ q_cur
+                sq0 = world_rot(pbs["forearm_fk." + sd]) @ WRIST_REST[sd] @ S_
+                y0 = (sq0 @ Vector((0, 1, 0))).normalized()
+                yaw_t = STAB_YAW if sd == "R" else -STAB_YAW                   # inward for either hand (a mirrored clip mirrors it)
+                tgt_ = Vector((math.sin(yaw_t) * math.cos(STAB_PITCH), -math.cos(yaw_t) * math.cos(STAB_PITCH), math.sin(STAB_PITCH)))
+                q_new = Quaternion(tgt_, STAB_ROLL) @ (y0.rotation_difference(tgt_) @ sq0)
+                if q_cur.dot(q_new) < 0:
+                    q_new.negate()
+                set_world(hf_, (q_cur.slerp(q_new, w_) @ q_cur.inverted()) @ world_rot(hf_))
+                update()
+                if w_ > 0.9:
+                    STAB_LOG[0] = max(STAB_LOG[0], abs(math.degrees(yaw_arm))); STAB_LOG[1] = max(STAB_LOG[1], abs(math.degrees(yaw_hilt))); STAB_LOG[2] += 1
     for side, ang in WRIST_TWIST.items():
         # pronate / supinate: rotate the FK forearm about its own axis (the hand and fingers follow)
         fa = pbs["forearm_fk." + side]
@@ -1080,6 +1356,25 @@ def pose(f, dz=0.0, f_travel=None):
         NEED_DROP = 0.0
         # blend-from: the first frame is the base pose verbatim, the planting fades in with the crossfade
         w_in = smooth01(f / float(BLEND_IN)) if (BASE is not None and f < BLEND_IN) else 1.0
+        # the IK knee follows the FK knee (2026-09-23, user: "slight right knee jerk close to the end of the
+        # thrust"): the plant blends the leg between FK and IK, and Rigify's IK knee sat 5 cm inward of the
+        # capture's, so every change of the plant weight (a foot lifting off, a foot found on the floor) swung
+        # the knee sideways in one frame (5.5 / 4.4 cm on the stab). With the pole out through the FK knee the
+        # two legs agree and the blend only lifts the foot. Read here, on the FK legs, applied after the foot
+        if f == 0:
+            KNEE_POLE_PREV.clear()
+        knee_pole = {}
+        for side in ("L", "R"):
+            hipj_ = (rig.matrix_world @ pbs["DEF-thigh." + side].matrix).translation
+            knee_ = (rig.matrix_world @ pbs["shin_fk." + side].matrix).translation
+            ankle_ = (rig.matrix_world @ pbs["foot_fk." + side].matrix).translation
+            ax_ = ankle_ - hipj_; d_ = knee_ - hipj_
+            if ax_.length > 1e-6:
+                ax_.normalize(); perp_ = d_ - ax_ * d_.dot(ax_)
+                if perp_.length > 0.01:
+                    KNEE_POLE_PREV[side] = perp_.normalized()       # a straight leg has no knee direction: keep last frame's
+            if side in KNEE_POLE_PREV:
+                knee_pole[side] = knee_ + KNEE_POLE_PREV[side] * 0.4
         for side, sf, st in (("L", "LeftFoot", "LeftToeBase"), ("R", "RightFoot", "RightToeBase")):
             if sf not in src or st not in src:
                 continue
@@ -1104,14 +1399,54 @@ def pose(f, dz=0.0, f_travel=None):
             target = Matrix.Translation((0, 0, -lowest)) @ fm @ FOOTIK_FROM_FOOT[side]
             pbs["foot_ik." + side].matrix = rig.matrix_world.inverted() @ target
             update()
+            if side in knee_pole:
+                pbs["thigh_parent." + side]["pole_vector"] = True
+                pm_ = pbs["thigh_ik_target." + side].matrix.copy(); pm_.translation = rig.matrix_world.inverted() @ knee_pole[side]
+                pbs["thigh_ik_target." + side].matrix = pm_
+                update()
             set_world(pbs["toe_ik." + side], toe_q)
             update()
-    if LOCK_L > 0:
+    if LOCK_L > 0 or GATE:
         # two-handed grip: the left hand's socket frame = the right hand's socket frame moved
-        # LOCK_L down the handle (-Y), so both hands wrap the handle the same way and a weapon
-        # attached to RightWeaponSocket passes through the left hand every frame
+        # down the handle (-Y), so both hands wrap the handle the same way and a weapon attached
+        # to RightWeaponSocket passes through the left hand every frame. --lock-left-hand D pins
+        # it a fixed D; --gate MIN,MAX (user, 2026-09-22: "a gate that controls how far the two
+        # weapon slots can travel from one another") lets it SLIDE where the capture's left hand
+        # projects onto the hilt axis, clamped to [MIN, MAX] and smoothed, so the second hand
+        # reads as riding the shaft through the swing instead of welded to one point
         sock_r = (rig.matrix_world @ pbs["DEF-weapon.R"].matrix).copy()
-        target = sock_r @ Matrix.Translation((0, -LOCK_L, 0)) @ Matrix.Rotation(LOCK_L_ROLL, 4, 'Y') @ HAND_FROM_SOCKET["L"]
+        dist = LOCK_L
+        if GATE:
+            hl = (rig.matrix_world @ pbs["DEF-weapon.L"].matrix).translation      # the capture's left hand, FK
+            shl = (rig.matrix_world @ pbs["DEF-upper_arm.L"].matrix).translation
+            y_ = (sock_r.to_3x3() @ Vector((0, 1, 0))).normalized()
+            raw_d = -(hl - sock_r.translation).dot(y_)                             # down the handle = -Y
+            dist = max(GATE[0], min(GATE[1], raw_d))
+            # reach: the capture's right hand can hold the weapon 0.42 rig m from the left shoulder (arm
+            # 0.32), where no gated point is reachable and the IK left the hand 100 mm off the shaft.
+            # Then take the gated point nearest the left shoulder, and if that is still out of reach,
+            # pull the RIGHT hand in along that line by the shortfall: both hands stay on the shaft and
+            # the swing's arc shortens a little (user: "ideally both hands stay on a weapon shaft")
+            limit_ = ARM_LEN_L * 0.97
+            if (sock_r.translation - y_ * dist - shl).length > limit_:
+                dist = max(GATE[0], min(GATE[1], -(shl - sock_r.translation).dot(y_)))
+            if f == 0:
+                GATE_PREV.clear()
+            if "d" in GATE_PREV:
+                dist = GATE_PREV["d"] + (dist - GATE_PREV["d"]) * GATE_SMOOTH
+            GATE_PREV["d"] = dist
+            tgt_ = sock_r.translation - y_ * dist
+            short_ = (tgt_ - shl).length - limit_
+            if short_ > 0 and GATE_PULL:
+                pull_ = (tgt_ - shl).normalized() * short_
+                sock_r.translation = sock_r.translation - pull_
+                pbs["upper_arm_parent.R"]["IK_FK"] = 0.0
+                pbs["hand_ik.R"].matrix = rig.matrix_world.inverted() @ sock_r @ HAND_FROM_SOCKET["R"]
+                update()
+                sock_r = (rig.matrix_world @ pbs["DEF-weapon.R"].matrix).copy()
+                GATE_LOG[3] = max(GATE_LOG[3], short_); GATE_LOG[4] += 1
+            GATE_LOG[0] = min(GATE_LOG[0], dist); GATE_LOG[1] = max(GATE_LOG[1], dist); GATE_LOG[2] += 1 if raw_d < GATE[0] or raw_d > GATE[1] else 0
+        target = sock_r @ Matrix.Translation((0, -dist, 0)) @ Matrix.Rotation(LOCK_L_ROLL, 4, 'Y') @ HAND_FROM_SOCKET["L"]
         pbs["upper_arm_parent.L"]["IK_FK"] = 0.0
         pbs["hand_ik.L"].matrix = rig.matrix_world.inverted() @ target
         update()
@@ -1129,6 +1464,104 @@ def pose(f, dz=0.0, f_travel=None):
         va = bh - ref
         pf = (rig.matrix_world @ pbs["DEF-spine"].matrix).to_3x3() @ PELVIS_FWD_LOCAL
         AIM_TRACE.append((math.atan2(va.x, -va.y) - AIM_OFFSET, bh.z > sh.z - 0.08 and dh.z > sh.z - 0.08 and v.length > 0.2, math.atan2(pf.x, -pf.y), bh.z > sh.z - 0.08))
+    for side_ in ARM_IK:
+        if side_ in ("L", "R"):
+            sname_ = ("Right" if side_ == "R" else "Left")
+            hips_w = (rig.matrix_world @ pbs["torso"].matrix).translation
+            sh3 = (rig.matrix_world @ pbs["DEF-upper_arm." + side_].matrix).translation
+            tgt_ = hips_w + (src[sname_ + "Hand"][1] - src["Hips"][1]) * scale
+            arm_len = ARM_LEN_L if side_ == "L" else ARM_LEN_R
+            v_ = tgt_ - sh3
+            if v_.length > arm_len * 0.97:
+                tgt_ = sh3 + v_.normalized() * arm_len * 0.97                    # within reach: no locked elbow
+            # the pole swings with the arm: rest offset (out, back, a little down) turned by the swing from
+            # the rest arm direction to the current shoulder -> hand direction
+            out_ = Vector((1, 0, 0)) if side_ == "L" else Vector((-1, 0, 0))
+            q_sw = T_rest["upper_arm_fk." + side_][1].rotation_difference((tgt_ - sh3).normalized())
+            pole_ = sh3 + q_sw @ (out_ * 0.30 + Vector((0, 0.25, -0.15)))
+            pbs["upper_arm_parent." + side_]["IK_FK"] = 0.0
+            pbs["upper_arm_parent." + side_]["pole_vector"] = True
+            pm = pbs["upper_arm_ik_target." + side_].matrix.copy(); pm.translation = rig.matrix_world.inverted() @ pole_
+            pbs["upper_arm_ik_target." + side_].matrix = pm
+            hm = pbs["hand_ik." + side_].matrix.copy(); hm.translation = rig.matrix_world.inverted() @ tgt_
+            pbs["hand_ik." + side_].matrix = hm
+            update()
+            # the hand: the IK forearm's zero-twist hand, its finger axis turned onto the capture's fingers
+            kid_ = sname_ + "HandMiddleEnd"
+            if kid_ not in src: kid_ = sname_ + "HandMiddle1"
+            if kid_ in src:
+                d_src = (src[kid_][1] - src[sname_ + "Hand"][1])
+                if d_src.length > 1e-6:
+                    q0 = world_rot(pbs["DEF-forearm." + side_]) @ WRIST_REST["DEF-" + side_]
+                    y0 = (q0 @ Vector((0, 1, 0))).normalized()
+                    q_h = y0.rotation_difference(d_src.normalized()) @ q0
+                    # the roll about the palm axis: the hilt axis (socket +Y) as close as it can be to the
+                    # FOREARM line, so the weapon continues the arm (the capture's hand roll is junk; a
+                    # zero-twist roll hung the blade straight down out of a thrust)
+                    fa_dir = ((rig.matrix_world @ pbs["DEF-hand." + side_].matrix).translation - (rig.matrix_world @ pbs["DEF-forearm." + side_].matrix).translation).normalized()
+                    S_ = world_rot(pbs["DEF-hand." + side_]).inverted() @ (rig.matrix_world @ pbs["DEF-weapon." + side_].matrix).to_quaternion()
+                    ax_ = d_src.normalized()
+                    y_s = (q_h @ S_) @ Vector((0, 1, 0)); y_s = (y_s - ax_ * y_s.dot(ax_)).normalized()
+                    t_s = fa_dir - ax_ * fa_dir.dot(ax_)
+                    if t_s.length > 0.05:
+                        t_s.normalize()
+                        q_h = Quaternion(ax_, math.atan2(y_s.cross(t_s).dot(ax_), y_s.dot(t_s))) @ q_h
+                    hik = pbs["hand_ik." + side_]
+                    set_world(hik, (q_h @ world_rot(pbs["DEF-hand." + side_]).inverted()) @ world_rot(hik))
+                    update()
+    for side_ in ARM_ROLL_GEO:
+        if side_ in ("L", "R"):
+            ua_ = pbs["upper_arm_fk." + side_]; fa_ = pbs["forearm_fk." + side_]; hf_ = pbs["hand_fk." + side_]
+            q_fa_w = world_rot(fa_); q_hf_w = world_rot(hf_)                     # the children's world rotations, restored after
+            sh3 = (rig.matrix_world @ pbs["DEF-upper_arm." + side_].matrix).translation
+            el3 = (rig.matrix_world @ pbs["DEF-forearm." + side_].matrix).translation
+            hd3 = (rig.matrix_world @ pbs["DEF-hand." + side_].matrix).translation
+            d_ua = (el3 - sh3).normalized(); d_fa = (hd3 - el3).normalized()
+            # upper arm: swing-only from its rest direction, then the twist that lays its rest hinge axis
+            # (local X: the elbow bends about it) on the elbow's actual bend-plane normal
+            q_sw = T_rest["upper_arm_fk." + side_][1].rotation_difference(d_ua) @ T_rest["upper_arm_fk." + side_][0]
+            n_ = d_ua.cross(d_fa)
+            if n_.length > 0.15:                                                 # elbow bent > ~9 deg: the plane is defined
+                h_ = (q_sw @ Vector((1, 0, 0))); h_ = (h_ - d_ua * h_.dot(d_ua)).normalized()
+                n_ = (n_ - d_ua * n_.dot(d_ua)).normalized()
+                tw_ = math.atan2(h_.cross(n_).dot(d_ua), h_.dot(n_))
+                if "n" in ARM_ROLL_PREV.get(side_, {}) and ARM_ROLL_PREV[side_]["n"].dot(n_) < 0:
+                    tw_ += math.pi                                              # the plane flipped through straight: keep the same side
+                ARM_ROLL_PREV.setdefault(side_, {})["n"] = n_.copy(); ARM_ROLL_PREV[side_]["tw"] = tw_
+            else:
+                tw_ = ARM_ROLL_PREV.get(side_, {}).get("tw", 0.0)
+            set_world(ua_, Quaternion(d_ua, tw_) @ q_sw); update()
+            # forearm: swing-only from its rest direction (twist-free), the hand back to its world rotation
+            set_world(fa_, T_rest["forearm_fk." + side_][1].rotation_difference(d_fa) @ T_rest["forearm_fk." + side_][0]); update()
+            set_world(hf_, q_hf_w); update()
+    for side_, tilt_ in HAND_TILT.items():
+        # a constant tilt of the hand about the world-horizontal axis perpendicular to its hilt: the blade
+        # pitches up (+) or down (-) by the given degrees, the aim in yaw untouched (user: "tilt the hand
+        # so that the sword is more forward pointing")
+        sockt = rig.matrix_world @ pbs["DEF-weapon." + side_].matrix
+        hz = sockt.to_3x3() @ Vector((0, 1, 0)); hz.z = 0.0
+        if hz.length > 1e-4:
+            ax_ = Vector((0, 0, 1)).cross(hz.normalized())        # a POSITIVE turn about it tilts the blade DOWN (measured on the first stab aim)
+            hf_ = pbs["hand_fk." + side_]
+            set_world(hf_, Quaternion(ax_, -tilt_) @ world_rot(hf_))
+            update()
+    for side_ in HAND_FROM_FOREARM:
+        if side_ in ("L", "R"):
+            # the hand = the forearm's zero-twist hand turned by the least rotation that points its finger
+            # axis (the hand bone's Y) where the capture's fingers point (hand -> middle fingertip)
+            sname_ = ("Right" if side_ == "R" else "Left") + "Hand"; kid_ = sname_ + "MiddleEnd"
+            if kid_ not in src: kid_ = sname_ + "Middle1"
+            if sname_ in src and kid_ in src:
+                d_src = (src[kid_][1] - src[sname_][1])
+                if d_src.length > 1e-6:
+                    hf_ = pbs["hand_fk." + side_]
+                    q0 = world_rot(pbs["forearm_fk." + side_]) @ WRIST_REST[side_]
+                    y0 = (q0 @ Vector((0, 1, 0))).normalized()
+                    set_world(hf_, y0.rotation_difference(d_src.normalized()) @ q0)
+                    update()
+    for side_ in WRIST_FIX:
+        if side_ in ("L", "R"):
+            limit_wrist(side_)
     if POSE_DELTAS:
         w_ = (ANCHOR_W[f] if ANCHOR_W is not None else 1.0)
         for c_, (dloc, drot, w_at) in POSE_DELTAS.items():
@@ -1140,6 +1573,39 @@ def pose(f, dz=0.0, f_travel=None):
             r_ = Quaternion((1, 0, 0, 0)).slerp(drot, k_).to_matrix().to_4x4()
             r_.translation = dloc * k_
             pb_.matrix_basis = r_ @ b_
+        update()
+    if POSE_REFS:
+        fr_ = f + 1; ats_ = [a for a, _ in POSE_REFS]
+        def apply_deltas(dl, k_):
+            for c_, (dloc, drot) in dl.items():
+                pb_ = pbs[c_]; b_ = pb_.matrix_basis.copy()
+                r_ = Quaternion((1, 0, 0, 0)).slerp(drot, k_).to_matrix().to_4x4(); r_.translation = dloc * k_
+                pb_.matrix_basis = r_ @ b_
+        if fr_ <= ats_[0]:
+            k_ = 1.0 if POSE_REF_IN <= 0 else smooth01(max(0.0, min(1.0, (fr_ - (ats_[0] - POSE_REF_IN)) / float(POSE_REF_IN))))
+            if k_ > 0:
+                apply_deltas(POSE_REFS[0][1], k_)
+        elif fr_ >= ats_[-1]:
+            if POSE_REF_TAIL == "return" and POSE_END_BASES is not None:
+                s_ = smooth01(min(1.0, (fr_ - ats_[-1]) / float(max(1, N_OUT - ats_[-1]))))
+                for c_ in POSE_ALL_CTRLS:
+                    a_ = POSE_LAST_BASES[c_]; b_ = POSE_END_BASES[c_]
+                    qa = a_.to_quaternion(); qb = b_.to_quaternion()
+                    if qa.dot(qb) < 0: qb.negate()
+                    m_ = qa.slerp(qb, s_).to_matrix().to_4x4(); m_.translation = a_.translation.lerp(b_.translation, s_)
+                    pbs[c_].matrix_basis = m_
+            else:
+                apply_deltas(POSE_REFS[-1][1], 1.0)
+        else:
+            i_ = max(j for j, a in enumerate(ats_) if a <= fr_)
+            a0, d0 = POSE_REFS[i_]; a1, d1 = POSE_REFS[i_ + 1]
+            t_ = (fr_ - a0) / float(a1 - a0)
+            mix_ = {}
+            for c_ in set(d0) | set(d1):
+                l0, q0 = d0.get(c_, (Vector((0, 0, 0)), Quaternion((1, 0, 0, 0)))); l1, q1 = d1.get(c_, (Vector((0, 0, 0)), Quaternion((1, 0, 0, 0))))
+                if q0.dot(q1) < 0: q1 = -q1
+                mix_[c_] = (l0.lerp(l1, t_), q0.slerp(q1, t_))
+            apply_deltas(mix_, 1.0)
         update()
 
 
@@ -1345,31 +1811,76 @@ if PLANT > 0 and FK_LEGS:
         HIP_DROP = [d * (smooth01(f / float(BLEND_IN)) if f < BLEND_IN else 1.0) for f, d in enumerate(HIP_DROP)]
     log("plant: reach drop of the hips %.4f..%.4f rig m (%d frames need it)" % (min(HIP_DROP), max(HIP_DROP), sum(1 for n in need if n > 1e-4)))
 
-if POSE_REF:
-    # the user's reference pose (tools/anim_pose_save.py) for output frame AT: generate that frame,
-    # read every control's local transform, read the reference's, keep the deltas. Applied at the
-    # end of pose() with the anchor mask as weight (scaled so frame AT is the reference exactly), so
-    # the raise and the release keep the capture's motion and the drawn pose is the user's
-    spec_, _, at_ = POSE_REF.partition("@"); at_ = int(at_)
-    scene.frame_set(at_); pose((at_ - 1) % LOOP if LOOPING else at_ - 1, dz[at_ - 1], at_ - 1)
-    ctrls_ = [b.name for b in pbs if not b.name.startswith(("DEF-", "MCH-", "ORG-", "VIS_"))]
-    gen_ = {c: pbs[c].matrix_basis.copy() for c in ctrls_}
-    rname_, _, rframe_ = spec_.partition(":")
-    ract_ = bpy.data.actions[rname_]; rig.animation_data.action = ract_
-    if hasattr(rig.animation_data, "action_slot") and ract_.slots: rig.animation_data.action_slot = ract_.slots[0]
-    scene.frame_set(int(rframe_) if rframe_ else 1); update()
-    ref_ = {c: pbs[c].matrix_basis.copy() for c in ctrls_}
+POSE_ALL_CTRLS = [b.name for b in pbs if not b.name.startswith(("DEF-", "MCH-", "ORG-", "VIS_"))]
+
+
+def _mirror_ctrl(c):
+    return c[:-2] + (".R" if c.endswith(".L") else ".L") if c.endswith((".L", ".R")) else c
+
+
+def _mirror_basis(m):
+    """Blender's pose-mode Paste X-Flipped for a symmetric rig: location x negated, quaternion y and z negated."""
+    q = m.to_quaternion(); q = Quaternion((q.w, q.x, -q.y, -q.z))
+    out = q.to_matrix().to_4x4(); out.translation = Vector((-m.translation.x, m.translation.y, m.translation.z))
+    return out
+
+
+def _sample_bases(spec):
+    """{control: matrix_basis} on ACTION:frame (mirrored if --pose-ref-mirror)."""
+    name_, _, frame_ = spec.partition(":")
+    act_ = bpy.data.actions[name_]; rig.animation_data.action = act_
+    if hasattr(rig.animation_data, "action_slot") and act_.slots: rig.animation_data.action_slot = act_.slots[0]
+    scene.frame_set(int(frame_) if frame_ else 1); update()
+    raw_ = {c: pbs[c].matrix_basis.copy() for c in POSE_ALL_CTRLS}
+    if POSE_REF_MIRROR:
+        hl_ = (rig.matrix_world @ pbs["DEF-hand.L"].matrix).translation.copy(); hr_ = (rig.matrix_world @ pbs["DEF-hand.R"].matrix).translation.copy()
+        raw_ = {c: _mirror_basis(raw_[_mirror_ctrl(c)]) for c in POSE_ALL_CTRLS}
+        for c in POSE_ALL_CTRLS: pbs[c].matrix_basis = raw_[c]
+        update()
+        hr2 = (rig.matrix_world @ pbs["DEF-hand.R"].matrix).translation; hl2 = (rig.matrix_world @ pbs["DEF-hand.L"].matrix).translation
+        log("pose-ref mirror %s: mirrored right hand vs the source's left hand (x flipped) %.1f mm, left vs right %.1f mm" % (spec, (hr2 - Vector((-hl_.x, hl_.y, hl_.z))).length * 1000, (hl2 - Vector((-hr_.x, hr_.y, hr_.z))).length * 1000))
     rig.animation_data.action = None; zero_pose()
     rig.animation_data.action = act
     if hasattr(rig.animation_data, "action_slot") and act.slots: rig.animation_data.action_slot = act.slots[0]
-    w_at_ = ANCHOR_W[at_ - 1] if ANCHOR_W is not None else 1.0
-    POSE_DELTAS = {}
-    for c in ctrls_:
-        d_ = ref_[c] @ gen_[c].inverted()
-        if d_.to_quaternion().angle > math.radians(0.5) or d_.translation.length > 0.001:
-            POSE_DELTAS[c] = (d_.translation.copy(), d_.to_quaternion(), w_at_)
-    log("pose-ref %s: %d controls differ from the generated frame %d (weight there %.2f): %s" % (
-        POSE_REF, len(POSE_DELTAS), at_, w_at_, ", ".join("%s %.0f deg/%.0f mm" % (c, math.degrees(v[1].angle), v[0].length * 1000) for c, v in sorted(POSE_DELTAS.items(), key=lambda kv: -kv[1][1].angle)[:12])))
+    return raw_
+
+
+if POSE_REF:
+    # the user's reference pose(s) (tools/anim_pose_save.py) for output frame(s) AT: generate that
+    # frame, read every control's local transform, read the reference's, keep the deltas. One ref:
+    # applied at the end of pose() with the anchor mask as weight (scaled so frame AT is the
+    # reference exactly; the bow's fire pose). Several: ramp the first in over --pose-ref-in
+    # frames, interpolate the deltas between refs, and after the last either hold its delta or
+    # (--pose-ref-tail return) go from that pose straight to the blend-to pose by the last frame
+    specs_ = [sp.strip() for sp in POSE_REF.split(",") if sp.strip()]
+    refs_ = []
+    for sp in specs_:
+        spec_, _, at_ = sp.partition("@"); at_ = int(at_)
+        scene.frame_set(at_); pose((at_ - 1) % LOOP if LOOPING else at_ - 1, dz[at_ - 1], at_ - 1)
+        gen_ = {c: pbs[c].matrix_basis.copy() for c in POSE_ALL_CTRLS}
+        ref_ = _sample_bases(spec_)
+        dl_ = {}
+        for c in POSE_ALL_CTRLS:
+            d_ = ref_[c] @ gen_[c].inverted()
+            if d_.to_quaternion().angle > math.radians(0.5) or d_.translation.length > 0.001:
+                dl_[c] = (d_.translation.copy(), d_.to_quaternion())
+        refs_.append((at_, dl_, ref_))
+        log("pose-ref %s: %d controls differ from the generated frame %d: %s" % (sp, len(dl_), at_, ", ".join("%s %.0f deg/%.0f mm" % (c, math.degrees(v[1].angle), v[0].length * 1000) for c, v in sorted(dl_.items(), key=lambda kv: -kv[1][1].angle)[:10])))
+    if len(refs_) == 1 and POSE_REF_IN <= 0 and POSE_REF_TAIL == "hold":
+        w_at_ = ANCHOR_W[refs_[0][0] - 1] if ANCHOR_W is not None else 1.0
+        POSE_DELTAS = {c: (v[0], v[1], w_at_) for c, v in refs_[0][1].items()}
+    else:
+        POSE_REFS = [(a, d) for a, d, _ in refs_]
+        POSE_LAST_BASES = refs_[-1][2]
+        if POSE_REF_TAIL == "return":
+            assert BLEND_TO, "--pose-ref-tail return needs --blend-to (the pose the tail returns to)"
+            POSE_END_BASES = _sample_bases(BLEND_TO if ":" in BLEND_TO else BLEND_TO + ":1") if not POSE_REF_MIRROR else None
+            if POSE_END_BASES is None:
+                # the blend-to pose is NOT mirrored (it is the idle itself): sample it plainly
+                _m = POSE_REF_MIRROR; globals()["POSE_REF_MIRROR"] = False
+                POSE_END_BASES = _sample_bases(BLEND_TO if ":" in BLEND_TO else BLEND_TO + ":1")
+                globals()["POSE_REF_MIRROR"] = _m
+            log("pose-ref tail: from frame %d the pose returns to %s by frame %d" % (refs_[-1][0], BLEND_TO, N_OUT))
 
 # pass 2: final pose + keys
 planted = 0
@@ -1384,6 +1895,10 @@ final_min = []
 for f in range(N_OUT):
     scene.frame_set(f + 1); update(); final_min.append(body_min_z())
 log("body min z after correction %.4f..%.4f" % (min(final_min), max(final_min)))
+if STAB_AIM and STAB_LOG[2]:
+    log("stab-aim %s: at full extension (%d frames) the arm was up to %.0f deg and the hilt up to %.0f deg off forward; both aimed ahead, blade pitched to %.0f deg, reach shortened by up to %.3f rig m" % (STAB_AIM, STAB_LOG[2], STAB_LOG[0], STAB_LOG[1], math.degrees(STAB_PITCH), STAB_LOG[3]))
+if GATE:
+    log("gate %.3f..%.3f: the left hand rode the handle %.3f..%.3f rig m below the right hand (clamped on %d frames); the right hand was pulled in by up to %.3f rig m on %d frames so the left could reach" % (GATE[0], GATE[1], GATE_LOG[0], GATE_LOG[1], GATE_LOG[2], GATE_LOG[3], GATE_LOG[4]))
 if ANCHOR_LOG[1]:
     log("anchor: the draw arm swung the string hand up to %.3f rig m towards the sight plane on %d frames" % (ANCHOR_LOG[0], ANCHOR_LOG[1]))
 for side_, push_ in HAND_CLEAR_LOG.items():

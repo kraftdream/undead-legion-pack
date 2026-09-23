@@ -46,13 +46,13 @@ def blender(script, args, blend=ANIM):
 
 
 def retarget_args(c):
-    a = ["--glb", "External Anims/Kimodo/%s.glb" % c["glb"], "--name", c["name"], "--mode", c["mode"], "--save"]
+    a = ["--glb", "External Anims/Kimodo/%s.%s" % (c["glb"], c.get("src_ext", "glb")), "--name", c["name"], "--mode", c["mode"], "--save"]
     for k, flag in (("loop", "--loop"), ("blend", "--blend"), ("src_start", "--src-start"), ("src_end", "--src-end"),
                     ("time_scale", "--time-scale"), ("smooth", "--smooth"), ("fist", "--fist"), ("hunch", "--hunch"),
                     ("arm_pose", "--arm-pose"), ("head_damp", "--head-damp"), ("travel_axis", "--travel-axis"),
                     ("lock_left_hand", "--lock-left-hand"), ("lock_left_roll", "--lock-left-roll"),
                     ("blend_from", "--blend-from"), ("blend_in", "--blend-in"), ("ground", "--ground"),
-                    ("ground_ignore", "--ground-ignore"), ("blend_to", "--blend-to"), ("blend_out", "--blend-out"), ("rename", "--rename"), ("plant_feet", "--plant-feet"), ("blend_from_lift", "--blend-from-lift"), ("heading", "--heading"), ("stance", "--stance"), ("still_joints", "--still-joints"), ("prop", "--prop"), ("prop_damp", "--prop-damp"), ("torso_ref", "--torso-ref"), ("hand_ref", "--hand-ref"), ("hand_offset", "--hand-offset"), ("wrist_twist", "--wrist-twist"), ("hand_clear", "--hand-clear"), ("aim_forward", "--aim-forward"), ("step_lift", "--step-lift"), ("wrist_limit", "--wrist-limit"), ("hips_drop", "--hips-drop"), ("aim_body", "--aim-body"), ("aim_line", "--aim-line"), ("aim_offset", "--aim-offset"), ("anchor", "--anchor"), ("anchor_gap", "--anchor-gap"), ("anchor_roll", "--anchor-roll"), ("time_warp", "--time-warp"), ("head_smooth", "--head-smooth"), ("pose_ref", "--pose-ref")):
+                    ("ground_ignore", "--ground-ignore"), ("blend_to", "--blend-to"), ("blend_out", "--blend-out"), ("rename", "--rename"), ("plant_feet", "--plant-feet"), ("blend_from_lift", "--blend-from-lift"), ("heading", "--heading"), ("stance", "--stance"), ("still_joints", "--still-joints"), ("prop", "--prop"), ("prop_damp", "--prop-damp"), ("torso_ref", "--torso-ref"), ("hand_ref", "--hand-ref"), ("hand_offset", "--hand-offset"), ("wrist_twist", "--wrist-twist"), ("hand_clear", "--hand-clear"), ("aim_forward", "--aim-forward"), ("step_lift", "--step-lift"), ("wrist_limit", "--wrist-limit"), ("hips_drop", "--hips-drop"), ("aim_body", "--aim-body"), ("aim_line", "--aim-line"), ("aim_offset", "--aim-offset"), ("anchor", "--anchor"), ("anchor_gap", "--anchor-gap"), ("anchor_roll", "--anchor-roll"), ("time_warp", "--time-warp"), ("head_smooth", "--head-smooth"), ("pose_ref", "--pose-ref"), ("gate", "--gate"), ("gate_smooth", "--gate-smooth"), ("only_arm", "--only-arm"), ("stab_aim", "--stab-aim"), ("stab_pitch", "--stab-pitch"), ("stab_shorten", "--stab-shorten"), ("stab_yaw", "--stab-yaw"), ("blade_along_arm", "--blade-along-arm"), ("blade_roll", "--blade-roll"), ("pose_ref_in", "--pose-ref-in"), ("pose_ref_tail", "--pose-ref-tail"), ("speed_segment", "--speed-segment"), ("bind", "--bind"), ("src_begin", "--src-begin"), ("wrist_fix", "--wrist-fix"), ("shoulders", "--shoulders"), ("hand_from_forearm", "--hand-from-forearm"), ("arm_roll_geometric", "--arm-roll-geometric"), ("arm_ik", "--arm-ik"), ("drift", "--drift"), ("hand_tilt", "--hand-tilt")):
         if k in c:
             a += [flag, str(c[k])]
     if c.get("mirror"):
@@ -67,6 +67,12 @@ def retarget_args(c):
         a.append("--bow-square")
     if c.get("head_aim"):
         a.append("--head-aim")
+    if c.get("pose_ref_mirror"):
+        a.append("--pose-ref-mirror")
+    if c.get("align_roll"):
+        a.append("--align-roll")
+    if c.get("unwind_yaw"):
+        a.append("--unwind-yaw")
     if c.get("arm_keys"):
         a += ["--arm-keys", ",".join("%g:%s" % (t, n) for t, n in c["arm_keys"])]
     return a
@@ -75,7 +81,7 @@ def retarget_args(c):
 def unity_flags(c):
     mode = c["mode"]
     loop = "1" if mode in ("idle", "loco") else "0"
-    inplace = "0" if mode == "loco" else "1"
+    inplace = "0" if (mode == "loco" or c.get("drift") == "root") else "1"
     return ["--loop", loop, "--in-place", inplace]
 
 
@@ -131,6 +137,20 @@ def build_pass(args, force, unity):
             notes += [l for l in out.splitlines() if l.startswith(("clip ", "SkeletonKnight"))][:2]
             code, out = run([sys.executable, os.path.join(ROOT, "tools", "unity", "ground_clip.py"), c["name"]], timeout=900)
             notes += [l for l in out.splitlines() if l.startswith(c["name"] + ":")]
+            if c.get("ground_fit") is not None and c.get("ground_fit") is not False:
+                # close the loop in the engine: per-frame lift so the highest model's lowest vertex sits at
+                # `ground_fit` (m, true = 0 = on the floor), re-export with the curve, re-measure
+                tgt = "0.0" if c["ground_fit"] is True else str(c["ground_fit"])
+                curve = os.path.join(ROOT, "Animations", "ground_fit", c["name"] + ".json")
+                code, out = run([sys.executable, os.path.join(ROOT, "tools", "unity", "ground_fit.py"), c["name"], "--target", tgt, "--out", curve], timeout=900)
+                notes += [l for l in out.splitlines() if l.startswith("ground_fit")]
+                if code == 0 and os.path.exists(curve):
+                    code, lines = blender("export_fbx.py", ["--clip", c["name"], "--lift-curve", curve] + (["--lift", str(c["lift"])] if "lift" in c else []))
+                    notes += [l for l in lines if "lift curve" in l or "Traceback" in l or "Error" in l]
+                    code, out = run([sys.executable, os.path.join(ROOT, "tools", "unity", "ground_clip.py"), c["name"]], timeout=900)
+                    notes += ["after fit: " + l for l in out.splitlines() if l.startswith(c["name"] + ":")]
+                else:
+                    ok = False
         # merge into the file as it is NOW: entries cleared by hand while a pass runs must
         # not be resurrected from this pass's in-memory copy (that bit me twice)
         state = json.load(open(STATE)) if os.path.exists(STATE) else {}

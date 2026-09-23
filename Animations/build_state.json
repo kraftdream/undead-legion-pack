@@ -59,12 +59,6 @@
   "when": "2026-09-19 23:40",
   "mode": "death"
  },
- "Attack_1H_01": {
-  "sig": "atk_1h_slash|1789850346|{\"fist\": 0.9, \"frames\": 120, \"glb\": \"atk_1h_slash\", \"mode\": \"action\", \"name\": \"Attack_1H_01\", \"seed\": 17, \"smooth\": 1, \"time_scale\": 1.0}",
-  "ok": true,
-  "when": "2026-09-19 23:45",
-  "mode": "action"
- },
  "Walk_Fwd": {
   "sig": "walk_fwd|1789848534|{\"fist\": 0.4, \"frames\": 240, \"glb\": \"walk_fwd\", \"head_damp\": 0.45, \"mode\": \"loco\", \"name\": \"Walk_Fwd\", \"seed\": 4, \"smooth\": 1, \"time_scale\": 1.3}",
   "ok": true,
@@ -76,24 +70,6 @@
   "ok": true,
   "when": "2026-09-20 09:25",
   "mode": "loco"
- },
- "Attack_1H_02": {
-  "sig": "atk_1h_thrust|1789850504|{\"fist\": 0.9, \"frames\": 120, \"glb\": \"atk_1h_thrust\", \"mode\": \"action\", \"name\": \"Attack_1H_02\", \"seed\": 19, \"smooth\": 1, \"time_scale\": 1.0}",
-  "ok": true,
-  "when": "2026-09-19 23:50",
-  "mode": "action"
- },
- "Shield_Bash": {
-  "sig": "shield_bash|1789850662|{\"fist\": 0.9, \"frames\": 120, \"glb\": \"shield_bash\", \"mode\": \"action\", \"name\": \"Shield_Bash\", \"seed\": 22, \"smooth\": 1, \"time_scale\": 1.0}",
-  "ok": true,
-  "when": "2026-09-19 23:51",
-  "mode": "action"
- },
- "Block": {
-  "sig": "block|1789850819|{\"fist\": 0.9, \"frames\": 120, \"glb\": \"block\", \"mode\": \"action\", \"name\": \"Block\", \"seed\": 23, \"smooth\": 1, \"time_scale\": 1.0}",
-  "ok": true,
-  "when": "2026-09-19 23:54",
-  "mode": "action"
  },
  "Cast_Wand_01": {
   "sig": "cast_wand_flick|1789851314|{\"fist\": 0.8, \"frames\": 120, \"glb\": \"cast_wand_flick\", \"mode\": \"action\", \"name\": \"Cast_Wand_01\", \"seed\": 29, \"smooth\": 1, \"time_scale\": 1.0}",
@@ -108,15 +84,15 @@
   "mode": "action"
  },
  "Attack_2H_01": {
-  "sig": "atk_2h_overhead|1789850031|{\"fist\": 0.9, \"frames\": 120, \"glb\": \"atk_2h_overhead\", \"lock_left_hand\": 0.085, \"mode\": \"action\", \"name\": \"Attack_2H_01\", \"seed\": 2, \"smooth\": 1, \"time_scale\": 1.0}",
+  "sig": "atk_2h_overhead|1789889840|{\"_note\": \"two-handed gate (user 2026-09-22): the left hand slides on the handle where the capture put it, 0.03..0.11 rig m below the right hand (the battle axe's handle below the socket is 0.13, the longsword's 0.108); replaces the fixed lock_left_hand 0.085\", \"fist\": 0.9, \"frames\": 120, \"gate\": \"0.03,0.11\", \"glb\": \"atk_2h_overhead\", \"layer\": \"full\", \"mode\": \"action\", \"name\": \"Attack_2H_01\", \"seed\": 2, \"smooth\": 1, \"time_scale\": 1.0}",
   "ok": true,
-  "when": "2026-09-20 00:07",
+  "when": "2026-09-22 16:17",
   "mode": "action"
  },
  "Attack_2H_02": {
-  "sig": "atk_2h_sweep|1789850189|{\"fist\": 0.9, \"frames\": 120, \"glb\": \"atk_2h_sweep\", \"lock_left_hand\": 0.085, \"mode\": \"action\", \"name\": \"Attack_2H_02\", \"seed\": 15, \"smooth\": 1, \"time_scale\": 1.0}",
+  "sig": "atk_2h_sweep|1789889840|{\"_note\": \"two-handed gate (user 2026-09-22): the left hand slides on the handle where the capture put it, 0.03..0.11 rig m below the right hand (the battle axe's handle below the socket is 0.13, the longsword's 0.108); replaces the fixed lock_left_hand 0.085\", \"fist\": 0.9, \"frames\": 120, \"gate\": \"0.03,0.11\", \"glb\": \"atk_2h_sweep\", \"layer\": \"full\", \"mode\": \"action\", \"name\": \"Attack_2H_02\", \"seed\": 15, \"smooth\": 1, \"time_scale\": 1.0}",
   "ok": true,
-  "when": "2026-09-20 00:08",
+  "when": "2026-09-22 16:18",
   "mode": "action"
  },
  "Shoot_01": {
@@ -166,5 +142,35 @@
   "ok": true,
   "when": "2026-09-20 00:21",
   "mode": "action"
+ },
+ "Attack_R_Stab": {
+  "sig": "attack_ref5_arm|1790155087|{\"_note\": \"the user's reference P:\\\\c7uJKSavZ5aC-mUqvTCBRmSJH.glb (2026-09-23; the mannequin app's skinless GLB, A-pose rest, 221 frames at 30 fps) -> attack_ref5_mocap.glb -> tools/glb_nodes_to_armature.py -> attack_ref5_arm.blend; stab: source frames 18-80; this take attacks with the RIGHT arm, so the R clip is the raw transfer and the L clip is mirrored; plain rotation transfer, no arm passes; time_scale 0.7692; no baked blends (the Animator transitions); widened (user: 'I need more frames, as transitions from/to blend the start/final frames'); mode action + plant_feet + drift root (user: 'the references include steps, like a step forward during the stab; apply them only if the bottom half is not busy'): the legs come from the capture with the feet planted, the take's net travel (stab 15 cm, slice 33 cm) goes on Root as root motion, and the arm-layer masks drop the legs whenever locomotion owns them; then (user): hand_tilt -45 (the blade pitched 45 deg up at the thrust; -30 left it 16 deg above the forearm, which itself thrusts 22 deg upward, so -45 lays it along the arm: 'tilt the hand so that sword is more forward pointing'), time_scale 0.3846 ('2 times faster'), unwind_yaw ('at the end of the attack the model's forward direction changes 5-10 deg': the take's net hips yaw is removed linearly); blade_along_arm (2026-09-23, 'sword still points in wrong direction', top view: hand_tilt fixed the pitch only, the hilt yaw was 75 deg left of the hips while the forearm thrust 18 deg right): the hand is rebuilt so the hilt continues the forearm line; lift 0.004 (2026-09-23, 'both feet slightly detach from the ground during attack': action mode grounds every frame against all six characters' boots, so the default 15 mm export lift floated both boots 17-24 mm on the Knight); ground_fit (2026-09-23, 'still slight lift is present'): per-frame Root lift measured in Unity so the highest of the six models' lowest vertex sits on the floor each frame (the others sink by the sole spread)\", \"blade_along_arm\": \"R\", \"drift\": \"root\", \"fist\": 0.9, \"glb\": \"attack_ref5_arm\", \"ground_fit\": true, \"heading\": \"auto\", \"layer\": \"right\", \"lift\": 0.004, \"mode\": \"action\", \"name\": \"Attack_R_Stab\", \"plant_feet\": 0.001, \"rename\": \"ue5\", \"smooth\": 1, \"src_begin\": 18, \"src_end\": 80, \"src_ext\": \"blend\", \"time_scale\": 0.3846, \"unwind_yaw\": true}",
+  "ok": true,
+  "when": "2026-09-23 13:59",
+  "mode": "action"
+ },
+ "Attack_R_Slice": {
+  "sig": "attack_ref5_arm|1790155087|{\"_note\": \"the user's reference P:\\\\c7uJKSavZ5aC-mUqvTCBRmSJH.glb (2026-09-23; the mannequin app's skinless GLB, A-pose rest, 221 frames at 30 fps) -> attack_ref5_mocap.glb -> tools/glb_nodes_to_armature.py -> attack_ref5_arm.blend; slice: source frames 101-165; this take attacks with the RIGHT arm, so the R clip is the raw transfer and the L clip is mirrored; plain rotation transfer, no arm passes; time_scale 0.7692; no baked blends (the Animator transitions); widened (user: 'I need more frames, as transitions from/to blend the start/final frames'); end 165 (user: 'slice animation stops too early'; the demo returns to the idle only after the clip has fully played and the arm layers exit at its end, so the recovery frames were simply missing); mode action + plant_feet + drift root (user: 'the references include steps, like a step forward during the stab; apply them only if the bottom half is not busy'): the legs come from the capture with the feet planted, the take's net travel (stab 15 cm, slice 33 cm) goes on Root as root motion, and the arm-layer masks drop the legs whenever locomotion owns them; lift 0.004 (2026-09-23, 'both feet slightly detach from the ground during attack': action mode grounds every frame against all six characters' boots, so the default 15 mm export lift floated both boots 17-24 mm on the Knight); ground_fit (2026-09-23, 'still slight lift is present'): per-frame Root lift measured in Unity so the highest of the six models' lowest vertex sits on the floor each frame (the others sink by the sole spread)\", \"drift\": \"root\", \"fist\": 0.9, \"glb\": \"attack_ref5_arm\", \"ground_fit\": true, \"heading\": \"auto\", \"layer\": \"right\", \"lift\": 0.004, \"mode\": \"action\", \"name\": \"Attack_R_Slice\", \"plant_feet\": 0.001, \"rename\": \"ue5\", \"smooth\": 1, \"src_begin\": 101, \"src_end\": 165, \"src_ext\": \"blend\", \"time_scale\": 0.7692}",
+  "ok": true,
+  "when": "2026-09-23 14:03",
+  "mode": "action"
+ },
+ "Attack_L_Stab": {
+  "sig": "attack_ref5_arm|1790155087|{\"_note\": \"the user's reference P:\\\\c7uJKSavZ5aC-mUqvTCBRmSJH.glb (2026-09-23; the mannequin app's skinless GLB, A-pose rest, 221 frames at 30 fps) -> attack_ref5_mocap.glb -> tools/glb_nodes_to_armature.py -> attack_ref5_arm.blend; stab: source frames 18-80; this take attacks with the RIGHT arm, so the R clip is the raw transfer and the L clip is mirrored; plain rotation transfer, no arm passes; time_scale 0.7692; no baked blends (the Animator transitions); widened (user: 'I need more frames, as transitions from/to blend the start/final frames'); mode action + plant_feet + drift root (user: 'the references include steps, like a step forward during the stab; apply them only if the bottom half is not busy'): the legs come from the capture with the feet planted, the take's net travel (stab 15 cm, slice 33 cm) goes on Root as root motion, and the arm-layer masks drop the legs whenever locomotion owns them; then (user): hand_tilt -45 (the blade pitched 45 deg up at the thrust; -30 left it 16 deg above the forearm, which itself thrusts 22 deg upward, so -45 lays it along the arm: 'tilt the hand so that sword is more forward pointing'), time_scale 0.3846 ('2 times faster'), unwind_yaw ('at the end of the attack the model's forward direction changes 5-10 deg': the take's net hips yaw is removed linearly); blade_along_arm (2026-09-23, 'sword still points in wrong direction', top view: hand_tilt fixed the pitch only, the hilt yaw was 75 deg left of the hips while the forearm thrust 18 deg right): the hand is rebuilt so the hilt continues the forearm line; lift 0.004 (2026-09-23, 'both feet slightly detach from the ground during attack': action mode grounds every frame against all six characters' boots, so the default 15 mm export lift floated both boots 17-24 mm on the Knight); ground_fit (2026-09-23, 'still slight lift is present'): per-frame Root lift measured in Unity so the highest of the six models' lowest vertex sits on the floor each frame (the others sink by the sole spread)\", \"blade_along_arm\": \"L\", \"drift\": \"root\", \"fist\": 0.9, \"glb\": \"attack_ref5_arm\", \"ground_fit\": true, \"heading\": \"auto\", \"layer\": \"left\", \"lift\": 0.004, \"mirror\": true, \"mode\": \"action\", \"name\": \"Attack_L_Stab\", \"plant_feet\": 0.001, \"rename\": \"ue5\", \"smooth\": 1, \"src_begin\": 18, \"src_end\": 80, \"src_ext\": \"blend\", \"time_scale\": 0.3846, \"unwind_yaw\": true}",
+  "ok": true,
+  "when": "2026-09-23 14:07",
+  "mode": "action"
+ },
+ "Attack_L_Slice": {
+  "sig": "attack_ref5_arm|1790155087|{\"_note\": \"the user's reference P:\\\\c7uJKSavZ5aC-mUqvTCBRmSJH.glb (2026-09-23; the mannequin app's skinless GLB, A-pose rest, 221 frames at 30 fps) -> attack_ref5_mocap.glb -> tools/glb_nodes_to_armature.py -> attack_ref5_arm.blend; slice: source frames 101-165; this take attacks with the RIGHT arm, so the R clip is the raw transfer and the L clip is mirrored; plain rotation transfer, no arm passes; time_scale 0.7692; no baked blends (the Animator transitions); widened (user: 'I need more frames, as transitions from/to blend the start/final frames'); end 165 (user: 'slice animation stops too early'; the demo returns to the idle only after the clip has fully played and the arm layers exit at its end, so the recovery frames were simply missing); mode action + plant_feet + drift root (user: 'the references include steps, like a step forward during the stab; apply them only if the bottom half is not busy'): the legs come from the capture with the feet planted, the take's net travel (stab 15 cm, slice 33 cm) goes on Root as root motion, and the arm-layer masks drop the legs whenever locomotion owns them; lift 0.004 (2026-09-23, 'both feet slightly detach from the ground during attack': action mode grounds every frame against all six characters' boots, so the default 15 mm export lift floated both boots 17-24 mm on the Knight); ground_fit (2026-09-23, 'still slight lift is present'): per-frame Root lift measured in Unity so the highest of the six models' lowest vertex sits on the floor each frame (the others sink by the sole spread)\", \"drift\": \"root\", \"fist\": 0.9, \"glb\": \"attack_ref5_arm\", \"ground_fit\": true, \"heading\": \"auto\", \"layer\": \"left\", \"lift\": 0.004, \"mirror\": true, \"mode\": \"action\", \"name\": \"Attack_L_Slice\", \"plant_feet\": 0.001, \"rename\": \"ue5\", \"smooth\": 1, \"src_begin\": 101, \"src_end\": 165, \"src_ext\": \"blend\", \"time_scale\": 0.7692}",
+  "ok": true,
+  "when": "2026-09-23 14:11",
+  "mode": "action"
+ },
+ "Block_L_Idle": {
+  "sig": "block_hold|1790081403|{\"_note\": \"a held block: loops on the LeftArm layer while the demo's block toggle is on ('left arm stuck in block action until released'); replaces Block and Shield_Bash. Shields are hand-held (Hand.Left); arm_pose shield_block: Kimodo returned both arms hanging (no props), the left hand is put on IK in a chest-high guard, knuckles forward, hilt down so the plate stands upright\", \"arm_pose\": \"shield_block\", \"blend\": 30, \"fist\": 0.9, \"frames\": 240, \"glb\": \"block_hold\", \"layer\": \"left\", \"loop\": 180, \"mode\": \"idle\", \"name\": \"Block_L_Idle\", \"seed\": 33, \"smooth\": 2, \"src_start\": 30, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-22 16:20",
+  "mode": "idle"
  }
 }

@@ -32,10 +32,11 @@ it, and every exported model imports in Unity with the **same 68-bone hierarchy*
 (66 + two weapon sockets), the same bone array on every renderer, Hips at 0.982 m and
 mesh nodes at identity rotation.
 
-**First clips exist (2026-09-19), so the skeleton is frozen.** As of 2026-09-20 there
-are **35 clips** in `Assets/UndeadLegion/Animations/` (`Skeleton@<Name>.fbx`, 30 fps,
-every one verified on all six models with `verify_clip.py` + `ground_clip.py`) plus
-`AC_Skeleton.controller` (Base: every clip as a state; Twitch: additive layer):
+**First clips exist (2026-09-19), so the skeleton is frozen.** As of 2026-09-22 there
+are **37 clips** in `Assets/UndeadLegion/Animations/` (`Skeleton@<Name>.fbx`, 30 fps,
+every one verified on all six models with `verify_clip.py` + `ground_clip.py`; plus
+`Skeleton@Grip.fbx`, finger-pose data) and `AC_Skeleton.controller` (8 layers, §8
+"Layered animation"):
 
 | Group | Clips |
 |---|---|
@@ -43,8 +44,8 @@ every one verified on all six models with `verify_clip.py` + `ground_clip.py`) p
 | Impaled (hand-authored) | `Impaled_Idle` (loop: on its knees, hunched, sword through the belly), `Impaled_Rise` (one-shot: pulls it out, stands up, ends on the neutral standing pose) |
 | Twitch (additive) | `Twitch_01/02/03` head + jaw |
 | Locomotion (loop, root motion) | `Walk_Fwd`, `Walk_Back`, `Run_Fwd`, `Strafe_Left` (mirrored right), `Strafe_Right` |
-| One-handed | `Attack_1H_01` (slash), `Attack_1H_02` (thrust), `Shield_Bash`, `Block` |
-| Two-handed | `Attack_2H_01` (overhead chop), `Attack_2H_02` (horizontal sweep) — left hand locked on the handle |
+| Per arm (2026-09-22/23, replaces the one-handed set) | `Attack_R_Stab`, `Attack_R_Slice` (the user's mannequin-app recording `attack_ref5`, frames 26–62 / 111–149, plain transfer), `Attack_L_Stab`, `Attack_L_Slice` (the same mirrored), `Block_L_Idle` (loop: shield held up on the left arm, a HELD action in the demo). Each lives on its arm's masked layer (`LeftArm` / `RightArm`) and as a full-body state on Base; the Animator carries the transitions |
+| Two-handed | `Attack_2H_01` (overhead chop), `Attack_2H_02` (horizontal sweep) — left hand on the handle through the two-handed GATE (slides 0.03..0.11 rig m below the right hand) |
 | Bow | `Shoot_01` (the user's video mocap, 2026-09-22: one shoot clip, draw and release with a step into the archer's stance; `Shoot_02` retired) |
 | Magic | `Cast_Wand_01/02`, `Cast_Staff_01/02` (both hands on the staff) |
 | Specials | `Summon` (necromancer, arms overhead), `AOE_Cast` (mage slam), `Taunt` (warrior, chest beat + arms wide), `Cutthroat` (assassin), `Rally` (knight, sword raised) |
@@ -308,7 +309,9 @@ metallic/smoothness sRGB off (see §7 for the packing).
 
 `Assets/UndeadLegion/Demo/Scenes/UndeadLegion_Demo.unity` — the animation-browser
 demo, rebuilt 2026-09-19 on the model of the creatures pack: characters (top-left),
-armour MODULES with All/None (left), ANIMATIONS grouped in sections (right, plus a
+armour MODULES with All/None (left), ANIMATIONS grouped in sections (right: "Right arm",
+"Left arm (block = hold)" — Block_L_Idle's button toggles the held block —, Two-handed, Bow,
+Magic…, plus a
 "Twitch (additive, toggle)" section: each twitch is a toggle that, while on, loops on its
 own additive layer over whatever the base and upper-body layers play, all three on by
 default, remembered across character switches), footer with Root Motion / Turntable
@@ -408,25 +411,303 @@ engine with masks over the full skeleton (Unity: Animator layers + `AvatarMask` 
 `Spine1`; Unreal: `Layered blend per bone` + `UpperBody` montage slot + `Apply
 Additive` + Aim Offset).
 
-**Implemented in Unity 2026-09-20.** `AC_Skeleton.controller` has three layers: `Base`
-(every clip), `UpperBody` (Override, weight 1, mask `AM_UpperBody.mask`: humanoid
-Body/Head/Arms/Fingers on, Root/legs/IK off, plus the 55 extra transforms under
-`Spine1`; states `Empty` + every clip tagged `layer: upper` in `Animations/clips.json`),
-`Twitch` (Additive, trigger-fired once), `TwitchLoop_01..03` (Additive, weight 0, one
-looping state each: the demo's twitch toggles set the weight; the twitch clips import
-with Loop Time on, which the trigger layer's exit-time transition still ends after one
-pass). The manifest tag is the single source of truth for "can be
-performed on the move" (`upper`: Attack_1H_01/02, Shield_Bash, Block, Shoot_01/02,
-Cast_Wand_01/02, Cast_Staff_02, Rally) versus "full stop" (`full`: Attack_2H_01/02,
-Cast_Staff_01, Summon, AOE_Cast, Taunt, Cutthroat). Measured by
-`build_twitch_controller.py`: Walk_Fwd on Base + Attack_1H_01 on UpperBody gives the
-walk's legs (LeftUpLeg within 0.00° of the walk alone, 31° swing) and the attack's arms
-and spine (RightArm within 0.00° of the attack alone, 74° swing). The demo routes
-automatically: an upper clip clicked while a locomotion loop plays goes to `UpperBody`
-("upper body over Walk_Fwd"); a full-stop clip takes `Base` and the loop resumes after
-it (`layer_smoke.py` proves both in play mode). Humanoid masks cannot cut inside the
-spine (Body is one part), so the upper layer owns the whole spine above the hips; the
-walk keeps hips + legs, which is the cut the clips were authored for.
+**Implemented in Unity 2026-09-20, per-arm layers added 2026-09-22.** `AC_Skeleton.controller`
+has eight layers: `Base` (every clip), `UpperBody` (Override, weight 1, mask
+`AM_UpperBody.mask`: humanoid Body/Head/Arms/Fingers on, Root/legs/IK off, plus the 55
+extra transforms under `Spine1`; states `Empty` + every clip tagged `layer: upper` in
+`Animations/clips.json`), **`LeftArm` / `RightArm`** (Override, weight 1, masks
+`AM_LeftArm` / `AM_RightArm`: that arm + its fingers only, 24 transform paths under that
+`Shoulder`; states `Empty` + the clips tagged `left` / `right`), `Twitch` (Additive,
+trigger-fired once), `TwitchLoop_01..03` (Additive, weight 0, one looping state each: the
+demo's twitch toggles set the weight; the twitch clips import with Loop Time on, which the
+trigger layer's exit-time transition still ends after one pass). The manifest tag is the
+single source of truth: `upper` (Shoot_01, Cast_Wand_01/02, Cast_Staff_02, Rally), `right`
+(Attack_R_Stab/Slice), `left` (Attack_L_Stab/Slice, Block_L_Idle) versus "full stop" (`full`:
+Attack_2H_01/02, Cast_Staff_01, Summon, AOE_Cast, Taunt, Cutthroat). **A LOOPING clip on a
+masked layer is a HELD action** (user, 2026-09-22: "models carry shields only in the left
+arm, left arm stuck in block action until released"): the builder gives it no exit
+transition, the showcase toggles it with its button (`ToggleHeld`, crossfade in, stays over
+whatever Base plays, walks included, until the same button crossfades to `Empty`). Measured
+by `build_twitch_controller.py`: Walk_Fwd on Base + Attack_R_Slice on RightArm gives the
+walk's legs and SPINE (LeftUpLeg and Spine1 within 0.00° of the walk alone; the slice alone
+swings Spine1 5.6°) and the attack's right arm (within 0.00°, 87° swing); Walk_Fwd +
+Block_L_Idle held on LeftArm + Attack_R_Slice on RightArm keeps both (0.00°). The demo
+routes automatically (`SkeletonShowcase.LayerFor`: the first masked layer with a state for
+the clip): a masked clip clicked while a locomotion loop plays, or while a block is held,
+goes to its layer ("RightArm layer over Walk_Fwd"); otherwise it plays full-body on `Base`
+(the arm clips are still authored with the torso, so a stab from an idle reads whole); a
+full-stop clip takes `Base` and the loop resumes after it. `layer_smoke.py` proves walk +
+right slice, the 2H full stop and resume, the block held through a right stab and a walk,
+and its release, in play mode. Humanoid masks cannot cut inside the spine (Body is one part),
+so the upper layer owns the whole spine above the hips and the arm layers own none of it;
+the walk keeps hips + legs, which is the cut the clips were authored for. ⚠ The builder's
+C# runs through CodeDom: a lambda may not declare a local that any enclosing scope also uses
+(`mp`, `nm`, `cl`, `st`, `i`…), and the bridge's `refresh_unity … compile: request` can
+time out before the code runs — run the CODE through `execute_code` directly then.
+
+**The per-arm attack set (2026-09-22, user: "instead of 1 handed actions, we do right or
+left hand").** Attack_1H_01/02, Shield_Bash and Block are retired (assets, manifest and
+build state deleted). `Attack_R_Stab` / `Attack_R_Slice` come from the user's recordings
+(`P:ttacks sword_stab.glb`, `P:ttacks sword_swing.glb` → `External Anims/Kimodo/
+attack_{stab,swing}_mocap.glb`, 52-joint `*_JNT` skeletons at 24 fps, so `time_scale 1.25`;
+the first builds were Kimodo prompts, `atk_r_stab/slice.glb`, now unused). The app mirrored
+both (the file attacks with the LEFT arm, the user attacked with the right), so the R clips
+are `mirror`ed and the L clips are the raw files. The clips carry the WHOLE upper body from
+the capture (chest 21–43°, head 17–24°, the other arm moves), legs on IK at rest (mode upper),
+blend in 12 / out 15 frames from and to `Idle:1`. The user's rule, "each should only control
+1 arm … only if a moving animation controls the lower half", is the LAYER's job, not the
+clip's: the demo plays an arm clip on its arm-only layer while a locomotion loop (or a held
+block) runs, and full-body on Base when the character stands. (`--only-arm R|L` exists in the
+retarget from the first build — the source drives one arm's chain and everything else holds the
+blend-from pose — but is not used: a one-arm clip stood frozen in the idle's pose when played
+from standing.) Then "speed it up 2 times": `time_scale 0.625` (the 24 fps file at 2×), blends
+8/10; stab 46 frames (1.5 s), swing 64 (2.1 s). And, from a top view, "both the arm and the
+weapon (hand rotation) extend not forward for a stab attack": **`stab_aim R|L`**
+(`--stab-aim`) weights by the hand's horizontal distance from the shoulder (0 at 0.15 rig m,
+1 at 0.27, smoothed), swings the arm about the vertical through its shoulder by that share of
+its yaw error and turns the hand about the vertical by that share of the hilt axis's yaw error,
+so at full extension both point straight ahead (Unity: arm yaw ±1°, hilt yaw ±1°; before, 25–30°
+off to the side). Then, from a side view, "tilt the hand so the sword points forward, and
+don't make the arm extend that much (10 cm less)": **`stab_pitch 0`** and **`stab_shorten
+0.056`** (rig m). The hand is no longer aimed in world space: it is built from the FOREARM's
+zero-twist hand (rest relation), turned by the least rotation that lays the hilt axis forward
+at `stab_pitch`, rolled `--stab-roll` (0) about the blade, and blended with the capture's hand
+by the extension weight (a world-aimed hand clamped by `limit_wrist` flipped the forearm
+96–165° on two frames, as the bow anchor once did). The shortening bends the elbow: the
+forearm turns about the hinge normal `(elbow − shoulder) × (hand − elbow)` by the law-of-
+cosines difference (a POSITIVE turn closes the elbow; the first build opened it past straight
+and the elbow swapped sides every other frame). ⚠ The capture's arm is dead straight at the
+peak (interior angle 173–180°), where that normal is noise: it is taken from the capture only
+while the elbow is bent > ~8° and kept from the previous frame otherwise (a fallback
+"out-and-down" axis blended in by straightness pointed the opposite way and swung the elbow
+across). Then "it twists the hand in a bad angle to make a sword go straight, so it's ok to go
+a bit diagonal; make the first part (attack part) 2 times faster": **`stab_yaw 20`**
+(`--stab-yaw`, degrees inward of forward, mirrored for the left hand) is where the blade points
+at the peak — a neutral fist's hilt axis sits ~20° inside the forearm line, so the wrist stays
+natural — and `time_warp 27:13` + `blend_in 5` play the wind-up to the peak at 2× on top of the
+clip's 2× (peak at frame 12 of 37, 1.2 s). Result at the peak in Unity: reach 0.48 m (0.58
+before), arm yaw ±1°, blade 23° inward, pitch 1°; forearm/hand steps ≤ 22°; lowest vertex
++4..+8 mm. **The swing** (user, from a front view at the wind-up: "weapon should point in
+arrow direction during 1 handed swing attack; make it 2.7 times faster"): **`blade_along_arm
+R|L`** (`--blade-along-arm`, `--blade-roll`) rebuilds that hand every frame from the forearm's
+zero-twist hand turned so the hilt axis continues the forearm line (elbow → wrist), blended in
+and out with the idle crossfades; Unity: blade-vs-forearm 0° from frame 4 to 19 of 24, the
+idle's own wrist at the ends. `time_scale 0.3676` (1.7× the 2× build = 3.4× the recording;
+"2.7 times faster was wrong, should be 1.7"), blends 5/6: 38 frames (1.23 s); per-frame
+forearm/hand steps up to ~26° at that speed (motion, not wraps); lowest vertex +3..+8 mm. **Redone 2026-09-22 evening** from the user's updated
+recording delivered as a BVH (`P:ttacks sword_swing.bvh` → `External Anims/Kimodo/
+attack_swing2_mocap.{bvh,glb}` through `tools/bvh_to_glb.py`: the app's BVH is Z-UP with a
+T-pose rest; imported with axis_up Z — the default Y-up import lay the skeleton on its side,
+hands at z −0.3..0.4 — and exported as a Y-up GLB, after which the retarget treats it like the
+app's own GLBs). Same settings, no pose refs: 37 frames (1.2 s), blade along the forearm from
+frame 5 to 32, steps ≤ 30°, lowest vertex +4..+9 mm. Then "make it faster starting from frame
+11 to frame 26, like 35 %": **`speed_segment "11:26:1.35"`** (`--speed-segment A:B:F`, OUTPUT
+frames after `time_scale`, 1-based: A..B resampled F× faster, the rest shifted earlier): the 15
+frames became 11, the clip 33 frames (1.07 s); blade along the forearm frames 5–28, steps ≤ 35°,
+lowest vertex +5..+10 mm.
+**Redone a third time (later that evening)** from `P:\cXi2eAP19XwQ-mrPMxTWYfy7h.bvh` frames
+80–133 → `External Anims/Kimodo/attack_swing3_mocap.{bvh,glb}`: a different capture tool — an
+**Unreal-mannequin skeleton** (79 joints: `pelvis`, `spine_01..05`, `clavicle_l`, `upperarm_l`,
+`lowerarm_l`, `hand_l`, metacarpals and fingers, twist bones, `thigh_l`, `calf_l`, `foot_l`,
+`ball_l`, `neck_01/02`, `head`), in CENTIMETRES, 30 fps, Y-up (`bvh_to_glb.py --yup`; the first
+Z-up conversion put the hands at z −0.3..0.4), and a rest pose that is NOT a T-pose: every bone
+stacked straight up (pelvis on the floor, hands above the head). Manifest `rename ue5` (the new
+table: spine_01/03/05 → Spine1/Spine2/Chest, `middle_03_*` as the hand's direction child) and
+**`bind stacked`** (`--bind`): the shoulders are then aligned by bone direction like the arms
+(`MAP` entries with a kid, `A[tgt]` = rig rest direction → source bind direction; with a T-pose
+bind the clavicle needs none) and the hips height for the scale is read from the animation
+(the rest's pelvis sits at −2.6 cm); nothing else in the delta logic cares, since spine, neck,
+head and legs point up in a T-pose bind too. **`src_begin 80`** (`--src-begin`, RAW source
+frames, applied with `src_end` before `time_scale`; `src_start` counts resampled frames and
+put 80 past the 49 resampled ones: IndexError). The file swings with the left arm, so the R
+clip is `mirror`ed; `speed_segment` dropped. At `time_scale 0.3676` the 54-frame swing is 20
+frames (0.63 s) — the tempo the user set on the previous take, probably too fast for this one:
+`time_scale` is the knob. Chest 54°, hips move; forearm/hand steps 50–61° per frame at that
+speed; the Necromancer robe dips −17 mm in the bend (the others +6..+11 mm). Then (user):
+"idle should blend into frame 93 (hand overhead), so it should be a first frame; this reference
+is faster, so only speed it up by 30 % of original speed; reference itself is good, don't alter
+to adjust sword direction, just try to follow it" → `src_begin 93`, `time_scale 0.7692`,
+blends 6/8, `blade_along_arm` dropped (the wrist is the capture's): 31 frames (1.0 s); the
+idle's hanging arm reaches the overhead pose in the 6-frame crossfade (forearm steps up to
+54–64° there, the crossfade, not a wrap); Necromancer robe −23 mm / −9 mm (R / L) in the
+bend, the others +3..+8 mm. Then "hand twists few times at the start of the animation, plus arm
+detaches?" (a screenshot with the pauldron off the arm). Measured in Unity: the RightShoulder
+bone was 108–120° from the idle's, and in the SOURCE the mannequin's `clavicle → upperarm`
+vector swings from sideways to straight BACK (+Y) in the wind-up — a collarbone cannot do that,
+this app's clavicles are junk. **`shoulders keep`** (`--shoulders keep`): the clavicles hold
+the blend-from pose (the idle's), the upper arms still follow the capture; shoulder 33° max
+now. The wrist: the mannequin's `lowerarm_twist` bones carried the pronation, so `hand` vs
+`lowerarm` was 70–110° in the source and the rig's wrist got it all; **`wrist_fix R|L`**
+(`--wrist-fix`) runs `limit_wrist` on that hand every frame (twist ≤ 60°, the excess into
+forearm pronation). What remains is the 6-frame crossfade from the hanging idle arm to the
+overhead pose, where the wrist twist reads −30..+22° frame to frame — the slerp path of the
+hand differs from the forearm's. (`bind stacked`'s direction-only clavicle aim is still in the
+code for a source whose clavicles are sane.) Then "don't get it, still look wrong. redo, start
+frame 96, end 117, with 6 frames to transition to and 6 to transition from": `src_begin 96`,
+`src_end 117`, blends 6/6 → 17 frames (0.53 s), of which 12 are the crossfades. That build
+showed a 122° forearm / 148° hand step in the blend-in: the hands and forearms were crossfaded
+SEPARATELY in world space, so the wrist twist swept through 180° and the limiter flipped it. **The
+crossfades now blend each hand RELATIVE to its forearm** (the forearm-to-hand quaternion slerped,
+the hand rebuilt on the blended forearm), in both the blend-from and the blend-to: wrist twist
+0..−12° through the clip, forearm/hand steps ≤ 51° (the 150° raise in 6 frames). Muscle curves
+of the raised arm sit outside Humanoid's range (`Right Arm Down-Up` −1.34: the overhead-behind
+pose is reached "backwards"); Unity still plays the hand at 1.5 m, and the demo shows the
+overhead wind-up and the cut. ⚠ A frame strip rendered from ONE instance with `Animator.Update
+(0.0001f)` between frames showed the arm mesh at rest while the bones were up — use
+`weapon_shots.py`'s sequence (Play, Update(0), Update(0.03), then equip) per frame or the
+play-mode stepping (`EditorApplication.Step` while paused) for a truthful picture.
+**Then the user asked the right question: "can't we have animator do the transition part?"**
+Yes — the two swings no longer bake `blend_from` / `blend_to`: the clip starts on the recording's
+frame 96 (arm overhead) and ends on its frame 117, and the ANIMATOR carries both transitions:
+the showcase crossfades onto the arm layers with `CrossFadeInFixedTime` (it used `Play`, an
+instant cut) at its `crossFade` (0.15 s), the arm layers' exit-to-`Empty` transitions are 0.25 s
+(were 0.15), and on Base the showcase's usual crossfade applies. Rule kept: a masked-layer
+clip may start and end mid-action; the transition durations live in the controller builder and
+the showcase, not in the clip. (`shoulders keep` without a blend-from holds the REST shoulders.)
+Forearm/hand steps ≤ 36° (was 51 with the 6-frame baked raise), lowest vertex +7..+11 mm.
+
+**Fourth reference (2026-09-22, late): `P:\c7uJKSavZ5aC-mrPMxTWYfy7h.glb`, stab = frames 75–108,
+slice = 152–190**, the same mannequin app but as a GLB: 162 nodes, NO skin, no mesh, an A-pose rest
+in metres (pelvis 0.96, hands ±0.478 at 1.045), 386 frames at 30 fps, 56 nodes animated (rotation
++ translation), fingers included, even a `weapon_r` node. Blender imports a skinless GLB as
+animated EMPTIES, and the retarget needs an armature: **`tools/glb_nodes_to_armature.py`**
+builds one (a bone per node, rest = the node's rest world matrix, the empties' animation baked on
+with Copy Location + Copy Rotation, visual keying) and saves it as **`attack_ref4_arm.blend`**,
+which the retarget now appends (`--glb X.blend`, manifest `src_ext blend`). Four pitfalls, each
+measured: (1) the rest must come from the JSON node TRS, converted as the importer converts,
+`CONV · W · CONV⁻¹` (verified against the importer's frame-0 empties: K = CONV⁻¹); unlinking the
+empties' actions and reading their transforms gives frame 0, not the rest (animated properties
+keep their last evaluated values); (2) a fresh edit bone is zero-length and IGNORES `.matrix`:
+every bone came out pointing +Z (set head/tail first); (3) Copy Transforms carries the root's 0.01
+scale into the bones (location + rotation only); (4) the GLB round trip is unusable as the source:
+the exporter writes an armature as a skin only with a skinned mesh, and the importer re-orients
+the bones while keeping the pose, so rest and pose are no longer paired — the rig folded flat
+(spine pitch 10° from an upright 83° source; deltas of 124–152° with `delta·up` sideways). With the
+.blend: spine 69–74°, hips at the idle's height.
+**THE CORRECTION (2026-09-23, user: "the animation looks very different from the reference;
+maybe you have difficulties with bone mapping? let's move the reference to the model with no
+modifications so we can be sure the mapping is correct").** He was right, and the measurement
+tool built for it settles it: **`tools/retarget_compare.py`** poses the source and the built clip
+frame by frame and compares (a) joint positions relative to the hips, scaled, yawed onto the
+rig's shoulder line, in engine cm, and (b) BONE DIRECTIONS, proportion-free. With the plain
+rotation transfer on the FIXED source (`src_ext blend`, no arm passes at all) the sword arm
+matches the capture within 1–3° (upper arm and forearm, both sides), the spine 2°, the neck 10°
+(the rig's proportions), elbow twists −23..−67°, and Unity shows no forearm/hand step above 10°
+with every arm muscle inside ±0.7. So: **the bone mapping is right, the capture's rolls are
+FINE, and every "junk roll" finding of the previous evening — the 138–156° forearm twist, the
+inverted elbow, the 250 % arm twist, the one-frame flips — came from the BROKEN conversion**
+(bones pointing +Z with 0.01 scale), not from the capture. The passes built against it are kept
+in the code but unused on these clips: `arm_ik` (it reproduced the hand path but put the elbow
+on its own pole: the weapon arm sat 75°/56° off the capture, which is what "very different from
+the reference" was), `arm_roll_geometric`, `hand_from_forearm`, `align_roll`, `wrist_fix`,
+`shoulders keep` (this capture's clavicles are 38–80° from rest in the source, but copying them
+plainly reads fine). Position errors that remain (chest 16 cm, hands ~14 cm) are the rig's
+proportions (a skeleton's torso and arms vs the performer's), not mapping. Rule kept: **when a
+retarget "looks wrong", compare bone DIRECTIONS against the source first**; a roll or twist
+symptom on a source whose stick figure moves right is a conversion or rest-pose bug until
+proven otherwise. (What the previous paragraph describes below is that broken-conversion
+history, kept for the record.)
+The capture's bone ROLLS looked like junk on the broken source (forearm 138–156° on the upper arm, upper arm 145° on the
+shoulder, the elbow inverted in the user's screenshot; Humanoid read the arm twist at 170–250 %
+and flipped the forearm on one frame): **`arm_ik R|L`** (`--arm-ik`) solves the weapon arm with
+the rig's own IK from the capture's hand position (relative to the hips, scaled, clamped to 97 %
+of the arm), the elbow on a pole that swings with the arm (out, back, a little down), and the hand
+built from the IK forearm's zero-twist hand: its palm axis turned onto the capture's wrist →
+KNUCKLE direction (`middle_01`, rigid on the palm; the fingertip curls into the fist and pointed the
+hand backwards), then rolled about it so the hilt axis lies along the forearm (a zero-twist roll
+hung the blade straight down out of the thrust). Nothing of the capture's rolls reaches the rig:
+arm muscles −0.8..1.5, forearm twist ≤ 0.2, no snaps (stab ≤ 9°, slice ≤ 30°). `shoulders keep`
+(this app's clavicles swing 38–80°). The stab's earlier aim tweaks (`stab_aim`, pitch, yaw,
+shorten) act on FK and are off; the blade continues the forearm by construction. Also tried and
+kept in the code: `--arm-roll-geometric` (upper arm twist from the elbow plane, forearm twist-free
+— sane in Blender, Unity still read 250 % arm twist), `--hand-from-forearm`, `--align-roll`
+(direction + roll alignment of the binds via each body's forward), the wrist limiter's unwrap.
+
+**Fifth reference (2026-09-23): `P:\c7uJKSavZ5aC-mUqvTCBRmSJH.glb`, stab = frames 26–62, slice =
+111–149** (`attack_ref5_mocap.glb` → `attack_ref5_arm.blend`, same app and skeleton, 221 frames).
+This take attacks with the RIGHT arm, so the R clips are the raw transfer and the L clips the
+mirror (the compare tool's hand-travel numbers say which arm: right 1.07 / 1.36 m, left 0.34 /
+0.54). Plain transfer: both arms within 1–4° of the capture, spine 2–5°, no Unity step above 13°,
+arm muscles inside ±0.9, lowest vertex 0..+11 mm. Stab 28 frames (0.9 s), slice 30 (1.0 s). Then widened (user: "I need more frames for these animations, as the transitions from/to blend the start/final frames"): stab 18–80, slice 101–165 → 48 and 50 frames (1.6 / 1.6 s), so the Animator's crossfades eat the recording's own lead-in and settle instead of the action ("slice animation stops too early": the demo returns to the idle only after a one-shot has fully played and the arm layers exit at its end, so nothing cuts a clip — the recovery frames have to be IN the range).
+
+**Steps in the attacks (2026-09-23, user: "these references also include steps, like a step
+forward during the stab; is it possible for them to only apply if the bottom half is not busy
+with other animation?").** Yes, and the layer masks are the gate: on the `LeftArm` / `RightArm`
+layers everything below the shoulder is dropped, on `Base` the whole clip plays. So the four arm
+clips now carry the capture's legs: `mode action` (FK legs) + `plant_feet 0.001` + **`drift root`**
+(`--drift root`, action mode: the take's NET hips travel goes on `Root` as root motion instead of
+being slid out linearly — the performer lunges 15 cm on the stab and steps 33 cm on the slice, and
+sliding 33 cm out of planted feet would skate them; `anim_batch` then imports the clip with the
+in-place flag OFF). Measured in Unity with root motion on: stab travel 17.5 cm, slice 35.5 cm, with
+the take's own 25° of body turn (mirrored on the L clips); with Apply Root Motion off the engine
+plays them in place. Legs within 4–15° of the capture (the plant adjusts them), arms unchanged
+(1–5°), no step above 15°, lowest vertex +10..+16 mm.
+
+**Stab fixes (2026-09-23): "tilt the hand so that sword is more forward pointing; make it 2 times
+faster; at the end of the attack the model's forward direction changes, 5–10°".** `hand_tilt
+"R:-45"` (`--hand-tilt SIDE:deg`, + = blade up: a constant turn of the hand about the world-
+horizontal axis perpendicular to its hilt, every frame; the forearm itself thrusts 22° upward in
+this take, −30 left the blade 16° above it, −45 lays it along the arm: hilt +23° at the peak,
+forearm +22°), `time_scale 0.3846` (24 frames, 0.77 s), and **`unwind_yaw`** (`--unwind-yaw`:
+the hips' net yaw over the used range, here ~25°, is removed linearly, each frame turned about
+the vertical through its hips, so the clip ends facing where it started; Unity's root-motion
+yaw went from 335° to 355°). Steps ≤ 17° forearm / 35° hand (the doubled speed), lowest vertex
++15..+18 mm. **Then, from a top view: "sword still points in wrong direction; slight right knee jerk
+close to the end of the thrust".** The tilt had fixed the PITCH only: measured in Unity the hilt's
+yaw at the peak was 75° LEFT of the hips while the forearm thrust 18° right (the capture's hand
+roll), so `hand_tilt` is dropped and **`blade_along_arm R|L`** rebuilds the hand every frame so
+the hilt continues the forearm line (hilt yaw = forearm yaw, pitch = forearm pitch on every
+frame: 18° right / 22° up at the peak — "a bit diagonal", as the user accepted for the FK build).
+The knee: the plant blends the leg between FK and IK, and Rigify's IK knee sat 5 cm INWARD of
+the capture's, so the two weight switches (the foot found on the floor at frame 13, lifting off
+at 19) swung the knee 5.5 / 4.4 cm in one frame — the knee ANGLE matched the source to 5°
+throughout, which is why an angle check saw nothing. `plant_feet` now puts the leg's IK pole
+(`thigh_ik_target`, `pole_vector` on) out through the FK knee on every planted frame; the IK
+knee equals the FK knee to 1 mm and the blend only lifts the foot (steps ≤ 1.6 cm where they
+were 5.5). Applies to every clip that plants (the slices were rebuilt with it; Impaled_Rise not yet).
+**Then "both feet slightly detach from the ground during attack"** (a Knight screenshot, both
+boots ~2 cm up). Measured per frame in Unity: 17–24 mm on every frame of the stab. Action mode
+grounds every frame against ALL SIX characters' meshes in Blender (lowest vertex at 0), so the
+standard 15 mm export lift is pure float on these clips, plus the Knight's boot sits 5 mm above
+the Archer's. Manifest `lift 0.004` on the four arm attacks (`ground_clip` had been suggesting
+`--lift 0` all along; note it samples every 6th frame, so check per frame when it matters):
+stab boots 4–13 mm on all six models on every frame, slice 0–14 mm (Necromancer −1 mm on one
+frame). Then "still slight lift is present" (the Knight's boots at 4–13 mm): the remaining gap is
+the six characters' SOLE SPREAD (the Blender grounding puts the lowest of the six on the floor, the
+Knight's boot sits 4–5 mm above the Archer's) plus Humanoid's per-frame few mm. No constant lift
+can fix that, so the loop is now closed IN THE ENGINE: **`tools/unity/ground_fit.py <Clip>`**
+measures every model's lowest vertex on every frame in Unity and writes a per-frame Root lift
+(`Animations/ground_fit/<Clip>.json`, tracked) that puts the HIGHEST model's lowest point on the
+floor (`--target 0`); `export_fbx.py --lift-curve` adds it to the Root Y keys on top of `--lift`;
+manifest **`ground_fit true`** makes `anim_batch` run measure → re-export → re-measure after the
+normal export (one pass converges: Root Y is baked into the pose, so the shift is 1:1). The four
+arm attacks: Knight boots −4..+1 mm on every frame of the stab, the other five sink ≤ 8 mm at their
+lowest frame (a sole under an opaque floor is invisible, a gap is not). Rule: **a shared clip can
+only ever put ONE model's sole exactly on the floor; choose the highest and let the rest sink.**
+The 15 mm default lift stays for the IK-legged idles measured on the Knight alone.
+
+**Multi-frame pose references** (built for the swing, kept): `pose_ref` takes several
+`ACTION:frame@at`; the first ramps in over `pose_ref_in` frames, the deltas interpolate between
+refs, and `pose_ref_tail return` goes from the last ref's pose straight to the blend-to pose by
+the last frame ("continue to end frame from it"); `pose_ref_mirror` swaps .L/.R and X-flips the
+refs for a mirrored clip (Paste-X-Flipped rule: location x and quaternion y, z negated; verified
+to 0.5 mm on the hands). ⚠ Reference poses only exist for the tools once the user has SAVED the
+.blend: two refs copied from an unsaved session came out identical to the generated frames
+(0 controls differed), and every headless `--save` overwrites the file under an open session, so
+reload before posing. ⚠ A Unity check that re-equips a weapon per frame in edit mode must
+`DestroyImmediate` the old one: `Clear()` defers, the stale instances pile up and a render shows a
+"floating" sword (the socket was 38 mm from the hand on every frame, as at rest). `Block_L_Idle` is a
+Kimodo "shield raised" loop (idle mode, 6 s) whose left arm came back hanging — Kimodo has
+no props — so `arm_pose shield_block` pins the left fist chest-high on IK, knuckles forward,
+hilt axis DOWN (the hand-held shield's plate top points to the wrist, so down = upright, face
+forward); verified with the round shield on the Knight. All five: in place on all six models,
+lowest vertex +4..+17 mm. Attack_2H_01/02 were rebuilt with the gate (§"Two-handed grips"):
+the left hand rides the handle 0.03..0.10 rig m below the right, 0..10 mm off the shaft on
+every frame (it was up to 100–217 mm off with a fixed distance once the reach was checked:
+the capture's right hand holds the weapon 0.42 rig m from the left shoulder, the arm is 0.32,
+so the gate takes the gated point nearest the shoulder and, if that is still short, pulls the
+RIGHT hand in by the shortfall on IK — both hands stay on the shaft and the arc shortens a
+little).
 
 What it changes on the authoring side:
 
@@ -608,8 +889,15 @@ build keyed them once at frame 1 and the left hand stayed pinned in space.
 **Two-handed grips**: `--lock-left-hand D` (manifest `lock_left_hand`) pins the left
 hand on IK D m down the right hand's weapon handle every frame (left socket frame =
 right socket frame moved −Y), so a weapon on `RightWeaponSocket` passes through both
-hands: 0.085 for Attack_2H_*, 0.22 for Cast_Staff_*. Verified with `weapon_shots.py`
-on the battle axe.
+hands: 0.22 for Cast_Staff_*. Verified with `weapon_shots.py` on the battle axe.
+**The gate (2026-09-22, user: "a gate for attack animations that controls how far the two
+weapon slots on hands can travel from one another, so the second hand feels like it's on the
+shaft")**: `--gate MIN,MAX` (manifest `gate "0.03,0.11"` on Attack_2H_01/02, replacing the
+fixed 0.085) pins the left hand the same way but at the distance where the CAPTURE's left hand
+projects onto the right hand's hilt axis, clamped to MIN..MAX and smoothed (`--gate-smooth`),
+so the hand slides along the handle through the swing instead of being welded to one point.
+The range is the handle below the socket: battle axe 0.13 rig m, longsword 0.108. The arc is
+still the right hand's (the capture's); the left follows on the shaft.
 
 Weapon idles: Kimodo has no props, so "axe resting on the shoulder" comes back as
 hanging arms. `--arm-pose <preset>` (manifest key `arm_pose`) puts the hands on IK at
@@ -1038,7 +1326,8 @@ and skirts, and a per-frame shift must move the hips and only a still-kneeling f
 
 **Locomotion, turns, dodges and knockdowns are authored WITH root motion, carried on
 `Root`.** Everything else (idles, attacks, casts, hits, staggers, deaths) keeps `Root`
-still. **No `Motion` node.**
+still — except the four recorded arm attacks (2026-09-23), whose take includes a step: their net
+travel rides on `Root` (`drift root`) and the demo's Root Motion toggle decides. **No `Motion` node.**
 
 - Root motion is the superset: with Apply Root Motion off, Unity discards the travel
   and the clip plays in place, which is what a NavMesh-driven army does; Unreal gets the
