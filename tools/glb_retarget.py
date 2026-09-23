@@ -62,6 +62,7 @@ SRC_BEGIN = int(arg("--src-begin", "0"))       # first RAW source frame to use (
 TIME_SCALE = float(arg("--time-scale", "1.0"))
 SMOOTH = int(arg("--smooth", "0"))
 UNWIND_YAW = "--unwind-yaw" in argv             # remove the hips' NET yaw over the used range linearly (each frame turned about the vertical through its hips), so the clip ends facing where it started
+UNWIND_REF = arg("--unwind-ref", "hips")         # "hips" | "body": which yaw the unwind cancels. Unity derives root rotation from the BODY orientation, which weights the chest ~2:1 over the hips (measured on the slice: hips net 0, chest net -19 deg, root rotation -13 deg), so a clip whose torso ends turned still turns the actor; "body" cancels (hips + 2 chest) / 3
 HAND_TILT = {}                                  # "R:-30": tilt that hand every frame about the world-horizontal axis perpendicular to its hilt (+ = blade up)
 for _ht in [v for v in arg("--hand-tilt", "").split(",") if v]:
     _sd, _deg = _ht.split(":"); HAND_TILT[_sd] = math.radians(float(_deg))
@@ -183,6 +184,9 @@ GATE = [float(v) for v in arg("--gate", "").split(",")] if arg("--gate", "") els
 GATE_SMOOTH = float(arg("--gate-smooth", "0.35"))   # 0..1: per-frame smoothing of the gated distance (1 = none)
 GATE_PREV = {}
 KNEE_POLE_PREV = {}                              # last frame's FK knee direction per side (the IK pole follows it; reset on frame 0)
+IK_ALWAYS = arg("--ik-always", "auto")           # editing convenience (user, 2026-09-23: "foot_ik controls the leg on frame 13 and detaches on 14"): a limb that any pass puts on IK stays on IK for the WHOLE clip; on the frames a pass did not touch the IK target and pole are placed on the FK result. auto = legs whenever the plant is on (exact: feet 0 mm, knees < 1 mm, thigh roll stripped at export anyway); arms only by request ("arms" / "both": the IK forearm carries no twist of its own, so the capture's forearm pronation on FK frames, ~20 deg on the stab, is lost); "none"
+IK_ALWAYS_LEGS = IK_ALWAYS in ("legs", "both") or (IK_ALWAYS == "auto" and PLANT > 0)
+IK_ALWAYS_ARMS = IK_ALWAYS in ("arms", "both")
 GATE_LOG = [9.0, -9.0, 0, 0.0, 0]              # min d, max d, clamped frames, max pull of the right hand, pulled frames
 GATE_PULL = "--no-gate-pull" not in argv        # when no point of the gated range is within the left arm's reach, pull the right hand in so both hands stay on the shaft
 LOCK_L = float(arg("--lock-left-hand", "0"))   # >0: pin the left hand on the right hand's weapon this far down the handle (rig m)
@@ -654,9 +658,14 @@ if SRC_BEGIN > 0:
     SRC = SRC[SRC_BEGIN:]
     log("source frames %d..%d used (%d)" % (SRC_BEGIN, SRC_BEGIN + len(SRC) - 1, len(SRC)))
 if UNWIND_YAW and len(SRC) > 2:
-    def _hips_yaw(p):
-        v = (p["Hips"][0] @ S_rest["Hips"][0].inverted()) @ Vector((0, 1, 0)); return math.atan2(-v.x, v.y)
-    y0 = _hips_yaw(SRC[0]); yN = _hips_yaw(SRC[-1]); dy = (yN - y0 + math.pi) % (2 * math.pi) - math.pi
+    def _joint_yaw(p, j):
+        v = (p[j][0] @ S_rest[j][0].inverted()) @ Vector((0, 1, 0)); return math.atan2(-v.x, v.y)
+    def _net(j):
+        y0 = _joint_yaw(SRC[0], j); yN = _joint_yaw(SRC[-1], j); return (yN - y0 + math.pi) % (2 * math.pi) - math.pi
+    dy = _net("Hips")
+    if UNWIND_REF == "body" and "Chest" in SRC[0]:
+        dy = (dy + 2.0 * _net("Chest")) / 3.0
+        log("unwind-yaw ref body: hips net %.1f deg, chest net %.1f deg -> body %.1f deg" % (math.degrees(_net("Hips")), math.degrees(_net("Chest")), math.degrees(dy)))
     for i, p in enumerate(SRC):
         Rz = Quaternion((0, 0, 1), -dy * i / float(len(SRC) - 1)); hp = p["Hips"][1]
         for n in list(p):
@@ -833,7 +842,8 @@ rig.animation_data.action = act
 if hasattr(rig.animation_data, "action_slot"):
     rig.animation_data.action_slot = act.slots.new('OBJECT', rig.name)
 
-DRIVEN = sorted(TARGETS) + FINGERS + ["root"] + (["hand_ik.L", "hand_ik.R"] if (ARM_POSE or ARM_KEYS or LOCK_L > 0 or GATE or PROP or HAND_CLEAR or ARM_IK) else []) + (["upper_arm_ik_target.L", "upper_arm_ik_target.R"] if (ELBOW_POLE or ARM_IK) else []) + (["foot_ik.L", "foot_ik.R", "toe_ik.L", "toe_ik.R"] if (PLANT > 0 or AIM_FORWARD) else []) + (["thigh_ik_target.L", "thigh_ik_target.R"] if PLANT > 0 else [])
+DRIVEN = sorted(TARGETS) + FINGERS + ["root"] + (["hand_ik.L", "hand_ik.R"] if (ARM_POSE or ARM_KEYS or LOCK_L > 0 or GATE or PROP or HAND_CLEAR or ARM_IK) else []) + (["upper_arm_ik_target.L", "upper_arm_ik_target.R"] if (ELBOW_POLE or ARM_IK) else []) + (["foot_ik.L", "foot_ik.R", "toe_ik.L", "toe_ik.R"] if (PLANT > 0 or AIM_FORWARD or IK_ALWAYS_LEGS) else []) + (["thigh_ik_target.L", "thigh_ik_target.R"] if (PLANT > 0 or IK_ALWAYS_LEGS) else []) + (["hand_ik.L", "hand_ik.R", "upper_arm_ik_target.L", "upper_arm_ik_target.R"] if IK_ALWAYS_ARMS else [])
+DRIVEN = list(dict.fromkeys(DRIVEN))
 STATIC = [c for c in controls() if c not in DRIVEN]
 _rnd = __import__("random").Random(7)
 FINGER_WAVE = {n: (_rnd.choice([1, 1, 2]), _rnd.uniform(0, 2 * math.pi), _rnd.uniform(0.6, 1.0)) for n in FINGERS}
@@ -846,10 +856,10 @@ def key_frame(f):
         pb.keyframe_insert("rotation_quaternion" if pb.rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group=n)
     for b in IKFK_ARMS + IKFK_LEGS:
         pbs[b].keyframe_insert('["IK_FK"]', frame=f, group=b)
-    if PLANT > 0:
+    if PLANT > 0 or IK_ALWAYS_LEGS:
         for b in IKFK_LEGS:
             pbs[b].keyframe_insert('["pole_vector"]', frame=f, group=b)
-    if ELBOW_POLE or ARM_IK:
+    if ELBOW_POLE or ARM_IK or IK_ALWAYS_ARMS:
         for b in IKFK_ARMS:
             pbs[b].keyframe_insert('["pole_vector"]', frame=f, group=b)
         if "IK_Stretch" in pbs[b]:
@@ -861,6 +871,67 @@ def key_static(f):
         pb = pbs[n]
         pb.keyframe_insert("location", frame=f, group=n)
         pb.keyframe_insert("rotation_quaternion" if pb.rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group=n)
+
+
+def ik_pole(kind, side, mid_target, hip_, end_):
+    """Aim a limb's IK pole so its mid joint (knee / elbow) lands on mid_target: pole out through the target,
+    then two corrections of the residual swivel about the hip->end axis (Rigify's pole angle is a rest-pose
+    fit; a pole placed exactly in the FK knee plane left the knee 4-6 mm off, the refinement < 1 mm)."""
+    sw = pbs[("thigh_parent." if kind == "leg" else "upper_arm_parent.") + side]
+    pole = pbs[("thigh_ik_target." if kind == "leg" else "upper_arm_ik_target.") + side]
+    mid = ("DEF-shin." if kind == "leg" else "DEF-forearm.") + side
+    ax = end_ - hip_
+    if ax.length < 1e-6:
+        return
+    ax.normalize()
+    d_ = mid_target - hip_; perp = d_ - ax * d_.dot(ax)
+    if perp.length < 0.005:
+        return                                                  # a straight limb has no plane: leave the pole where it is
+    sw["pole_vector"] = True
+    pt = mid_target + perp.normalized() * 0.4
+    for _ in range(3):
+        pm = pole.matrix.copy(); pm.translation = rig.matrix_world.inverted() @ pt; pole.matrix = pm; update()
+        k_ = (rig.matrix_world @ pbs[mid].matrix).translation
+        dk = k_ - hip_; pk = dk - ax * dk.dot(ax)
+        if pk.length < 1e-4 or (k_ - mid_target).length < 0.0005:
+            break
+        ang = pk.normalized().angle(perp.normalized())
+        if pk.normalized().cross(perp.normalized()).dot(ax) < 0:
+            ang = -ang
+        pt = hip_ + Matrix.Rotation(ang, 3, ax) @ (pt - hip_)   # turn the pole by the residual swivel
+
+
+def bake_ik_limbs():
+    """After every pass: a limb still on FK (or on a partial plant weight) is put on IK reproducing its DEF
+    result, so the IK control is live on every frame and the clip does not change."""
+    if IK_ALWAYS_LEGS and FK_LEGS:
+        for side in ("L", "R"):
+            sw = pbs["thigh_parent." + side]
+            if sw["IK_FK"] <= 0.0:
+                continue
+            fm = (rig.matrix_world @ pbs["DEF-foot." + side].matrix).copy()
+            toe_q = (rig.matrix_world @ pbs["DEF-toe." + side].matrix).to_quaternion()
+            knee = (rig.matrix_world @ pbs["DEF-shin." + side].matrix).translation.copy()
+            hipj = (rig.matrix_world @ pbs["DEF-thigh." + side].matrix).translation.copy()
+            sw["IK_FK"] = 0.0
+            pbs["foot_ik." + side].matrix = rig.matrix_world.inverted() @ fm @ FOOTIK_FROM_FOOT[side]
+            update()
+            ik_pole("leg", side, knee, hipj, fm.translation)
+            set_world(pbs["toe_ik." + side], toe_q)
+            update()
+    if IK_ALWAYS_ARMS:
+        for side in ("L", "R"):
+            sw = pbs["upper_arm_parent." + side]
+            if sw["IK_FK"] <= 0.0:
+                continue
+            sock = (rig.matrix_world @ pbs["DEF-weapon." + side].matrix).copy()
+            elbow = (rig.matrix_world @ pbs["DEF-forearm." + side].matrix).translation.copy()
+            sh = (rig.matrix_world @ pbs["DEF-upper_arm." + side].matrix).translation.copy()
+            wrist = (rig.matrix_world @ pbs["DEF-hand." + side].matrix).translation.copy()
+            sw["IK_FK"] = 0.0
+            pbs["hand_ik." + side].matrix = rig.matrix_world.inverted() @ sock @ HAND_FROM_SOCKET[side]
+            update()
+            ik_pole("arm", side, elbow, sh, wrist)
 
 
 def pose(f, dz=0.0, f_travel=None):
@@ -1374,7 +1445,7 @@ def pose(f, dz=0.0, f_travel=None):
                 if perp_.length > 0.01:
                     KNEE_POLE_PREV[side] = perp_.normalized()       # a straight leg has no knee direction: keep last frame's
             if side in KNEE_POLE_PREV:
-                knee_pole[side] = knee_ + KNEE_POLE_PREV[side] * 0.4
+                knee_pole[side] = knee_
         for side, sf, st in (("L", "LeftFoot", "LeftToeBase"), ("R", "RightFoot", "RightToeBase")):
             if sf not in src or st not in src:
                 continue
@@ -1400,10 +1471,7 @@ def pose(f, dz=0.0, f_travel=None):
             pbs["foot_ik." + side].matrix = rig.matrix_world.inverted() @ target
             update()
             if side in knee_pole:
-                pbs["thigh_parent." + side]["pole_vector"] = True
-                pm_ = pbs["thigh_ik_target." + side].matrix.copy(); pm_.translation = rig.matrix_world.inverted() @ knee_pole[side]
-                pbs["thigh_ik_target." + side].matrix = pm_
-                update()
+                ik_pole("leg", side, knee_pole[side], hipj, ankle_t)
             set_world(pbs["toe_ik." + side], toe_q)
             update()
     if LOCK_L > 0 or GATE:
@@ -1607,6 +1675,8 @@ def pose(f, dz=0.0, f_travel=None):
                 mix_[c_] = (l0.lerp(l1, t_), q0.slerp(q1, t_))
             apply_deltas(mix_, 1.0)
         update()
+    if PLANT_ACTIVE and (IK_ALWAYS_LEGS or IK_ALWAYS_ARMS):
+        bake_ik_limbs()
 
 
 # every skinned reference mesh of all six characters (boots, greaves, robes and armour

@@ -52,7 +52,7 @@ def retarget_args(c):
                     ("arm_pose", "--arm-pose"), ("head_damp", "--head-damp"), ("travel_axis", "--travel-axis"),
                     ("lock_left_hand", "--lock-left-hand"), ("lock_left_roll", "--lock-left-roll"),
                     ("blend_from", "--blend-from"), ("blend_in", "--blend-in"), ("ground", "--ground"),
-                    ("ground_ignore", "--ground-ignore"), ("blend_to", "--blend-to"), ("blend_out", "--blend-out"), ("rename", "--rename"), ("plant_feet", "--plant-feet"), ("blend_from_lift", "--blend-from-lift"), ("heading", "--heading"), ("stance", "--stance"), ("still_joints", "--still-joints"), ("prop", "--prop"), ("prop_damp", "--prop-damp"), ("torso_ref", "--torso-ref"), ("hand_ref", "--hand-ref"), ("hand_offset", "--hand-offset"), ("wrist_twist", "--wrist-twist"), ("hand_clear", "--hand-clear"), ("aim_forward", "--aim-forward"), ("step_lift", "--step-lift"), ("wrist_limit", "--wrist-limit"), ("hips_drop", "--hips-drop"), ("aim_body", "--aim-body"), ("aim_line", "--aim-line"), ("aim_offset", "--aim-offset"), ("anchor", "--anchor"), ("anchor_gap", "--anchor-gap"), ("anchor_roll", "--anchor-roll"), ("time_warp", "--time-warp"), ("head_smooth", "--head-smooth"), ("pose_ref", "--pose-ref"), ("gate", "--gate"), ("gate_smooth", "--gate-smooth"), ("only_arm", "--only-arm"), ("stab_aim", "--stab-aim"), ("stab_pitch", "--stab-pitch"), ("stab_shorten", "--stab-shorten"), ("stab_yaw", "--stab-yaw"), ("blade_along_arm", "--blade-along-arm"), ("blade_roll", "--blade-roll"), ("pose_ref_in", "--pose-ref-in"), ("pose_ref_tail", "--pose-ref-tail"), ("speed_segment", "--speed-segment"), ("bind", "--bind"), ("src_begin", "--src-begin"), ("wrist_fix", "--wrist-fix"), ("shoulders", "--shoulders"), ("hand_from_forearm", "--hand-from-forearm"), ("arm_roll_geometric", "--arm-roll-geometric"), ("arm_ik", "--arm-ik"), ("drift", "--drift"), ("hand_tilt", "--hand-tilt")):
+                    ("ground_ignore", "--ground-ignore"), ("blend_to", "--blend-to"), ("blend_out", "--blend-out"), ("rename", "--rename"), ("plant_feet", "--plant-feet"), ("blend_from_lift", "--blend-from-lift"), ("heading", "--heading"), ("stance", "--stance"), ("still_joints", "--still-joints"), ("prop", "--prop"), ("prop_damp", "--prop-damp"), ("torso_ref", "--torso-ref"), ("hand_ref", "--hand-ref"), ("hand_offset", "--hand-offset"), ("wrist_twist", "--wrist-twist"), ("hand_clear", "--hand-clear"), ("aim_forward", "--aim-forward"), ("step_lift", "--step-lift"), ("wrist_limit", "--wrist-limit"), ("hips_drop", "--hips-drop"), ("aim_body", "--aim-body"), ("aim_line", "--aim-line"), ("aim_offset", "--aim-offset"), ("anchor", "--anchor"), ("anchor_gap", "--anchor-gap"), ("anchor_roll", "--anchor-roll"), ("time_warp", "--time-warp"), ("head_smooth", "--head-smooth"), ("pose_ref", "--pose-ref"), ("gate", "--gate"), ("gate_smooth", "--gate-smooth"), ("only_arm", "--only-arm"), ("stab_aim", "--stab-aim"), ("stab_pitch", "--stab-pitch"), ("stab_shorten", "--stab-shorten"), ("stab_yaw", "--stab-yaw"), ("blade_along_arm", "--blade-along-arm"), ("blade_roll", "--blade-roll"), ("pose_ref_in", "--pose-ref-in"), ("pose_ref_tail", "--pose-ref-tail"), ("speed_segment", "--speed-segment"), ("bind", "--bind"), ("src_begin", "--src-begin"), ("wrist_fix", "--wrist-fix"), ("shoulders", "--shoulders"), ("hand_from_forearm", "--hand-from-forearm"), ("arm_roll_geometric", "--arm-roll-geometric"), ("arm_ik", "--arm-ik"), ("drift", "--drift"), ("hand_tilt", "--hand-tilt"), ("ik_always", "--ik-always"), ("unwind_ref", "--unwind-ref")):
         if k in c:
             a += [flag, str(c[k])]
     if c.get("mirror"):
@@ -85,10 +85,15 @@ def unity_flags(c):
     return ["--loop", loop, "--in-place", inplace]
 
 
+EXPORT_ONLY = False
+
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     force = "--force" in sys.argv
     unity = "--no-unity" not in sys.argv
+    global EXPORT_ONLY
+    EXPORT_ONLY = "--export-only" in sys.argv     # skip the retarget: export + verify what is in the anim file (hand-edited clips)
     wait = "--wait" in sys.argv
     while True:
         pending = build_pass(args, force, unity)
@@ -111,6 +116,9 @@ def build_pass(args, force, unity):
         glb = os.path.join(GLB_DIR, c["glb"] + ".glb")
         if not os.path.exists(glb):
             continue
+        if c.get("hand_edited") and not EXPORT_ONLY:
+            log("%-16s hand-edited in the anim file (manifest hand_edited): not regenerated; use --export-only to export it, or drop the flag to rebuild from the recording" % c["name"])
+            continue
         sig = "%s|%d|%s" % (c["glb"], int(os.path.getmtime(glb)), json.dumps({k: v for k, v in c.items() if k != "prompt"}, sort_keys=True))
         if not force and state.get(c["name"], {}).get("sig") == sig and state[c["name"]].get("ok"):
             continue
@@ -119,11 +127,14 @@ def build_pass(args, force, unity):
         log("anim batch: %d clips to build (%d still waiting for Kimodo)" % (len(todo), pending))
     for c, sig in todo:
         t0 = time.time(); ok = True; notes = []
-        code, lines = blender("glb_retarget.py", retarget_args(c))
-        key = [l for l in lines if any(k in l for k in ("gait", "travel", "ground:", "body min", "seam", "action ", "Traceback", "Error", "assert"))]
-        notes += key
-        if code != 0 or not any("saved" in l for l in lines):
-            ok = False
+        if EXPORT_ONLY:
+            notes.append("export-only: the action in the anim file as it is (no retarget)")
+        else:
+            code, lines = blender("glb_retarget.py", retarget_args(c))
+            key = [l for l in lines if any(k in l for k in ("gait", "travel", "ground:", "body min", "seam", "action ", "Traceback", "Error", "assert"))]
+            notes += key
+            if code != 0 or not any("saved" in l for l in lines):
+                ok = False
         if ok:
             os.makedirs(PREVIEW, exist_ok=True)
             blender("anim_preview.py", ["--action", c["name"], "--out", PREVIEW])
