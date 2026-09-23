@@ -75,8 +75,13 @@ namespace UndeadLegion.Demo
         // layered playback: clips with a state on the "UpperBody" layer (attacks that can be
         // performed on the move) play there while a locomotion loop keeps the legs; a clip
         // without one is a full stop: it takes the base layer and the loop resumes after it
-        int _upperLayer = -1;
-        AnimationClip _upperCurrent;
+        // masked layers, by name: UpperBody (both arms + torso), LeftArm, RightArm (arm-only, 2026-09-22:
+        // the per-arm attack set). A clip plays on the first of them that has a state for it. A LOOPING
+        // clip on a masked layer is a HELD action (Block_L_Idle): its button toggles it, it stays until released
+        static readonly string[] MaskedLayerNames = { "UpperBody", "LeftArm", "RightArm" };
+        readonly List<int> _maskedLayers = new List<int>();
+        readonly Dictionary<int, AnimationClip> _layerCurrent = new Dictionary<int, AnimationClip>();   // one-shots running on masked layers
+        readonly Dictionary<int, AnimationClip> _held = new Dictionary<int, AnimationClip>();           // loops held on masked layers
         int _upperPlayFrame = -10;
         AnimationClip _lastLoco;
         float _pendingAt;
@@ -117,12 +122,18 @@ namespace UndeadLegion.Demo
                 }
                 return;
             }
-            if (_upperCurrent != null && Time.frameCount > _upperPlayFrame + 1 && !_animator.IsInTransition(_upperLayer))
+            if (_layerCurrent.Count > 0 && Time.frameCount > _upperPlayFrame + 1)
             {
-                var us = _animator.GetCurrentAnimatorStateInfo(_upperLayer);
-                if (!us.IsName(_upperCurrent.name) || us.normalizedTime >= 1f)
+                List<int> done = null;
+                foreach (var kv in _layerCurrent)
                 {
-                    _upperCurrent = null;
+                    if (_animator.IsInTransition(kv.Key)) continue;
+                    var us = _animator.GetCurrentAnimatorStateInfo(kv.Key);
+                    if (!us.IsName(kv.Value.name) || us.normalizedTime >= 1f) { if (done == null) done = new List<int>(); done.Add(kv.Key); }
+                }
+                if (done != null)
+                {
+                    foreach (var k in done) _layerCurrent.Remove(k);
                     if (_current != null) ShowClipInfo(_current);
                 }
             }
@@ -180,9 +191,10 @@ namespace UndeadLegion.Demo
             if (_instance != null) Destroy(_instance);
             _current = null;
             _pendingFollow = null;
-            _upperCurrent = null;
+            _layerCurrent.Clear();
+            _held.Clear();
             _lastLoco = null;
-            _upperLayer = -1;
+            _maskedLayers.Clear();
             _clips.Clear();
             _twitches.Clear();
 
@@ -198,7 +210,8 @@ namespace UndeadLegion.Demo
             _instance = Instantiate(entry.prefab, where.position, where.rotation);
             _instance.name = entry.prefab.name;
             _animator = _instance.GetComponentInChildren<Animator>();
-            if (_animator != null) _upperLayer = _animator.GetLayerIndex("UpperBody");
+            if (_animator != null)
+                foreach (var ln in MaskedLayerNames) { int li = _animator.GetLayerIndex(ln); if (li >= 0) _maskedLayers.Add(li); }
             _modules = _instance.GetComponentInChildren<SkeletonModules>();
             _twitch = _instance.GetComponentInChildren<SkeletonTwitch>();
             // the demo shows the twitches through the per-clip loop toggles; the random trigger
@@ -260,8 +273,11 @@ namespace UndeadLegion.Demo
             new ClipSection { title = "Locomotion", idlePreference = new[] { "Idle" },
                 members = new[] { "Walk_Fwd", "Walk_Back", "Run_Fwd", "Strafe_Left", "Strafe_Right",
                                   "Turn_Left_90", "Turn_Right_90" } },
-            new ClipSection { title = "One-handed", idlePreference = new[] { "Idle" },
-                members = new[] { "Attack_1H_01", "Attack_1H_02", "Shield_Bash", "Block" } },
+            // per-arm set (2026-09-22): each clip lives on its arm's masked layer; Block_L_Idle is a held toggle
+            new ClipSection { title = "Right arm", idlePreference = new[] { "Idle" },
+                members = new[] { "Attack_R_Stab", "Attack_R_Slice" } },
+            new ClipSection { title = "Left arm (block = hold)", idlePreference = new[] { "Idle" },
+                members = new[] { "Attack_L_Stab", "Attack_L_Slice", "Block_L_Idle" } },
             new ClipSection { title = "Two-handed", idlePreference = new[] { "Idle_TwoHanded", "Idle" },
                 members = new[] { "Attack_2H_01", "Attack_2H_02" } },
             new ClipSection { title = "Bow", idlePreference = new[] { "Idle_Bow", "Idle" },
@@ -345,12 +361,20 @@ namespace UndeadLegion.Demo
             return clip != null && _sectionOf.TryGetValue(clip.name, out s) && s.title == "Locomotion";
         }
 
-        /// <summary>True when the controller offers this clip on the masked upper-body layer.</summary>
-        public bool CanPlayOnTheMove(AnimationClip clip)
+        /// <summary>The masked layer (UpperBody, LeftArm or RightArm) that has a state for this clip, or -1.</summary>
+        public int LayerFor(AnimationClip clip)
         {
-            return clip != null && _animator != null && _upperLayer >= 0
-                   && _animator.HasState(_upperLayer, Animator.StringToHash(clip.name));
+            if (clip == null || _animator == null) return -1;
+            int hash = Animator.StringToHash(clip.name);
+            foreach (var li in _maskedLayers) if (_animator.HasState(li, hash)) return li;
+            return -1;
         }
+
+        /// <summary>True when the controller offers this clip on a masked layer.</summary>
+        public bool CanPlayOnTheMove(AnimationClip clip) { return LayerFor(clip) >= 0; }
+
+        /// <summary>True while a looping clip (a block) is held on a masked layer.</summary>
+        public bool IsHolding { get { return _held.Count > 0; } }
 
         AnimationClip ReturnClipFor(AnimationClip clip)
         {
@@ -371,15 +395,23 @@ namespace UndeadLegion.Demo
         public void Play(AnimationClip clip, bool resetFacing = true)
         {
             if (_animator == null || clip == null) return;
-            if (_current != null && _current.isLooping && IsLocomotion(_current) && CanPlayOnTheMove(clip))
+            int masked = LayerFor(clip);
+            if (masked >= 0 && clip.isLooping)          // a held action (Block_L_Idle): toggle it on its layer
+            {
+                ToggleHeld(clip, masked);
+                return;
+            }
+            // an arm/upper clip goes to its masked layer while a locomotion loop runs (the legs keep walking)
+            // or while a block is held (the other arm keeps blocking); otherwise it plays full-body on Base
+            if (masked >= 0 && ((_current != null && _current.isLooping && IsLocomotion(_current)) || _held.Count > 0))
             {
                 PlayOnTheMove(clip);
                 return;
             }
-            if (_upperCurrent != null)
+            if (_layerCurrent.Count > 0)
             {
-                _animator.Play("Empty", _upperLayer, 0f);
-                _upperCurrent = null;
+                foreach (var kv in _layerCurrent) _animator.Play("Empty", kv.Key, 0f);
+                _layerCurrent.Clear();
             }
             if (IsLocomotion(clip)) _lastLoco = clip;
             else if (clip.isLooping) _lastLoco = null;          // an idle picked by hand ends the walk
@@ -409,16 +441,40 @@ namespace UndeadLegion.Demo
                 clip.name, clip.length, frames, clip.frameRate, tail);
         }
 
-        /// <summary>Play an upper-body-capable clip on the masked layer over the running locomotion loop.</summary>
+        /// <summary>Play a masked-layer clip (upper body or one arm) over whatever the base layer runs.</summary>
         public void PlayOnTheMove(AnimationClip clip)
         {
-            if (!CanPlayOnTheMove(clip)) { Play(clip); return; }
-            _animator.Play(Animator.StringToHash(clip.name), _upperLayer, 0f);
-            _upperCurrent = clip;
+            int layer = LayerFor(clip);
+            if (layer < 0) { Play(clip); return; }
+            // crossfade onto the masked layer: the arm clips start mid-action (a swing begins with the
+            // arm overhead) and rely on the Animator for the transition, not on baked blend frames
+            _animator.CrossFadeInFixedTime(Animator.StringToHash(clip.name), crossFade, layer, 0f);
+            _layerCurrent[layer] = clip;
             _upperPlayFrame = Time.frameCount;
             if (clipInfoLabel != null)
-                clipInfoLabel.text = string.Format("{0}   |   {1:0.00}s   |   upper body over {2}   (legs keep walking)",
-                    clip.name, clip.length, _current != null ? _current.name : "-");
+                clipInfoLabel.text = string.Format("{0}   |   {1:0.00}s   |   {2} layer over {3}{4}",
+                    clip.name, clip.length, _animator.GetLayerName(layer), _current != null ? _current.name : "-",
+                    _held.Count > 0 ? "   (block held)" : "   (legs keep walking)");
+        }
+
+        /// <summary>A looping masked-layer clip is a held action: on = it stays on its layer over
+        /// everything until the same button releases it ("left arm stuck in block until released").</summary>
+        public void ToggleHeld(AnimationClip clip, int layer)
+        {
+            AnimationClip cur;
+            if (_held.TryGetValue(layer, out cur) && cur == clip)
+            {
+                _animator.CrossFadeInFixedTime("Empty", crossFade, layer);
+                _held.Remove(layer);
+                if (_current != null) ShowClipInfo(_current);
+                return;
+            }
+            _animator.CrossFadeInFixedTime(Animator.StringToHash(clip.name), crossFade, layer);
+            _held[layer] = clip;
+            _layerCurrent.Remove(layer);
+            if (clipInfoLabel != null)
+                clipInfoLabel.text = string.Format("{0}   |   held on the {1} layer over {2}   (click again to release)",
+                    clip.name, _animator.GetLayerName(layer), _current != null ? _current.name : "-");
         }
 
         /// <summary>Toggle a twitch clip: on = it loops on its own additive layer over whatever

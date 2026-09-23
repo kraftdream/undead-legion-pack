@@ -36,7 +36,7 @@ tools/goblin_export.py):
     node at identity rotation, which the Asset Store validator's "Check Model
     Orientation" wants. The Armature node keeps its -90 deg X either way.
 """
-import bpy, os, sys, math
+import bpy, json, os, sys, math
 from mathutils import Matrix, Vector, Quaternion
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -416,7 +416,7 @@ def export_model(out_dir, bst):
     fbx(os.path.join(out_dir, "SK_%s.fbx" % character), [rig] + meshes, False, bst)
 
 
-def export_clip(clip, out_dir, bst, lift=0.0):
+def export_clip(clip, out_dir, bst, lift=0.0, lift_curve=None):
     out_dir = out_dir or os.path.join(UNITY, "Animations")
     scene = bpy.context.scene
     assert abs(scene.render.fps / scene.render.fps_base - FPS) < 1e-6, \
@@ -467,6 +467,16 @@ def export_clip(clip, out_dir, bst, lift=0.0):
                 for kp in fc.keyframe_points:
                     kp.co.y += lift; kp.handle_left.y += lift; kp.handle_right.y += lift
         log("lifted Root by %.4f m" % lift)
+    if lift_curve:
+        # per-frame lift on top, ENGINE metres, from tools/unity/ground_fit.py (the six models measured
+        # in Unity: the highest model's lowest vertex is put on the floor frame by frame)
+        curve = json.load(open(lift_curve))["lift"]
+        for fc in root_fc:
+            if fc.array_index == 1:
+                for kp in fc.keyframe_points:
+                    i = max(0, min(len(curve) - 1, int(round(kp.co.x - f0))))
+                    kp.co.y += curve[i]; kp.handle_left.y += curve[i]; kp.handle_right.y += curve[i]
+        log("lift curve %s: %d frames, %+.4f..%+.4f m" % (os.path.basename(lift_curve), len(curve), min(curve), max(curve)))
     travel = [fc.evaluate(f1) - fc.evaluate(f0) for fc in sorted(root_fc, key=lambda f: f.array_index)]
     log("baked %d location curves scaled x%.1f; Root travel over the clip (Blender XYZ, m): %s"
         % (n, SCALE, [round(t, 4) for t in travel]))
@@ -484,7 +494,8 @@ def main():
     bst = bool(int(argv[argv.index("--bst") + 1])) if "--bst" in argv else True
     if "--clip" in argv:
         lift = float(argv[argv.index("--lift") + 1]) if "--lift" in argv else CLIP_LIFT
-        export_clip(argv[argv.index("--clip") + 1], out_dir, bst, lift)
+        lift_curve = argv[argv.index("--lift-curve") + 1] if "--lift-curve" in argv else None
+        export_clip(argv[argv.index("--clip") + 1], out_dir, bst, lift, lift_curve)
     else:
         export_model(out_dir, bst)
 
