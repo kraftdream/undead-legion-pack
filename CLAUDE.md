@@ -433,10 +433,13 @@ walk's legs and SPINE (LeftUpLeg and Spine1 within 0.00° of the walk alone; the
 swings Spine1 5.6°) and the attack's right arm (within 0.00°, 87° swing); Walk_Fwd +
 Block_L_Idle held on LeftArm + Attack_R_Slice on RightArm keeps both (0.00°). The demo
 routes automatically (`SkeletonShowcase.LayerFor`: the first masked layer with a state for
-the clip): a masked clip clicked while a locomotion loop plays, or while a block is held,
-goes to its layer ("RightArm layer over Walk_Fwd"); otherwise it plays full-body on `Base`
-(the arm clips are still authored with the torso, so a stab from an idle reads whole); a
-full-stop clip takes `Base` and the loop resumes after it. `layer_smoke.py` proves walk +
+the clip): a masked clip clicked while a locomotion loop plays goes to its layer ("RightArm
+layer over Walk_Fwd"); otherwise it plays full-body on `Base` (the arm clips carry the torso and,
+since the recorded set, the legs and the step, so a stab from an idle reads whole); a full-stop
+clip takes `Base` and the loop resumes after it. A HELD block does not route attacks to the arm
+layer (it did until 2026-09-23, and the user saw "stab/slice attacks stop moving the legs" after
+toggling the block): the `LeftArm` layer overrides the left arm over whatever Base plays, so a
+standing attack goes full-body on Base with the shield still up. `layer_smoke.py` proves walk +
 right slice, the 2H full stop and resume, the block held through a right stab and a walk,
 and its release, in play mode. Humanoid masks cannot cut inside the spine (Body is one part),
 so the upper layer owns the whole spine above the hips and the arm layers own none of it;
@@ -754,6 +757,20 @@ ending exactly on 34): 34 → 31 frames (1.00 s), the segment 14 → 11. A re-ba
 `_base` (the generated clip) and just replaces the current action. ⚠ `anim_batch --export-only`
 skips a clip whose manifest entry has not changed since its last build (the signature check): add
 `--force` after a bake that touched only the anim file.
+**Block_L_Idle (2026-09-23):** the user asked for the heater shield in Blender "the same way I have it in
+Unity" (`anim_weapon_ref.py -- --attach H1HeaterShield:L --check Block_L_Idle:1 --save`, after a
+`dump_grips.py` re-dump; placement 0.00000 m, the plate's long axis along the fingers), posed the
+held block as `Block_L_Idle_Fix` (`hand_ik.L`, ONE key at frame 1 in Combine with Hold extrapolation,
+so the same offset rides every frame of the loop and the seam is untouched) and had it baked
+(`anim_nla_bake.py -- --result Block_L_Idle --save`, flat = stack to 0.00 mm; `hand_edited`;
+`--export-only --force`): 6.0 s loop, in place, lowest vertex +4..+9 mm. `Block_L_Idle_base` keeps
+the Kimodo build. Then "I wanted to adjust it again but upper_arm_fk.L and its children won't change
+the mesh": that arm was on IK for the whole clip (`arm_pose shield_block` pins the fist on IK), so
+only `hand_ik.L` moved it. **`anim_nla_bake.py -- --result Block_L_Idle --fk-arm L --save`**
+converts an arm to FK losslessly: per frame the FK controls are set to reproduce the DEF upper arm,
+forearm and hand (rest relation FK control → DEF bone) and `IK_FK` keyed 1; reproduced within 0.00
+mm / 0.00° on all 181 frames, so no re-export. FK is the lossless direction (an FK chain can take
+any rotation); IK→FK is exact, FK→IK loses the forearm twist. `hand_ik.L` is inert on this clip now.
 
 **Multi-frame pose references** (built for the swing, kept): `pose_ref` takes several
 `ACTION:frame@at`; the first ramps in over `pose_ref_in` frames, the deltas interpolate between

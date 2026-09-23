@@ -317,8 +317,9 @@
    "fist": 0.9,
    "prompt": "A person holds a shield raised on the left arm in front of the chest, braced behind it in a guard, standing still and ready, breathing slightly.",
    "layer": "left",
-   "_note": "a held block: loops on the LeftArm layer while the demo's block toggle is on ('left arm stuck in block action until released'); replaces Block and Shield_Bash. Shields are hand-held (Hand.Left); arm_pose shield_block: Kimodo returned both arms hanging (no props), the left hand is put on IK in a chest-high guard, knuckles forward, hilt down so the plate stands upright",
-   "arm_pose": "shield_block"
+   "_note": "a held block: loops on the LeftArm layer while the demo's block toggle is on ('left arm stuck in block action until released'); replaces Block and Shield_Bash. Shields are hand-held (Hand.Left); arm_pose shield_block: Kimodo returned both arms hanging (no props), the left hand is put on IK in a chest-high guard, knuckles forward, hilt down so the plate stands upright; hand_edited (2026-09-23): the user's Block_L_Idle_Fix (hand_ik.L, one key held over the loop, posed with the heater shield attached as Unity places it) baked in by anim_nla_bake.py",
+   "arm_pose": "shield_block",
+   "hand_edited": true
   },
   {
    "name": "Shoot_01",
