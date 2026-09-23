@@ -245,6 +245,7 @@ IKFK_ARMS = ["upper_arm_parent.L", "upper_arm_parent.R"]
 IKFK_LEGS = ["thigh_parent.L", "thigh_parent.R"]
 FINGER_MASTERS = ["thumb.01_master", "f_index.01_master", "f_middle.01_master", "f_ring.01_master", "f_pinky.01_master"]
 FINGERS = [m + "." + s for s in ("L", "R") for m in FINGER_MASTERS]
+HAND_GRIP = arg("--hand-grip", "")               # "L" / "R" / "LR": that hand's finger controls take the `Grip` action's fist on every frame (the pose the engine puts on a hand that holds an item), so an EMPTY hand closes like the holding one (user, Idle_Propped: "both hands closed, currently only the right does")
 
 # --arm-pose presets. Rig units at REST (character ~0.94 m tall, right side = -X,
 # forward = -Y, up = +Z). Per hand: socket position, +Y (hilt/blade), +Z (back of hand).
@@ -842,8 +843,19 @@ rig.animation_data.action = act
 if hasattr(rig.animation_data, "action_slot"):
     rig.animation_data.action_slot = act.slots.new('OBJECT', rig.name)
 
+GRIP_POSE = {}
+if HAND_GRIP:
+    _g = bpy.data.actions.get("Grip")
+    assert _g is not None, "--hand-grip needs the Grip action in the anim file (tools/anim_grip_export.py -- --save)"
+    _prev = rig.animation_data.action; rig.animation_data.action = _g; scene.frame_set(1); update()
+    for _pb in pbs:
+        _n = _pb.name
+        if _n.startswith(("thumb.", "f_index", "f_middle", "f_ring", "f_pinky")) and any(_n.endswith("." + _s) or ("." + _s + ".") in _n for _s in HAND_GRIP if _s in "LR"):
+            GRIP_POSE[_n] = _pb.matrix_basis.copy()
+    rig.animation_data.action = _prev; update()
+    log("hand-grip %s: %d finger controls take the Grip fist" % (HAND_GRIP, len(GRIP_POSE)))
 DRIVEN = sorted(TARGETS) + FINGERS + ["root"] + (["hand_ik.L", "hand_ik.R"] if (ARM_POSE or ARM_KEYS or LOCK_L > 0 or GATE or PROP or HAND_CLEAR or ARM_IK) else []) + (["upper_arm_ik_target.L", "upper_arm_ik_target.R"] if (ELBOW_POLE or ARM_IK) else []) + (["foot_ik.L", "foot_ik.R", "toe_ik.L", "toe_ik.R"] if (PLANT > 0 or AIM_FORWARD or IK_ALWAYS_LEGS) else []) + (["thigh_ik_target.L", "thigh_ik_target.R"] if (PLANT > 0 or IK_ALWAYS_LEGS) else []) + (["hand_ik.L", "hand_ik.R", "upper_arm_ik_target.L", "upper_arm_ik_target.R"] if IK_ALWAYS_ARMS else [])
-DRIVEN = list(dict.fromkeys(DRIVEN))
+DRIVEN = list(dict.fromkeys(DRIVEN + list(GRIP_POSE)))
 STATIC = [c for c in controls() if c not in DRIVEN]
 _rnd = __import__("random").Random(7)
 FINGER_WAVE = {n: (_rnd.choice([1, 1, 2]), _rnd.uniform(0, 2 * math.pi), _rnd.uniform(0.6, 1.0)) for n in FINGERS}
@@ -1677,6 +1689,10 @@ def pose(f, dz=0.0, f_travel=None):
         update()
     if PLANT_ACTIVE and (IK_ALWAYS_LEGS or IK_ALWAYS_ARMS):
         bake_ik_limbs()
+    if GRIP_POSE:
+        for n_, m_ in GRIP_POSE.items():
+            pbs[n_].matrix_basis = m_
+        update()
 
 
 # every skinned reference mesh of all six characters (boots, greaves, robes and armour
