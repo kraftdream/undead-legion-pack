@@ -40,12 +40,12 @@ every one verified on all six models with `verify_clip.py` + `ground_clip.py`; p
 
 | Group | Clips |
 |---|---|
-| Idles (loop) | `Idle`, `Idle_02` (hand-fixed 2026-09-21: blades forward, Idle grounded, Idle_02 upright with hanging arms, left foot 5 cm forward / right 5 cm back), `Idle_03` (the user's own video-mocap idle, 2026-09-21, slowed 3×, 10.8 s loop, fingers from the capture, right foot 10 cm forward / left 10 cm back); weapon idles `Idle_TwoHanded` (axe on the shoulder), `Idle_Propped` (the user's video mocap, 2026-09-21: right palm on the top of a staff planted ahead, demo loadout "Staff (propped)"), `Idle_Bow`, `Idle_Staff`, `Idle_Wand` |
+| Idles (loop) | `Idle`, `Idle_02` (hand-fixed 2026-09-21: blades forward, Idle grounded, Idle_02 upright with hanging arms, left foot 5 cm forward / right 5 cm back), `Idle_03` (the user's own video-mocap idle, 2026-09-21, slowed 3×, 10.8 s loop, fingers from the capture, right foot 10 cm forward / left 10 cm back); weapon idles `Idle_TwoHanded` (the user's mannequin recording, 2026-09-23: two-hander held ahead, both hands on the shaft), `Idle_Propped` (same recording: both hands resting on the top of a staff planted ahead, demo loadout "Staff (propped)"), `Idle_Bow`, `Idle_Staff`, `Idle_Wand` |
 | Impaled (hand-authored) | `Impaled_Idle` (loop: on its knees, hunched, sword through the belly), `Impaled_Rise` (one-shot: pulls it out, stands up, ends on the neutral standing pose) |
 | Twitch (additive) | `Twitch_01/02/03` head + jaw |
 | Locomotion (loop, root motion) | `Walk_Fwd`, `Walk_Back`, `Run_Fwd`, `Strafe_Left` (mirrored right), `Strafe_Right` |
 | Per arm (2026-09-22/23, replaces the one-handed set) | `Attack_R_Stab`, `Attack_R_Slice` (the user's mannequin-app recording `attack_ref5`, frames 26–62 / 111–149, plain transfer), `Attack_L_Stab`, `Attack_L_Slice` (the same mirrored), `Block_L_Idle` (loop: shield held up on the left arm, a HELD action in the demo). Each lives on its arm's masked layer (`LeftArm` / `RightArm`) and as a full-body state on Base; the Animator carries the transitions |
-| Two-handed | `Attack_2H_01` (overhead chop), `Attack_2H_02` (horizontal sweep) — left hand on the handle through the two-handed GATE (slides 0.03..0.11 rig m below the right hand) |
+| Two-handed | `Attack_2H_01` (downward chop with a step), `Attack_2H_02` (raise and horizontal sweep) — the user's mannequin recording (2026-09-23), legs planted, left hand on the handle through the two-handed GATE (slides 0.03..0.11 rig m below the right hand) |
 | Bow | `Shoot_01` (the user's video mocap, 2026-09-22: one shoot clip, draw and release with a step into the archer's stance; `Shoot_02` retired) |
 | Magic | `Cast_Wand_01/02`, `Cast_Staff_01/02` (both hands on the staff) |
 | Specials | `Summon` (necromancer, arms overhead), `AOE_Cast` (mage slam), `Taunt` (warrior, chest beat + arms wide), `Cutthroat` (assassin), `Rally` (knight, sword raised) |
@@ -771,6 +771,40 @@ converts an arm to FK losslessly: per frame the FK controls are set to reproduce
 forearm and hand (rest relation FK control → DEF bone) and `IK_FK` keyed 1; reproduced within 0.00
 mm / 0.00° on all 181 frames, so no re-export. FK is the lossless direction (an FK chain can take
 any rotation); IK→FK is exact, FK→IK loses the forearm twist. `hand_ik.L` is inert on this clip now.
+
+**Sixth reference (2026-09-23, evening): `P:\c7uJKSavZ5aC-mWAAEhPEcDP8.glb` → `attack_ref6_mocap.glb` →
+`attack_ref6_arm.blend`, 427 frames**, four clips from one take: `Idle_Propped`, `Idle_TwoHanded`,
+`Attack_2H_01`, `Attack_2H_02`, all plain transfers (`rename ue5`, `src_ext blend`). ⚠ **The user's
+frame numbers count at 24 fps; the recording is 30 fps.** The first build of "236–281 = Attack_2H_01"
+gave a clip whose right arm moved 4°: a per-frame hand-speed scan of the source (`ref6speed.py`-style:
+hand_r world speed per frame) showed nothing moving there and the two attacks at 304–327 and 368–412,
+exactly the user's ranges × 1.25 — as were the idles (the performer lowers the hands onto the staff
+by 90 and raises the two-hander at 206). So: propped 96–188, two-handed 213–294, chop 295–351, second
+attack 355–413. Rule: **scan the source for the motion before trusting a frame range**. Settings:
+idles slowed 2× (`time_scale 2.0 smooth 2`, loops 160 / 140 with 20-frame seams, 0.0000°);
+`Idle_TwoHanded` keeps the left hand on the shaft through the gate (slots 5–6 cm apart, 12 cm apart
+in `Idle_Propped` where the left hand rests below the right on the staff); the attacks like the arm
+set (`plant_feet`, `drift root`, `unwind_yaw` + `unwind_ref body`, `gate "0.03,0.11"`, `lift 0.004`,
+`ground_fit`): 57 / 59 frames, root motion −5 / +2 cm, yaw 0° / −1°, right arm 53° / 69°, boots on
+the floor (≤ 9 mm sink). **The propped staff**: the plain transfer left the hand's hilt axis 53° UP
+(a hand resting on a staff top has no vertical hilt), so `prop "R:0.69"` + `prop_damp 1.0` aim it at
+the floor point a 1.24 m staff reaches from the hand's height (the hand keeps its recorded position,
+~22° of lean), and since the hand rests at 1.15–1.17 m, on the staff's TOP, `ProppedHandHeight` is
+1.24 (the Grip of `W_H2MagicStuff_Top` at the mesh top, moved in the existing prefab by
+`execute_code` — the builder never overwrites a weapon prefab — and re-dumped to `unity_grips.json`).
+Measured with the staff attached: foot at −0.01 m, top 1.17 m, elbow 81°. Then "both hands closed,
+currently only the right does": the engine's grip fist goes only on a hand that HOLDS an item, the
+empty left hand played the clip's own fingers (the constant curl). **`hand_grip L`** (`--hand-grip
+L|R|LR`): that hand's finger controls take the `Grip` action's fist on every frame (read from the
+action at start; verified 0.00° on every frame, middle fingertip 5.6 cm from the wrist), so both
+hands close the same way in the engine. Then "IK controls don't work on the left arm": measured
+headlessly, `hand_ik.L` moves the hand 27 cm in Idle_TwoHanded (gated, IK) and 0 in Idle_Propped
+(plain transfer: FK), so the clip in question is the propped idle; `ik_always both` on it puts the
+left arm on IK for the whole clip (the right already was, for the prop). Cost, measured: upper arm
+and hand 0.0 mm / 0.0°, the forearm's own twist 20.9° different (the IK forearm carries none), i.e.
+the vambrace rolls; drop the key to get the FK forearm back. The Kimodo / JNT builds of
+these four (`arm_pose two_handed_shoulder`, the prop/hunch/torso_ref passes) are history in the
+manifest notes.
 
 **Multi-frame pose references** (built for the swing, kept): `pose_ref` takes several
 `ACTION:frame@at`; the first ramps in over `pose_ref_in` frames, the deltas interpolate between
