@@ -107,24 +107,8 @@
    "arm_pose": "staff_side",
    "arm_pose_reach": 0.9,
    "prompt": "(not Kimodo) the user's video-mocap idle (idle_mocap.glb, as Idle_03) with the staff_side arm pose",
-   "_note": "2026-09-24: rebuilt on the user's own idle mocap (Idle_03's source: hips sway 39 mm, head 15 deg/s, free hand ~80 mm of motion) instead of the Kimodo generation (11-15 mm, 1-4 deg/s: 'too static'); the pinned hand follows the torso sway, the other hand and the fingers are the capture's; arm_pose_reach 0.9 pulls the authored hand to 90 %% of the arm (the wand hand sat at 99 %%, elbow locked: 'extends too far'). Previous: {\"glb\": \"idle_staff\", \"mode\": \"idle\", \"seed\": 13, \"frames\": 300, \"loop\": 240, \"blend\": 40, \"src_start\": 40, \"time_scale\": 2.0, \"smooth\": 2, \"fist\": 0.8, \"prompt\": \"A person stands holding a long staff upright in the right hand beside the body, left arm relaxed, swaying slowly.\", \"arm_pose\": \"staff_side\"}. "
-  },
-  {
-   "name": "Idle_Wand",
-   "glb": "idle_mocap",
-   "mode": "idle",
-   "rename": "mixamo",
-   "src_end": 128,
-   "time_scale": 3.0,
-   "smooth": 3,
-   "loop": 324,
-   "blend": 60,
-   "src_start": 60,
-   "fingers": true,
-   "arm_pose": "wand_front",
-   "arm_pose_reach": 0.7,
-   "prompt": "(not Kimodo) the user's video-mocap idle (idle_mocap.glb, as Idle_03) with the wand_front arm pose",
-   "_note": "arm_pose_reach 0.7 (0.9 still left the arm nearly straight out in front). 2026-09-24: rebuilt on the user's own idle mocap (Idle_03's source: hips sway 39 mm, head 15 deg/s, free hand ~80 mm of motion) instead of the Kimodo generation (11-15 mm, 1-4 deg/s: 'too static'); the pinned hand follows the torso sway, the other hand and the fingers are the capture's; arm_pose_reach 0.9 pulls the authored hand to 90 %% of the arm (the wand hand sat at 99 %%, elbow locked: 'extends too far'). Previous: {\"glb\": \"idle_wand\", \"mode\": \"idle\", \"seed\": 21, \"frames\": 300, \"loop\": 240, \"blend\": 40, \"src_start\": 40, \"time_scale\": 2.0, \"smooth\": 2, \"fist\": 0.8, \"prompt\": \"A person stands holding a short wand in the right hand with the forearm raised in front, slowly turning the head, ready to cast.\", \"arm_pose\": \"wand_front\"}. "
+   "_note": "hand_edited (2026-09-24): the user's Idle_Staff_Fix baked by anim_nla_bake. 2026-09-24: rebuilt on the user's own idle mocap (Idle_03's source: hips sway 39 mm, head 15 deg/s, free hand ~80 mm of motion) instead of the Kimodo generation (11-15 mm, 1-4 deg/s: 'too static'); the pinned hand follows the torso sway, the other hand and the fingers are the capture's; arm_pose_reach 0.9 pulls the authored hand to 90 %% of the arm (the wand hand sat at 99 %%, elbow locked: 'extends too far'). Previous: {\"glb\": \"idle_staff\", \"mode\": \"idle\", \"seed\": 13, \"frames\": 300, \"loop\": 240, \"blend\": 40, \"src_start\": 40, \"time_scale\": 2.0, \"smooth\": 2, \"fist\": 0.8, \"prompt\": \"A person stands holding a long staff upright in the right hand beside the body, left arm relaxed, swaying slowly.\", \"arm_pose\": \"staff_side\"}. ",
+   "hand_edited": true
   },
   {
    "name": "Walk_Fwd",

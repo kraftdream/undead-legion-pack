@@ -43,6 +43,7 @@ LOOP_SEAM = int(arg("--loop-seam", "0"))         # frames: re-close a loop after
 LOOP = "--loop" in argv                           # the clip is a cycle: a pin's flight-phase correction wraps across the seam (last frame -> first)
 UPPER_FROM = arg("--upper-from", "")              # "Idle_03:1": after the retime, every control ABOVE the legs (the torso's rotation - its location stays the clip's - spine, chest, neck, head, jaw, shoulders, arms, hands, fingers and the arm IK/FK switches) is taken frame by frame from that action starting at that frame (wrapping over its length), the clip keeping its root, hips, legs and feet (user, Walk_Back: "too much movement above the legs, use the above-torso animation from idle_3")
 UPPER_SEAM = int(arg("--upper-seam", "8"))         # frames: the copied window's end crossfaded to its start so the loop closes
+HAND_WEIGHT = arg("--hand-weight", "")            # "R:0.015:4:6": that IK hand bobs against the body's vertical sway as if the held item had weight - the hips' height over the clip, normalised to -1..1, delayed DELAY frames (wrapping over a loop), moves the hand AMP rig m the OTHER way and pitches it PITCH degrees about the socket's finger axis (the tip dips as the hand drops) (user, Idle_Wand: "right hand sway that mimics the wand's weight, in sync with the character swaying up and down")
 IK_LEGS = "--ik-legs" in argv                     # after the bake, both legs on IK on every frame, the foot/toe controls on the DEF result and the knee pole out through the FK knee (refined): lossless (the walks' legs are FK from the retarget; a foot pin on an FK leg would switch modes and jump the knee)
 FK_ARM = arg("--fk-arm", "")                      # "L" / "R" / "LR": after the bake, that arm is put on FK on every frame, the FK chain set to the arm's current (IK) result: lossless, and upper_arm_fk / forearm_fk / hand_fk then control it (user, on Block_L_Idle whose left arm was IK throughout: "upper_arm_fk_l and its children won't change the mesh")        # "A:B:F": after the bake (and pin), frames A..B of the result are resampled F times faster (Blender's own curve evaluation at fractional frames), the frames after B shift earlier (user: "speed up by 35% from frame 21 to 34")
 PIN_FOOT = arg("--pin-foot", "")                  # "L" / "L:1" / "L,R" / "L:20:20:34": SIDE[:ref[:from[:to]]] - after the bake, that foot's IK control (and toe) is held from frame `from` to `to` (default: the whole clip) at the WORLD transform it has on frame `ref` (default: the first frame): a planted foot that the capture let drift (user: "get rid of the drift on the left feet"; "left foot drift after the step forward, from frame 20")
@@ -316,6 +317,37 @@ def upper_from(act, spec, seam):
                 if p_ in pb and p_ in win[f][c]:
                     pb.keyframe_insert('["%s"]' % p_, frame=f, group=c)
     log("upper body from %s frames %d..%d (of %d) onto %d controls, the last %d frames crossfaded to the first (torso: rotation only)" % (src_name, start, start + (F1 - F0), n_src, len(ctrls), seam))
+
+
+def hand_weight(act, spec):
+    parts = spec.split(":"); side = parts[0]; amp = float(parts[1]); delay = int(parts[2]) if len(parts) > 2 else 0; pitch = math.radians(float(parts[3])) if len(parts) > 3 else 0.0
+    ad.action = act; n = F1 - F0 + 1
+    zs = []
+    for f in range(F0, F1 + 1):
+        scene.frame_set(f); zs.append((rig.matrix_world @ pbs["DEF-spine"].matrix).translation.z)
+    zmid = 0.5 * (max(zs) + min(zs)); half = 0.5 * (max(zs) - min(zs)) or 1e-6
+    norm = [(z - zmid) / half for z in zs]
+    # sign of the pitch: the rotation about the socket's X that lowers the hilt axis (+Y) when applied positively
+    scene.frame_set(F0); sock = (rig.matrix_world @ pbs["DEF-weapon." + side].matrix).copy()
+    x_ = (sock.to_3x3() @ Vector((1, 0, 0))).normalized(); y_ = (sock.to_3x3() @ Vector((0, 1, 0))).normalized()
+    sgn = 1.0 if (Matrix.Rotation(0.1, 3, x_) @ y_).z < y_.z else -1.0
+    pbs["upper_arm_parent." + side]["IK_FK"] = 0.0
+    lo = hi = 0.0
+    for i, f in enumerate(range(F0, F1 + 1)):
+        scene.frame_set(f)
+        u = -norm[(i - delay) % n]                                # against the body: the body up, the weight lags down
+        dz = amp * u; lo = min(lo, dz); hi = max(hi, dz)
+        h = pbs["hand_ik." + side]; hm = (rig.matrix_world @ h.matrix).copy()
+        sock = (rig.matrix_world @ pbs["DEF-weapon." + side].matrix).copy()
+        x_ = (sock.to_3x3() @ Vector((1, 0, 0))).normalized()
+        R = Matrix.Rotation(sgn * pitch * u, 4, x_)
+        T = Matrix.Translation(Vector((0, 0, dz))) @ Matrix.Translation(sock.translation) @ R @ Matrix.Translation(-sock.translation)
+        h.matrix = rig.matrix_world.inverted() @ (T @ hm); pbs["upper_arm_parent." + side]["IK_FK"] = 0.0
+        bpy.context.view_layer.update()
+        h.keyframe_insert("location", frame=f, group="hand_ik." + side)
+        h.keyframe_insert("rotation_quaternion" if h.rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group="hand_ik." + side)
+        pbs["upper_arm_parent." + side].keyframe_insert('["IK_FK"]', frame=f, group="upper_arm_parent." + side)
+    log("hand-weight %s: hips sway +-%.1f mm -> hand %+.1f..%+.1f mm the other way, delayed %d frames, pitch +-%.0f deg" % (side, half * 1000, lo * 1000, hi * 1000, delay, math.degrees(pitch)))
 
 
 def stride(act, k):
@@ -621,6 +653,9 @@ if TORSO_YAW:
 
 if SHAFT_HAND:
     shaft_hand(baked, SHAFT_HAND)
+
+if HAND_WEIGHT:
+    hand_weight(baked, HAND_WEIGHT)
 
 if GRIP_FOLLOW:
     grip_follow(baked, GRIP_FOLLOW)
