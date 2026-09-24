@@ -177,7 +177,9 @@
    "prompt": "A person side-steps to the left repeatedly in a straight line while facing forward, stiff, arms hanging.",
    "travel_axis": "x",
    "mirror": true,
-   "_note": "mirrored from strafe_right: the strafe_left generation barely moved sideways (0.19 m/cycle vs 0.60)"
+   "_note": "lift 0.025 (the planted right foot at its grounded height put the six boots 10-16 mm under the floor with the default lift; the highest model's sole now at 0). hand_edited (2026-09-24): the user's Strafe_Left_Fix (arms) baked; legs on IK, steps 30 % shorter (--stride 0.7), the right foot held planted over 1-33 at frame 25's spot (it used to hover and slide down through 1-19 after landing at the seam), loop re-closed; Strafe_Right is its mirror. mirrored from strafe_right: the strafe_left generation barely moved sideways (0.19 m/cycle vs 0.60)",
+   "hand_edited": true,
+   "lift": 0.025
   },
   {
    "name": "Strafe_Right",
@@ -189,7 +191,10 @@
    "smooth": 1,
    "fist": 0.4,
    "prompt": "A person side-steps to the right repeatedly in a straight line while facing forward, stiff, arms hanging.",
-   "travel_axis": "x"
+   "travel_axis": "x",
+   "hand_edited": true,
+   "_note": "lift 0.025 (the planted right foot at its grounded height put the six boots 10-16 mm under the floor with the default lift; the highest model's sole now at 0). hand_edited (2026-09-24): the user's Strafe_Left_Fix (arms) baked; legs on IK, steps 30 % shorter (--stride 0.7), the right foot held planted over 1-33 at frame 25's spot (it used to hover and slide down through 1-19 after landing at the seam), loop re-closed; this clip is the finished Strafe_Left X-mirrored (--mirror-to). ",
+   "lift": 0.025
   },
   {
    "name": "Death_01",

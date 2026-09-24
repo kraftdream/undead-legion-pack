@@ -36,15 +36,15 @@
   "mode": "loco"
  },
  "Strafe_Left": {
-  "sig": "strafe_right|1789849514|{\"_note\": \"mirrored from strafe_right: the strafe_left generation barely moved sideways (0.19 m/cycle vs 0.60)\", \"fist\": 0.4, \"frames\": 240, \"glb\": \"strafe_right\", \"mirror\": true, \"mode\": \"loco\", \"name\": \"Strafe_Left\", \"seed\": 12, \"smooth\": 1, \"time_scale\": 1.3, \"travel_axis\": \"x\"}",
+  "sig": "strafe_right|1789889841|{\"_note\": \"lift 0.025 (the planted right foot at its grounded height put the six boots 10-16 mm under the floor with the default lift; the highest model's sole now at 0). hand_edited (2026-09-24): the user's Strafe_Left_Fix (arms) baked; legs on IK, steps 30 % shorter (--stride 0.7), the right foot held planted over 1-33 at frame 25's spot (it used to hover and slide down through 1-19 after landing at the seam), loop re-closed; Strafe_Right is its mirror. mirrored from strafe_right: the strafe_left generation barely moved sideways (0.19 m/cycle vs 0.60)\", \"fist\": 0.4, \"frames\": 240, \"glb\": \"strafe_right\", \"hand_edited\": true, \"lift\": 0.025, \"mirror\": true, \"mode\": \"loco\", \"name\": \"Strafe_Left\", \"seed\": 12, \"smooth\": 1, \"time_scale\": 1.3, \"travel_axis\": \"x\"}",
   "ok": true,
-  "when": "2026-09-20 09:23",
+  "when": "2026-09-24 19:56",
   "mode": "loco"
  },
  "Strafe_Right": {
-  "sig": "strafe_right|1789849514|{\"fist\": 0.4, \"frames\": 240, \"glb\": \"strafe_right\", \"mode\": \"loco\", \"name\": \"Strafe_Right\", \"seed\": 14, \"smooth\": 1, \"time_scale\": 1.3, \"travel_axis\": \"x\"}",
+  "sig": "strafe_right|1789889841|{\"_note\": \"lift 0.025 (the planted right foot at its grounded height put the six boots 10-16 mm under the floor with the default lift; the highest model's sole now at 0). hand_edited (2026-09-24): the user's Strafe_Left_Fix (arms) baked; legs on IK, steps 30 % shorter (--stride 0.7), the right foot held planted over 1-33 at frame 25's spot (it used to hover and slide down through 1-19 after landing at the seam), loop re-closed; this clip is the finished Strafe_Left X-mirrored (--mirror-to). \", \"fist\": 0.4, \"frames\": 240, \"glb\": \"strafe_right\", \"hand_edited\": true, \"lift\": 0.025, \"mode\": \"loco\", \"name\": \"Strafe_Right\", \"seed\": 14, \"smooth\": 1, \"time_scale\": 1.3, \"travel_axis\": \"x\"}",
   "ok": true,
-  "when": "2026-09-20 09:24",
+  "when": "2026-09-24 19:56",
   "mode": "loco"
  },
  "Death_01": {
