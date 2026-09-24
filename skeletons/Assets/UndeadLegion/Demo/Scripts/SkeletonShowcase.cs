@@ -265,7 +265,7 @@ namespace UndeadLegion.Demo
             new ClipSection { title = "Idle", idlePreference = new[] { "Idle" },
                 members = new[] { "Idle", "Idle_02", "Idle_03" } },
             new ClipSection { title = "Weapon idles", idlePreference = new[] { "Idle" },
-                members = new[] { "Idle_TwoHanded", "Idle_Propped", "Idle_Bow", "Idle_Staff", "Idle_Wand" } },
+                members = new[] { "Idle_TwoHanded", "Idle_Propped", "Idle_Bow", "Idle_Staff" } },
             // impaled: kneeling with the sword in the belly (loop), then pull it out and rise (one-shot,
             // ends on the neutral standing pose so the crossfade lands on whichever idle follows)
             new ClipSection { title = "Impaled", idlePreference = new[] { "Idle" },
@@ -282,7 +282,7 @@ namespace UndeadLegion.Demo
                 members = new[] { "Attack_2H_01", "Attack_2H_02" } },
             new ClipSection { title = "Bow", idlePreference = new[] { "Idle_Bow", "Idle" },
                 members = new[] { "Shoot_01" } },
-            new ClipSection { title = "Magic", idlePreference = new[] { "Idle_Staff", "Idle_Wand", "Idle" },
+            new ClipSection { title = "Magic", idlePreference = new[] { "Idle_Staff", "Idle" },
                 members = new[] { "Cast_Wand_01", "Cast_Wand_02", "Cast_Staff_01", "Cast_Staff_02" } },
             new ClipSection { title = "Specials", idlePreference = new[] { "Idle" },
                 members = new[] { "Taunt", "Rally", "Cutthroat", "Summon", "AOE_Cast" } },

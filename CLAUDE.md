@@ -40,7 +40,7 @@ every one verified on all six models with `verify_clip.py` + `ground_clip.py`; p
 
 | Group | Clips |
 |---|---|
-| Idles (loop) | `Idle`, `Idle_02` (hand-fixed 2026-09-21: blades forward, Idle grounded, Idle_02 upright with hanging arms, left foot 5 cm forward / right 5 cm back), `Idle_03` (the user's own video-mocap idle, 2026-09-21, slowed 3×, 10.8 s loop, fingers from the capture, right foot 10 cm forward / left 10 cm back); weapon idles `Idle_TwoHanded` (the user's mannequin recording, 2026-09-23: two-hander held ahead, both hands on the shaft), `Idle_Propped` (same recording: both hands resting on the top of a staff planted ahead, demo loadout "Staff (propped)"), `Idle_Bow`, `Idle_Staff`, `Idle_Wand` |
+| Idles (loop) | `Idle`, `Idle_02` (hand-fixed 2026-09-21: blades forward, Idle grounded, Idle_02 upright with hanging arms, left foot 5 cm forward / right 5 cm back), `Idle_03` (the user's own video-mocap idle, 2026-09-21, slowed 3×, 10.8 s loop, fingers from the capture, right foot 10 cm forward / left 10 cm back); weapon idles `Idle_TwoHanded` (the user's mannequin recording, 2026-09-23: two-hander held ahead, both hands on the shaft), `Idle_Propped` (same recording: both hands resting on the top of a staff planted ahead, demo loadout "Staff (propped)"), `Idle_Bow`, `Idle_Staff` (`Idle_Wand` removed 2026-09-24: "enough idle animations"; the H1Wand loadout stays, the Cast_Wand clips play over Idle_Staff / Idle) |
 | Impaled (hand-authored) | `Impaled_Idle` (loop: on its knees, hunched, sword through the belly), `Impaled_Rise` (one-shot: pulls it out, stands up, ends on the neutral standing pose) |
 | Twitch (additive) | `Twitch_01/02/03` head + jaw |
 | Locomotion (loop, root motion) | `Walk_Fwd`, `Walk_Back`, `Run_Fwd`, `Strafe_Left` (mirrored right), `Strafe_Right` |
@@ -1071,6 +1071,13 @@ hand: the preset sat at 0.318 of a 0.32 arm (elbow locked) — **`arm_pose_reach
 default 0.9) pulls an authored hand toward its shoulder to that share of the arm; 0.9 still left the arm
 straight out in front, `0.7` on the wand gives an elbow of 89° with the hand 20 cm ahead and 10 cm below
 the shoulder (the staff keeps 0.9). Seams 0.0000°, boots +5..+10 mm.
+
+Then the user's `Idle_Wand_Fix` (hand_ik.R) plus "a right-hand sway that mimics the wand's weight, in sync
+with the character swaying up and down": **`--hand-weight R:0.015:4:6`** (bake tool): the hips' height over
+the loop, normalised, delayed 4 frames (wrapping) and inverted, moves the IK hand ±15 mm rig the other way
+and pitches it ±6° about the socket's finger axis (the tip dips as the hand drops; the sign measured so a
+positive turn lowers the hilt). Hips ±3.4 mm → hand ±20 mm in total, 3 mm per frame, elbow 105–119°, seam
+0.9 mm.
 
 **Multi-frame pose references** (built for the swing, kept): `pose_ref` takes several
 `ACTION:frame@at`; the first ramps in over `pose_ref_in` frames, the deltas interpolate between
