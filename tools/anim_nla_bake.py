@@ -29,6 +29,8 @@ FRAMES = arg("--frames", "")
 SOURCE = arg("--action", "")
 HAND_GRIP = arg("--hand-grip", "")                # "L" / "R" / "LR": after the bake, that hand's finger controls take the `Grip` action's fist on every frame (the pose the engine puts on a hand that holds an item; an empty hand on a two-hander's shaft gets none)                      # flatten THIS action instead of the rig's current stack (a plain clip with no fix on top: the tool otherwise reads whatever action happens to be active)
 SPEED_SEGMENT = arg("--speed-segment", "")
+ARM_POLE_FK = arg("--arm-pole-fk", "")           # "L" / "R" / "LR": on the frames where that arm is on IK, re-aim the elbow pole at the FK chain's elbow (the FK controls carry the capture's arm on every frame even while the switch is at IK), so an IK stretch inside an FK clip keeps the capture's elbow plane (a gate pull put the elbow on the rest pole: 82 mm jump at the switch)
+TORSO_YAW = float(arg("--torso-yaw", "0"))       # degrees: counter-rotate the upper body against its OWN yaw excursion - at the frame where the chest has turned furthest from its first-frame heading the correction is this many degrees the other way, scaled by the excursion on every other frame (0 at the ends), spread over spine_fk.001 / .002 / chest; an IK left hand (the gate) and its pole ride along with the right hand so the two-handed grip holds (user: "attack direction is a bit to the left, add torso rotation like 50-60 degrees so the attack ends more forward")
 FK_ARM = arg("--fk-arm", "")                      # "L" / "R" / "LR": after the bake, that arm is put on FK on every frame, the FK chain set to the arm's current (IK) result: lossless, and upper_arm_fk / forearm_fk / hand_fk then control it (user, on Block_L_Idle whose left arm was IK throughout: "upper_arm_fk_l and its children won't change the mesh")        # "A:B:F": after the bake (and pin), frames A..B of the result are resampled F times faster (Blender's own curve evaluation at fractional frames), the frames after B shift earlier (user: "speed up by 35% from frame 21 to 34")
 PIN_FOOT = arg("--pin-foot", "")                  # "L" / "L:1" / "L,R" / "L:20:20:34": SIDE[:ref[:from[:to]]] - after the bake, that foot's IK control (and toe) is held from frame `from` to `to` (default: the whole clip) at the WORLD transform it has on frame `ref` (default: the first frame): a planted foot that the capture let drift (user: "get rid of the drift on the left feet"; "left foot drift after the step forward, from frame 20")
 assert RESULT, "--result NAME is required"
@@ -57,8 +59,11 @@ def stack_range():
     return int(round(lo)), int(round(hi))
 
 
+STACK_KEEP = None
 if SOURCE:
     src_act = bpy.data.actions[SOURCE]
+    STACK_KEEP = {"active": ad.action, "blend": ad.action_blend_type, "influence": ad.action_influence,
+                  "tracks": [(t, t.mute, [(st, st.action.name if st.action else None) for st in t.strips]) for t in ad.nla_tracks]}
     for t in ad.nla_tracks:
         t.mute = True
     ad.action = src_act; ad.action_blend_type = 'REPLACE'; ad.action_influence = 1.0
@@ -125,9 +130,11 @@ def write_action(name, frames_, mirror):
             bpy.data.actions.remove(old)                     # the generated base is already kept; this was an earlier bake
             log("old %s replaced (%s already holds the generated clip)" % (name, keep))
     act = bpy.data.actions.new(name); act.use_fake_user = True
-    # a clean stack for keying: no NLA, the new action active
-    for t in list(ad.nla_tracks):
-        ad.nla_tracks.remove(t)
+    # a clean stack for keying: no NLA, the new action active (a named --action keeps the user's stack:
+    # its strips are re-pointed at the new action and the active fix restored at the end)
+    if STACK_KEEP is None:
+        for t in list(ad.nla_tracks):
+            ad.nla_tracks.remove(t)
     ad.action = act; ad.action_blend_type = 'REPLACE'; ad.action_influence = 1.0
     if hasattr(ad, "action_slot") and act.slots:
         ad.action_slot = act.slots[0]
@@ -228,6 +235,131 @@ def pin_feet(act):
         hold(side, fr_, max(F0, p0), p1, xy)
 
 
+def torso_counter_yaw(act, deg):
+    ad.action = act
+    def yaw_ctrl(b):
+        v = (rig.matrix_world @ pbs[b].matrix).to_3x3() @ Vector((0, 0, 1)); return math.atan2(v.x, -v.y)
+    def wrap(a): return (a + math.pi) % (2 * math.pi) - math.pi
+    yaws = {}
+    for f in range(F0, F1 + 1):
+        scene.frame_set(f); yaws[f] = yaw_ctrl("DEF-spine.003")
+    y0 = yaws[F0]; dev = {f: wrap(yaws[f] - y0) for f in yaws}
+    fmax = max(dev, key=lambda f: abs(dev[f])); dmax = dev[fmax]
+    if abs(dmax) < 1e-4:
+        log("torso-yaw: the chest does not turn in this clip; nothing to counter"); return
+    chain = ["spine_fk.001", "spine_fk.002", "chest"]
+    left_ik = pbs["upper_arm_parent.L"]["IK_FK"] < 0.5 if True else False
+    worst_res = 0.0; peak_after = None
+    for f in range(F0, F1 + 1):
+        scene.frame_set(f)
+        share = dev[f] / dmax if (dev[f] * dmax) > 0 else 0.0
+        target = -math.radians(deg) * share * (1 if dmax > 0 else -1)
+        left_ik = pbs["upper_arm_parent.L"]["IK_FK"] < 0.5
+        Mr0 = (rig.matrix_world @ pbs["DEF-weapon.R"].matrix).copy()
+        Ml0 = (rig.matrix_world @ pbs["hand_ik.L"].matrix).copy(); Mp0 = (rig.matrix_world @ pbs["upper_arm_ik_target.L"].matrix).copy()
+        def turn(b, ang):
+            pb = pbs[b]; m = (rig.matrix_world @ pb.matrix).copy()
+            r = Matrix.Rotation(ang, 4, 'Z'); m2 = r @ m; m2.translation = m.translation
+            pb.matrix = rig.matrix_world.inverted() @ m2; bpy.context.view_layer.update()
+        if abs(target) > 1e-6:
+            for b in chain:
+                turn(b, target / 3.0)
+            res = wrap((yaws[f] + target) - yaw_ctrl("DEF-spine.003"))
+            turn("chest", res)
+            res2 = wrap((yaws[f] + target) - yaw_ctrl("DEF-spine.003")); worst_res = max(worst_res, abs(math.degrees(res2)))
+            Mr1 = (rig.matrix_world @ pbs["DEF-weapon.R"].matrix).copy(); T = Mr1 @ Mr0.inverted()
+            if left_ik:
+                pbs["hand_ik.L"].matrix = rig.matrix_world.inverted() @ (T @ Ml0); bpy.context.view_layer.update()
+                pbs["upper_arm_ik_target.L"].matrix = rig.matrix_world.inverted() @ (T @ Mp0); bpy.context.view_layer.update()
+        if f == fmax:
+            peak_after = math.degrees(wrap(yaw_ctrl("DEF-spine.003") - y0))
+        for b in chain + (["hand_ik.L", "upper_arm_ik_target.L"] if left_ik else []):
+            pb = pbs[b]
+            pb.keyframe_insert("location", frame=f, group=b)
+            pb.keyframe_insert("rotation_quaternion" if pb.rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group=b)
+    log("torso-yaw %.0f: chest excursion peaked at %+.0f deg on frame %d -> %+.0f deg after the counter-turn (start and end unchanged, residual <= %.2f deg); left hand %s" % (
+        deg, math.degrees(dmax), fmax, peak_after if peak_after is not None else 0.0, worst_res, "carried with the right hand (IK)" if pbs["upper_arm_parent.L"]["IK_FK"] < 0.5 else "on FK, follows the chest"))
+
+
+def arm_pole_fk(act):
+    """On every frame where the arm is on IK, put its pole out through the FK chain's elbow (forearm_fk head),
+    refined until the DEF elbow lies in that plane. The FK frames are untouched."""
+    ad.action = act
+    for side in ARM_POLE_FK:
+        if side not in ("L", "R"):
+            continue
+        n_ik = 0; worst = 0.0
+        for f in range(F0, F1 + 1):
+            scene.frame_set(f)
+            sw = pbs["upper_arm_parent." + side]
+            if sw["IK_FK"] > 0.5:
+                continue
+            n_ik += 1
+            sh = (rig.matrix_world @ pbs["DEF-upper_arm." + side].matrix).translation.copy()
+            wrist = (rig.matrix_world @ pbs["DEF-hand." + side].matrix).translation.copy()
+            elbow_fk = (rig.matrix_world @ pbs["forearm_fk." + side].matrix).translation.copy()
+            ax = (wrist - sh).normalized(); d_ = elbow_fk - sh; perp = d_ - ax * d_.dot(ax)
+            if perp.length < 0.005:
+                continue
+            sw["pole_vector"] = True
+            pole = pbs["upper_arm_ik_target." + side]; pt = elbow_fk + perp.normalized() * 0.4
+            for _ in range(3):
+                pm = pole.matrix.copy(); pm.translation = rig.matrix_world.inverted() @ pt; pole.matrix = pm; bpy.context.view_layer.update()
+                k_ = (rig.matrix_world @ pbs["DEF-forearm." + side].matrix).translation
+                dk = k_ - sh; pk = dk - ax * dk.dot(ax)
+                if pk.length < 1e-4:
+                    break
+                ang = pk.normalized().angle(perp.normalized())
+                if pk.normalized().cross(perp.normalized()).dot(ax) < 0:
+                    ang = -ang
+                if abs(ang) < 1e-4:
+                    break
+                pt = sh + Matrix.Rotation(ang, 3, ax) @ (pt - sh)
+            k_ = (rig.matrix_world @ pbs["DEF-forearm." + side].matrix).translation; dk = k_ - sh; pk = dk - ax * dk.dot(ax)
+            worst = max(worst, math.degrees(pk.normalized().angle(perp.normalized())) if pk.length > 1e-4 else 0.0)
+            pole.keyframe_insert("location", frame=f, group="upper_arm_ik_target." + side)
+            pole.keyframe_insert("rotation_quaternion" if pole.rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group="upper_arm_ik_target." + side)
+            sw.keyframe_insert('["pole_vector"]', frame=f, group="upper_arm_parent." + side)
+        log("arm %s pole on the FK elbow plane on %d IK frames (residual swivel <= %.2f deg)" % (side, n_ik, worst))
+
+
+def fk_arms(act):
+    """Convert an arm from IK to FK for the whole clip without changing the pose: per frame, read the DEF
+    upper arm / forearm / hand world rotations, set the FK controls to reproduce them (rest relation
+    FK control -> DEF bone, measured on the zero pose) and switch IK_FK to 1."""
+    ad.action = act
+    chain = [("upper_arm_fk", "DEF-upper_arm"), ("forearm_fk", "DEF-forearm"), ("hand_fk", "DEF-hand")]
+    for side in FK_ARM:
+        if side not in ("L", "R"):
+            continue
+        ad.action = None
+        for pb in pbs: pb.matrix_basis.identity()
+        bpy.context.view_layer.update()
+        rel = {c: (rig.matrix_world @ pbs[d + "." + side].matrix).to_quaternion().inverted() @ (rig.matrix_world @ pbs[c + "." + side].matrix).to_quaternion() for c, d in chain}
+        ad.action = act
+        worst = 0.0
+        for f in range(F0, F1 + 1):
+            scene.frame_set(f)
+            target = {c: (rig.matrix_world @ pbs[d + "." + side].matrix).copy() for c, d in chain}
+            pbs["upper_arm_parent." + side]["IK_FK"] = 1.0
+            bpy.context.view_layer.update()
+            for c, d in chain:
+                pb = pbs[c + "." + side]
+                q = target[c].to_quaternion() @ rel[c]
+                m = pb.matrix.copy(); r = (rig.matrix_world.to_3x3().inverted() @ q.to_matrix()).to_4x4(); r.translation = m.translation
+                pb.matrix = r
+                bpy.context.view_layer.update()
+            for c, d in chain:
+                pb = pbs[c + "." + side]
+                pb.keyframe_insert("location", frame=f, group=c + "." + side)
+                pb.keyframe_insert("rotation_quaternion" if pb.rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group=c + "." + side)
+            pbs["upper_arm_parent." + side].keyframe_insert('["IK_FK"]', frame=f, group="upper_arm_parent." + side)
+            for c, d in chain:
+                m = rig.matrix_world @ pbs[d + "." + side].matrix
+                worst = max(worst, (m.translation - target[c].translation).length * 1000, math.degrees(m.to_quaternion().rotation_difference(target[c].to_quaternion()).angle))
+        log("arm %s on FK for frames %d..%d: DEF upper arm / forearm / hand reproduced within %.2f (mm or deg) on every frame" % (side, F0, F1, worst))
+
+
 # 2. check that the flat action reproduces the stack: DEF bones before vs after
 DEF = [b.name for b in pbs if b.name.startswith("DEF-")]
 ref = {}
@@ -280,6 +412,12 @@ if HAND_GRIP:
             pb.keyframe_insert("rotation_quaternion" if pb.rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group=n_)
     log("hand-grip %s: %d finger controls set to the Grip fist on frames %d..%d" % (HAND_GRIP, len(grip_pose), F0, F1))
 
+if ARM_POLE_FK:
+    arm_pole_fk(baked)
+
+if TORSO_YAW:
+    torso_counter_yaw(baked, TORSO_YAW)
+
 if FK_ARM:
     fk_arms(baked)
 
@@ -318,6 +456,18 @@ if MIRROR_TO:
     log("mirror %s vs %s X-flipped: worst landmark %.2f mm (%s f%d)" % (MIRROR_TO, RESULT, wm[0], wm[1], wm[2]))
     ad.action = baked
 
+if STACK_KEEP is not None:
+    for t, was_mute, strips in STACK_KEEP["tracks"]:
+        t.mute = was_mute
+        for st, old_name in strips:
+            if old_name in (SOURCE, RESULT, RESULT + "_base") or old_name is None or bpy.data.actions.get(old_name) is None:
+                st.action = bpy.data.actions[RESULT]
+    act_ = STACK_KEEP["active"]
+    if act_ is not None and act_.name != RESULT and bpy.data.actions.get(act_.name) is not None:
+        ad.action = act_; ad.action_blend_type = STACK_KEEP["blend"]; ad.action_influence = STACK_KEEP["influence"]
+        if hasattr(ad, "action_slot") and ad.action.slots:
+            ad.action_slot = ad.action.slots[0]
+    log("stack kept: active %s (%s), strips -> %s" % (ad.action.name if ad.action else None, ad.action_blend_type if ad.action else "-", [(st.name, st.action.name if st.action else None) for t in ad.nla_tracks for st in t.strips]))
 scene.frame_set(F0)
 if SAVE:
     bpy.ops.wm.save_mainfile(filepath=bpy.data.filepath)

@@ -842,6 +842,33 @@ item, so the engine gives it no grip pose; the clip is hand-edited (no retarget)
 --hand-grip L` does what the retarget's `hand_grip` does, on the baked action (25 finger controls,
 verified 0.00° against the Grip fist on every frame).
 
+**Attack_2H_01's right arm (2026-09-24, "till frame 16 upper_arm_fk_r controls the elbow, from 17 the mesh
+detaches; a sudden jerk from 16 to 17").** The gate's reach PULL had put the right arm on IK for frames
+17–46 (the hand pulled in so the left could reach the shaft) and left it FK elsewhere, with the elbow on
+the REST pole on the IK frames: an 82 mm elbow step at the switch (neighbours 15–19 mm). Two bake-tool
+passes, both lossless: **`--arm-pole-fk R`** re-aims the pole at the FK chain's own elbow on every IK
+frame (the FK controls carry the capture's arm even while the switch is at IK; refined to 0.00° of
+swivel), then **`--fk-arm R`** converts the whole arm to FK (0.00 mm / 0.00°). Result: FK on all 57
+frames, elbow step 16 mm at 16→17. And **`--action NAME` now keeps the user's NLA stack**: the strip is
+re-pointed at the rewritten clip and the fix action stays active in Combine, so a base can be repaired
+under an edit in progress. Two things that bit: (1) my pin-foot rewrite had sliced `fk_arms()` out of
+the tool (the slice from `def pin_feet` to the next marker swallowed the function after it; committed
+that way) — restored; (2) **the clip export applied the stack twice**: `export_fbx` assigned the action
+while the user's strip of the same clip stayed live in Combine (hips 36°, head 67°, arm 123° — every
+angle doubled). `export_clip` now mutes every NLA track and sets the action alone in Replace at full
+influence. Rule: any tool that evaluates a named action must silence the NLA first.
+
+Then "attack direction is a bit to the left; add torso rotation, 50–60°, so the attack ends more forward;
+speed it up 20 %": traced, the whole upper body turns 73° LEFT through the swing (chest −17° → +56°,
+hips −16° → +41°, frames 18–33) and that is where the cut lands. **`--torso-yaw 55`** (bake tool)
+counter-rotates the upper body against its OWN excursion: at the frame of the largest chest deviation
+from the first frame the correction is 55° the other way, scaled by the deviation elsewhere (0 at both
+ends, so the transitions are untouched), spread over `spine_fk.001` / `.002` / `chest` with a residual
+correction on `chest` (≤ 1°); an IK left hand and its pole ride along with the right hand's socket
+transform so the two-handed grip holds. Chest peak +56° → 0° at the cut; hips still turn (+23°).
+`--speed-segment 1:57:1.2` → 48 frames. Rule: a swing's "direction" is the chest's yaw excursion —
+counter it proportionally, never with a fixed offset (a fixed turn moves the start/end poses).
+
 **Multi-frame pose references** (built for the swing, kept): `pose_ref` takes several
 `ACTION:frame@at`; the first ramps in over `pose_ref_in` frames, the deltas interpolate between
 refs, and `pose_ref_tail return` goes from the last ref's pose straight to the blend-to pose by
