@@ -655,6 +655,10 @@ if UPPER_FROM:
     ad.action = baked
 
 if MIRROR_TO:
+    # the mirror is built from the FINISHED result (every pass above), re-read here
+    ad.action = baked; poses = {}
+    for f in range(F0, F1 + 1):
+        scene.frame_set(f); poses[f] = read_pose()
     mir = write_action(MIRROR_TO, poses, True)
     # proof: hand and foot positions of the mirror are the X-mirror of the original's, per frame
     ad.action = baked; scene.frame_set(F0); orig = {}

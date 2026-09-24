@@ -59,8 +59,8 @@ identical because the avatar is shared). Ship these numbers with the pack:
 | `Walk_Fwd` | 1.400 s | +0.724 m | 0.52 m/s |
 | `Walk_Back` | 1.967 s | −0.662 m | 0.34 m/s (redone 2026-09-24; upper body from Idle_03) |
 | `Run_Fwd` | 0.967 s | +1.107 m | 1.14 m/s |
-| `Strafe_Left` | 1.467 s | −0.599 m (X) | 0.41 m/s |
-| `Strafe_Right` | 1.467 s | +0.599 m (X) | 0.41 m/s |
+| `Strafe_Left` | 1.467 s | −0.419 m (X) | 0.29 m/s (steps 30 % shorter, 2026-09-24) |
+| `Strafe_Right` | 1.467 s | +0.419 m (X) | 0.29 m/s (the mirror of the finished Strafe_Left) |
 
 Measured on all six models: Idle travel 0, Head 5.2° / Hips 2.5° of motion; Twitch_03
 over Idle adds Head 5.7° / Jaw 4.7° peaks with Hips at 0.00°. Every clip's lowest baked
@@ -1050,6 +1050,16 @@ fingers and the arm switches, 91 controls — is taken frame by frame from a 60-
 (a 10.8 s loop, so the window is a slow sway), the window's last 8 frames crossfaded to its first
 (`--upper-seam`) so the walk loop still closes: chest 0.1° / head 0.3° across the seam, no upper-body
 bone above 3.2° per frame, legs unchanged (≤ 9.4°). The user's arm fix is superseded by the idle's arms.
+
+**Strafes (2026-09-24, "added strafe_left_fix, bake it; steps 30 % less; the right foot drifts above the
+ground from frame 1 to 19; same for strafe_right").** Traced: the right foot lands at the seam 4 cm up
+and settles over 19 frames while sliding — `--ik-legs --stride 0.7 --pin-foot "R:25:1:33" --loop
+--loop-seam 4` (the whole stance held flat at frame 25's spot; the flight 34–45 carries the correction so
+it lands planted on frame 1) and **`--mirror-to Strafe_Right`**: Strafe_Right was the raw generation and
+Strafe_Left its mirror, so the finished left (fix, stride, pin) X-flipped IS the right with the same
+changes (landmarks within 2.7 mm of the exact mirror). The mirror is now built from the finished result
+(it used to be read right after the pins, missing the later passes). Scan: no leg bone above 10.7° per
+frame, knees 102–130 / 112–122. Speed table updated (0.419 m per loop, 0.29 m/s).
 
 **Multi-frame pose references** (built for the swing, kept): `pose_ref` takes several
 `ACTION:frame@at`; the first ramps in over `pose_ref_in` frames, the deltas interpolate between
