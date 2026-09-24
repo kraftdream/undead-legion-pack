@@ -2,6 +2,19 @@
  "_doc": "One entry per clip. gen: Kimodo prompt/frames/seed -> External Anims/Kimodo/<glb>.glb. retarget: mode + args for tools/glb_retarget.py. unity: import flags for tools/unity/verify_clip.py. 30 fps everywhere. Modes: idle = legs pinned IK, loop; loco = FK legs + root travel, gait loop; action = FK legs, in place, one-shot; death = FK legs, grounded lying, one-shot. layer: 'upper' = can be played on the UpperBody Animator layer over locomotion (attack on the move); 'full' = whole-body one-shot that stops the legs. Idles/loco/deaths carry no layer key. lift: whole-clip Root lift in engine metres passed to export_fbx --lift (default CLIP_LIFT 0.015); raise it when ground_clip.py reports a model under the floor.",
  "clips": [
   {
+   "name": "Idle",
+   "glb": "idle_s42",
+   "mode": "idle",
+   "loop": 240,
+   "blend": 30,
+   "src_start": 30,
+   "time_scale": 2.0,
+   "smooth": 2,
+   "hand_edited": true,
+   "ground_fit": true,
+   "_note": "2026-09-24: entry added so the batch can export the hand-edited base idle (built 2026-09-19 from the Kimodo idle_s42 and reworked by anim_fix_idles.py: blades forward, torso drop; NOT reproducible from this entry alone, hence hand_edited). The user's Idle_Fix (torso, feet, knee poles, right arm; one held key each) baked in by anim_nla_bake; ground_fit for the Humanoid bob."
+  },
+  {
    "name": "Idle_03",
    "glb": "idle_mocap",
    "mode": "idle",
@@ -119,19 +132,24 @@
    "smooth": 1,
    "fist": 0.4,
    "prompt": "A person walks forward slowly with a stiff, shambling, heavy gait, arms hanging, in a straight line.",
-   "head_damp": 0.45
+   "head_damp": 0.45,
+   "hand_edited": true,
+   "_note": "hand_edited (2026-09-24): the user's Walk_Fwd_Fix (arms, one held key each) baked by anim_nla_bake with --ik-legs (both legs on IK losslessly) and the planted feet pinned in world space: right 11-30 at frame 30's spot, left 31-43 at frame 43's (= frame 1 + the loop's travel, so the seam holds), 6-frame eases. "
   },
   {
    "name": "Walk_Back",
-   "glb": "walk_back",
+   "glb": "walk_back_c3",
    "mode": "loco",
-   "seed": 6,
+   "seed": 47,
    "frames": 240,
-   "time_scale": 1.3,
+   "time_scale": 1.0,
    "smooth": 1,
    "fist": 0.4,
-   "prompt": "A person walks backward slowly and carefully in a straight line, stiff, arms hanging.",
-   "lift": 0.0019
+   "prompt": "A person backs away slowly with small steps, cautious, a heavy shambling gait, arms hanging at the sides.",
+   "_note": "hand_edited (2026-09-24, second build): the user's Walk_Back_Fix (arms) baked; legs on IK with the pole on the FK knee every frame; right foot held horizontally 11-69 (mid-stance spot), left 59-72 (frame 72's, seam-exact), corrections carried through the flights; loop re-closed; 70% faster (72 -> 43 frames). lift -0.002 (constant: the per-frame fit dipped 10 mm over frames 8-14 and 69-71 where the retarget's ground pass floats the body, and stepped 10 mm at the seam; a constant lift puts the highest model's sole at 0 on its lowest frame). 2026-09-24: REDONE from a fresh Kimodo generation (walk_back_c3, seed 47, 'backs away slowly with small steps'): of three candidates it is the only one with every knee bent (105-153 deg; c1 and the old clip locked near 170) and the least planted-foot skate; time_scale 1.0 (1.3 gave 0.21 m/s). Candidates walk_back_c1/c2 GLBs kept. 2026-09-24: reverted to the generated clip at the user's request (the day's hand-fix rounds - IK legs, pins, stride, seam, speed - discarded: the knee poles keyed by the passes were what he saw on the right foot and left leg; Walk_Back_Fix is still in the anim file). ground_fit (the fix left the boots 17 mm under the floor in Unity). hand_edited (2026-09-24): legs on IK (--ik-legs), the user's Walk_Back_Fix (feet, 3 keys each) baked, the one-frame body dip at frame 103 smoothed (--vsmooth 103), the left foot held at frame 1's spot over 1-55. ",
+   "head_damp": 0.45,
+   "lift": -0.002,
+   "hand_edited": true
   },
   {
    "name": "Run_Fwd",

@@ -66,9 +66,9 @@
   "mode": "loco"
  },
  "Walk_Back": {
-  "sig": "walk_back|1789848780|{\"fist\": 0.4, \"frames\": 240, \"glb\": \"walk_back\", \"lift\": 0.019, \"mode\": \"loco\", \"name\": \"Walk_Back\", \"seed\": 6, \"smooth\": 1, \"time_scale\": 1.3}",
+  "sig": "walk_back_c3|1790255053|{\"_note\": \"hand_edited (2026-09-24, second build): the user's Walk_Back_Fix (arms) baked; legs on IK with the pole on the FK knee every frame; right foot held horizontally 11-69 (mid-stance spot), left 59-72 (frame 72's, seam-exact), corrections carried through the flights; loop re-closed; 70% faster (72 -> 43 frames). lift -0.002 (constant: the per-frame fit dipped 10 mm over frames 8-14 and 69-71 where the retarget's ground pass floats the body, and stepped 10 mm at the seam; a constant lift puts the highest model's sole at 0 on its lowest frame). 2026-09-24: REDONE from a fresh Kimodo generation (walk_back_c3, seed 47, 'backs away slowly with small steps'): of three candidates it is the only one with every knee bent (105-153 deg; c1 and the old clip locked near 170) and the least planted-foot skate; time_scale 1.0 (1.3 gave 0.21 m/s). Candidates walk_back_c1/c2 GLBs kept. 2026-09-24: reverted to the generated clip at the user's request (the day's hand-fix rounds - IK legs, pins, stride, seam, speed - discarded: the knee poles keyed by the passes were what he saw on the right foot and left leg; Walk_Back_Fix is still in the anim file). ground_fit (the fix left the boots 17 mm under the floor in Unity). hand_edited (2026-09-24): legs on IK (--ik-legs), the user's Walk_Back_Fix (feet, 3 keys each) baked, the one-frame body dip at frame 103 smoothed (--vsmooth 103), the left foot held at frame 1's spot over 1-55. \", \"fist\": 0.4, \"frames\": 240, \"glb\": \"walk_back_c3\", \"hand_edited\": true, \"head_damp\": 0.45, \"lift\": -0.002, \"mode\": \"loco\", \"name\": \"Walk_Back\", \"seed\": 47, \"smooth\": 1, \"time_scale\": 1.0}",
   "ok": true,
-  "when": "2026-09-20 09:25",
+  "when": "2026-09-24 19:19",
   "mode": "loco"
  },
  "Cast_Wand_01": {
@@ -172,5 +172,23 @@
   "ok": true,
   "when": "2026-09-23 18:36",
   "mode": "idle"
+ },
+ "WalkBack_c1": {
+  "sig": "walk_back_c1|1790254812|{\"_note\": \"2026-09-24: candidate for a fresh Walk_Back (the user: 'redo it completely with a new Kimodo animation'); the winner is renamed Walk_Back, the others dropped\", \"fist\": 0.4, \"frames\": 240, \"glb\": \"walk_back_c1\", \"head_damp\": 0.45, \"mode\": \"loco\", \"name\": \"WalkBack_c1\", \"seed\": 21, \"smooth\": 1, \"time_scale\": 1.3}",
+  "ok": true,
+  "when": "2026-09-24 16:05",
+  "mode": "loco"
+ },
+ "WalkBack_c2": {
+  "sig": "walk_back_c2|1790254937|{\"_note\": \"2026-09-24: candidate for a fresh Walk_Back (the user: 'redo it completely with a new Kimodo animation'); the winner is renamed Walk_Back, the others dropped\", \"fist\": 0.4, \"frames\": 240, \"glb\": \"walk_back_c2\", \"head_damp\": 0.45, \"mode\": \"loco\", \"name\": \"WalkBack_c2\", \"seed\": 33, \"smooth\": 1, \"time_scale\": 1.3}",
+  "ok": true,
+  "when": "2026-09-24 16:06",
+  "mode": "loco"
+ },
+ "WalkBack_c3": {
+  "sig": "walk_back_c3|1790255053|{\"_note\": \"2026-09-24: candidate for a fresh Walk_Back (the user: 'redo it completely with a new Kimodo animation'); the winner is renamed Walk_Back, the others dropped\", \"fist\": 0.4, \"frames\": 240, \"glb\": \"walk_back_c3\", \"head_damp\": 0.45, \"mode\": \"loco\", \"name\": \"WalkBack_c3\", \"seed\": 47, \"smooth\": 1, \"time_scale\": 1.3}",
+  "ok": true,
+  "when": "2026-09-24 16:07",
+  "mode": "loco"
  }
 }

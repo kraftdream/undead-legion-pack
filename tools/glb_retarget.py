@@ -512,6 +512,9 @@ if HAND_REF:
 # ------------------------------------------------------------- 2. source
 before = set(bpy.data.objects)
 acts_before = set(bpy.data.actions)
+# the import links into the ACTIVE collection; a saved session can leave the overridden Rig collection active
+# ("Could not (un)link the object 'Icosphere'. Collection 'Rig' is overridden."): link into the scene root
+bpy.context.view_layer.active_layer_collection = bpy.context.view_layer.layer_collection
 if GLB.lower().endswith(".blend"):
     # a converted capture (tools/glb_nodes_to_armature.py): appended, so bones, rest and keys are exactly as saved
     with bpy.data.libraries.load(os.path.abspath(GLB), link=False) as (_lsrc, _ldst):   # relative paths resolve against the open .blend, not the cwd
