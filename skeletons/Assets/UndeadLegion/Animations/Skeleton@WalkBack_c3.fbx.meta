@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: d5867a2dd78ecfb469722d5f9348a21d
+guid: 1215bd88276b0bb4693efc55684fa22c
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
@@ -17,10 +17,7 @@ ModelImporter:
     removeConstantScaleCurves: 0
     motionNodeName: 
     animationImportErrors: 
-    animationImportWarnings: "\nClip 'Walk_Back' has import animation warnings that
-      might lower retargeting quality:\nNote: Activate translation DOF on avatar
-      to improve retargeting quality.\n\t'Neck1' is inbetween humanoid transforms
-      and has rotation animation that will be discarded.\n"
+    animationImportWarnings: 
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
     importAnimatedCustomProperties: 0
@@ -34,11 +31,11 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Walk_Back
-      takeName: Walk_Back
-      internalID: 590029054382176139
+      name: WalkBack_c3
+      takeName: WalkBack_c3
+      internalID: 4989167616114229517
       firstFrame: 1
-      lastFrame: 60
+      lastFrame: 94
       wrapMode: 0
       orientationOffsetY: 0
       level: 0

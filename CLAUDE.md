@@ -57,7 +57,7 @@ identical because the avatar is shared). Ship these numbers with the pack:
 | Clip | Length | Travel per loop | Speed |
 |---|---|---|---|
 | `Walk_Fwd` | 1.400 s | +0.724 m | 0.52 m/s |
-| `Walk_Back` | 3.433 s | −1.119 m | 0.33 m/s |
+| `Walk_Back` | 1.967 s | −0.662 m | 0.34 m/s (redone 2026-09-24; upper body from Idle_03) |
 | `Run_Fwd` | 0.967 s | +1.107 m | 1.14 m/s |
 | `Strafe_Left` | 1.467 s | −0.599 m (X) | 0.41 m/s |
 | `Strafe_Right` | 1.467 s | +0.599 m (X) | 0.41 m/s |
@@ -928,6 +928,128 @@ not from the socket, so a socket-on-the-axis relation leaves the fist beside the
 flipped into the socket frame): measured in Unity, the left slot sits 2.2–2.6 mm off the right slot's
 axis at worst on all three clips, 13.4 cm below it, slot axes parallel within 0.8°. Rule: **anything
 that must sit on the weapon sits on the SLOT's axis; the socket is only the bone the slot hangs from.**
+
+**Idle (the base idle) hand-fixed (2026-09-24):** the user's `Idle_Fix` (torso, both feet, both knee
+poles, right arm; one held key each in Combine over the pushed-down strip, so the 8 s loop's seam is
+untouched) baked by `anim_nla_bake.py -- --result Idle --save`, the Kimodo/`anim_fix_idles` build kept as
+`Idle_base`. The three base idles had NO manifest entry (built before the clip factory and reworked by
+`anim_fix_idles.py`), so the batch could not export it: an `Idle` entry was added (`glb idle_s42`,
+`hand_edited`, `ground_fit`; not reproducible from the entry alone) and `--export-only --force` exports it
+with the per-frame fit: highest model's sole on the floor, the others sinking ≤ 7 mm. `Idle_02` /
+`Idle_03` still have no entry; add one the same way before exporting them through the batch.
+
+**Walk_Fwd hand-fixed (2026-09-24, "added walk_fwd_fix; remove the right foot drift after the step from
+frame 11 to 30 and the left foot drift from 31 to 43").** Traced in world space (root travel included): the
+right foot slid 1 cm through its stance, the left 3.4 cm sideways over 31–43 — that one is the LOOP-CLOSING
+crossfade dragging the planted foot from where it landed (x 0.134) to frame 1's spot (x 0.100), since frame
+43 must equal frame 1 + the loop's travel. So the left hold's reference is frame 43 (seam-exact, the foot
+now lands on the seam spot in flight) and the right's is frame 30 (its most extended moment). The walk's
+legs are FK from the retarget, so **`--ik-legs`** first puts both on IK losslessly (foot / toe on the DEF
+result, the knee pole out through the FK knee, 0.0 mm) — a pin on an FK leg would switch modes and jump
+the knee — and every held frame keeps the pole on the pre-hold knee plane. **`--pin-ease 6:1`**
+(in:out): a 6-frame ease-out on the right foot's push-off held the lifting foot back and straightened the
+knee to 177° on frames 32–33 (the original never passed 165°); one frame out keeps it at 144–165°.
+Root motion unchanged (0.724 m per loop), boots +7..+13 mm. The arm fix (one held key each) rides along.
+
+**Walk_Back hand-fixed (2026-09-24):** legs to IK first (`--ik-legs`, "foot_ik.L and R don't control the
+feet"), then the user's `Walk_Back_Fix` (both feet, 3 keys each) with: **`--vsmooth 103`** ("a slight jerk at
+frame 103, the body shifts down": hips and both feet dipped 6–8 mm on that one frame — the loop-closing
+blend's last frame; each root-level control's height on that frame is replaced by the mean of its
+neighbours), and the left foot held horizontally over 1–55 at frame 1's spot (`L:1:1:55:xy`, ease 0:1: a
+full-transform hold kept the foot flat through the push-off and the base's 167° knee went to 177°; xy keeps
+the heel lift). `ground_fit` added: the fix had put the boots 17 mm under the floor in Unity (highest sole
+now at 0, the others ≤ 12 mm under). ⚠ Measured on the user's stack BEFORE any pass: the left knee sits at
+177° on frames 54–62 — their foot placement locks the leg straight (a Humanoid flip risk, see the 2H
+sweep); reported, not changed. The right foot drifts 10 cm sideways over 37–104 (the loop blend pulling it
+to frame 1's x) — not asked for, left alone.
+
+Then (Walk_Back, second fix): "make the steps travel 30 % less, the legs overextend and twitch; the right
+foot drifts 93–104; 30 % faster". **`--stride 0.7`** (bake tool, locomotion): the root's advance AND every
+root-level control's position along the travel axis are scaled about the root's first-frame spot (p' = p +
+(k−1)·((p−r0)·axis)·axis), so a planted foot stays planted, the body travels 0.7× and the feet's fore-aft
+excursion relative to the hips shrinks 0.7× — the knees bend more: max L 148° / R 141° (the locked 177°
+of the previous fix is gone). Right foot held horizontally over 93–104 at frame 104's spot (seam-exact);
+`--speed-segment 1:104:1.3` → 80 frames. Unity: 2.633 s, −0.782 m per loop, 0.30 m/s (was 3.433 s /
+−1.119 m / 0.33 m/s: the speed table above is updated; the demo's in-place blend tree reads it).
+
+Then "left leg jerk at frame 44; right foot drifts 68–72" (the 80-frame clip): the left jerk was MY pin's
+release (frame 1's x held to 43, the clip's own x 2 cm away on 44: a 16 mm step), the right drift the
+pin's 3-frame ease-in squeezing the 10 cm lateral loop-blend correction into 69–71 (29 / 36 mm steps).
+Both feet re-held with **`SIDE:auto:xy`** (planted phases found by the tool, now SEAM-AWARE: a phase
+touching the first/last frame keeps that frame as its reference, an inner phase its middle) and
+`--pin-ease 6:5`: L 1–43 at frame 1's spot, R 39–80 at frame 80's, releases eased — steps 3 mm at 44,
+0 at 69–72. That exposed a seam pop the user's fix had introduced (the left foot 10 mm higher on the last
+frame than on the first: keys near the ends of a Combine fix are not loop-consistent): **`--loop-seam 6`**
+crossfades every control over the last 6 frames to the first frame's pose (root-space positions advanced
+by the travel) — last frame = first + travel within 0.0 mm on feet, hips, hands and head. Rule: **after
+any hand edit of a loop, re-close it** (`--loop-seam`) and check `frame F1 − travel == frame F0`.
+
+**"You're clearly incapable of fixing a simple issue like this" (Walk_Back, right foot and left leg, a GIF).**
+Right: my checks measured the FEET (steps of 3 mm) while the defect was the LEFT KNEE — a per-bone
+rotation scan (`legscan.py`: every leg bone's per-frame rotation step and its acceleration; use
+min(a, 360−a), a quaternion's `.angle` can read 356° for a 4° step) showed the shin rotating 52° with the
+knee jumping 73 mm sideways at frame 44: the IK pole flipped at the pin's release, because `hold()` took
+its pole from the DEF knee of the previous pass and the frames outside the hold kept whatever pole an
+earlier pass had keyed. And the right foot's 9 cm lateral loop-blend correction was crammed into the
+6-frame ease-in before landing. Rewritten: (1) **the pole comes from the clip's own FK knee on every
+frame** (`fk_knee`: the FK chain still carries the retarget's legs after `--ik-legs`, a continuous
+reference) and `repole_legs()` runs after every leg pass (knee steps ≤ 14 mm); (2) **a pin's correction is
+carried through the whole flight** between consecutive holds (position lerp + rotation slerp on a
+smoothstep, wrapping across the seam with `--loop`), never switched on over a few frames; (3) the clip
+rebuilt from `Walk_Back_base` + the user's fix stack in ONE run (`setup_stack.py -P` then the bake tool:
+`--ik-legs --vsmooth 103 --stride 0.7 --pin-foot "L:auto:xy,R:auto:xy" --loop --loop-seam 6
+--speed-segment 1:104:1.3`), so no artefact of the three earlier rounds is left in the data (each round's
+"own" foot had the previous round's eases baked in). Result: no leg bone rotates more than 5.7° between
+frames anywhere, knee steps ≤ 21 mm, seam 0.0 mm, root motion 0.783 m / loop. Rule: **when the user
+reports a jerk, scan every bone's rotation acceleration before claiming it fixed; a foot-position check
+cannot see a knee flip.**
+
+**REVERTED (2026-09-24, user: "the right foot drift is caused by thigh_ik_target.R and the left leg jerk by
+thigh_ik_target.L; revert walk_back before applying the fix, it's beyond saving").** Walk_Back is the
+generated clip again (`Walk_Back_base` renamed back; verified identical to HEAD's on feet, knees, hips,
+hand and root), the export, manifest entry (no `hand_edited` / `ground_fit`), build state and speed table
+restored from HEAD, the fit curve deleted; `Walk_Back_Fix` stays in the anim file. The four walk-back
+paragraphs above are history of what NOT to do: the per-frame keyed knee poles (`thigh_ik_target`) are
+what the user saw. Lesson: on a locomotion loop, the poles must not be keyed per frame from a pass;
+either leave the legs on FK (the retarget's output) and pin through the retarget's own plant, or keep
+the pole targets smooth and few.
+
+**Walk_Back redone from a fresh Kimodo generation (2026-09-24, user: "let's redo it completely with a new
+Kimodo animation").** Three candidates generated on the laptop (seeds 21 / 33 / 47, prompts varying
+"short careful steps" / the original / "backs away slowly with small steps") and scored with
+`walkeval.py` (loop length, root travel, knee range, planted-foot skate per stance, largest leg-bone
+rotation step): c1 locked a knee at 172°, c2 skated 134 mm on the left stance, **c3** (seed 47, small
+steps) kept every knee bent (105–153°) with the least skate — it is the new `Walk_Back` at `time_scale
+1.0` (1.3 gave 0.21 m/s): 72 frames, 0.662 m per loop, 0.28 m/s, seam 0.0000°, `lift -0.002` (a
+CONSTANT lift: the per-frame `ground_fit` on this walk dipped 10 mm over frames 8–14 and 69–71 — where
+the retarget's ground pass floats the body over a foot dip — and stepped 10 mm at the seam, a hop; the
+constant puts the highest model's sole at 0 on its lowest frame, the others ≤ 5 mm under). Rule: **no
+per-frame fit on a stepping loop unless its curve is checked for frame steps and the seam**. Skate of
+36–62 mm per stance remains, as on every
+Kimodo locomotion clip (a human's FK legs on the skeleton's proportions). The GLB import now links
+into the scene root (`active_layer_collection` reset: a saved session had left the overridden `Rig`
+collection active and every retarget failed with "Could not (un)link the object 'Icosphere'").
+
+Then the user's `Walk_Back_Fix` on the new clip ("make it 70 % faster; fix the feet drift, right 11–69,
+left 59–72"): `--ik-legs --pin-foot "R:40:11:69:xy,L:72:59:72:xy" --loop --loop-seam 4 --speed-segment
+1:72:1.7` (43 frames, 0.47 m/s; speed table updated). The first build put the LEFT shin through a 74°
+step with the knee locked at 177°: the left hold spans the seam, and the flight carry lerped its
+correction across the whole loop — including the left foot's OTHER stance (1–41, not asked to be
+pinned), pushing that foot 6 cm through its stance. **The carry now changes only while the foot is in
+the AIR** (constant at the previous hold's value while still on the ground, smoothstep through the
+flight, constant at the next hold's once landed). Scan: no leg bone above 13.3° per frame (at 1.7×),
+knees 105–154 / 112–136, seam 0.0 mm; right-foot skate 54 → 17 mm, the pinned left part 12 mm (its
+unpinned first stance still skates 34 mm). Rule kept from the day: **run the per-bone rotation scan
+after every leg pass, before reporting.**
+
+Then "make the walk 40 % slower; too much movement above the legs, use the above-torso animation from
+idle_3": `--speed-segment 1:43:0.7143` (60 frames, 1.97 s, 0.34 m/s) and **`--upper-from Idle_03:1`**
+(bake tool, after the retime): every control above the legs — the torso's ROTATION (its location stays
+the walk's: it carries the hips over the IK legs), spine, chest, neck, head, jaw, shoulders, arms, hands,
+fingers and the arm switches, 91 controls — is taken frame by frame from a 60-frame window of Idle_03
+(a 10.8 s loop, so the window is a slow sway), the window's last 8 frames crossfaded to its first
+(`--upper-seam`) so the walk loop still closes: chest 0.1° / head 0.3° across the seam, no upper-body
+bone above 3.2° per frame, legs unchanged (≤ 9.4°). The user's arm fix is superseded by the idle's arms.
 
 **Multi-frame pose references** (built for the swing, kept): `pose_ref` takes several
 `ACTION:frame@at`; the first ramps in over `pose_ref_in` frames, the deltas interpolate between
