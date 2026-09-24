@@ -32,7 +32,10 @@ SPEED_SEGMENT = arg("--speed-segment", "")
 ARM_POLE_FK = arg("--arm-pole-fk", "")           # "L" / "R" / "LR": on the frames where that arm is on IK, re-aim the elbow pole at the FK chain's elbow (the FK controls carry the capture's arm on every frame even while the switch is at IK), so an IK stretch inside an FK clip keeps the capture's elbow plane (a gate pull put the elbow on the rest pole: 82 mm jump at the switch)
 TORSO_YAW = float(arg("--torso-yaw", "0"))       # degrees: counter-rotate the upper body against its OWN yaw excursion - at the frame where the chest has turned furthest from its first-frame heading the correction is this many degrees the other way, scaled by the excursion on every other frame (0 at the ends), spread over spine_fk.001 / .002 / chest; an IK left hand (the gate) and its pole ride along with the right hand so the two-handed grip holds (user: "attack direction is a bit to the left, add torso rotation like 50-60 degrees so the attack ends more forward")
 SHAFT_HAND = arg("--shaft-hand", "")              # "L:0.056": re-seat that hand's socket ON the other hand's hilt axis every frame (0 mm off the shaft, its hilt axis parallel to the shaft, the hand's own roll about the shaft kept) and slide it this many rig m UP the shaft (toward the blade; negative = down) from where it sits now (user: "bring the left hand 10 cm higher on the weapon grip; it should follow the shaft perfectly")
-GRIP_FOLLOW = arg("--grip-follow", "")            # "L:Idle_TwoHanded:1": that hand's socket takes, on every frame, the transform it has RELATIVE to the other hand's socket on the given action and frame (position along / off the shaft and roll about it), so a two-handed grip is identical across clips and rigid through a loop (user: "the left hand changes the grip between idle and attack; at the end it sits too close to the right; in the idle it drifts")
+PIN_EASE = int(arg("--pin-ease", "0"))           # frames: a pinned foot eases into and out of each hold over this many frames instead of switching (user: "remove the right foot snap at frames 34-35" = the release of a held landing)
+GRIP_REACH = float(arg("--grip-reach", "0.96"))    # with --grip-pull: the following hand's spot is kept within this share of its arm's length from the shoulder (a straight arm flips in Humanoid: the chop's left elbow hit 178 deg with a 26 deg step)
+GRIP_PULL = "--grip-pull" in argv                  # with --grip-follow: where the following hand cannot reach its place on the shaft, the OTHER hand is pulled in toward the following hand's shoulder by the shortfall (on IK, its elbow kept on the FK elbow plane), as the retarget's gate does; pair with --fk-arm on that side to land it back on FK
+GRIP_FOLLOW = arg("--grip-follow", "")            # also "L:@0.056": an idealised relation - ON the other hand's hilt axis, that many rig m toward the blade, hilt axes parallel, the hand's own roll about the shaft (first frame) kept (user: "left hand always follows the handle, 10 cm above the right hand")            # "L:Idle_TwoHanded:1": that hand's socket takes, on every frame, the transform it has RELATIVE to the other hand's socket on the given action and frame (position along / off the shaft and roll about it), so a two-handed grip is identical across clips and rigid through a loop (user: "the left hand changes the grip between idle and attack; at the end it sits too close to the right; in the idle it drifts")
 FK_ARM = arg("--fk-arm", "")                      # "L" / "R" / "LR": after the bake, that arm is put on FK on every frame, the FK chain set to the arm's current (IK) result: lossless, and upper_arm_fk / forearm_fk / hand_fk then control it (user, on Block_L_Idle whose left arm was IK throughout: "upper_arm_fk_l and its children won't change the mesh")        # "A:B:F": after the bake (and pin), frames A..B of the result are resampled F times faster (Blender's own curve evaluation at fractional frames), the frames after B shift earlier (user: "speed up by 35% from frame 21 to 34")
 PIN_FOOT = arg("--pin-foot", "")                  # "L" / "L:1" / "L,R" / "L:20:20:34": SIDE[:ref[:from[:to]]] - after the bake, that foot's IK control (and toe) is held from frame `from` to `to` (default: the whole clip) at the WORLD transform it has on frame `ref` (default: the first frame): a planted foot that the capture let drift (user: "get rid of the drift on the left feet"; "left foot drift after the step forward, from frame 20")
 assert RESULT, "--result NAME is required"
@@ -76,6 +79,10 @@ if FRAMES:
     F0, F1 = (int(v) for v in FRAMES.split(":"))
 else:
     F0, F1 = stack_range()
+if ad.action is not None and ad.nla_tracks and ad.action_blend_type == 'COMBINE':
+    _root_keys = [fc for fc in (fc_ for l_ in ad.action.layers for st_ in l_.strips for cb_ in st_.channelbags for fc_ in cb_.fcurves) if fc.data_path == 'pose.bones["root"].location' and any(abs(k.co.y) > 1e-6 for k in fc.keyframe_points)]
+    if _root_keys:
+        log("WARNING: the fix action %s keys the root's location (%d channels, non-zero): in Combine that adds to the strip's root travel (a whole-character key at the last frame cancels a clip's root motion). Drop those channels from the fix unless the root offset is intended" % (ad.action.name, len(_root_keys)))
 log("stack: active action %s (%s, influence %.2f), %d NLA tracks; baking frames %d..%d" % (
     ad.action.name if ad.action else None, ad.action_blend_type, ad.action_influence, len(ad.nla_tracks), F0, F1))
 for t in ad.nla_tracks:
@@ -185,16 +192,31 @@ def pin_feet(act):
         foot_m = (rig.matrix_world @ pbs["foot_ik." + side].matrix).copy()
         toe_m = (rig.matrix_world @ pbs["toe_ik." + side].matrix).copy()
         worst_gap = 0.0; knee_min = 180.0; knee_max = 0.0
-        for f in range(p0, p1 + 1):
+        # the clip's own foot on the ease frames, read before anything is keyed
+        own = {}
+        for f in list(range(max(F0, p0 - PIN_EASE), p0)) + list(range(p1 + 1, min(F1, p1 + PIN_EASE) + 1)):
+            scene.frame_set(f); own[f] = (rig.matrix_world @ pbs["foot_ik." + side].matrix).copy()
+        for f in range(max(F0, p0 - PIN_EASE), min(F1, p1 + PIN_EASE) + 1):
             scene.frame_set(f)
+            w = 1.0
+            if f < p0:
+                w = (f - (p0 - PIN_EASE) + 1) / float(PIN_EASE + 1)
+            elif f > p1:
+                w = ((p1 + PIN_EASE) - f + 1) / float(PIN_EASE + 1)
+            w = w * w * (3 - 2 * w)
             tgt = foot_m
             if xy:
                 tgt = (rig.matrix_world @ pbs["foot_ik." + side].matrix).copy()
                 tgt.translation = Vector((foot_m.translation.x, foot_m.translation.y, tgt.translation.z))
+            if w < 1.0:
+                o = own[f]; tgt = tgt.copy()
+                qa = o.to_quaternion(); qb = tgt.to_quaternion()
+                if qa.dot(qb) < 0: qb.negate()
+                m_ = qa.slerp(qb, w).to_matrix().to_4x4(); m_.translation = o.translation.lerp(tgt.translation, w); tgt = m_
             pb = pbs["foot_ik." + side]; pb.matrix = rig.matrix_world.inverted() @ tgt
             pbs["thigh_parent." + side]["IK_FK"] = 0.0
             bpy.context.view_layer.update()
-            if not xy:
+            if not xy and w >= 1.0:
                 pt = pbs["toe_ik." + side]; pt.matrix = rig.matrix_world.inverted() @ toe_m
                 bpy.context.view_layer.update()
             for n in ("foot_ik." + side, "toe_ik." + side):
@@ -204,7 +226,8 @@ def pin_feet(act):
             hip = (rig.matrix_world @ pbs["DEF-thigh." + side].matrix).translation; knee = (rig.matrix_world @ pbs["DEF-shin." + side].matrix).translation
             ank = (rig.matrix_world @ pbs["DEF-foot." + side].matrix).translation
             a_ = math.degrees((hip - knee).angle(ank - knee)); knee_min = min(knee_min, a_); knee_max = max(knee_max, a_)
-            worst_gap = max(worst_gap, (ank - tgt.translation).length * 1000)
+            if w >= 1.0:
+                worst_gap = max(worst_gap, (ank - tgt.translation).length * 1000)
         log("pinned foot %s on frames %d..%d at frame %d's %s (%.3f, %.3f, %.3f): knee %.0f..%.0f deg, DEF foot within %.1f mm of the pin on every pinned frame" % (
             side, p0, p1, fr_, "horizontal position (height and rotation kept)" if xy else "world transform", foot_m.translation.x, foot_m.translation.y, foot_m.translation.z, knee_min, knee_max, worst_gap))
 
@@ -237,14 +260,45 @@ def pin_feet(act):
         hold(side, fr_, max(F0, p0), p1, xy)
 
 
+HAND_FROM_SOCK = {}
+def _hand_from_sock():
+    prev = ad.action; ad.action = None
+    for pb in pbs: pb.matrix_basis.identity()
+    bpy.context.view_layer.update()
+    for s_ in ("L", "R"):
+        HAND_FROM_SOCK[s_] = (rig.matrix_world @ pbs["DEF-weapon." + s_].matrix).inverted() @ (rig.matrix_world @ pbs["hand_ik." + s_].matrix)
+    ad.action = prev; bpy.context.view_layer.update()
+
+
 def grip_follow(act, spec):
-    side, ref_name, ref_frame = spec.split(":"); ref_frame = int(ref_frame); other_ = "R" if side == "L" else "L"
-    ref_act = bpy.data.actions[ref_name]
-    ad.action = ref_act; scene.frame_set(ref_frame); bpy.context.view_layer.update()
-    so = (rig.matrix_world @ pbs["DEF-weapon." + other_].matrix).copy(); ss = (rig.matrix_world @ pbs["DEF-weapon." + side].matrix).copy()
-    REL = so.inverted() @ ss                                                   # side socket in the other socket's frame
-    d_ = REL.translation; al_ref = d_.y; off_ref = math.sqrt(d_.x * d_.x + d_.z * d_.z)
-    log("grip-follow %s: reference %s frame %d - the %s socket sits %+.3f rig m along the %s hand's hilt axis, %.1f mm off it" % (side, ref_name, ref_frame, side, al_ref, other_, off_ref * 1000))
+    if not HAND_FROM_SOCK:
+        _hand_from_sock()
+    parts = spec.split(":"); side = parts[0]; other_ = "R" if side == "L" else "L"
+    if parts[1].startswith("@"):
+        # idealised: on the axis at D, parallel, with the first frame's roll about the shaft
+        D = float(parts[1][1:])
+        ad.action = act; scene.frame_set(F0); bpy.context.view_layer.update()
+        so = (rig.matrix_world @ pbs["DEF-weapon." + other_].matrix).copy(); ss = (rig.matrix_world @ pbs["DEF-weapon." + side].matrix).copy()
+        cur = so.inverted() @ ss
+        q = cur.to_quaternion(); sw_, tw_ = q.to_swing_twist('Y')            # twist about the shaft = the hand's roll
+        # the weapon hangs from the hand SLOT, not the socket: the slot is the user's tuned offset from the socket
+        # bone (Animations/unity_grips.json, Unity metres, X flipped into the Blender socket frame), so the shaft
+        # runs through the slot's origin along the socket's +Y. The relation is built slot-to-slot (2026-09-24:
+        # socket-to-socket left the fist 3.5 cm beside the handle)
+        import json as _json, os as _os
+        _g = _json.load(open(_os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))), "Animations", "unity_grips.json"), encoding="utf-8"))
+        def _slot(sd):
+            px, py, pz = _g["slots"][sd]["pos"]; return Matrix.Translation(Vector((-px, py, pz)) / 1.8)
+        REL = _slot(other_) @ Matrix.Translation((0.0, D, 0.0)) @ Matrix.Rotation(tw_, 4, 'Y') @ _slot(side).inverted()
+        log("grip-follow %s: idealised relation - the %s SLOT on the %s hand's shaft (through its slot, along the socket's +Y) %+.3f rig m toward the blade, parallel, roll %.0f deg kept from frame %d" % (side, side, other_, D, math.degrees(tw_), F0))
+    else:
+        ref_name, ref_frame = parts[1], int(parts[2])
+        ref_act = bpy.data.actions[ref_name]
+        ad.action = ref_act; scene.frame_set(ref_frame); bpy.context.view_layer.update()
+        so = (rig.matrix_world @ pbs["DEF-weapon." + other_].matrix).copy(); ss = (rig.matrix_world @ pbs["DEF-weapon." + side].matrix).copy()
+        REL = so.inverted() @ ss                                               # side socket in the other socket's frame
+        d_ = REL.translation; al_ref = d_.y; off_ref = math.sqrt(d_.x * d_.x + d_.z * d_.z)
+        log("grip-follow %s: reference %s frame %d - the %s socket sits %+.3f rig m along the %s hand's hilt axis, %.1f mm off it" % (side, ref_name, ref_frame, side, al_ref, other_, off_ref * 1000))
     ad.action = act
     before = []; worst = 0.0; worst_ang = 0.0
     for f in range(F0, F1 + 1):
@@ -257,6 +311,41 @@ def grip_follow(act, spec):
         h = pbs["hand_ik." + side]; hm = (rig.matrix_world @ h.matrix).copy()
         h.matrix = rig.matrix_world.inverted() @ (T @ hm); pbs["upper_arm_parent." + side]["IK_FK"] = 0.0
         bpy.context.view_layer.update()
+        if GRIP_PULL:
+            # out of reach? pull the other hand in along the line from the wanted spot to this shoulder
+            arm_len = (rig.data.bones["DEF-forearm." + side].head_local - rig.data.bones["DEF-upper_arm." + side].head_local).length + (rig.data.bones["DEF-hand." + side].head_local - rig.data.bones["DEF-forearm." + side].head_local).length
+            for _it in range(3):
+                so = (rig.matrix_world @ pbs["DEF-weapon." + other_].matrix).copy(); ss = (rig.matrix_world @ pbs["DEF-weapon." + side].matrix).copy()
+                want = (so @ REL).translation; gap_v = want - ss.translation
+                sh_s = (rig.matrix_world @ pbs["DEF-upper_arm." + side].matrix).translation.copy()
+                wr_want = want + (rig.matrix_world @ pbs["DEF-hand." + side].matrix).translation - ss.translation   # the wrist that goes with the wanted socket
+                over = (wr_want - sh_s).length - GRIP_REACH * arm_len
+                if gap_v.length < 0.003 and over <= 0.0:
+                    break
+                pull = (sh_s - want).normalized() * max(gap_v.length, over)
+                sw_o = pbs["upper_arm_parent." + other_]
+                if sw_o["IK_FK"] > 0.5:
+                    # the other arm on IK, elbow on its FK plane, hand where it is now
+                    sh_o = (rig.matrix_world @ pbs["DEF-upper_arm." + other_].matrix).translation.copy()
+                    wr_o = (rig.matrix_world @ pbs["DEF-hand." + other_].matrix).translation.copy()
+                    el_fk = (rig.matrix_world @ pbs["forearm_fk." + other_].matrix).translation.copy()
+                    ho = pbs["hand_ik." + other_]; ho.matrix = rig.matrix_world.inverted() @ (so @ HAND_FROM_SOCK[other_])
+                    sw_o["IK_FK"] = 0.0; bpy.context.view_layer.update()
+                    ax = (wr_o - sh_o).normalized(); d_ = el_fk - sh_o; perp = d_ - ax * d_.dot(ax)
+                    if perp.length > 0.005:
+                        sw_o["pole_vector"] = True
+                        pole = pbs["upper_arm_ik_target." + other_]; pm = pole.matrix.copy(); pm.translation = rig.matrix_world.inverted() @ (el_fk + perp.normalized() * 0.4); pole.matrix = pm
+                        bpy.context.view_layer.update()
+                ho = pbs["hand_ik." + other_]; hom = (rig.matrix_world @ ho.matrix).copy()
+                ho.matrix = rig.matrix_world.inverted() @ (Matrix.Translation(pull) @ hom); bpy.context.view_layer.update()
+                so = (rig.matrix_world @ pbs["DEF-weapon." + other_].matrix).copy(); ss = (rig.matrix_world @ pbs["DEF-weapon." + side].matrix).copy()
+                T = (so @ REL) @ ss.inverted(); hm = (rig.matrix_world @ h.matrix).copy()
+                h.matrix = rig.matrix_world.inverted() @ (T @ hm); bpy.context.view_layer.update()
+            for b in ("hand_ik." + other_, "upper_arm_ik_target." + other_):
+                pbs[b].keyframe_insert("location", frame=f, group=b)
+                pbs[b].keyframe_insert("rotation_quaternion" if pbs[b].rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group=b)
+            pbs["upper_arm_parent." + other_].keyframe_insert('["IK_FK"]', frame=f, group="upper_arm_parent." + other_)
+            pbs["upper_arm_parent." + other_].keyframe_insert('["pole_vector"]', frame=f, group="upper_arm_parent." + other_)
         h.keyframe_insert("location", frame=f, group="hand_ik." + side)
         h.keyframe_insert("rotation_quaternion" if h.rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group="hand_ik." + side)
         pbs["upper_arm_parent." + side].keyframe_insert('["IK_FK"]', frame=f, group="upper_arm_parent." + side)

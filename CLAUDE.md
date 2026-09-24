@@ -890,6 +890,45 @@ the loop (the visible drift), now 0.0 mm / 0.0°. Attack: it had wandered 72 mm 
 0.0°, so the crossfade from the idle keeps the grip and the end of the attack has the idle's spacing.
 The earlier `--shaft-hand` step on the attack is superseded by this.
 
+**Attack_2H_02 (2026-09-24):** the same right-arm switch (IK 13–41 from the gate pull, 37 mm elbow step)
+fixed with `--arm-pole-fk R --fk-arm R` (elbow step 19 mm). Then the user's fix: "faster after frame 16 by
+25 %; left hand always follows the handle, 10 cm above the right hand; remove the right foot snap at
+frames 34–35; bake": `--speed-segment 16:59:1.25` (59 → 50 frames); **`--grip-follow L:@0.056`** (an
+idealised relation: ON the right hand's hilt axis, 0.056 rig m toward the blade, hilt axes parallel, the
+hand's own roll about the shaft from frame 1 kept) with **`--grip-pull`**: where the left arm cannot reach
+its spot (the sweep's extension: 19 of 50 frames, up to 49 mm short) the RIGHT hand is pulled in toward
+the left shoulder by the shortfall on IK with its elbow on the FK plane, then `--fk-arm R` lands it back
+on FK — within 1.5 mm on every frame; **`--pin-ease 4`**: each held foot phase now eases in and out over
+4 frames (position lerp, rotation slerp against the clip's own foot), so the landing's release at the old
+34–35 (now 30–34) steps 0 → 2 → 10 → 16 mm instead of snapping. ⚠ **A whole-character key in a Combine
+fix cancels the clip's root motion**: the user's fix keyed `root` location (2 keys, +0.02) against the
+strip's −0.02 drift, the stack evaluated to zero travel and the bake reproduced it (root motion 0, the
+clip 15 mm low with no Root keys to lift); restored by rewriting the flat clip's root keys from the base
+(retimed through the speed segment) — the bake tool now WARNS when a Combine fix keys the root. Result:
+root motion 3.5 / 2.9 cm, boots within 4 mm of the floor on every frame (the Knight's skirt dips 17 mm in
+the lunge crouch, the robe class of dip).
+
+Then "the left hand snaps mid-attack in Unity, not in Blender — the left arm overextending; fix it by having
+the right hand higher on the handle and the left hand lower, so the left hand is closer to the body; same for
+Attack_2H_01". Measured in Unity: Attack_2H_02's left arm stepped 42° on frame 14 with the elbow at 178° — the
+straight-arm flip (Humanoid's elbow plane is undefined on a straight arm; Blender's IK shows nothing).
+The longsword's handle is long (mesh y −0.28 pommel .. +0.11 guard, the grip sat at y −0.15, mid-handle):
+`W_H2Longsword`'s Grip moved to y +0.02 (the right hand 9 cm under the guard, 17 cm higher; grips
+re-dumped), and **`--grip-follow L:@-0.075`** on both attacks AND Idle_TwoHanded (the same grip in all
+three: the left hand 13.5 cm BELOW the right, toward the pommel and the body) with `--grip-pull` and the
+new **`--grip-reach 0.96`** (the pull also acts when the wanted spot would put the wrist beyond 96 % of
+the arm's length, so the elbow never locks): sweep's worst left-arm step 42° → 24° (elbow 110°), chop
+26° (elbow 178°, seen after the first pass without the reach limit) → 9°. Rule: **keep every IK arm
+under ~96 % of its reach; a Unity-only snap on a straight arm is the flip, and the cure is a bent elbow.**
+
+Then "the left hand is a bit off position" (a close-up: the fist beside the handle, ~3 cm out). The weapon
+hangs from the hand SLOT (the user's tuned offset from the socket bone, `RightHandSlot` 3.5 cm from it),
+not from the socket, so a socket-on-the-axis relation leaves the fist beside the shaft by that offset.
+`--grip-follow SIDE:@D` now builds the relation SLOT-to-slot (the slots read from `unity_grips.json`, X
+flipped into the socket frame): measured in Unity, the left slot sits 2.2–2.6 mm off the right slot's
+axis at worst on all three clips, 13.4 cm below it, slot axes parallel within 0.8°. Rule: **anything
+that must sit on the weapon sits on the SLOT's axis; the socket is only the bone the slot hangs from.**
+
 **Multi-frame pose references** (built for the swing, kept): `pose_ref` takes several
 `ACTION:frame@at`; the first ramps in over `pose_ref_in` frames, the deltas interpolate between
 refs, and `pose_ref_tail return` goes from the last ref's pose straight to the blend-to pose by

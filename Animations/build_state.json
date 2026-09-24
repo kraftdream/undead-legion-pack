@@ -26,7 +26,7 @@
  "Idle_TwoHanded": {
   "sig": "attack_ref6_arm|1790191362|{\"_note\": \"left hand closed with the Grip fist by anim_nla_bake --hand-grip L (2026-09-23: the left hand rides the shaft but holds no item, so the engine gives it no grip pose). ground_fit (2026-09-23, 'in Unity the feet drift up/down slightly': Humanoid bobs the whole body 6 mm with the hips sway on top of the 15 mm lift; both boots track together so the per-frame Root fit lands them). hand_edited (2026-09-23): the user's Idle_TwoHanded_Fix (right forearm/hand FK, left hand IK + elbow pole, one held key each, Combine over the strip) baked in with the longsword attached as reference. 2026-09-23: the user's frame numbers count at 24 fps (the recording is 30 fps): 77-150 / 170-235 / 236-281 / 284-330 x1.25 -> 213-294 (measured: the two attacks' hand speed peaks at 304-327 and 368-412, nothing moves in 236-281). 2026-09-23: attack_ref6 frames 170-235; the performer still stands propped until ~200 and raises the two-hander by 206, so the loop uses 206-235 slowed 2x; the left hand rides the shaft through the gate. Replaces the Kimodo axe-on-the-shoulder build | earlier: \", \"blend\": 20, \"fist\": 0.9, \"gate\": \"0.03,0.11\", \"glb\": \"attack_ref6_arm\", \"ground_fit\": true, \"hand_edited\": true, \"heading\": \"auto\", \"loop\": 140, \"mode\": \"idle\", \"name\": \"Idle_TwoHanded\", \"rename\": \"ue5\", \"smooth\": 2, \"src_begin\": 213, \"src_end\": 294, \"src_ext\": \"blend\", \"src_start\": 20, \"time_scale\": 2.0}",
   "ok": true,
-  "when": "2026-09-24 12:00",
+  "when": "2026-09-24 12:49",
   "mode": "idle"
  },
  "Run_Fwd": {
@@ -86,13 +86,13 @@
  "Attack_2H_01": {
   "sig": "attack_ref6_arm|1790191362|{\"_note\": \"2026-09-24: the user's Attack_2H_01_Fix baked; right arm converted to FK (arm_pole_fk + fk_arm); torso counter-yaw 55 (the chest's 73 deg leftward swing peak reduced to ~0, so the cut lands forward); 20% faster (57 -> 48 frames). hand_edited (2026-09-23): feet pinned by anim_nla_bake --pin-foot 'L:1:1:99:xy,R:auto' (rear left foot held horizontally, heel lift kept; the stepping right foot held on each auto-detected planted phase). 2026-09-23: the user's frame numbers count at 24 fps (the recording is 30 fps): 77-150 / 170-235 / 236-281 / 284-330 x1.25 -> 295-351 (measured: the two attacks' hand speed peaks at 304-327 and 368-412, nothing moves in 236-281). 2026-09-23: attack_ref6 frames 236-281, plain transfer with the legs (planted, the step on Root), both hands on the shaft through the gate | earlier: two-handed gate (user 2026-09-22): the left hand slides on the handle where the capture put it, 0.03..0.11 rig m below the right hand (the battle axe's handle below the socket is 0.13, the longsword's 0.108); replaces the fixed lock_left_hand 0.085\", \"drift\": \"root\", \"fist\": 0.9, \"gate\": \"0.03,0.11\", \"glb\": \"attack_ref6_arm\", \"ground_fit\": true, \"hand_edited\": true, \"heading\": \"auto\", \"layer\": \"full\", \"lift\": 0.004, \"mode\": \"action\", \"name\": \"Attack_2H_01\", \"plant_feet\": 0.001, \"rename\": \"ue5\", \"smooth\": 1, \"src_begin\": 295, \"src_end\": 351, \"src_ext\": \"blend\", \"time_scale\": 1.0, \"unwind_ref\": \"body\", \"unwind_yaw\": true}",
   "ok": true,
-  "when": "2026-09-24 12:00",
+  "when": "2026-09-24 12:49",
   "mode": "action"
  },
  "Attack_2H_02": {
   "sig": "attack_ref6_arm|1790191362|{\"_note\": \"hand_edited (2026-09-23): feet pinned by anim_nla_bake --pin-foot 'L:1:1:99:xy,R:auto' (rear left foot held horizontally, heel lift kept; the stepping right foot held on each auto-detected planted phase). 2026-09-23: the user's frame numbers count at 24 fps (the recording is 30 fps): 77-150 / 170-235 / 236-281 / 284-330 x1.25 -> 355-413 (measured: the two attacks' hand speed peaks at 304-327 and 368-412, nothing moves in 236-281). 2026-09-23: attack_ref6 frames 284-330 (raise, sweep down with a 25 cm step and a 44 deg turn, unwound on the body orientation) | earlier: two-handed gate (user 2026-09-22): the left hand slides on the handle where the capture put it, 0.03..0.11 rig m below the right hand (the battle axe's handle below the socket is 0.13, the longsword's 0.108); replaces the fixed lock_left_hand 0.085\", \"drift\": \"root\", \"fist\": 0.9, \"gate\": \"0.03,0.11\", \"glb\": \"attack_ref6_arm\", \"ground_fit\": true, \"hand_edited\": true, \"heading\": \"auto\", \"layer\": \"full\", \"lift\": 0.004, \"mode\": \"action\", \"name\": \"Attack_2H_02\", \"plant_feet\": 0.001, \"rename\": \"ue5\", \"smooth\": 1, \"src_begin\": 355, \"src_end\": 413, \"src_ext\": \"blend\", \"time_scale\": 1.0, \"unwind_ref\": \"body\", \"unwind_yaw\": true}",
   "ok": true,
-  "when": "2026-09-23 22:35",
+  "when": "2026-09-24 12:50",
   "mode": "action"
  },
  "Shoot_01": {
