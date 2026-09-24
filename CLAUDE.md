@@ -869,6 +869,27 @@ transform so the two-handed grip holds. Chest peak +56° → 0° at the cut; hip
 `--speed-segment 1:57:1.2` → 48 frames. Rule: a swing's "direction" is the chest's yaw excursion —
 counter it proportionally, never with a fixed offset (a fixed turn moves the start/end poses).
 
+Then "bring the left hand 10 cm higher on the weapon grip; it should follow the shaft perfectly, as the
+left hand is not attached to the weapon slot": the left hand is on the shaft only by the retarget's
+gate, and the counter-turn, the resample and the user's fixes had left it −0.042..+0.022 rig m along
+the right hand's hilt axis (around the right hand) and off the axis. **`--shaft-hand L:0.056`** (bake
+tool) re-seats that socket ON the other hand's hilt axis every frame (its hilt axis turned parallel to
+the shaft with the least rotation, the hand's own roll kept, the IK control moved rigidly with the
+socket) and slides it the given rig m up the shaft: now +0.014..+0.078 (above the right hand, toward
+the blade), ≤ 6.8 mm off the shaft (one frame at the arm's reach), hilt axes parallel to 0.0°.
+`+` = toward the blade; if the hand should go the other way the sign flips.
+
+Then "starting the attack from Idle_TwoHanded the left hand changes its grip; at the end of the attack it
+sits too close to the right hand; in the idle it drifts slightly, as if not gripping": all one thing, the
+left socket's transform RELATIVE to the right socket. **`--grip-follow L:Idle_TwoHanded:1`** (bake tool)
+reads that relation on the reference action/frame (the user's posed idle grip: +0.074 rig m along the
+right hand's hilt axis, 40 mm off it — their pose, kept as is) and holds it rigidly on every frame of the
+target (the hand's IK control moved with the socket). Idle: the relation had wandered 7.6 mm / 1.2° over
+the loop (the visible drift), now 0.0 mm / 0.0°. Attack: it had wandered 72 mm / 146° from the idle's
+(a different roll, from the gate and the fixes), now within 12.6 mm (one frame at the arm's reach) /
+0.0°, so the crossfade from the idle keeps the grip and the end of the attack has the idle's spacing.
+The earlier `--shaft-hand` step on the attack is superseded by this.
+
 **Multi-frame pose references** (built for the swing, kept): `pose_ref` takes several
 `ACTION:frame@at`; the first ramps in over `pose_ref_in` frames, the deltas interpolate between
 refs, and `pose_ref_tail return` goes from the last ref's pose straight to the blend-to pose by
