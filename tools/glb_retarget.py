@@ -74,6 +74,7 @@ FIST = float(arg("--fist", "0.3")) if "--fingers" not in argv else 0.0
 FINGER_LIFE = float(arg("--finger-life", "0.12")) if "--fingers" not in argv else 0.0
 HUNCH = math.radians(float(arg("--hunch", "0")))
 ARM_POSE = arg("--arm-pose", "")
+ARM_POSE_REACH = float(arg("--arm-pose-reach", "0.9"))   # an authored hand pose is pulled in toward its shoulder to this share of the arm's length (Idle_Wand's preset sat at 0.318 of a 0.32 arm: the elbow locked, "the right hand extends too far")
 ARM_KEYS = [(float(k.split(":")[0]), k.split(":")[1]) for k in arg("--arm-keys", "").split(",") if k]  # "0:bow_side,0.3:bow_draw,..."
 BLEND_FROM = arg("--blend-from", "")           # ACTION[:frame]: start the clip on this pose and crossfade into the source
 BLEND_IN = int(arg("--blend-in", "18"))         # frames of that crossfade
@@ -1402,7 +1403,14 @@ def pose(f, dz=0.0, f_travel=None):
         follow = torso_now @ TORSO_REST.inverted()
         for side, (pos, y, z) in ARM_POSES[ARM_POSE].items():
             pbs["upper_arm_parent." + side]["IK_FK"] = 0.0
-            target = follow @ socket_frame(pos, y, z) @ HAND_FROM_SOCKET[side]
+            sock_t = follow @ socket_frame(pos, y, z)
+            sh_ = (rig.matrix_world @ pbs["DEF-upper_arm." + side].matrix).translation
+            wrist_t = (sock_t @ HAND_FROM_SOCKET[side]).translation
+            arm_len_ = ARM_LEN_L if side == "L" else ARM_LEN_R
+            over_ = (wrist_t - sh_).length - ARM_POSE_REACH * arm_len_
+            if over_ > 0:
+                sock_t = Matrix.Translation((sh_ - wrist_t).normalized() * over_) @ sock_t   # keep the orientation, pull the hand in
+            target = sock_t @ HAND_FROM_SOCKET[side]
             pbs["hand_ik." + side].matrix = rig.matrix_world.inverted() @ target
         update()
     if ARM_KEYS:

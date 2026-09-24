@@ -1061,6 +1061,17 @@ changes (landmarks within 2.7 mm of the exact mirror). The mirror is now built f
 (it used to be read right after the pins, missing the later passes). Scan: no leg bone above 10.7° per
 frame, knees 102–130 / 112–122. Speed table updated (0.419 m per loop, 0.29 m/s).
 
+**Idle_Staff / Idle_Wand rebuilt on the user's own idle (2026-09-24, "too static; some light sway plus
+hand movement; the right hand extends too far on idle_wand").** Measured: the Kimodo builds swayed 11–15 mm
+at the hips with the head at 1–4°/s and the hands moving 12–14 mm; Idle_03 (the user's mocap) 39 mm,
+15°/s, 80–107 mm. Both idles now use Idle_03's source (`idle_mocap`, `rename mixamo`, the same trims,
+`time_scale 3.0`, 324-frame loop, `fingers`) with their `arm_pose` presets on top: the pinned hand follows
+the torso's sway (39–48 mm of motion), the free hand and the fingers are the capture's (81 mm). The wand
+hand: the preset sat at 0.318 of a 0.32 arm (elbow locked) — **`arm_pose_reach`** (`--arm-pose-reach`,
+default 0.9) pulls an authored hand toward its shoulder to that share of the arm; 0.9 still left the arm
+straight out in front, `0.7` on the wand gives an elbow of 89° with the hand 20 cm ahead and 10 cm below
+the shoulder (the staff keeps 0.9). Seams 0.0000°, boots +5..+10 mm.
+
 **Multi-frame pose references** (built for the swing, kept): `pose_ref` takes several
 `ACTION:frame@at`; the first ramps in over `pose_ref_in` frames, the deltas interpolate between
 refs, and `pose_ref_tail return` goes from the last ref's pose straight to the blend-to pose by
