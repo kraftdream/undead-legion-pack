@@ -428,9 +428,18 @@ def export_clip(clip, out_dir, bst, lift=0.0, lift_curve=None):
     for pb in src.pose.bones:          # rigid IK chains (see tools/rig_lib_no_stretch.py)
         pb.ik_stretch = 0.0
     src.animation_data_create()
-    src.animation_data.action = act
-    if hasattr(src.animation_data, "action_slot") and act.slots:
-        src.animation_data.action_slot = act.slots[0]
+    ad_ = src.animation_data
+    # the action ALONE: the anim file may hold the user's editing stack (the clip pushed down as an NLA
+    # strip with a fix action in Combine on top); assigning the clip over its own strip in Combine applied
+    # it twice (2026-09-24: every angle doubled in the export). Mute the tracks, plain Replace, full influence
+    for t_ in ad_.nla_tracks:
+        t_.mute = True
+    ad_.action = act
+    ad_.action_blend_type = 'REPLACE'; ad_.action_influence = 1.0; ad_.action_extrapolation = 'HOLD'
+    if hasattr(ad_, "action_slot") and act.slots:
+        ad_.action_slot = act.slots[0]
+    if ad_.nla_tracks:
+        log("export: %d NLA track(s) muted, action %s alone in Replace" % (len(ad_.nla_tracks), act.name))
     f0, f1 = (int(round(x)) for x in act.frame_range)
     scene.frame_start, scene.frame_end = f0, f1
     log("clip %s: frames %d..%d (%.2f s at %d fps)" % (clip, f0, f1, (f1 - f0) / FPS, FPS))
