@@ -69,6 +69,7 @@ Clip loop:
 
 `Animations/clips.json` lists every clip (prompt, frames, seed, retarget mode + args).
 
+    "$B" -b Animations/skeleton_anim.blend -P tools/anim_hand_idle.py -- --save   # Hand_Idle_L/R: the empty-hand finger idles from Grip frame 2's left hand (mirrored for the right), slow sway; then export_fbx --clip each and rebuild the controller
     python tools/kimodo_batch.py            # generate every missing GLB on the laptop (detach it: an hour+); manifest no_profile = plain human prompt (no undead body profile)
     python tools/anim_batch.py --wait       # retarget -> preview -> export -> Unity verify, as GLBs arrive
     python tools/anim_batch.py Walk_Fwd --force   # rebuild one after editing its entry or the retarget
