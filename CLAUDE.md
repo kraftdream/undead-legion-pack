@@ -21,7 +21,7 @@ and importing the exports into Unity 6000.4 through the editor bridge.
 | Skeleton Mage        | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | **yes** | **yes** |
 | Skeleton Necromancer | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | **yes** | **yes** |
 | Skeleton Warrior     | done | done | **yes** | **yes** | valid | **yes** | **yes** |
-| Weapons (12 meshes)  | done | all textured (8 full PBR; staff, recurve bow, wand colour + normal; arrow colour only) | n/a | `SM_*.fbx` ×12 | n/a | `M_Weapon_<Name>` ×12 (+ unused placeholder) | **yes** (12 loadouts, `W_*` prefabs) |
+| Weapons (12 meshes)  | done | all textured (8 full PBR; staff, recurve bow, wand colour + normal; arrow colour only) | n/a | `SM_*.fbx` ×12 | n/a | `M_Weapon_<Name>` ×12 (+ unused placeholder) | **yes** (11 loadouts, `W_*` prefabs; the propped staff removed 2026-09-25) |
 
 Shared clips so far: `Idle`, `Idle_02`, `Idle_03` (loops, 8 / 12 / 12 s) +
 `Twitch_01..03` (additive), on `AC_Skeleton`. Armour materials render both faces
@@ -40,13 +40,13 @@ every one verified on all six models with `verify_clip.py` + `ground_clip.py`; p
 
 | Group | Clips |
 |---|---|
-| Idles (loop) | `Idle`, `Idle_02` (hand-fixed 2026-09-21: blades forward, Idle grounded, Idle_02 upright with hanging arms, left foot 5 cm forward / right 5 cm back), `Idle_03` (the user's own video-mocap idle, 2026-09-21, slowed 3×, 10.8 s loop, fingers from the capture, right foot 10 cm forward / left 10 cm back); weapon idles `Idle_TwoHanded` (the user's mannequin recording, 2026-09-23: two-hander held ahead, both hands on the shaft), `Idle_Propped` (same recording: both hands resting on the top of a staff planted ahead, demo loadout "Staff (propped)"), `Idle_Bow`, `Idle_Staff` (`Idle_Wand` removed 2026-09-24: "enough idle animations"; the H1Wand loadout stays, the Cast_Wand clips play over Idle_Staff / Idle) |
+| Idles (loop) | `Idle`, `Idle_02` (hand-fixed 2026-09-21: blades forward, Idle grounded, Idle_02 upright with hanging arms, left foot 5 cm forward / right 5 cm back), `Idle_03` (the user's own video-mocap idle, 2026-09-21, slowed 3×, 10.8 s loop, fingers from the capture, right foot 10 cm forward / left 10 cm back); weapon idles `Idle_TwoHanded` (the user's mannequin recording, 2026-09-23: two-hander held ahead, both hands on the shaft), `Idle_Bow`, `Idle_Staff` (`Idle_Wand` removed 2026-09-24: "enough idle animations"; the H1Wand loadout stays, the Cast_Wand clips play over Idle_Staff / Idle; **`Idle_Propped` and the "Staff (propped)" loadout removed 2026-09-25** at the user's request: export, manifest entry, build state, fit curve, the `W_H2MagicStuff_Top` prefab, the builder's row and `ProppedHandHeight`, the grip dump entry, the demo list; the actions `Idle_Propped` / `Propped_Base` and the `prop` / `hunch` / `torso_ref` retarget passes stay as tools) |
 | Impaled (hand-authored) | `Impaled_Idle` (loop: on its knees, hunched, sword through the belly), `Impaled_Rise` (one-shot: pulls it out, stands up, ends on the neutral standing pose) |
 | Twitch (additive) | `Twitch_01/02/03` head + jaw |
 | Locomotion (loop, root motion) | `Walk_Fwd`, `Walk_Back`, `Run_Fwd`, `Strafe_Left` (mirrored right), `Strafe_Right`; **`Walk_Fwd_02`, `Run_Fwd_02`** (2026-09-25: the "normal" pair, an upright human walk and jog for the higher ranks such as the necromancer and mage, Kimodo without the stiff-undead prompt profile) |
 | Per arm (2026-09-22/23, replaces the one-handed set) | `Attack_R_Stab`, `Attack_R_Slice` (the user's mannequin-app recording `attack_ref5`, frames 26–62 / 111–149, plain transfer), `Attack_L_Stab`, `Attack_L_Slice` (the same mirrored), `Block_L_Idle` (loop: shield held up on the left arm, a HELD action in the demo). Each lives on its arm's masked layer (`LeftArm` / `RightArm`) and as a full-body state on Base; the Animator carries the transitions |
 | Two-handed | `Attack_2H_01` (downward chop with a step), `Attack_2H_02` (raise and horizontal sweep) — the user's mannequin recording (2026-09-23), legs planted, left hand on the handle through the two-handed GATE (slides 0.03..0.11 rig m below the right hand) |
-| Bow | `Shoot_01` (the user's video mocap, 2026-09-22: one shoot clip, draw and release with a step into the archer's stance; `Shoot_02` retired) |
+| Bow | `Shoot_01` (redone 2026-09-25 from the user's mannequin recording `aoe cast shoot.glb`: raise, draw at the cheek, release, lower, 1.9 s; the arrow aimed dead ahead by a spine twist, the hips held on the heading; the video-mocap build of 2026-09-22 and `Shoot_02` retired) |
 | Magic | `Cast_Wand_01/02`, `Cast_Staff_01` (both hands on the staff) — the user's mannequin recording `magic attacks.glb` (2026-09-25); `Cast_Staff_02` retired |
 | Specials | `Summon` (necromancer, both hands overhead), `AOE_Cast` (mage: hands up, then a slam with a crouch), `Taunt_01/02/03` (warrior), `Cutthroat` (assassin), `Rally` (knight, sword raised) — all from the user's recording `taunts.glb` (2026-09-25); the Kimodo `Taunt` retired |
 | Death | `Death_01` (struck, falls on the back), `Death_02` (kneels, crumples sideways) |
@@ -1234,6 +1234,70 @@ from the result (landmarks within 2.7 mm), `lift 0.002`: the highest model's sol
 the loop within 4 mm of the floor for it, the others sinking ≤ 7 mm. Rule: **a constant lift is fitted to the
 STANCE; a swing-foot dip is fixed in the pose, never by lifting the clip** — and check the boots per frame,
 the sixth-frame sampler and a stance-frame glance both missed this.
+
+**Summon fix (2026-09-25, "added Summon_Fix, bake it; also bring the torso down like 8 cm").** The fix is one
+held key on each IK foot in REPLACE mode (an absolute foot placement over the strip; the bake evaluates the
+stack as-is, so Replace and Combine fixes both work). **`anim_nla_bake --torso-drop D`** (rig m; 0.0444 =
+8 cm engine) then lowers the torso control on every frame: the IK feet stay planted, the knees bend more
+(115–152° → 105–129°), the FK arms ride with the torso, the poles re-aimed on the FK plane (knee steps ≤ 7 mm).
+The drop is constant, ends included: the demo's crossfade from the idle dips the body 8 cm on the way in and
+lifts it on the way out; an eased drop is a small change if that reads wrong. After the fit the Warrior's sole
+is the highest (0), the Knight sinks 14 mm at its lowest frame and the Necromancer's robe 29 mm (the lower
+hips hang the hem lower: the robe class of dip).
+
+**Rally fix (2026-09-25, "added Rally_Fix, bake it").** One held key on every leg control AND the root, in
+REPLACE mode: baked as posed (flat = stack to 0.00 mm, `Rally_base` kept). Two things reported, not changed:
+the held root key replaces the take's 4 cm root travel with a constant (root motion 0.4 cm now: in Replace
+mode a root key HOLDS the root, the Combine warning does not apply); and the right foot's placement locks
+that knee at 174–177° on frames 78–84 (reach 1.000 of the leg, 165° on frame 1; before the fix 121–149°) —
+the straight-leg flip risk in Humanoid; a torso drop or a foot a few cm closer to the hips fixes it.
+
+**AOE_Cast fixes (2026-09-25, "added AOE_Cast_Fix_01 and 02, bake them (fix 1 first); from frame 60 the left
+hand should hold the weapon handle 15 cm higher").** The stack was the strip, a 2-frame Replace strip of
+Fix_01 (every leg control + the root, held) and Fix_02 active in Combine (hand_fk.R, torso, a knee pole): one
+flatten evaluates them in that order (flat = stack to 0.00 mm, `AOE_Cast_base` kept). The left hand: measured
+after the bake, the slam brings both hands down side by side on the staff (the left slot ~+0.03 rig m along
+the right hand's hilt axis and 6–13 cm off it, the staff vertical with the hilt axis UP through frames 74–98),
+so "15 cm higher" = the left slot ON the shaft 0.113 rig m (20 cm) above the right slot. **`--grip-follow`
+now takes a frame range, `SIDE:@D:from[:to]`** (and `SIDE:ACTION:FRAME:from[:to]`), the relation eased in
+from the clip's own over `--grip-ease` frames (6) so the hand slides up instead of jumping, and an arm that
+was FK on those frames gets its IK elbow pole on the FK elbow's plane before the hand goes on IK (the frames
+before the range stay FK). `L:@0.113:60:108 --grip-pull --grip-reach 0.96 --fk-arm R`: from frame 60 the left
+slot is on the shaft to 0.0 mm, reach 0.61–0.82 (no pull needed), the ease frames step 22–25° on the left
+forearm/hand (the slide, a longer `--grip-ease` softens it). Root: Fix_01's held root key in Replace holds
+the Root, as on Rally.
+
+**`aoe cast shoot.glb` (2026-09-25, "replace cast_aoe: frames 10–121, replace shoot_01: frames 130–177").** The
+mannequin app again (224 frames, the user's numbers ×1.25: 13–151 and 163–221), `aoe_shoot_ref_arm.blend`.
+`AOE_Cast` is a plain transfer as before (139 frames, 4.6 s: both hands up to 1.6 m, a slam with a deep crouch,
+knees to 68°); the taunts.glb take with its two fixes and the left-hand grip-follow is superseded (`AOE_Cast_base`
+holds the old baked clip). `Shoot_01` from the same take (59 frames, 1.9 s; the LEFT hand holds the bow, 0.54 m
+out, the RIGHT draws to the cheek, 0.27 m from the head: no mirror) replaces the video-mocap build and its
+anchor / bow-square / head-aim / pose-ref passes, but not the aim: this performer also shoots 65–70° LEFT of his
+hips' facing, so `aim_forward L` + `aim_body 0.0` (the pelvis held on the heading, the turn a spine twist) with
+`aim_line shot` and no offset — the draw hand anchors at the cheek here, so the ARROW line is what reads, and it
+is aimed dead ahead (−1..−3° through the draw; arrow along the draw fingers to 2–3°). Two things the plain
+one-shot needed, both new: **`aim_fade N`** (`--aim-fade`: the aim turn fades in over the first N output
+frames and out over the last N without a blend_from/blend_to — the nearest raised value had held a 50° twist
+through the standing ends; `blend_from Idle_Bow` faded it too but the idle's IK legs crossfading into the
+take's planted legs snapped the shins 33° on frames 2–3 and locked the knees at 174°), and **`heading first`**
+(`--heading first`: the used RANGE's first 5 frames' hips yaw is zeroed instead of the file's mean — the
+performer starts facing 47° left of his shooting mean and returns there, so with `auto` the standing ends turned
+47–61° away from the idle). ⚠ Found on the way: the heading block runs BEFORE the `src_begin` trim, so `auto` has
+always been the WHOLE file's mean yaw, not the clip range's (every clip cut from a multi-clip recording carries
+that file-wide offset; left as is, a rebuild would change them all). Result: hips 0° on every frame, chest 0° at
+both ends and −56° at the draw, root motion in place (2 cm, 0.6°), knees 109–136°, boots on the floor (the
+Knight sinks 13 mm at its lowest frame). Kept as captured: the bow limbs sit 116–117° from the arrow at the draw
+(a 26° cant; `bow_square` would square it).
+
+**AOE_Cast fixes on the new take (2026-09-25, "updated AOE_Cast_Fix_01 and 02, this time bake 02 first, then
+01").** The order matters when the fixes share controls: Fix_02 is a held ABSOLUTE foot placement (both feet +
+the left knee pole, Replace) and Fix_01 a held OFFSET on nearly every control (chest, head, hips, jaw, both arms,
+feet, fingers; Combine), so the feet must be placed before the offsets ride on them. The user's NLA had them the
+other way round (02 active over a 01 strip: the Replace would have overridden 01's foot offsets), so two stacks
+were built headlessly (`setup_stack2.py --base --fix --mode`: the clip as a Replace strip + one fix active in
+its mode, saved) and flattened in turn; flat = stack to 0.00 mm both times, `AOE_Cast_base` untouched. Rule:
+**when a Replace fix and a Combine fix touch the same controls, bake the Replace one first.**
 
 **Multi-frame pose references** (built for the swing, kept): `pose_ref` takes several
 `ACTION:frame@at`; the first ramps in over `pose_ref_in` frames, the deltas interpolate between

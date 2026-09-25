@@ -35,6 +35,7 @@ SHAFT_HAND = arg("--shaft-hand", "")              # "L:0.056": re-seat that hand
 _pe = arg("--pin-ease", "0").split(":")
 PIN_EASE = int(_pe[0]); PIN_EASE_OUT = int(_pe[1]) if len(_pe) > 1 else PIN_EASE   # "6" or "6:2": frames to ease INTO a hold and OUT of it (a long ease-out on a walk's push-off held the lifting foot back and straightened the knee to 177 deg)           # frames: a pinned foot eases into and out of each hold over this many frames instead of switching (user: "remove the right foot snap at frames 34-35" = the release of a held landing)
 GRIP_REACH = float(arg("--grip-reach", "0.96"))    # with --grip-pull: the following hand's spot is kept within this share of its arm's length from the shoulder (a straight arm flips in Humanoid: the chop's left elbow hit 178 deg with a 26 deg step)
+GRIP_EASE = int(arg("--grip-ease", "6"))           # frames: with a --grip-follow range ("L:@D:60"), the relation eases in from the clip's own over this many frames from the range's first frame
 GRIP_PULL = "--grip-pull" in argv                  # with --grip-follow: where the following hand cannot reach its place on the shaft, the OTHER hand is pulled in toward the following hand's shoulder by the shortfall (on IK, its elbow kept on the FK elbow plane), as the retarget's gate does; pair with --fk-arm on that side to land it back on FK
 GRIP_FOLLOW = arg("--grip-follow", "")            # also "L:@0.056": an idealised relation - ON the other hand's hilt axis, that many rig m toward the blade, hilt axes parallel, the hand's own roll about the shaft (first frame) kept (user: "left hand always follows the handle, 10 cm above the right hand")            # "L:Idle_TwoHanded:1": that hand's socket takes, on every frame, the transform it has RELATIVE to the other hand's socket on the given action and frame (position along / off the shaft and roll about it), so a two-handed grip is identical across clips and rigid through a loop (user: "the left hand changes the grip between idle and attack; at the end it sits too close to the right; in the idle it drifts")
 VSMOOTH = [int(v) for v in arg("--vsmooth", "").split(",") if v]   # frames: on each, every root-level control's world HEIGHT is replaced by the mean of its own height on the neighbouring frames (a one-frame dip of the whole body: Walk_Back frame 103, hips and both feet 6-8 mm down)
@@ -47,6 +48,7 @@ HAND_WEIGHT = arg("--hand-weight", "")            # "R:0.015:4:6": that IK hand 
 END_BLEND = arg("--end-blend", "")               # "Idle:1:8": after the retime, the last N frames crossfade every control to that action's frame (locations, rotations, scales, the switches on the last frame), so a one-shot ends EXACTLY on the pose the demo crossfades to next; the IK legs keep their knee poles on the FK plane through it (user, Impaled_Rise: "lower the torso on the fully standing pose, use it to fix the floating feet at the end")
 EVEN_ADVANCE = int(arg("--even-advance", "0"))      # K: a locomotion loop is RETIMED so the hips' advance per frame along the travel follows a circularly smoothed (K passes of [1,2,1], wrapping at the seam) version of its own profile; same frame count, same travel, the Root kept linear. Removes the speed dip that a loop-closing crossfade leaves at the seam (the hips advanced 55 mm per frame and then 17 at Run_Fwd_02's wrap; Walk_Back lurched 14 mm and stalled to 0 on its last frames), which plays as a hitch every cycle under root motion (user: "walk_back, run_fwd and run_fwd_02 have looping issues")
 FOOT_CLEAR = arg("--foot-clear", "")              # Z rig m: no model's BOOT goes below Z on any frame - per frame and foot, the lowest vertex of all six characters' Boot_<side> meshes is measured and an IK foot (and its toe) is raised by the deficit, the lift running-maxed over +-1 frame and smoothed (wrapping with --loop), the knee pole kept on the FK plane. For a swinging foot that pitches toe-down while barely lifting (the strafes: the boot's toe dragged 14 mm through the floor, and a constant export lift fitted to that dip floated the whole stance 25 mm; user: "both strafe animations in unity have model float above ground")
+TORSO_DROP = float(arg("--torso-drop", "0"))       # rig m: the torso control (the hips, and with it the spine, head and FK arms) lowered by this on every frame; IK feet stay planted so the knees bend more, the poles re-aimed on the FK plane (user, Summon: "bring the torso down like 8 cm" = 0.044 rig m)
 IK_LEGS = "--ik-legs" in argv                     # after the bake, both legs on IK on every frame, the foot/toe controls on the DEF result and the knee pole out through the FK knee (refined): lossless (the walks' legs are FK from the retarget; a foot pin on an FK leg would switch modes and jump the knee)
 FK_ARM = arg("--fk-arm", "")                      # "L" / "R" / "LR": after the bake, that arm is put on FK on every frame, the FK chain set to the arm's current (IK) result: lossless, and upper_arm_fk / forearm_fk / hand_fk then control it (user, on Block_L_Idle whose left arm was IK throughout: "upper_arm_fk_l and its children won't change the mesh")        # "A:B:F": after the bake (and pin), frames A..B of the result are resampled F times faster (Blender's own curve evaluation at fractional frames), the frames after B shift earlier (user: "speed up by 35% from frame 21 to 34")
 PIN_FOOT = arg("--pin-foot", "")                  # "L" / "L:1" / "L,R" / "L:20:20:34": SIDE[:ref[:from[:to]]] - after the bake, that foot's IK control (and toe) is held from frame `from` to `to` (default: the whole clip) at the WORLD transform it has on frame `ref` (default: the first frame): a planted foot that the capture let drift (user: "get rid of the drift on the left feet"; "left foot drift after the step forward, from frame 20")
@@ -498,6 +500,8 @@ def grip_follow(act, spec):
     if parts[1].startswith("@"):
         # idealised: on the axis at D, parallel, with the first frame's roll about the shaft
         D = float(parts[1][1:])
+        FROM_ = int(parts[2]) if len(parts) > 2 and parts[2] else F0     # "L:@D:60": the relation held from that frame on (eased in over GRIP_EASE frames, the arm FK before)
+        TO_ = int(parts[3]) if len(parts) > 3 and parts[3] else F1
         ad.action = act; scene.frame_set(F0); bpy.context.view_layer.update()
         so = (rig.matrix_world @ pbs["DEF-weapon." + other_].matrix).copy(); ss = (rig.matrix_world @ pbs["DEF-weapon." + side].matrix).copy()
         cur = so.inverted() @ ss
@@ -514,6 +518,8 @@ def grip_follow(act, spec):
         log("grip-follow %s: idealised relation - the %s SLOT on the %s hand's shaft (through its slot, along the socket's +Y) %+.3f rig m toward the blade, parallel, roll %.0f deg kept from frame %d" % (side, side, other_, D, math.degrees(tw_), F0))
     else:
         ref_name, ref_frame = parts[1], int(parts[2])
+        FROM_ = int(parts[3]) if len(parts) > 3 and parts[3] else F0
+        TO_ = int(parts[4]) if len(parts) > 4 and parts[4] else F1
         ref_act = bpy.data.actions[ref_name]
         ad.action = ref_act; scene.frame_set(ref_frame); bpy.context.view_layer.update()
         so = (rig.matrix_world @ pbs["DEF-weapon." + other_].matrix).copy(); ss = (rig.matrix_world @ pbs["DEF-weapon." + side].matrix).copy()
@@ -526,8 +532,25 @@ def grip_follow(act, spec):
         scene.frame_set(f)
         so = (rig.matrix_world @ pbs["DEF-weapon." + other_].matrix).copy(); ss = (rig.matrix_world @ pbs["DEF-weapon." + side].matrix).copy()
         cur = so.inverted() @ ss
+        if f < FROM_ or f > TO_:
+            continue
         before.append(((cur.translation - REL.translation).length * 1000, math.degrees(cur.to_quaternion().rotation_difference(REL.to_quaternion()).angle)))
-        target = so @ REL
+        w_ = 1.0 if FROM_ == F0 else min(1.0, (f - FROM_ + 1) / float(GRIP_EASE + 1)); w_ = w_ * w_ * (3 - 2 * w_)
+        qc_ = cur.to_quaternion(); qr_ = REL.to_quaternion()
+        if qc_.dot(qr_) < 0: qr_ = -qr_
+        RELf = qc_.slerp(qr_, w_).to_matrix().to_4x4(); RELf.translation = cur.translation.lerp(REL.translation, w_)
+        if pbs["upper_arm_parent." + side]["IK_FK"] > 0.5:
+            # the arm was FK on this frame: its IK elbow pole on the FK elbow's plane before the hand goes on IK
+            sh_ = (rig.matrix_world @ pbs["DEF-upper_arm." + side].matrix).translation.copy(); wr_ = (rig.matrix_world @ pbs["DEF-hand." + side].matrix).translation.copy()
+            el_ = (rig.matrix_world @ pbs["forearm_fk." + side].matrix).translation.copy()
+            ax_ = (wr_ - sh_).normalized(); d_ = el_ - sh_; perp_ = d_ - ax_ * d_.dot(ax_)
+            hm0 = (rig.matrix_world @ pbs["hand_ik." + side].matrix).copy()
+            pbs["hand_ik." + side].matrix = rig.matrix_world.inverted() @ (ss @ HAND_FROM_SOCK[side]); pbs["upper_arm_parent." + side]["IK_FK"] = 0.0; bpy.context.view_layer.update()
+            if perp_.length > 0.005:
+                pbs["upper_arm_parent." + side]["pole_vector"] = True
+                pl_ = pbs["upper_arm_ik_target." + side]; pm_ = pl_.matrix.copy(); pm_.translation = rig.matrix_world.inverted() @ (el_ + perp_.normalized() * 0.4); pl_.matrix = pm_
+                bpy.context.view_layer.update()
+        target = so @ RELf
         T = target @ ss.inverted()
         h = pbs["hand_ik." + side]; hm = (rig.matrix_world @ h.matrix).copy()
         h.matrix = rig.matrix_world.inverted() @ (T @ hm); pbs["upper_arm_parent." + side]["IK_FK"] = 0.0
@@ -537,7 +560,7 @@ def grip_follow(act, spec):
             arm_len = (rig.data.bones["DEF-forearm." + side].head_local - rig.data.bones["DEF-upper_arm." + side].head_local).length + (rig.data.bones["DEF-hand." + side].head_local - rig.data.bones["DEF-forearm." + side].head_local).length
             for _it in range(3):
                 so = (rig.matrix_world @ pbs["DEF-weapon." + other_].matrix).copy(); ss = (rig.matrix_world @ pbs["DEF-weapon." + side].matrix).copy()
-                want = (so @ REL).translation; gap_v = want - ss.translation
+                want = (so @ RELf).translation; gap_v = want - ss.translation
                 sh_s = (rig.matrix_world @ pbs["DEF-upper_arm." + side].matrix).translation.copy()
                 wr_want = want + (rig.matrix_world @ pbs["DEF-hand." + side].matrix).translation - ss.translation   # the wrist that goes with the wanted socket
                 over = (wr_want - sh_s).length - GRIP_REACH * arm_len
@@ -560,19 +583,23 @@ def grip_follow(act, spec):
                 ho = pbs["hand_ik." + other_]; hom = (rig.matrix_world @ ho.matrix).copy()
                 ho.matrix = rig.matrix_world.inverted() @ (Matrix.Translation(pull) @ hom); bpy.context.view_layer.update()
                 so = (rig.matrix_world @ pbs["DEF-weapon." + other_].matrix).copy(); ss = (rig.matrix_world @ pbs["DEF-weapon." + side].matrix).copy()
-                T = (so @ REL) @ ss.inverted(); hm = (rig.matrix_world @ h.matrix).copy()
+                T = (so @ RELf) @ ss.inverted(); hm = (rig.matrix_world @ h.matrix).copy()
                 h.matrix = rig.matrix_world.inverted() @ (T @ hm); bpy.context.view_layer.update()
             for b in ("hand_ik." + other_, "upper_arm_ik_target." + other_):
                 pbs[b].keyframe_insert("location", frame=f, group=b)
                 pbs[b].keyframe_insert("rotation_quaternion" if pbs[b].rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group=b)
             pbs["upper_arm_parent." + other_].keyframe_insert('["IK_FK"]', frame=f, group="upper_arm_parent." + other_)
             pbs["upper_arm_parent." + other_].keyframe_insert('["pole_vector"]', frame=f, group="upper_arm_parent." + other_)
+        for b in ("upper_arm_ik_target." + side,):
+            pbs[b].keyframe_insert("location", frame=f, group=b)
+            pbs[b].keyframe_insert("rotation_quaternion" if pbs[b].rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group=b)
+        pbs["upper_arm_parent." + side].keyframe_insert('["pole_vector"]', frame=f, group="upper_arm_parent." + side)
         h.keyframe_insert("location", frame=f, group="hand_ik." + side)
         h.keyframe_insert("rotation_quaternion" if h.rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group="hand_ik." + side)
         pbs["upper_arm_parent." + side].keyframe_insert('["IK_FK"]', frame=f, group="upper_arm_parent." + side)
         so = (rig.matrix_world @ pbs["DEF-weapon." + other_].matrix).copy(); ss = (rig.matrix_world @ pbs["DEF-weapon." + side].matrix).copy()
         now = so.inverted() @ ss
-        worst = max(worst, (now.translation - REL.translation).length * 1000); worst_ang = max(worst_ang, math.degrees(now.to_quaternion().rotation_difference(REL.to_quaternion()).angle))
+        worst = max(worst, (now.translation - RELf.translation).length * 1000); worst_ang = max(worst_ang, math.degrees(now.to_quaternion().rotation_difference(RELf.to_quaternion()).angle))
     log("grip-follow %s on %s: before, the relation wandered up to %.1f mm / %.1f deg from the reference; after, within %.1f mm / %.1f deg on every frame" % (
         side, act.name, max(b[0] for b in before), max(b[1] for b in before), worst, worst_ang))
 
@@ -770,6 +797,17 @@ def foot_clear(act, zmin):
         if lc.name in saved: lc.exclude = saved[lc.name]
         for c in lc.children: restore(c)
     restore(vl.layer_collection)
+
+
+def torso_drop(act, d):
+    ad.action = act
+    for f in range(F0, F1 + 1):
+        scene.frame_set(f)
+        pb = pbs["torso"]; m = (rig.matrix_world @ pb.matrix).copy(); m.translation.z -= d
+        pb.matrix = rig.matrix_world.inverted() @ m; bpy.context.view_layer.update()
+        pb.keyframe_insert("location", frame=f, group="torso")
+    scene.frame_set(F0); hz = (rig.matrix_world @ pbs["DEF-spine"].matrix).translation.z
+    log("torso lowered by %.3f rig m (%.0f mm engine) on every frame: hips at %.3f on frame %d" % (d, d * 1800, hz, F0))
 
 
 def stride(act, k):
@@ -1035,6 +1073,9 @@ if PIN_FOOT or IK_LEGS or STRIDE != 1.0 or VSMOOTH:
     repole_legs(baked)
 if FOOT_CLEAR:
     foot_clear(baked, float(FOOT_CLEAR))
+if TORSO_DROP:
+    torso_drop(baked, TORSO_DROP)
+    repole_legs(baked)
     # the mirror is built from the pinned result
     poses = {}
     for f in range(F0, F1 + 1):
