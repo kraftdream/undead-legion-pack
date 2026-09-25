@@ -193,9 +193,9 @@
    "prompt": "A person side-steps to the left repeatedly in a straight line while facing forward, stiff, arms hanging.",
    "travel_axis": "x",
    "mirror": true,
-   "_note": "lift 0.025 (the planted right foot at its grounded height put the six boots 10-16 mm under the floor with the default lift; the highest model's sole now at 0). hand_edited (2026-09-24): the user's Strafe_Left_Fix (arms) baked; legs on IK, steps 30 % shorter (--stride 0.7), the right foot held planted over 1-33 at frame 25's spot (it used to hover and slide down through 1-19 after landing at the seam), loop re-closed; Strafe_Right is its mirror. mirrored from strafe_right: the strafe_left generation barely moved sideways (0.19 m/cycle vs 0.60)",
+   "_note": "lift 0.002 (the highest model's sole at 0 on its lowest frame, the others sinking <= 7 mm).025 (the planted right foot at its grounded height put the six boots 10-16 mm under the floor with the default lift; the highest model's sole now at 0). hand_edited (2026-09-24): the user's Strafe_Left_Fix (arms) baked; legs on IK, steps 30 % shorter (--stride 0.7), the right foot held planted over 1-33 at frame 25's spot (it used to hover and slide down through 1-19 after landing at the seam), loop re-closed; Strafe_Right is its mirror. mirrored from strafe_right: the strafe_left generation barely moved sideways (0.19 m/cycle vs 0.60) 2026-09-25 (user: 'both strafes float above the ground in Unity'): the lift 0.002 (the highest model's sole at 0 on its lowest frame, the others sinking <= 7 mm).025 had been fitted to the swinging right foot's toe dragging 14 mm through the floor (toe-down 39 deg, the ankle barely lifting), which floated the whole stance 25 mm; anim_nla_bake --foot-clear 0.0 raises that foot through its swing so no model's boot goes under, Strafe_Right re-mirrored from it, lift 0.002 (the highest model's sole at 0 on its lowest frame, the others sinking <= 7 mm).",
    "hand_edited": true,
-   "lift": 0.025
+   "lift": 0.002
   },
   {
    "name": "Strafe_Right",
@@ -209,8 +209,8 @@
    "prompt": "A person side-steps to the right repeatedly in a straight line while facing forward, stiff, arms hanging.",
    "travel_axis": "x",
    "hand_edited": true,
-   "_note": "lift 0.025 (the planted right foot at its grounded height put the six boots 10-16 mm under the floor with the default lift; the highest model's sole now at 0). hand_edited (2026-09-24): the user's Strafe_Left_Fix (arms) baked; legs on IK, steps 30 % shorter (--stride 0.7), the right foot held planted over 1-33 at frame 25's spot (it used to hover and slide down through 1-19 after landing at the seam), loop re-closed; this clip is the finished Strafe_Left X-mirrored (--mirror-to). ",
-   "lift": 0.025
+   "_note": "lift 0.002 (the highest model's sole at 0 on its lowest frame, the others sinking <= 7 mm).025 (the planted right foot at its grounded height put the six boots 10-16 mm under the floor with the default lift; the highest model's sole now at 0). hand_edited (2026-09-24): the user's Strafe_Left_Fix (arms) baked; legs on IK, steps 30 % shorter (--stride 0.7), the right foot held planted over 1-33 at frame 25's spot (it used to hover and slide down through 1-19 after landing at the seam), loop re-closed; this clip is the finished Strafe_Left X-mirrored (--mirror-to).  2026-09-25 (user: 'both strafes float above the ground in Unity'): the lift 0.002 (the highest model's sole at 0 on its lowest frame, the others sinking <= 7 mm).025 had been fitted to the swinging right foot's toe dragging 14 mm through the floor (toe-down 39 deg, the ankle barely lifting), which floated the whole stance 25 mm; anim_nla_bake --foot-clear 0.0 raises that foot through its swing so no model's boot goes under, Strafe_Right re-mirrored from it, lift 0.002 (the highest model's sole at 0 on its lowest frame, the others sinking <= 7 mm).",
+   "lift": 0.002
   },
   {
    "name": "Death_01",
