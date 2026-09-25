@@ -48,15 +48,11 @@ namespace UndeadLegion.DemoEditor
             new object[] { "Battle axe (2H)", "SM_H2Axe", SkeletonWeapon.Hand.Right },
             new object[] { "Recurve bow", "SM_H2Recurvebow", SkeletonWeapon.Hand.Left, "SM_Arrow", SkeletonWeapon.Hand.Right },
             new object[] { "Staff", "SM_H2MagicStuff", SkeletonWeapon.Hand.Right },
-            // "@Top": a second prefab of the same model (W_H2MagicStuff_Top) whose Grip sits on the staff's
-            // top end with the shaft along the palm normal, for Idle_Propped (the hand rests on the staff)
-            new object[] { "Staff (propped)", "SM_H2MagicStuff@Top", SkeletonWeapon.Hand.Right },
+            // ("Staff (propped)" / SM_H2MagicStuff@Top, the top-gripped staff for Idle_Propped, removed 2026-09-25 with that clip;
+            // the "@Variant" suffix still makes a second prefab of a model with its own Grip if one is needed again)
             new object[] { "Wand", "SM_H1Wand", SkeletonWeapon.Hand.Right },
         };
 
-        /// <summary>Height of the propping hand's socket in Idle_Propped (engine metres), from the
-        /// user's reference pose (Propped_Base); the "Staff (propped)" grip is placed this far up.</summary>
-        const float ProppedHandHeight = 0.97f;   // 2026-09-23: the socket height Unity measures in the user's fixed Idle_Propped (hand at 0.97 m, chest hunched 37 deg); the grip sits this far up the 1.24 m staff so the foot meets the floor. Was 1.24 (hand on the top) before the fix, 0.80 for the earlier capture
 
         static readonly string[] FingerBones = { "Thumb1", "Thumb2", "Thumb3", "Index1", "Index2", "Index3", "Middle1", "Middle2", "Middle3", "Ring1", "Ring2", "Ring3", "Pinky1", "Pinky2", "Pinky3" };
 
@@ -155,21 +151,7 @@ namespace UndeadLegion.DemoEditor
             }
             var grip = new GameObject(SkeletonWeapon.GripName).transform;
             grip.SetParent(root.transform, false);
-            if (variant == "Top")
-            {
-                // grip on the top end of the length (export: length along +Y, top = max Y). AlignGrip
-                // puts the Grip's axes on the slot's; the shaft lies in the weapon's -Y and must run
-                // along the slot's +Y (the hilt axis, which Idle_Propped aims at the floor), so the
-                // Grip's Y points down the shaft: a 180 deg turn about Z.
-                // The hand rests ProppedHandHeight above the floor in Idle_Propped (the user's reference
-                // pose), so the grip sits that far up from the staff's foot: the foot meets the floor and
-                // whatever is left of the staff rises above the hand.
-                var mf = mesh.GetComponentInChildren<MeshFilter>();
-                float foot = mf != null ? mf.sharedMesh.bounds.min.y : 0f, top = mf != null ? mf.sharedMesh.bounds.max.y : 0f;
-                grip.localPosition = new Vector3(0f, Mathf.Min(top, foot + ProppedHandHeight), 0f);
-                grip.localRotation = Quaternion.Euler(0f, 0f, 180f);
-            }
-            else if (name == "Arrow")
+            if (name == "Arrow")
             {
                 // held between the fingers of the string hand: the shaft (weapon +Y, head at +Y) runs
                 // along the fingers, which is the slot's -X in Unity (Blender's socket +X; the FBX

@@ -167,6 +167,7 @@ ANCHOR_PREV = {}                                # last frame's swing root and sw
 ANCHOR_LOG = [0.0, 0]
 AIM_TRACE = []                                  # pass 1: per frame (aim-line yaw from forward, both hands raised?)
 AIM_PEAK = 1.0                                  # the full turn, for the step's lift profile
+AIM_FADE = int(arg("--aim-fade", "0"))          # frames: the aim turn fades in over the first N output frames and out over the last N even WITHOUT a blend_from / blend_to (a plain-transfer shot: the nearest raised value otherwise holds the full twist through the standing ends, 2026-09-25)
 AIM_BODY = float(arg("--aim-body", "1.0"))      # share of the aim turn taken by the WHOLE body (pelvis + feet); the rest is a spine twist above the pelvis (1 = side-on archer, 0 = pelvis stays on the idle heading)
 STEP_LIFT = float(arg("--step-lift", "0.04"))   # rig m: how high the stepping foot lifts mid-transition
 HIPS_DROP = float(arg("--hips-drop", "0"))      # rig m: an extra, deliberate crouch on top of the reach drop; with a blend-from/to it fades with the crossfades
@@ -178,7 +179,7 @@ ANCHOR_W = None                                 # pass 2: per frame weight of th
 AIM_HANDS = ("Left", "Right") if AIM_FORWARD == "L" else ("Right", "Left")
 STILL = [k for k in arg("--still-joints", "").split(",") if k]   # source joints (renamed, pre-mirror names) whose rotation vs their parent is frozen to the clip's typical value (a hand the tracker lost)
 STANCE = {k.split(":")[0]: float(k.split(":")[1]) for k in arg("--stance", "").split(",") if k}   # idle mode: "L:0.03,R:-0.03" moves each resting foot forward (+, rig m)
-HEADING = arg("--heading", "auto")             # auto: rotate the source so the hips' mean yaw vs the bind is 0 (a video capture faces wherever the performer stood); keep: as is; <deg>: fixed
+HEADING = arg("--heading", "auto")             # auto: rotate the source so the hips' mean yaw vs the bind is 0 (a video capture faces wherever the performer stood); first: the first 5 frames' yaw is 0 (the ends of a one-shot face the idle); keep: as is; <deg>: fixed
 HEAD_DAMP = float(arg("--head-damp", "1.0"))    # 0..1: scales the neck+head rotation away from rest (1 = as authored)
 TRAVEL_AXIS = arg("--travel-axis", "auto")
 GATE = [float(v) for v in arg("--gate", "").split(",")] if arg("--gate", "") else None   # "MIN,MAX" rig m: two-handed gate; the left hand rides the right hand's handle where the CAPTURE put it, clamped to that range down the hilt
@@ -628,9 +629,9 @@ if MIRROR:
 if HEADING != "keep":
     # hips yaw relative to the bind pose, mean over the clip (Kimodo ~0; the recorded idle stood 49 deg off,
     # which the retarget copied onto the pelvis while the IK feet stayed at rest: both legs twisted 49 deg)
-    if HEADING == "auto":
+    if HEADING in ("auto", "first"):
         sx = sy = 0.0
-        for p in SRC:
+        for p in (SRC if HEADING == "auto" else SRC[SRC_BEGIN:SRC_BEGIN + 5]):   # first: the used RANGE's first 5 frames face forward (this block runs before the src_begin trim; a shot that turns side-on and back: the ends must face the idle's heading, the mean would not). NB "auto" is the WHOLE file's mean, not the range's
             v = (p["Hips"][0] @ S_rest["Hips"][0].inverted()) @ Vector((0, 1, 0))
             sx += v.x; sy += v.y
         yaw = math.atan2(-sx, sy)                    # +yaw = counter-clockwise from above (Blender's Z rotation)
@@ -979,6 +980,8 @@ def pose(f, dz=0.0, f_travel=None):
             w_aim = min(w_aim, smooth01(f / float(BLEND_IN)))
         if END is not None and f > N_OUT - 1 - BLEND_OUT:
             w_aim = min(w_aim, 1.0 - smooth01((f - (N_OUT - 1 - BLEND_OUT)) / float(BLEND_OUT)))
+        if AIM_FADE:
+            w_aim = min(w_aim, smooth01(min(1.0, f / float(AIM_FADE))), smooth01(min(1.0, (N_OUT - 1 - f) / float(AIM_FADE))))
         aim_full_f = AIM_FIX[f] * w_aim; aim_yaw_f = aim_full_f * AIM_BODY; aim_w_f = w_aim if AIM_BODY else 0.0; aim_w_full = w_aim
     if (STANCE or aim_yaw_f) and not FK_LEGS:
         update()

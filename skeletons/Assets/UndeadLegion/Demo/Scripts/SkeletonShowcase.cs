@@ -265,7 +265,7 @@ namespace UndeadLegion.Demo
             new ClipSection { title = "Idle", idlePreference = new[] { "Idle" },
                 members = new[] { "Idle", "Idle_02", "Idle_03" } },
             new ClipSection { title = "Weapon idles", idlePreference = new[] { "Idle" },
-                members = new[] { "Idle_TwoHanded", "Idle_Propped", "Idle_Bow", "Idle_Staff" } },
+                members = new[] { "Idle_TwoHanded", "Idle_Bow", "Idle_Staff" } },   // Idle_Propped removed 2026-09-25 with the "Staff (propped)" loadout
             // impaled: kneeling with the sword in the belly (loop), then pull it out and rise (one-shot,
             // ends on the neutral standing pose so the crossfade lands on whichever idle follows)
             new ClipSection { title = "Impaled", idlePreference = new[] { "Idle" },
