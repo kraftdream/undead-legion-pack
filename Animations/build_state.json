@@ -66,15 +66,15 @@
   "mode": "loco"
  },
  "Cast_Wand_01": {
-  "sig": "cast_wand_flick|1789851314|{\"fist\": 0.8, \"frames\": 120, \"glb\": \"cast_wand_flick\", \"mode\": \"action\", \"name\": \"Cast_Wand_01\", \"seed\": 29, \"smooth\": 1, \"time_scale\": 1.0}",
+  "sig": "magic_ref_arm|1790323896|{\"_note\": \"2026-09-25: the user's mannequin recording (magic_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 1-54 of 'magic attacks.glb'. Previous (Kimodo build): {\\\"glb\\\": \\\"cast_wand_flick\\\", \\\"mode\\\": \\\"action\\\", \\\"seed\\\": 29, \\\"frames\\\": 120, \\\"time_scale\\\": 1.0, \\\"smooth\\\": 1, \\\"fist\\\": 0.8, \\\"prompt\\\": \\\"A person points a short wand forward with the right hand and flicks it sharply, casting a spell.\\\", \\\"layer\\\": \\\"upper\\\"}.  hand_edited (2026-09-25): the user's Cast_Wand_01_Fix baked by anim_nla_bake (the transfer kept as Cast_Wand_01_base).\", \"drift\": \"root\", \"fist\": 0.8, \"glb\": \"magic_ref_arm\", \"ground_fit\": true, \"hand_edited\": true, \"heading\": \"auto\", \"layer\": \"upper\", \"lift\": 0.004, \"mode\": \"action\", \"name\": \"Cast_Wand_01\", \"plant_feet\": 0.001, \"rename\": \"ue5\", \"smooth\": 1, \"src_begin\": 1, \"src_end\": 68, \"src_ext\": \"blend\", \"time_scale\": 1.0, \"unwind_ref\": \"body\", \"unwind_yaw\": true}",
   "ok": true,
-  "when": "2026-09-19 23:58",
+  "when": "2026-09-25 12:06",
   "mode": "action"
  },
  "Cast_Wand_02": {
-  "sig": "cast_wand_raise|1789851473|{\"fist\": 0.8, \"frames\": 120, \"glb\": \"cast_wand_raise\", \"mode\": \"action\", \"name\": \"Cast_Wand_02\", \"seed\": 31, \"smooth\": 1, \"time_scale\": 1.0}",
+  "sig": "magic_ref_arm|1790323896|{\"_note\": \"2026-09-25: the user's mannequin recording (magic_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 55-98. Previous (Kimodo build): {\\\"glb\\\": \\\"cast_wand_raise\\\", \\\"mode\\\": \\\"action\\\", \\\"seed\\\": 31, \\\"frames\\\": 120, \\\"time_scale\\\": 1.0, \\\"smooth\\\": 1, \\\"fist\\\": 0.8, \\\"prompt\\\": \\\"A person raises a short wand overhead with the right hand and thrusts it forward, casting a spell.\\\", \\\"layer\\\": \\\"upper\\\"}.  hand_edited (2026-09-25): the user's Cast_Wand_02_Fix baked by anim_nla_bake (the transfer kept as Cast_Wand_02_base).\", \"drift\": \"root\", \"fist\": 0.8, \"glb\": \"magic_ref_arm\", \"ground_fit\": true, \"hand_edited\": true, \"heading\": \"auto\", \"layer\": \"upper\", \"lift\": 0.004, \"mode\": \"action\", \"name\": \"Cast_Wand_02\", \"plant_feet\": 0.001, \"rename\": \"ue5\", \"smooth\": 1, \"src_begin\": 69, \"src_end\": 123, \"src_ext\": \"blend\", \"time_scale\": 1.0, \"unwind_ref\": \"body\", \"unwind_yaw\": true}",
   "ok": true,
-  "when": "2026-09-19 23:59",
+  "when": "2026-09-25 12:16",
   "mode": "action"
  },
  "Attack_2H_01": {
@@ -96,45 +96,33 @@
   "mode": "action"
  },
  "Cast_Staff_01": {
-  "sig": "cast_staff_slam|1789851630|{\"fist\": 0.9, \"frames\": 120, \"glb\": \"cast_staff_slam\", \"lock_left_hand\": 0.22, \"mode\": \"action\", \"name\": \"Cast_Staff_01\", \"seed\": 33, \"smooth\": 1, \"time_scale\": 1.0}",
+  "sig": "magic_ref_arm|1790323896|{\"_note\": \"2026-09-25: the user's mannequin recording (magic_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 99-160; both hands on the staff through the gate (the shaft below the right hand), the left hand closed with the Grip fist (it holds no item in the engine). Previous (Kimodo build): {\\\"glb\\\": \\\"cast_staff_slam\\\", \\\"mode\\\": \\\"action\\\", \\\"seed\\\": 33, \\\"frames\\\": 120, \\\"time_scale\\\": 1.0, \\\"smooth\\\": 1, \\\"fist\\\": 0.9, \\\"prompt\\\": \\\"A person holds a long staff in both hands and slams its base into the ground, casting a spell.\\\", \\\"lock_left_hand\\\": 0.22, \\\"layer\\\": \\\"full\\\"}.  gate -0.35,-0.15 (NEGATIVE: the left hand on the +Y side of the right hand, toward the staff's long end - the performer's left hand is 0.3-0.6 m away on that side; the sword-style range 0.05,0.28 clamped it to 5 cm and the pull dragged the right arm to the chest). Then anim_nla_bake --arm-pole-fk R --fk-arm R (the gate pull's right arm back on FK, the elbow on the capture's plane), hand_edited.\", \"drift\": \"root\", \"fist\": 0.9, \"gate\": \"-0.35,-0.15\", \"glb\": \"magic_ref_arm\", \"ground_fit\": true, \"hand_edited\": true, \"hand_grip\": \"L\", \"heading\": \"auto\", \"layer\": \"full\", \"lift\": 0.004, \"mode\": \"action\", \"name\": \"Cast_Staff_01\", \"plant_feet\": 0.001, \"rename\": \"ue5\", \"smooth\": 1, \"src_begin\": 124, \"src_end\": 200, \"src_ext\": \"blend\", \"time_scale\": 1.0, \"unwind_ref\": \"body\", \"unwind_yaw\": true}",
   "ok": true,
-  "when": "2026-09-20 00:11",
-  "mode": "action"
- },
- "Cast_Staff_02": {
-  "sig": "cast_staff_sweep|1789851787|{\"fist\": 0.9, \"frames\": 120, \"glb\": \"cast_staff_sweep\", \"lock_left_hand\": 0.22, \"mode\": \"action\", \"name\": \"Cast_Staff_02\", \"seed\": 35, \"smooth\": 1, \"time_scale\": 1.0}",
-  "ok": true,
-  "when": "2026-09-20 00:12",
+  "when": "2026-09-25 11:42",
   "mode": "action"
  },
  "Summon": {
-  "sig": "special_summon|1789851967|{\"arm_keys\": [[0.0, \"free\"], [0.25, \"summon_high\"], [0.75, \"summon_high\"], [1.0, \"free\"]], \"fist\": 0.3, \"frames\": 150, \"glb\": \"special_summon\", \"mode\": \"action\", \"name\": \"Summon\", \"seed\": 37, \"smooth\": 1, \"time_scale\": 1.2}",
+  "sig": "taunts_ref_arm|1790323902|{\"_note\": \"2026-09-25: the user's mannequin recording (taunts_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 353-443 (both hands raised overhead). Previous (Kimodo build): {\\\"glb\\\": \\\"special_summon\\\", \\\"mode\\\": \\\"action\\\", \\\"seed\\\": 37, \\\"frames\\\": 150, \\\"time_scale\\\": 1.2, \\\"smooth\\\": 1, \\\"fist\\\": 0.3, \\\"prompt\\\": \\\"A person slowly raises both arms overhead with open hands and holds them up while chanting, then lowers them.\\\", \\\"arm_keys\\\": [[0.0, \\\"free\\\"], [0.25, \\\"summon_high\\\"], [0.75, \\\"summon_high\\\"], [1.0, \\\"free\\\"]], \\\"layer\\\": \\\"full\\\"}. \", \"drift\": \"root\", \"fist\": 0.3, \"glb\": \"taunts_ref_arm\", \"ground_fit\": true, \"heading\": \"auto\", \"layer\": \"full\", \"lift\": 0.004, \"mode\": \"action\", \"name\": \"Summon\", \"plant_feet\": 0.001, \"rename\": \"ue5\", \"smooth\": 1, \"src_begin\": 441, \"src_end\": 554, \"src_ext\": \"blend\", \"time_scale\": 1.0, \"unwind_ref\": \"body\", \"unwind_yaw\": true}",
   "ok": true,
-  "when": "2026-09-20 00:23",
+  "when": "2026-09-25 11:19",
   "mode": "action"
  },
  "AOE_Cast": {
-  "sig": "special_aoe|1789852147|{\"fist\": 0.3, \"frames\": 150, \"glb\": \"special_aoe\", \"mode\": \"action\", \"name\": \"AOE_Cast\", \"seed\": 39, \"smooth\": 1, \"time_scale\": 1.0}",
+  "sig": "taunts_ref_arm|1790323902|{\"_note\": \"2026-09-25: the user's mannequin recording (taunts_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 444-533 (the user's 'cast_aoe': the name AOE_Cast is kept, the demo and controller reference it); both hands up then a slam to 0.8 m with a crouch. Previous (Kimodo build): {\\\"glb\\\": \\\"special_aoe\\\", \\\"mode\\\": \\\"action\\\", \\\"seed\\\": 39, \\\"frames\\\": 150, \\\"time_scale\\\": 1.0, \\\"smooth\\\": 1, \\\"fist\\\": 0.3, \\\"prompt\\\": \\\"A person raises both hands high, then slams them down toward the ground releasing a burst of energy, then stands up.\\\", \\\"layer\\\": \\\"full\\\"}.  src_begin 559 (the user's 444 x1.25 = 555): the tracker jumps the right hand 14 cm / 31 deg in one frame at source 555-557, the tail of the summon's arm drop; the clip starts once it has settled.\", \"drift\": \"root\", \"fist\": 0.3, \"glb\": \"taunts_ref_arm\", \"ground_fit\": true, \"heading\": \"auto\", \"layer\": \"full\", \"lift\": 0.004, \"mode\": \"action\", \"name\": \"AOE_Cast\", \"plant_feet\": 0.001, \"rename\": \"ue5\", \"smooth\": 1, \"src_begin\": 559, \"src_end\": 666, \"src_ext\": \"blend\", \"time_scale\": 1.0, \"unwind_ref\": \"body\", \"unwind_yaw\": true}",
   "ok": true,
-  "when": "2026-09-20 00:16",
-  "mode": "action"
- },
- "Taunt": {
-  "sig": "special_taunt|1789852327|{\"arm_keys\": [[0.0, \"free\"], [0.5, \"free\"], [0.62, \"arms_wide\"], [0.82, \"arms_wide\"], [1.0, \"free\"]], \"fist\": 0.9, \"frames\": 150, \"glb\": \"special_taunt\", \"mode\": \"action\", \"name\": \"Taunt\", \"seed\": 41, \"smooth\": 1, \"time_scale\": 1.0}",
-  "ok": true,
-  "when": "2026-09-20 00:24",
+  "when": "2026-09-25 11:33",
   "mode": "action"
  },
  "Cutthroat": {
-  "sig": "special_cutthroat|1789852507|{\"fist\": 0.9, \"frames\": 150, \"glb\": \"special_cutthroat\", \"mode\": \"action\", \"name\": \"Cutthroat\", \"seed\": 43, \"smooth\": 1, \"time_scale\": 1.0}",
+  "sig": "taunts_ref_arm|1790323902|{\"_note\": \"2026-09-25: the user's mannequin recording (taunts_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 277-351. Previous (Kimodo build): {\\\"glb\\\": \\\"special_cutthroat\\\", \\\"mode\\\": \\\"action\\\", \\\"seed\\\": 43, \\\"frames\\\": 150, \\\"time_scale\\\": 1.0, \\\"smooth\\\": 1, \\\"fist\\\": 0.9, \\\"prompt\\\": \\\"A person grabs an enemy from behind with the left arm and slices across the throat with a dagger in the right hand.\\\", \\\"layer\\\": \\\"full\\\"}. \", \"drift\": \"root\", \"fist\": 0.9, \"glb\": \"taunts_ref_arm\", \"ground_fit\": true, \"heading\": \"auto\", \"layer\": \"full\", \"lift\": 0.004, \"mode\": \"action\", \"name\": \"Cutthroat\", \"plant_feet\": 0.001, \"rename\": \"ue5\", \"smooth\": 1, \"src_begin\": 346, \"src_end\": 439, \"src_ext\": \"blend\", \"time_scale\": 1.0, \"unwind_ref\": \"body\", \"unwind_yaw\": true}",
   "ok": true,
-  "when": "2026-09-20 00:18",
+  "when": "2026-09-25 11:23",
   "mode": "action"
  },
  "Rally": {
-  "sig": "special_rally|1789852686|{\"fist\": 0.9, \"frames\": 150, \"glb\": \"special_rally\", \"mode\": \"action\", \"name\": \"Rally\", \"seed\": 45, \"smooth\": 1, \"time_scale\": 1.0}",
+  "sig": "taunts_ref_arm|1790323902|{\"_note\": \"2026-09-25: the user's mannequin recording (taunts_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 202-275 (sword raised overhead). Previous (Kimodo build): {\\\"glb\\\": \\\"special_rally\\\", \\\"mode\\\": \\\"action\\\", \\\"seed\\\": 45, \\\"frames\\\": 150, \\\"time_scale\\\": 1.0, \\\"smooth\\\": 1, \\\"fist\\\": 0.9, \\\"prompt\\\": \\\"A person raises a sword overhead with the right hand and shouts, rallying others.\\\", \\\"layer\\\": \\\"upper\\\"}. \", \"drift\": \"root\", \"fist\": 0.9, \"glb\": \"taunts_ref_arm\", \"ground_fit\": true, \"heading\": \"auto\", \"layer\": \"upper\", \"lift\": 0.004, \"mode\": \"action\", \"name\": \"Rally\", \"plant_feet\": 0.001, \"rename\": \"ue5\", \"smooth\": 1, \"src_begin\": 253, \"src_end\": 344, \"src_ext\": \"blend\", \"time_scale\": 1.0, \"unwind_ref\": \"body\", \"unwind_yaw\": true}",
   "ok": true,
-  "when": "2026-09-20 00:21",
+  "when": "2026-09-25 11:29",
   "mode": "action"
  },
  "Attack_R_Stab": {
@@ -184,5 +172,41 @@
   "ok": true,
   "when": "2026-09-24 16:07",
   "mode": "loco"
+ },
+ "Impaled_Rise": {
+  "sig": "standing_up|1790010422|{\"_note\": \"hand_edited (2026-09-24): post-processed by anim_nla_bake: frames 47-65 cut (--speed-segment 47:65:19) and the last 8 frames crossfaded to Idle frame 1 (--end-blend: the torso lowered to the idle's height so the knees bend and the feet plant). user-supplied mocap 2026-09-21, replaces the Kimodo rise_a splice; starts on Impaled_Idle's frame (the hand-posed base with the idle's analytic legs, so the two clips meet exactly) and crossfades into the capture\", \"arm_keys\": [[0.0, \"base\"], [0.08, \"base\"], [0.3, \"free\"]], \"blend_from\": \"Impaled_Idle:1\", \"blend_from_lift\": 0.0061, \"blend_in\": 14, \"blend_out\": 20, \"blend_to\": \"Idle\", \"elbow_pole\": true, \"fist\": 0.6, \"glb\": \"standing_up\", \"ground\": \"twoway\", \"ground_ignore\": \"Robe,Skirt\", \"hand_edited\": true, \"layer\": \"full\", \"lift\": 0.004, \"mode\": \"action\", \"name\": \"Impaled_Rise\", \"plant_feet\": 0.001, \"rename\": \"jnt\", \"smooth\": 1, \"src_end\": 110, \"src_start\": 42}",
+  "ok": true,
+  "when": "2026-09-24 21:14",
+  "mode": "action"
+ },
+ "Walk_Fwd_02": {
+  "sig": "walk_fwd_n3|1790322700|{\"_note\": \"2026-09-25, user: 'another set of walk/run forward; the current ones are fine for lower ranks, the necromancer and mage can have more normal-looking movement'. Generated WITHOUT the stiff-undead body profile (no_profile). Chosen among three candidates (walk_fwd_n1..n3): the cleanest gait cycle (autocorrelation 0.97), both knees 109-171 deg (n1 locked at 175), chest 6-9 deg from vertical with a level head, 47 mm of planted-foot skate per stance. lift 0.008: the default 15 mm left the six boots +12..+19 mm up (a constant of the retarget's ground pass on this walk); now +4..+11.\", \"fist\": 0.4, \"frames\": 240, \"glb\": \"walk_fwd_n3\", \"lift\": 0.008, \"mode\": \"loco\", \"name\": \"Walk_Fwd_02\", \"no_profile\": true, \"seed\": 35, \"smooth\": 1, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-25 10:58",
+  "mode": "loco"
+ },
+ "Run_Fwd_02": {
+  "sig": "run_fwd_n2|1790322526|{\"_note\": \"2026-09-25, the 'normal' run (see Walk_Fwd_02). Chosen among run_fwd_n1..n3: both knees bent (90-164 deg, symmetric), the least skate (33 / 46 mm per stance; n1 skated 191 mm), chest 20-29 deg forward as a jog leans, head level; n3 barely bent the right knee and looked up.\", \"fist\": 0.6, \"frames\": 240, \"glb\": \"run_fwd_n2\", \"mode\": \"loco\", \"name\": \"Run_Fwd_02\", \"no_profile\": true, \"seed\": 24, \"smooth\": 1, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-25 10:58",
+  "mode": "loco"
+ },
+ "Taunt_01": {
+  "sig": "taunts_ref_arm|1790323902|{\"_note\": \"2026-09-25: the user's mannequin recording (taunts_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 1-66 of 'taunts.glb' (replaces the Kimodo Taunt). \", \"drift\": \"root\", \"fist\": 0.9, \"glb\": \"taunts_ref_arm\", \"ground_fit\": true, \"heading\": \"auto\", \"layer\": \"full\", \"lift\": 0.004, \"mode\": \"action\", \"name\": \"Taunt_01\", \"plant_feet\": 0.001, \"rename\": \"ue5\", \"smooth\": 1, \"src_begin\": 1, \"src_end\": 83, \"src_ext\": \"blend\", \"time_scale\": 1.0, \"unwind_ref\": \"body\", \"unwind_yaw\": true}",
+  "ok": true,
+  "when": "2026-09-25 11:24",
+  "mode": "action"
+ },
+ "Taunt_02": {
+  "sig": "taunts_ref_arm|1790323902|{\"_note\": \"2026-09-25: the user's mannequin recording (taunts_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 69-127. \", \"drift\": \"root\", \"fist\": 0.9, \"glb\": \"taunts_ref_arm\", \"ground_fit\": true, \"heading\": \"auto\", \"layer\": \"full\", \"lift\": 0.004, \"mode\": \"action\", \"name\": \"Taunt_02\", \"plant_feet\": 0.001, \"rename\": \"ue5\", \"smooth\": 1, \"src_begin\": 86, \"src_end\": 159, \"src_ext\": \"blend\", \"time_scale\": 1.0, \"unwind_ref\": \"body\", \"unwind_yaw\": true}",
+  "ok": true,
+  "when": "2026-09-25 11:26",
+  "mode": "action"
+ },
+ "Taunt_03": {
+  "sig": "taunts_ref_arm|1790323902|{\"_note\": \"2026-09-25: the user's mannequin recording (taunts_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 128-193. \", \"drift\": \"root\", \"fist\": 0.9, \"glb\": \"taunts_ref_arm\", \"ground_fit\": true, \"heading\": \"auto\", \"layer\": \"full\", \"lift\": 0.004, \"mode\": \"action\", \"name\": \"Taunt_03\", \"plant_feet\": 0.001, \"rename\": \"ue5\", \"smooth\": 1, \"src_begin\": 160, \"src_end\": 241, \"src_ext\": \"blend\", \"time_scale\": 1.0, \"unwind_ref\": \"body\", \"unwind_yaw\": true}",
+  "ok": true,
+  "when": "2026-09-25 11:27",
+  "mode": "action"
  }
 }

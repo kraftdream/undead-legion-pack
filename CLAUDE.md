@@ -43,12 +43,12 @@ every one verified on all six models with `verify_clip.py` + `ground_clip.py`; p
 | Idles (loop) | `Idle`, `Idle_02` (hand-fixed 2026-09-21: blades forward, Idle grounded, Idle_02 upright with hanging arms, left foot 5 cm forward / right 5 cm back), `Idle_03` (the user's own video-mocap idle, 2026-09-21, slowed 3×, 10.8 s loop, fingers from the capture, right foot 10 cm forward / left 10 cm back); weapon idles `Idle_TwoHanded` (the user's mannequin recording, 2026-09-23: two-hander held ahead, both hands on the shaft), `Idle_Propped` (same recording: both hands resting on the top of a staff planted ahead, demo loadout "Staff (propped)"), `Idle_Bow`, `Idle_Staff` (`Idle_Wand` removed 2026-09-24: "enough idle animations"; the H1Wand loadout stays, the Cast_Wand clips play over Idle_Staff / Idle) |
 | Impaled (hand-authored) | `Impaled_Idle` (loop: on its knees, hunched, sword through the belly), `Impaled_Rise` (one-shot: pulls it out, stands up, ends on the neutral standing pose) |
 | Twitch (additive) | `Twitch_01/02/03` head + jaw |
-| Locomotion (loop, root motion) | `Walk_Fwd`, `Walk_Back`, `Run_Fwd`, `Strafe_Left` (mirrored right), `Strafe_Right` |
+| Locomotion (loop, root motion) | `Walk_Fwd`, `Walk_Back`, `Run_Fwd`, `Strafe_Left` (mirrored right), `Strafe_Right`; **`Walk_Fwd_02`, `Run_Fwd_02`** (2026-09-25: the "normal" pair, an upright human walk and jog for the higher ranks such as the necromancer and mage, Kimodo without the stiff-undead prompt profile) |
 | Per arm (2026-09-22/23, replaces the one-handed set) | `Attack_R_Stab`, `Attack_R_Slice` (the user's mannequin-app recording `attack_ref5`, frames 26–62 / 111–149, plain transfer), `Attack_L_Stab`, `Attack_L_Slice` (the same mirrored), `Block_L_Idle` (loop: shield held up on the left arm, a HELD action in the demo). Each lives on its arm's masked layer (`LeftArm` / `RightArm`) and as a full-body state on Base; the Animator carries the transitions |
 | Two-handed | `Attack_2H_01` (downward chop with a step), `Attack_2H_02` (raise and horizontal sweep) — the user's mannequin recording (2026-09-23), legs planted, left hand on the handle through the two-handed GATE (slides 0.03..0.11 rig m below the right hand) |
 | Bow | `Shoot_01` (the user's video mocap, 2026-09-22: one shoot clip, draw and release with a step into the archer's stance; `Shoot_02` retired) |
-| Magic | `Cast_Wand_01/02`, `Cast_Staff_01/02` (both hands on the staff) |
-| Specials | `Summon` (necromancer, arms overhead), `AOE_Cast` (mage slam), `Taunt` (warrior, chest beat + arms wide), `Cutthroat` (assassin), `Rally` (knight, sword raised) |
+| Magic | `Cast_Wand_01/02`, `Cast_Staff_01` (both hands on the staff) — the user's mannequin recording `magic attacks.glb` (2026-09-25); `Cast_Staff_02` retired |
+| Specials | `Summon` (necromancer, both hands overhead), `AOE_Cast` (mage: hands up, then a slam with a crouch), `Taunt_01/02/03` (warrior), `Cutthroat` (assassin), `Rally` (knight, sword raised) — all from the user's recording `taunts.glb` (2026-09-25); the Kimodo `Taunt` retired |
 | Death | `Death_01` (struck, falls on the back), `Death_02` (kneels, crumples sideways) |
 
 **Measured speed table** (Unity, Humanoid, root motion on, Knight; the other five are
@@ -59,6 +59,8 @@ identical because the avatar is shared). Ship these numbers with the pack:
 | `Walk_Fwd` | 1.400 s | +0.724 m | 0.52 m/s |
 | `Walk_Back` | 1.967 s | −0.662 m | 0.34 m/s (redone 2026-09-24; upper body from Idle_03) |
 | `Run_Fwd` | 0.967 s | +1.107 m | 1.14 m/s |
+| `Walk_Fwd_02` | 1.133 s | +1.455 m | 1.28 m/s (the upright "normal" walk, 2026-09-25) |
+| `Run_Fwd_02` | 0.833 s | +1.562 m | 1.87 m/s (the "normal" jog) |
 | `Strafe_Left` | 1.467 s | −0.419 m (X) | 0.29 m/s (steps 30 % shorter, 2026-09-24) |
 | `Strafe_Right` | 1.467 s | +0.419 m (X) | 0.29 m/s (the mirror of the finished Strafe_Left) |
 
@@ -1078,6 +1080,93 @@ the loop, normalised, delayed 4 frames (wrapping) and inverted, moves the IK han
 and pitches it ±6° about the socket's finger axis (the tip dips as the hand drops; the sign measured so a
 positive turn lowers the hilt). Hips ±3.4 mm → hand ±20 mm in total, 3 mm per frame, elbow 105–119°, seam
 0.9 mm.
+
+**Impaled_Rise leg snaps (2026-09-24, "lots of snapping in the legs, most likely IK gaining / losing
+control").** Scanned: knees jumping 179–186 mm with shin rotations of 56–99° at frames 2 and 16, the
+legs' IK weight switching 12–14 times (the clip predated `ik_always` and the FK-knee pole). A rebuild
+through the current retarget fixed the right leg and the switching (0 switches) but the LEFT knee still
+jumped 105 mm at frame 40: the capture's left leg is dead straight (180°) over frames 40–46, its knee ON
+the hip→ankle axis, so the pole plane was noise and flipped sides. **The pole now has memory** (retarget
+`ik_pole` and the bake tool's `leg_pole`): while the reference knee lies within 15 mm of the axis, or its
+side jumps more than 90° from the last frame, last frame's plane is kept. After: no leg bone above
+11.3° per frame, knee steps ≤ 38 mm (the rise itself). Rule: **a knee plane is only trusted when the
+reference leg is bent; straight legs inherit the plane.**
+
+Then "cut the frames from 47 to 65; it's ok to lower the torso on the fully standing pose, use it to fix
+the floating feet at the end": the rise's end sat at hips 0.546 rig m with the knees at 163° (near
+straight: Humanoid floats the feet) while the hand-fixed Idle's frame 1 is at 0.509 with knees 135–139°
+— the old `blend_to Idle` had been baked before the Idle fix. `anim_nla_bake --speed-segment 47:65:19`
+(the 19 frames become 2: 69 → 52 frames, a 19° step at the junction, the asked-for cut) and
+**`--end-blend Idle:1:8`**: the last 8 frames crossfade every control to Idle's frame 1 (the legs keep
+their IK with the pole re-aimed on the FK plane through it), so the clip ENDS on the idle's pose exactly —
+hips 0.509, knees 139 / 135°, feet at the idle's height — and the demo's crossfade lands with nothing to
+do. Rule: **a one-shot that returns to an idle should end on that idle's current frame 1; after an idle
+is hand-fixed, re-blend the one-shots that end on it.** Impaled_Rise is `hand_edited` now.
+
+**A second, "normal" walk and run (2026-09-25, user: "another set of walk forward and run forward; the
+current ones are fine for skeletons of lower ranks, but the necromancer and mage can have more normal-looking
+movement").** `Walk_Fwd_02` / `Run_Fwd_02`, generated by Kimodo WITHOUT the stiff-undead body profile
+(manifest `no_profile`, `kimodo_batch` passes `-NoProfile`; the profile is what makes the first set shamble)
+from plain human prompts, three candidates each (`walk_fwd_n1..n3`, `run_fwd_n1..n3`, GLBs kept), scored
+with an extended `walkeval` (gait-cycle autocorrelation, knee range, planted-foot skate, largest leg-bone
+step, chest lean and head pitch from vertical, hip sway, hand swing per arm). Walk: n3 (seed 35) has the
+cleanest cycle (r 0.97), both knees 109–171° (n1 locked at 175°, n2's cycle was r 0.51 with a 110 mm seam
+skate), chest 6–9° with a level head — the first set leans 18–41° with the head bowed 23–39°; its arm swing
+is asymmetric (89 / 168 mm), the one thing a hand fix might want. Run: n2 (seed 24), both knees bent
+(90–164°, symmetric), the least skate (33 / 46 mm per stance; n1 skated 191 mm), chest 20–29° as a jog
+leans (n3 barely bent the right knee and looked up). Plain loco retargets at `time_scale 1.0` (their
+speeds are a human's: 1.28 / 1.87 m/s against the shambling 0.52 / 1.14; `time_scale` is the knob if the
+higher ranks should read heavier), 35 / 26 frames, seams 0.0000°, boots +4..+12 mm (`lift 0.008` on the
+walk: the default 15 mm left them +12..+19) / +7..+15 mm. Same shared clips as everything else: they sit
+in the demo's Locomotion section (`SkeletonShowcase` members) and on `AC_Skeleton` as Base states, and
+the buyer decides per class; no per-character default exists in the demo. The speed table above carries
+both. Rule: **a prompt's body description is a style knob** — the same generator gives a shambling and
+an upright gait from the profile alone, so generate style variants by toggling it, not by re-describing
+the gait.
+
+**The recorded magic and specials set (2026-09-25, user: two mannequin-app files, `P:\magic attacks.glb`
+and `P:	aunts.glb`, split by frame ranges).** `External Anims/Kimodo/magic_ref_mocap.glb` →
+`magic_ref_arm.blend` (200 frames) and `taunts_ref_mocap.glb` → `taunts_ref_arm.blend` (666 frames) through
+`glb_nodes_to_armature.py` (which takes a `DST.glb` argument and writes `DST.glb.blend` + `DST.glb.glb`; rename
+after). **The user's frame numbers are 24 fps again**: both files' lengths are the user's last frame × 1.25
+exactly (160 → 200, 533 → 666), and a per-10-frame hand-speed scan of each source (`srcspeed.py`-style) put
+every clip's motion inside its ×1.25 range with the pose holds where the user's boundaries fall. Ten clips,
+all plain transfers like the arm attacks (`rename ue5`, `src_ext blend`, `mode action`, `plant_feet`,
+`drift root`, `unwind_yaw` + `unwind_ref body`, `lift 0.004`, `ground_fit`): `Cast_Wand_01` (1–68),
+`Cast_Wand_02` (69–123), `Cast_Staff_01` (124–200); `Taunt_01` (1–83), `Taunt_02` (86–159), `Taunt_03`
+(160–241), `Rally` (253–344), `Cutthroat` (346–439), `Summon` (441–554), `AOE_Cast` (555–666; the user
+wrote "cast_aoe", the name is kept because the demo and the controller reference it). `Cast_Staff_02` and
+the Kimodo `Taunt` are retired (export, meta, manifest entry, build state, demo lists; the actions stay in
+the anim file), the layer tags as before (wand casts and Rally `upper`, the rest `full`). Root motion within
+a few cm with the yaw unwound to ±1°, the highest model's sole on the floor, the others sinking ≤ 13 mm
+after the fit. Per-bone scan (`stepscan.py`: worst per-frame step of every arm, leg and spine bone, knee and
+elbow ranges): the taunts, Rally and Cutthroat under 11° per frame, the wand casts' flicks 22–26° on the
+hand (the motion), Summon 18°. Two things needed fixing: **AOE_Cast started on a tracker glitch** (the
+source's right hand jumps 14 cm / 31° in ONE frame at source 555–557, the tail of the summon's arm drop;
+the user's start frame sat exactly on it): `src_begin 559`, four frames later, once the hand has settled
+(worst step 28° → 18°). Rule kept: **scan the source's per-frame steps at a requested cut before trusting
+it.** And **the staff cast's gate was on the wrong side**: the gate range is written for a sword (the second
+hand BELOW the grip, −Y, toward the pommel), but the staff's long end lies on the +Y side and the performer's
+left hand rides there, 0.3–0.6 m from the right hand (the source's hand distance, measured); with
+`gate "0.05,0.28"` the projection was negative on every frame, clamped to the 5 cm minimum, and the pull
+dragged the right arm to the chest (12 cm from the left shoulder, 35–50 % of its reach) with the left elbow
+locked at 145–180° — the built clip looked nothing like the capture while every number of the transfer was
+"fine". The gate clamps a SIGNED projection, so **`gate "-0.35,-0.15"`** (negative = the +Y side) keeps the
+left hand 0.15–0.35 rig m up the shaft from the right hand where the capture has it; then
+`anim_nla_bake --arm-pole-fk R --fk-arm R` lands the gate pull's right arm back on FK with the elbow on the
+capture's plane (the 40° forearm step at the pull's one FK frame is gone); the rig's shorter reach still
+locked the left elbow at 180° with a 65° upper-arm flip on frames 39–49 (the capture's left arm is at 75 %
+there), so a second pass `--arm-pole-fk L --grip-follow L:@0.15 --grip-pull --grip-reach 0.96 --fk-arm R`
+holds the left slot 0.15 rig m up the shaft from the right slot (0.0 mm on every frame) and pulls the right
+hand in wherever the left would pass 96 % of its reach: left elbow 51–147°, worst step 25° inside the raise,
+`hand_edited`. Verified in play mode on the Mage: all ten buttons, the one-shots on Base, Cast_Wand_01
+clicked during Walk_Fwd goes to the UpperBody layer with the legs walking. Rule: **a two-handed
+prop's second hand goes where the PROP extends, which for a staff is the "blade" side; check the capture's hand
+spacing before choosing the gate's sign.** Also bitten: the bake tool had LOST six functions (`_hand_from_sock`,
+`arm_pole_fk`, `fk_arms`, `grip_follow`, `shaft_hand`, `torso_counter_yaw`, plus the `HAND_FROM_SOCK` init)
+in the pin-foot rewrite of commit `b4824c5` — the option parsing and the call sites survived, so the tool
+parsed and only failed at the call (`NameError`, before its `--save`); restored from `f4141e2`. Rule:
+**after any splice edit of a tool, diff its `def` list against the previous commit.**
 
 **Multi-frame pose references** (built for the swing, kept): `pose_ref` takes several
 `ACTION:frame@at`; the first ramps in over `pose_ref_in` frames, the deltas interpolate between

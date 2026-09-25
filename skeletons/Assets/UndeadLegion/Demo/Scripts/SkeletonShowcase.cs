@@ -272,6 +272,10 @@ namespace UndeadLegion.Demo
                 members = new[] { "Impaled_Idle", "Impaled_Rise" } },
             new ClipSection { title = "Locomotion", idlePreference = new[] { "Idle" },
                 members = new[] { "Walk_Fwd", "Walk_Back", "Run_Fwd", "Strafe_Left", "Strafe_Right",
+                                  // the "normal" pair (2026-09-25): an upright human walk and jog, generated without the
+                                  // stiff-undead prompt profile, for the higher ranks (necromancer, mage); the same
+                                  // shared clips, the buyer picks per class
+                                  "Walk_Fwd_02", "Run_Fwd_02",
                                   "Turn_Left_90", "Turn_Right_90" } },
             // per-arm set (2026-09-22): each clip lives on its arm's masked layer; Block_L_Idle is a held toggle
             new ClipSection { title = "Right arm", idlePreference = new[] { "Idle" },
@@ -283,9 +287,9 @@ namespace UndeadLegion.Demo
             new ClipSection { title = "Bow", idlePreference = new[] { "Idle_Bow", "Idle" },
                 members = new[] { "Shoot_01" } },
             new ClipSection { title = "Magic", idlePreference = new[] { "Idle_Staff", "Idle" },
-                members = new[] { "Cast_Wand_01", "Cast_Wand_02", "Cast_Staff_01", "Cast_Staff_02" } },
+                members = new[] { "Cast_Wand_01", "Cast_Wand_02", "Cast_Staff_01" } },   // Cast_Staff_02 retired 2026-09-25 (the recorded set)
             new ClipSection { title = "Specials", idlePreference = new[] { "Idle" },
-                members = new[] { "Taunt", "Rally", "Cutthroat", "Summon", "AOE_Cast" } },
+                members = new[] { "Taunt_01", "Taunt_02", "Taunt_03", "Rally", "Cutthroat", "Summon", "AOE_Cast" } },   // the user's recordings, 2026-09-25 (Taunt -> Taunt_01..03)
             new ClipSection { title = "Reactions", idlePreference = new[] { "Idle" },
                 members = new[] { "Hit_Front", "Hit_Back", "Stagger", "Knockdown", "Get_Up", "Rise" } },
             new ClipSection { title = "Death", idlePreference = new string[0],

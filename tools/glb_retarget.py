@@ -184,7 +184,8 @@ TRAVEL_AXIS = arg("--travel-axis", "auto")
 GATE = [float(v) for v in arg("--gate", "").split(",")] if arg("--gate", "") else None   # "MIN,MAX" rig m: two-handed gate; the left hand rides the right hand's handle where the CAPTURE put it, clamped to that range down the hilt
 GATE_SMOOTH = float(arg("--gate-smooth", "0.35"))   # 0..1: per-frame smoothing of the gated distance (1 = none)
 GATE_PREV = {}
-KNEE_POLE_PREV = {}                              # last frame's FK knee direction per side (the IK pole follows it; reset on frame 0)
+KNEE_POLE_PREV = {}
+POLE_PREV = {}                                   # ik_pole's last direction per (kind, side): memory for straight limbs and flips                              # last frame's FK knee direction per side (the IK pole follows it; reset on frame 0)
 IK_ALWAYS = arg("--ik-always", "auto")           # editing convenience (user, 2026-09-23: "foot_ik controls the leg on frame 13 and detaches on 14"): a limb that any pass puts on IK stays on IK for the WHOLE clip; on the frames a pass did not touch the IK target and pole are placed on the FK result. auto = legs whenever the plant is on (exact: feet 0 mm, knees < 1 mm, thigh roll stripped at export anyway); arms only by request ("arms" / "both": the IK forearm carries no twist of its own, so the capture's forearm pronation on FK frames, ~20 deg on the stab, is lost); "none"
 IK_ALWAYS_LEGS = IK_ALWAYS in ("legs", "both") or (IK_ALWAYS == "auto" and PLANT > 0)
 IK_ALWAYS_ARMS = IK_ALWAYS in ("arms", "both")
@@ -901,8 +902,15 @@ def ik_pole(kind, side, mid_target, hip_, end_):
         return
     ax.normalize()
     d_ = mid_target - hip_; perp = d_ - ax * d_.dot(ax)
-    if perp.length < 0.005:
-        return                                                  # a straight limb has no plane: leave the pole where it is
+    # the pole has MEMORY: a near-straight limb (the capture's knee within 15 mm of the hip->ankle axis) has no
+    # plane of its own and a sudden side change (> 90 deg from last frame) is a flip - both keep last frame's
+    # direction (Impaled_Rise: the left FK leg is dead straight over frames 40-46, the knee jumped 105 mm)
+    key_ = (kind, side); prev_ = POLE_PREV.get(key_)
+    if perp.length < 0.015 or (prev_ is not None and perp.normalized().dot(prev_) < 0.0):
+        if prev_ is None:
+            return
+        perp = prev_ * 0.05
+    POLE_PREV[key_] = perp.normalized()
     sw["pole_vector"] = True
     pt = mid_target + perp.normalized() * 0.4
     for _ in range(3):
@@ -953,7 +961,7 @@ def bake_ik_limbs():
 def pose(f, dz=0.0, f_travel=None):
     global NEED_DROP, ANCHOR_ROLL_SIGN
     if f == 0:
-        WRIST_PREV.clear(); ARM_ROLL_PREV.clear()
+        WRIST_PREV.clear(); ARM_ROLL_PREV.clear(); POLE_PREV.clear()
     zero_pose()
     for b in IKFK_ARMS:
         pbs[b]["IK_FK"] = 1.0

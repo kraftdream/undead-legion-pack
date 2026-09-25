@@ -30,6 +30,8 @@ def main():
         t0 = time.time()
         cmd = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", os.path.join(ROOT, "tools", "kimodo_gen.ps1"),
                "-Prompt", c["prompt"], "-Name", c["glb"], "-Frames", str(c["frames"]), "-Seed", str(c["seed"])]
+        if c.get("no_profile"):
+            cmd.append("-NoProfile")          # a plain human prompt: no stiff-undead body description prepended (the "normal" walk/run, 2026-09-25)
         r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
         ok = os.path.exists(os.path.join(GLB_DIR, c["glb"] + ".glb"))
         tail = (r.stdout + r.stderr).strip().splitlines()[-1:] if not ok else []
