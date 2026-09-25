@@ -40,7 +40,7 @@ foreach (var guid in AssetDatabase.FindAssets("Skeleton@ t:Model", new string[]{
   var p = AssetDatabase.GUIDToAssetPath(guid); var fn = System.IO.Path.GetFileNameWithoutExtension(p);
   if (!fn.StartsWith("Skeleton@")) continue;
   var nm = fn.Substring("Skeleton@".Length);
-  if (nm == "Idle" || nm.StartsWith("Twitch_") || nm == "Grip") continue;   // Grip: finger pose data, not a state
+  if (nm == "Idle" || nm.StartsWith("Twitch_") || nm == "Grip" || nm.StartsWith("Hand_Idle_")) continue;   // Grip: finger pose data, not a state; Hand_Idle_L/R: the finger layers' loops
   var cl = load(nm); if (cl != null) idleClips.Add(cl);
 }
 idleClips.Sort((x, y) => string.CompareOrdinal(x.name, y.name));
@@ -90,6 +90,10 @@ System.Func<string, AvatarMaskBodyPart[], string, AvatarMask> makeMask = (mname,
 var mask = makeMask("AM_UpperBody", new AvatarMaskBodyPart[]{ AvatarMaskBodyPart.Body, AvatarMaskBodyPart.Head, AvatarMaskBodyPart.LeftArm, AvatarMaskBodyPart.RightArm, AvatarMaskBodyPart.LeftFingers, AvatarMaskBodyPart.RightFingers }, "Spine1");
 var maskL = makeMask("AM_LeftArm", new AvatarMaskBodyPart[]{ AvatarMaskBodyPart.LeftArm, AvatarMaskBodyPart.LeftFingers }, "LeftShoulder");
 var maskR = makeMask("AM_RightArm", new AvatarMaskBodyPart[]{ AvatarMaskBodyPart.RightArm, AvatarMaskBodyPart.RightFingers }, "RightShoulder");
+// finger-only masks (2026-09-25): the empty-hand finger idles Hand_Idle_L/R loop on these; transform paths under the
+// hand bone cover the palms and the socket (constant in every clip), the humanoid part covers the 15 finger bones
+var maskFL = makeMask("AM_LeftFingers", new AvatarMaskBodyPart[]{ AvatarMaskBodyPart.LeftFingers }, "LeftHand");
+var maskFR = makeMask("AM_RightFingers", new AvatarMaskBodyPart[]{ AvatarMaskBodyPart.RightFingers }, "RightHand");
 
 // twitch clips loop (for the loop layers); the trigger layer's exit-time transition still ends them after one pass
 foreach (var tn in new string[]{ "Twitch_01", "Twitch_02", "Twitch_03" }) {
@@ -102,7 +106,10 @@ foreach (var tn in new string[]{ "Twitch_01", "Twitch_02", "Twitch_03" }) {
 ctrl.AddLayer("UpperBody"); ctrl.AddLayer("LeftArm"); ctrl.AddLayer("RightArm");
 ctrl.AddLayer("Twitch");
 ctrl.AddLayer("TwitchLoop_01"); ctrl.AddLayer("TwitchLoop_02"); ctrl.AddLayer("TwitchLoop_03");
+ctrl.AddLayer("LeftFingers"); ctrl.AddLayer("RightFingers");   // 8, 9: Override, weight 0; SkeletonWeapon sets 1 on an EMPTY hand
 var layers = ctrl.layers;
+for (int i = 8; i < 10; i++) { layers[i].blendingMode = UnityEditor.Animations.AnimatorLayerBlendingMode.Override; layers[i].defaultWeight = 0f; }
+layers[8].avatarMask = maskFL; layers[9].avatarMask = maskFR;
 for (int i = 5; i < 8; i++) { layers[i].blendingMode = UnityEditor.Animations.AnimatorLayerBlendingMode.Additive; layers[i].defaultWeight = 0f; }
 for (int i = 1; i < 4; i++) { layers[i].blendingMode = UnityEditor.Animations.AnimatorLayerBlendingMode.Override; layers[i].defaultWeight = 1f; }
 layers[1].avatarMask = mask; layers[2].avatarMask = maskL; layers[3].avatarMask = maskR;
@@ -146,6 +153,12 @@ for (int i = 0; i < 3; i++) {
   var lsm = ctrl.layers[5 + i].stateMachine; var ls = lsm.AddState("Twitch_0" + (i + 1)); ls.motion = clip; lsm.defaultState = ls; nLoop++;
 }
 sb.AppendLine("twitch loop layers: " + nLoop + " (additive, weight 0 until toggled)");
+int nHand = 0;
+foreach (var hs in new string[]{ "L", "R" }) {
+  var hclip = load("Hand_Idle_" + hs); if (hclip == null) { sb.AppendLine("missing Hand_Idle_" + hs); continue; }
+  var hsm = ctrl.layers[hs == "L" ? 8 : 9].stateMachine; var hst = hsm.AddState("Hand_Idle_" + hs); hst.motion = hclip; hsm.defaultState = hst; nHand++;
+}
+sb.AppendLine("finger layers: " + nHand + " (override, weight 0 until a hand is empty)");
 EditorUtility.SetDirty(ctrl); AssetDatabase.SaveAssets();
 sb.AppendLine("controller " + path + ": layers=" + ctrl.layers.Length + " twitch states=" + n + " twitch layer mode=" + ctrl.layers[4].blendingMode);
 

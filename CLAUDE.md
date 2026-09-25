@@ -279,6 +279,9 @@ metallic/smoothness sRGB off (see §7 for the packing).
 
 - `*.blend1` are Blender autosaves, gitignored. The headless tools save with
   `save_version = 0` so they never create one.
+- **Every headless save of `skeleton_anim.blend` must be `compress=True`** (as `glb_retarget` and
+  `anim_nla_bake` do): the file is 21 MB compressed and 290 MB raw, and GitHub rejects the push
+  above 100 MB (2026-09-25: two `compress=False` saves did that; re-saved compressed, commits redone).
 - `skeletons/.gitignore` is anchored; tracked: `Assets/`, `Packages/`, `ProjectSettings/`.
 - `.meta` files are tracked and load-bearing (import settings, GUIDs).
 - `.git` is already large. Git LFS is the lever if clip exports push it further, but it
@@ -300,7 +303,13 @@ metallic/smoothness sRGB off (see §7 for the packing).
   `python tools/unity/mcp_call.py list | call <tool> '<json>'`. `execute_code` runs a C#
   method body (CodeDom, C# 6 — no `?.`, no string interpolation) and **blocks
   `AssetDatabase.DeleteAsset`** unless `safety_checks=false`; delete on disk and
-  `refresh_unity` instead.
+  `refresh_unity` instead. ⚠ Never delete `Assets/_PipelineTest` while a `verify_clip.py` may still
+  be saving into it: the editor then blocks on a MODAL "Moving file failed" dialog (its temp
+  controller cannot be moved into the missing folder), the bridge logs "Command TCS timed out (N
+  consecutive)" and every call hangs, with the editor's CPU flat. Diagnose with a window listing of
+  the Unity process (a second visible window is the dialog; `PrintWindow` renders it), recreate the
+  folder, click its "Try Again" button (`SendMessage BM_CLICK`), then delete the folder on disk and
+  refresh (2026-09-25).
 - **Asset Store Tools** is embedded at `skeletons/Packages/com.unity.asset-store-tools`.
 - Blender MCP (`C:\Users\vadym\.local\bin\blender-mcp.exe`) exists but the rig work is
   all scripted headlessly now; prefer the scripts, they are reproducible.
@@ -1051,7 +1060,13 @@ the walk's: it carries the hips over the IK legs), spine, chest, neck, head, jaw
 fingers and the arm switches, 91 controls — is taken frame by frame from a 60-frame window of Idle_03
 (a 10.8 s loop, so the window is a slow sway), the window's last 8 frames crossfaded to its first
 (`--upper-seam`) so the walk loop still closes: chest 0.1° / head 0.3° across the seam, no upper-body
-bone above 3.2° per frame, legs unchanged (≤ 9.4°). The user's arm fix is superseded by the idle's arms.
+bone above 3.2° per frame, legs unchanged (≤ 9.4°). The user's arm fix is superseded by the idle's arms. Then (2026-09-25) the user's updated `Walk_Back_Fix` (both feet, one torso key) baked over the finished
+clip with `--loop --loop-seam 4` (seam 0.0 mm, travel unchanged): the pelvis 5° more upright, both feet 3–4 mm
+lower and the left foot 4–5° more toe-down, so `lift 0.004` (was −0.002) puts the highest sole back at 0.
+Left as authored and reported: the swinging left boot's toe reaches 10 mm under the floor on frames 44–46
+(Unity), and the Necromancer's robe hem between the legs, which the pelvis tilt lowers, dips 31 mm at frame 8
+(the robe class of dip). ⚠ `ground_clip` samples every 6th frame and saw neither; `ground_fit`'s per-frame
+measurement did (read its json, then delete it: no per-frame fit on a stepping loop).
 
 **Strafes (2026-09-24, "added strafe_left_fix, bake it; steps 30 % less; the right foot drifts above the
 ground from frame 1 to 19; same for strafe_right").** Traced: the right foot lands at the seam 4 cm up
@@ -1167,6 +1182,25 @@ spacing before choosing the gate's sign.** Also bitten: the bake tool had LOST s
 in the pin-foot rewrite of commit `b4824c5` — the option parsing and the call sites survived, so the tool
 parsed and only failed at the call (`NameError`, before its `--save`); restored from `f4141e2`. Rule:
 **after any splice edit of a tool, diff its `def` list against the previous commit.**
+
+**Empty-hand finger idles (2026-09-25, user: "from Grip action frame 2, use the left hand pose for the left and
+mirrored for the right, as the default hand pose when the model holds nothing; two actions, one per hand, with
+slight finger movement so they don't look static").** `Grip` frame 1 is the fist both hands take on a held
+item; its frame 2 carries the user's RELAXED left hand (fingertips 63–76 mm from the wrist against the fist's
+51–59; the right hand is the fist on both frames). `tools/anim_hand_idle.py -- --save` writes `Hand_Idle_L` /
+`Hand_Idle_R` (240 frames, 8 s loops): that hand's 26 finger controls keyed on every frame with the frame-2
+pose plus a slow sine per finger master (integer cycles, phases spread: index and middle 1 cycle, ring and
+pinky 2, thumb 1; `--amp` degrees of curl), every other control at rest. The right hand is the Paste-X-Flipped
+mirror (location x, quaternion y/z, Euler y/z negated): right fingertips within 0.0 mm of the X-mirrored left
+ones, seams 0.1 mm. Exported like any clip (`export_fbx --clip`), imported as looping Humanoid clips, NOT
+Base states: `AC_Skeleton` has two more layers, **`LeftFingers` / `RightFingers`** (Override, weight 0, masks
+`AM_LeftFingers` / `AM_RightFingers`: that hand's humanoid finger part + the transform paths under the hand
+bone), one looping state each. **`SkeletonWeapon.ApplyFingerLayers()`** sets each layer's weight per hand
+on Start, Equip and Clear: 1 while the hand holds nothing, 0 while it holds an item (the Grip fist then goes
+on in LateUpdate as before). So on every clip an empty hand shows the relaxed sway and a full hand the fist;
+a clip's own recorded fingers are only seen if a buyer turns the layers off. Rule: the two hand poses live
+in the anim file's `Grip` action (frame 1 fist, frame 2 relaxed); re-run the tool and the prefab builder
+after editing it.
 
 **Multi-frame pose references** (built for the swing, kept): `pose_ref` takes several
 `ACTION:frame@at`; the first ramps in over `pose_ref_in` frames, the deltas interpolate between

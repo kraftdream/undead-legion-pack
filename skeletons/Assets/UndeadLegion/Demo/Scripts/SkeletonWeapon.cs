@@ -60,6 +60,7 @@ namespace UndeadLegion.Demo
         readonly List<Transform> _gripLeftBones = new List<Transform>();
         readonly List<Transform> _gripRightBones = new List<Transform>();
         bool _holdLeft, _holdRight;
+        Animator _animator; int _fingersLeft = -2, _fingersRight = -2;   // -2 = not looked up yet, -1 = the controller has no such layer
 
         /// <summary>Whether a hand currently holds an item (a forearm shield counts for the left hand).</summary>
         public bool HoldsLeft { get { return _holdLeft; } }
@@ -86,6 +87,24 @@ namespace UndeadLegion.Demo
         void LateUpdate()
         {
             if (_holdLeft || _holdRight) ApplyGrip();
+        }
+
+        /// <summary>The empty-hand finger idles (2026-09-25): AC_Skeleton's LeftFingers / RightFingers layers loop
+        /// Hand_Idle_L / Hand_Idle_R over that hand's 15 finger bones. Weight 1 while the hand holds nothing, 0 while
+        /// it holds an item (the Grip fist then takes over in LateUpdate), so every clip's own fingers are replaced
+        /// by the relaxed pose on an empty hand and by the fist on a full one.</summary>
+        void ApplyFingerLayers()
+        {
+            if (_animator == null) _animator = GetComponent<Animator>();
+            if (_animator == null || _animator.runtimeAnimatorController == null) return;
+            if (_fingersLeft == -2) { _fingersLeft = _animator.GetLayerIndex("LeftFingers"); _fingersRight = _animator.GetLayerIndex("RightFingers"); }
+            if (_fingersLeft >= 0) _animator.SetLayerWeight(_fingersLeft, _holdLeft ? 0f : 1f);
+            if (_fingersRight >= 0) _animator.SetLayerWeight(_fingersRight, _holdRight ? 0f : 1f);
+        }
+
+        void Start()
+        {
+            ApplyFingerLayers();
         }
 
         public int Count { get { return loadouts.Count; } }
@@ -160,6 +179,7 @@ namespace UndeadLegion.Demo
                 AlignGrip(go.transform, socket);
                 _spawned.Add(go);
             }
+            ApplyFingerLayers();
         }
 
         public void Clear()
@@ -168,6 +188,8 @@ namespace UndeadLegion.Demo
                 if (go != null) { if (Application.isPlaying) Destroy(go); else DestroyImmediate(go); }
             _spawned.Clear();
             _current = -1;
+            _holdLeft = _holdRight = false;
+            ApplyFingerLayers();
         }
     }
 }
