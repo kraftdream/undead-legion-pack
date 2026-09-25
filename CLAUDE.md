@@ -1299,6 +1299,21 @@ were built headlessly (`setup_stack2.py --base --fix --mode`: the clip as a Repl
 its mode, saved) and flattened in turn; flat = stack to 0.00 mm both times, `AOE_Cast_base` untouched. Rule:
 **when a Replace fix and a Combine fix touch the same controls, bake the Replace one first.**
 
+**AOE_Cast facing and left hand (2026-09-25, "the animation direction the same as the feet direction in
+idle_02; the left hand follows the handle after frame 100 to 125").** Measured: Idle_02's feet splay ±12° about
+0 with the hips at 0; the AOE take's feet pointed −17° (right; L +5°, R −38°) with the hips −28..−41° and the
+chest to −60°. **`anim_nla_bake --yaw-clip DEG`** turns the whole clip about the vertical through the root's
+first-frame spot — every root-level control (torso, feet, toes, knee poles, IK hands, elbow poles) and the
+root's path, the Root's ORIENTATION left at identity so the export's Root stays as in every other clip: +17°
+puts the feet's mean yaw at 0 (L +22°, R −21°); the performer's own turn relative to his feet stays (hips
+−6..−24°, chest to −43°). **`--shaft-hand` takes a frame range**, `SIDE:OFF:from:to`, eased in and out over
+`--grip-ease` frames, and puts an FK arm on IK there with its elbow pole on the FK elbow's plane (as
+`--grip-follow` does): `L:0:100:125` seats the left socket on the staff's axis at its own height along the
+shaft (0.13 → 0.26 rig m as the staff tilts) to 0.0 mm through the middle of the range, 3–9 cm off at the
+eased edges, the arm FK again outside it. Left reach peaks at 0.94 (frame 116), the slam's left forearm step
+28°. Rule: **"direction" of a clip = the feet's mean yaw against the idle it plays over; turn the root-level
+controls, never the Root.**
+
 **Multi-frame pose references** (built for the swing, kept): `pose_ref` takes several
 `ACTION:frame@at`; the first ramps in over `pose_ref_in` frames, the deltas interpolate between
 refs, and `pose_ref_tail return` goes from the last ref's pose straight to the blend-to pose by

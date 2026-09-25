@@ -49,6 +49,7 @@ END_BLEND = arg("--end-blend", "")               # "Idle:1:8": after the retime,
 EVEN_ADVANCE = int(arg("--even-advance", "0"))      # K: a locomotion loop is RETIMED so the hips' advance per frame along the travel follows a circularly smoothed (K passes of [1,2,1], wrapping at the seam) version of its own profile; same frame count, same travel, the Root kept linear. Removes the speed dip that a loop-closing crossfade leaves at the seam (the hips advanced 55 mm per frame and then 17 at Run_Fwd_02's wrap; Walk_Back lurched 14 mm and stalled to 0 on its last frames), which plays as a hitch every cycle under root motion (user: "walk_back, run_fwd and run_fwd_02 have looping issues")
 FOOT_CLEAR = arg("--foot-clear", "")              # Z rig m: no model's BOOT goes below Z on any frame - per frame and foot, the lowest vertex of all six characters' Boot_<side> meshes is measured and an IK foot (and its toe) is raised by the deficit, the lift running-maxed over +-1 frame and smoothed (wrapping with --loop), the knee pole kept on the FK plane. For a swinging foot that pitches toe-down while barely lifting (the strafes: the boot's toe dragged 14 mm through the floor, and a constant export lift fitted to that dip floated the whole stance 25 mm; user: "both strafe animations in unity have model float above ground")
 TORSO_DROP = float(arg("--torso-drop", "0"))       # rig m: the torso control (the hips, and with it the spine, head and FK arms) lowered by this on every frame; IK feet stay planted so the knees bend more, the poles re-aimed on the FK plane (user, Summon: "bring the torso down like 8 cm" = 0.044 rig m)
+YAW_CLIP = float(arg("--yaw-clip", "0"))          # degrees, + = left: the whole clip turned about the vertical through the root's first-frame spot - every root-level control (torso, feet, toes, knee poles, IK hands, elbow poles) and the root's path, the Root's own orientation left at identity so the export's Root stays as in every other clip (user, AOE_Cast: "animation direction the same as the feet direction in idle_02": the take faced 17 deg right)
 IK_LEGS = "--ik-legs" in argv                     # after the bake, both legs on IK on every frame, the foot/toe controls on the DEF result and the knee pole out through the FK knee (refined): lossless (the walks' legs are FK from the retarget; a foot pin on an FK leg would switch modes and jump the knee)
 FK_ARM = arg("--fk-arm", "")                      # "L" / "R" / "LR": after the bake, that arm is put on FK on every frame, the FK chain set to the arm's current (IK) result: lossless, and upper_arm_fk / forearm_fk / hand_fk then control it (user, on Block_L_Idle whose left arm was IK throughout: "upper_arm_fk_l and its children won't change the mesh")        # "A:B:F": after the bake (and pin), frames A..B of the result are resampled F times faster (Blender's own curve evaluation at fractional frames), the frames after B shift earlier (user: "speed up by 35% from frame 21 to 34")
 PIN_FOOT = arg("--pin-foot", "")                  # "L" / "L:1" / "L,R" / "L:20:20:34": SIDE[:ref[:from[:to]]] - after the bake, that foot's IK control (and toe) is held from frame `from` to `to` (default: the whole clip) at the WORLD transform it has on frame `ref` (default: the first frame): a planted foot that the capture let drift (user: "get rid of the drift on the left feet"; "left foot drift after the step forward, from frame 20")
@@ -609,13 +610,32 @@ def shaft_hand(act, spec):
     it, with the socket's own Y turned parallel to the shaft and its roll about the shaft kept; the hand's IK
     control moves with the socket (rigid), so the arm follows on IK."""
     ad.action = act
-    side, off = spec.split(":"); off = float(off); other_ = "R" if side == "L" else "L"
-    pbs["upper_arm_parent." + side]["IK_FK"] = 0.0
+    parts = spec.split(":"); side = parts[0]; off = float(parts[1]); other_ = "R" if side == "L" else "L"
+    FROM_ = int(parts[2]) if len(parts) > 2 and parts[2] else F0       # "L:0:100:125": only over that range, eased in and out over GRIP_EASE frames (the arm FK outside it)
+    TO_ = int(parts[3]) if len(parts) > 3 and parts[3] else F1
     n = 0; d_min = 9; d_max = -9; worst_off = 0.0; worst_ang = 0.0
     for f in range(F0, F1 + 1):
+        if f < FROM_ or f > TO_:
+            continue
         scene.frame_set(f)
+        w_ = 1.0
+        if FROM_ > F0: w_ = min(w_, (f - FROM_ + 1) / float(GRIP_EASE + 1))
+        if TO_ < F1: w_ = min(w_, (TO_ - f + 1) / float(GRIP_EASE + 1))
+        w_ = w_ * w_ * (3 - 2 * w_)
         sock_o = (rig.matrix_world @ pbs["DEF-weapon." + other_].matrix).copy()
         sock_s = (rig.matrix_world @ pbs["DEF-weapon." + side].matrix).copy()
+        if pbs["upper_arm_parent." + side]["IK_FK"] > 0.5:
+            # the arm was FK: put it on IK where it is, the elbow pole on the FK elbow's plane
+            sh_ = (rig.matrix_world @ pbs["DEF-upper_arm." + side].matrix).translation.copy(); wr_ = (rig.matrix_world @ pbs["DEF-hand." + side].matrix).translation.copy()
+            el_ = (rig.matrix_world @ pbs["forearm_fk." + side].matrix).translation.copy()
+            ax_ = (wr_ - sh_).normalized(); dv_ = el_ - sh_; perp_ = dv_ - ax_ * dv_.dot(ax_)
+            if not HAND_FROM_SOCK: _hand_from_sock()
+            pbs["hand_ik." + side].matrix = rig.matrix_world.inverted() @ (sock_s @ HAND_FROM_SOCK[side]); pbs["upper_arm_parent." + side]["IK_FK"] = 0.0; bpy.context.view_layer.update()
+            if perp_.length > 0.005:
+                pbs["upper_arm_parent." + side]["pole_vector"] = True
+                pl_ = pbs["upper_arm_ik_target." + side]; pm_ = pl_.matrix.copy(); pm_.translation = rig.matrix_world.inverted() @ (el_ + perp_.normalized() * 0.4); pl_.matrix = pm_
+                bpy.context.view_layer.update()
+            sock_s = (rig.matrix_world @ pbs["DEF-weapon." + side].matrix).copy()
         y_ = (sock_o.to_3x3() @ Vector((0, 1, 0))).normalized()
         along = (sock_s.translation - sock_o.translation).dot(y_)              # + = toward the blade
         along_new = along + off
@@ -624,10 +644,18 @@ def shaft_hand(act, spec):
         q_align = ys.rotation_difference(y_)                                    # least rotation: the socket's hilt axis onto the shaft
         m_new = q_align.to_matrix().to_4x4() @ Matrix.Translation(-sock_s.translation) @ sock_s
         m_new = Matrix.Translation(pos_new) @ m_new
+        if w_ < 1.0:                                                            # the ease: blend the wanted socket with the clip's own
+            qa_ = sock_s.to_quaternion(); qb_ = m_new.to_quaternion()
+            if qa_.dot(qb_) < 0: qb_ = -qb_
+            m_new = qa_.slerp(qb_, w_).to_matrix().to_4x4(); m_new.translation = sock_s.translation.lerp(pos_new, w_)
         T = m_new @ sock_s.inverted()
         h = pbs["hand_ik." + side]; hm = (rig.matrix_world @ h.matrix).copy()
         h.matrix = rig.matrix_world.inverted() @ (T @ hm); pbs["upper_arm_parent." + side]["IK_FK"] = 0.0
         bpy.context.view_layer.update()
+        for b in ("upper_arm_ik_target." + side,):
+            pbs[b].keyframe_insert("location", frame=f, group=b)
+            pbs[b].keyframe_insert("rotation_quaternion" if pbs[b].rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group=b)
+        pbs["upper_arm_parent." + side].keyframe_insert('["pole_vector"]', frame=f, group="upper_arm_parent." + side)
         h.keyframe_insert("location", frame=f, group="hand_ik." + side)
         h.keyframe_insert("rotation_quaternion" if h.rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group="hand_ik." + side)
         pbs["upper_arm_parent." + side].keyframe_insert('["IK_FK"]', frame=f, group="upper_arm_parent." + side)
@@ -808,6 +836,25 @@ def torso_drop(act, d):
         pb.keyframe_insert("location", frame=f, group="torso")
     scene.frame_set(F0); hz = (rig.matrix_world @ pbs["DEF-spine"].matrix).translation.z
     log("torso lowered by %.3f rig m (%.0f mm engine) on every frame: hips at %.3f on frame %d" % (d, d * 1800, hz, F0))
+
+
+def yaw_clip(act, deg):
+    ad.action = act
+    scene.frame_set(F0); pivot = (rig.matrix_world @ pbs["root"].matrix).translation.copy()
+    R = Matrix.Rotation(math.radians(deg), 4, 'Z')
+    ctrls = ["torso", "foot_ik.L", "foot_ik.R", "toe_ik.L", "toe_ik.R", "thigh_ik_target.L", "thigh_ik_target.R", "hand_ik.L", "hand_ik.R", "upper_arm_ik_target.L", "upper_arm_ik_target.R"]
+    for f in range(F0, F1 + 1):
+        scene.frame_set(f)
+        world = {c: (rig.matrix_world @ pbs[c].matrix).copy() for c in ctrls}
+        pb = pbs["root"]; m = (rig.matrix_world @ pb.matrix).copy(); m.translation = pivot + R.to_3x3() @ (m.translation - pivot)
+        pb.matrix = rig.matrix_world.inverted() @ m; bpy.context.view_layer.update()
+        pb.keyframe_insert("location", frame=f, group="root")
+        for c in ctrls:
+            m = Matrix.Translation(pivot) @ R @ Matrix.Translation(-pivot) @ world[c]
+            pbs[c].matrix = rig.matrix_world.inverted() @ m; bpy.context.view_layer.update()
+            pbs[c].keyframe_insert("location", frame=f, group=c)
+            pbs[c].keyframe_insert("rotation_quaternion" if pbs[c].rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group=c)
+    log("yaw-clip %+.1f deg: the whole clip turned about the vertical through the root's first-frame spot (Root orientation untouched)" % deg)
 
 
 def stride(act, k):
@@ -1076,6 +1123,8 @@ if FOOT_CLEAR:
 if TORSO_DROP:
     torso_drop(baked, TORSO_DROP)
     repole_legs(baked)
+if YAW_CLIP:
+    yaw_clip(baked, YAW_CLIP)
     # the mirror is built from the pinned result
     poses = {}
     for f in range(F0, F1 + 1):
