@@ -46,6 +46,7 @@ UPPER_SEAM = int(arg("--upper-seam", "8"))         # frames: the copied window's
 HAND_WEIGHT = arg("--hand-weight", "")            # "R:0.015:4:6": that IK hand bobs against the body's vertical sway as if the held item had weight - the hips' height over the clip, normalised to -1..1, delayed DELAY frames (wrapping over a loop), moves the hand AMP rig m the OTHER way and pitches it PITCH degrees about the socket's finger axis (the tip dips as the hand drops) (user, Idle_Wand: "right hand sway that mimics the wand's weight, in sync with the character swaying up and down")
 END_BLEND = arg("--end-blend", "")               # "Idle:1:8": after the retime, the last N frames crossfade every control to that action's frame (locations, rotations, scales, the switches on the last frame), so a one-shot ends EXACTLY on the pose the demo crossfades to next; the IK legs keep their knee poles on the FK plane through it (user, Impaled_Rise: "lower the torso on the fully standing pose, use it to fix the floating feet at the end")
 EVEN_ADVANCE = int(arg("--even-advance", "0"))      # K: a locomotion loop is RETIMED so the hips' advance per frame along the travel follows a circularly smoothed (K passes of [1,2,1], wrapping at the seam) version of its own profile; same frame count, same travel, the Root kept linear. Removes the speed dip that a loop-closing crossfade leaves at the seam (the hips advanced 55 mm per frame and then 17 at Run_Fwd_02's wrap; Walk_Back lurched 14 mm and stalled to 0 on its last frames), which plays as a hitch every cycle under root motion (user: "walk_back, run_fwd and run_fwd_02 have looping issues")
+FOOT_CLEAR = arg("--foot-clear", "")              # Z rig m: no model's BOOT goes below Z on any frame - per frame and foot, the lowest vertex of all six characters' Boot_<side> meshes is measured and an IK foot (and its toe) is raised by the deficit, the lift running-maxed over +-1 frame and smoothed (wrapping with --loop), the knee pole kept on the FK plane. For a swinging foot that pitches toe-down while barely lifting (the strafes: the boot's toe dragged 14 mm through the floor, and a constant export lift fitted to that dip floated the whole stance 25 mm; user: "both strafe animations in unity have model float above ground")
 IK_LEGS = "--ik-legs" in argv                     # after the bake, both legs on IK on every frame, the foot/toe controls on the DEF result and the knee pole out through the FK knee (refined): lossless (the walks' legs are FK from the retarget; a foot pin on an FK leg would switch modes and jump the knee)
 FK_ARM = arg("--fk-arm", "")                      # "L" / "R" / "LR": after the bake, that arm is put on FK on every frame, the FK chain set to the arm's current (IK) result: lossless, and upper_arm_fk / forearm_fk / hand_fk then control it (user, on Block_L_Idle whose left arm was IK throughout: "upper_arm_fk_l and its children won't change the mesh")        # "A:B:F": after the bake (and pin), frames A..B of the result are resampled F times faster (Blender's own curve evaluation at fractional frames), the frames after B shift earlier (user: "speed up by 35% from frame 21 to 34")
 PIN_FOOT = arg("--pin-foot", "")                  # "L" / "L:1" / "L,R" / "L:20:20:34": SIDE[:ref[:from[:to]]] - after the bake, that foot's IK control (and toe) is held from frame `from` to `to` (default: the whole clip) at the WORLD transform it has on frame `ref` (default: the first frame): a planted foot that the capture let drift (user: "get rid of the drift on the left feet"; "left foot drift after the step forward, from frame 20")
@@ -719,6 +720,58 @@ def even_advance(K):
     log("even-advance profile after:  " + " ".join("%.0f" % (v * 1000) for v in adv2))
 
 
+def foot_clear(act, zmin):
+    ad.action = act
+    vl = bpy.context.view_layer; saved = {}
+    def walk(lc):
+        if lc.name.startswith("Ref_Skeleton"):
+            saved[lc.name] = lc.exclude; lc.exclude = False
+        for c in lc.children: walk(c)
+    walk(vl.layer_collection)
+    boots = {sd: [o for o in bpy.data.objects if o.type == 'MESH' and o.name.endswith("_Boot_" + sd)] for sd in ("L", "R")}
+    n = F1 - F0 + 1; need = {"L": [], "R": []}; lowest = {"L": (9.0, F0), "R": (9.0, F0)}
+    for f in range(F0, F1 + 1):
+        scene.frame_set(f); vl.update(); dg = bpy.context.evaluated_depsgraph_get()
+        for sd in ("L", "R"):
+            lo = 9.0
+            for o in boots[sd]:
+                ev = o.evaluated_get(dg); mw = ev.matrix_world
+                lo = min(lo, min((mw @ v.co).z for v in ev.data.vertices))
+            need[sd].append(max(0.0, zmin - lo))
+            if lo < lowest[sd][0]: lowest[sd] = (lo, f)
+    for sd in ("L", "R"):
+        raw = need[sd]
+        d = [max(raw[max(i - 1, 0)], raw[i], raw[min(i + 1, n - 1)]) for i in range(n)]
+        for _ in range(2):
+            d = [(d[(i - 1) % n] + 2 * d[i] + d[(i + 1) % n]) / 4.0 if LOOP else (d[max(i - 1, 0)] + 2 * d[i] + d[min(i + 1, n - 1)]) / 4.0 for i in range(n)]
+        d = [max(a_, b_) for a_, b_ in zip(d, raw)]        # smoothing must not drop below the raw need
+        if max(d) < 1e-4:
+            log("foot-clear %s: the boots never go below %.3f (lowest %.1f mm at frame %d); nothing to lift" % (sd, zmin, lowest[sd][0] * 1000, lowest[sd][1])); continue
+        lifted = 0
+        for i, f in enumerate(range(F0, F1 + 1)):
+            if d[i] < 1e-5: continue
+            scene.frame_set(f)
+            if pbs["thigh_parent." + sd]["IK_FK"] > 0.5:
+                log("foot-clear %s: frame %d needs %.0f mm but the leg is on FK (run --ik-legs first)" % (sd, f, d[i] * 1000)); continue
+            foot = pbs["foot_ik." + sd]; toe = pbs["toe_ik." + sd]
+            fm = (rig.matrix_world @ foot.matrix).copy(); tm = (rig.matrix_world @ toe.matrix).copy()
+            fm.translation.z += d[i]; tm.translation.z += d[i]
+            foot.matrix = rig.matrix_world.inverted() @ fm; bpy.context.view_layer.update()
+            toe.matrix = rig.matrix_world.inverted() @ tm; bpy.context.view_layer.update()
+            hip_ = (rig.matrix_world @ pbs["DEF-thigh." + sd].matrix).translation.copy()
+            leg_pole(sd, fk_knee(sd), hip_, fm.translation)
+            for b in ("foot_ik." + sd, "toe_ik." + sd, "thigh_ik_target." + sd):
+                pbs[b].keyframe_insert("location", frame=f, group=b)
+                pbs[b].keyframe_insert("rotation_quaternion" if pbs[b].rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group=b)
+            pbs["thigh_parent." + sd].keyframe_insert('["pole_vector"]', frame=f, group="thigh_parent." + sd)
+            lifted += 1
+        log("foot-clear %s: raised on %d frames by up to %.0f mm (the boots' lowest point was %.0f mm at frame %d, floor %.3f)" % (sd, lifted, max(d) * 1000, lowest[sd][0] * 1000, lowest[sd][1], zmin))
+    def restore(lc):
+        if lc.name in saved: lc.exclude = saved[lc.name]
+        for c in lc.children: restore(c)
+    restore(vl.layer_collection)
+
+
 def stride(act, k):
     """Shorter (or longer) steps: p' = p + (k-1)((p - r0).axis) axis for the root, torso, feet, toes, knee poles,
     IK hands and elbow poles, axis = the root's net travel direction, r0 = the root on the first frame. A
@@ -980,6 +1033,8 @@ if PIN_FOOT:
     pin_feet(baked)
 if PIN_FOOT or IK_LEGS or STRIDE != 1.0 or VSMOOTH:
     repole_legs(baked)
+if FOOT_CLEAR:
+    foot_clear(baked, float(FOOT_CLEAR))
     # the mirror is built from the pinned result
     poses = {}
     for f in range(F0, F1 + 1):

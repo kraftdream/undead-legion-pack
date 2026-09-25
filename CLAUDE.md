@@ -1220,6 +1220,21 @@ table holds. Rule: **check a loop's seam in VELOCITY (the advance profile across
 position; and a pose crossfade at the seam needs the retime after it.** The strafes carry the same
 `--loop-seam` crossfade (their last steps 7.6 / 6.4 / 2.2°) and were not reported; the same pass applies.
 
+**"Both strafe animations float above the ground in Unity, in Blender they look correct" (2026-09-25).**
+Measured per frame in Unity: every boot 20–27 mm up through the whole loop and under the floor only on frame
+38. The constant `lift 0.025` of 2026-09-24 had been fitted to that one frame — the swinging right foot pitches
+toe-down to 39° while its ankle lifts barely 2 cm, so the boot's TOE dragged 14 mm through the floor in
+Blender too (a per-frame boot trace shows it; a stance-frame glance does not), and lifting the clip until the
+toe cleared floated the stance by the same amount. **`anim_nla_bake --foot-clear Z`**: per frame and foot, the
+lowest vertex of all six characters' `Boot_<side>` meshes is measured (the `Ref_*` collections un-excluded
+for it and restored) and an IK foot with its toe is raised by the deficit below Z, the lift running-maxed over
+±1 frame and smoothed (wrapping with `--loop`), the knee pole re-aimed on the FK plane: the right foot raised
+by up to 17 mm through its swing, the left by 2 mm where the Archer's boot sat under. Strafe_Right re-mirrored
+from the result (landmarks within 2.7 mm), `lift 0.002`: the highest model's sole at 0 on its lowest frame,
+the loop within 4 mm of the floor for it, the others sinking ≤ 7 mm. Rule: **a constant lift is fitted to the
+STANCE; a swing-foot dip is fixed in the pose, never by lifting the clip** — and check the boots per frame,
+the sixth-frame sampler and a stance-frame glance both missed this.
+
 **Multi-frame pose references** (built for the swing, kept): `pose_ref` takes several
 `ACTION:frame@at`; the first ramps in over `pose_ref_in` frames, the deltas interpolate between
 refs, and `pose_ref_tail return` goes from the last ref's pose straight to the blend-to pose by
