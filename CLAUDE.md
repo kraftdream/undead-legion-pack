@@ -1202,6 +1202,24 @@ a clip's own recorded fingers are only seen if a buyer turns the layers off. Rul
 in the anim file's `Grip` action (frame 1 fist, frame 2 relaxed); re-run the tool and the prefab builder
 after editing it.
 
+**"walk_back, run_fwd and run_fwd_02 have looping issues" (2026-09-25).** Every seam was POSITION-exact
+(last frame = first + travel to 0.0 mm on feet and hips, no rotation step at the wrap), so the defect was
+velocity: the hips' advance per frame along the travel collapsed at the seam — Run_Fwd_02 55 mm on the frame
+before the wrap, then 17 (the retarget's loop-closing crossfade drags the hips toward the partner frame),
+Run_Fwd 31 → 15, and Walk_Back lurched 14 mm then stalled to 0 over its last four frames (my `--loop-seam`
+crossfade, which converges on a fixed pose and kills the velocity). Under root motion Unity moves the
+character by the hips, so a speed dip at the seam is a hitch every cycle, and no position check sees it.
+**`anim_nla_bake --even-advance K`**: the per-frame advance profile is smoothed circularly (K passes of
+[1,2,1], the wrap a neighbour of the first frame), scaled to keep the travel, and the clip is RETIMED by
+resampling at fractional frames so the hips follow the smoothed profile (same frame count, same travel; the
+Root re-keyed linear so Unreal's root motion stays clean, its children kept in place). K 40 on the runs
+(Run_Fwd_02 30–39 mm per frame, Run_Fwd 19–24: a run's root speed is near-constant anyway), K 15 on
+Walk_Back (its own slow double-support phase kept, the seam 5 mm against 6–7 beside it); frames moved by
+up to 0.8 frames in time on the runs and 2.9 on the walk (the stall). Lengths and travel unchanged, the speed
+table holds. Rule: **check a loop's seam in VELOCITY (the advance profile across the wrap), not only in
+position; and a pose crossfade at the seam needs the retime after it.** The strafes carry the same
+`--loop-seam` crossfade (their last steps 7.6 / 6.4 / 2.2°) and were not reported; the same pass applies.
+
 **Multi-frame pose references** (built for the swing, kept): `pose_ref` takes several
 `ACTION:frame@at`; the first ramps in over `pose_ref_in` frames, the deltas interpolate between
 refs, and `pose_ref_tail return` goes from the last ref's pose straight to the blend-to pose by
