@@ -45,6 +45,7 @@ UPPER_FROM = arg("--upper-from", "")              # "Idle_03:1": after the retim
 UPPER_SEAM = int(arg("--upper-seam", "8"))         # frames: the copied window's end crossfaded to its start so the loop closes
 HAND_WEIGHT = arg("--hand-weight", "")            # "R:0.015:4:6": that IK hand bobs against the body's vertical sway as if the held item had weight - the hips' height over the clip, normalised to -1..1, delayed DELAY frames (wrapping over a loop), moves the hand AMP rig m the OTHER way and pitches it PITCH degrees about the socket's finger axis (the tip dips as the hand drops) (user, Idle_Wand: "right hand sway that mimics the wand's weight, in sync with the character swaying up and down")
 END_BLEND = arg("--end-blend", "")               # "Idle:1:8": after the retime, the last N frames crossfade every control to that action's frame (locations, rotations, scales, the switches on the last frame), so a one-shot ends EXACTLY on the pose the demo crossfades to next; the IK legs keep their knee poles on the FK plane through it (user, Impaled_Rise: "lower the torso on the fully standing pose, use it to fix the floating feet at the end")
+EVEN_ADVANCE = int(arg("--even-advance", "0"))      # K: a locomotion loop is RETIMED so the hips' advance per frame along the travel follows a circularly smoothed (K passes of [1,2,1], wrapping at the seam) version of its own profile; same frame count, same travel, the Root kept linear. Removes the speed dip that a loop-closing crossfade leaves at the seam (the hips advanced 55 mm per frame and then 17 at Run_Fwd_02's wrap; Walk_Back lurched 14 mm and stalled to 0 on its last frames), which plays as a hitch every cycle under root motion (user: "walk_back, run_fwd and run_fwd_02 have looping issues")
 IK_LEGS = "--ik-legs" in argv                     # after the bake, both legs on IK on every frame, the foot/toe controls on the DEF result and the knee pole out through the FK knee (refined): lossless (the walks' legs are FK from the retarget; a foot pin on an FK leg would switch modes and jump the knee)
 FK_ARM = arg("--fk-arm", "")                      # "L" / "R" / "LR": after the bake, that arm is put on FK on every frame, the FK chain set to the arm's current (IK) result: lossless, and upper_arm_fk / forearm_fk / hand_fk then control it (user, on Block_L_Idle whose left arm was IK throughout: "upper_arm_fk_l and its children won't change the mesh")        # "A:B:F": after the bake (and pin), frames A..B of the result are resampled F times faster (Blender's own curve evaluation at fractional frames), the frames after B shift earlier (user: "speed up by 35% from frame 21 to 34")
 PIN_FOOT = arg("--pin-foot", "")                  # "L" / "L:1" / "L,R" / "L:20:20:34": SIDE[:ref[:from[:to]]] - after the bake, that foot's IK control (and toe) is held from frame `from` to `to` (default: the whole clip) at the WORLD transform it has on frame `ref` (default: the first frame): a planted foot that the capture let drift (user: "get rid of the drift on the left feet"; "left foot drift after the step forward, from frame 20")
@@ -660,6 +661,64 @@ def torso_counter_yaw(act, deg):
 
 
 
+def even_advance(K):
+    """Retime the loop so the hips advance smoothly across the wrap (see EVEN_ADVANCE)."""
+    global poses, baked, F1
+    from bisect import bisect_right
+    ad.action = baked
+    n = F1 - F0 + 1
+    hips = []; roots = []
+    for f in range(F0, F1 + 1):
+        scene.frame_set(f); hips.append((rig.matrix_world @ pbs["DEF-spine"].matrix).translation.copy()); roots.append((rig.matrix_world @ pbs["root"].matrix).translation.copy())
+    travel = roots[-1] - roots[0]
+    if travel.length < 1e-4:
+        log("even-advance: the root does not travel in this clip; nothing to do"); return
+    axis = travel.normalized()
+    a = [max((hips[i + 1] - hips[i]).dot(axis), 1e-4) for i in range(n - 1)]      # per-frame advance, kept monotone
+    total = sum(a); sm = a[:]
+    for _ in range(K):
+        sm = [(sm[(i - 1) % (n - 1)] + 2 * sm[i] + sm[(i + 1) % (n - 1)]) / 4.0 for i in range(n - 1)]   # circular: the seam is a neighbour
+    k_ = total / sum(sm); sm = [v * k_ for v in sm]
+    A = [0.0]
+    for v in a: A.append(A[-1] + v)
+    S = [0.0]
+    for v in sm: S.append(S[-1] + v)
+    ts = []
+    for j in range(n):
+        i = min(max(bisect_right(A, S[j]) - 1, 0), n - 2)
+        frac = (S[j] - A[i]) / max(A[i + 1] - A[i], 1e-9)
+        ts.append(F0 + i + min(max(frac, 0.0), 1.0))
+    ts[0] = float(F0); ts[-1] = float(F1)
+    new = {}
+    for j, t in enumerate(ts):
+        scene.frame_set(int(math.floor(t)), subframe=t - math.floor(t)); new[F0 + j] = read_pose()
+    poses = new; baked = write_action(RESULT, poses, False); ad.action = baked
+    # the Root stays linear (Unreal extracts root motion from it); its children keep their world placement
+    rootspace = ["torso", "foot_ik.L", "foot_ik.R", "thigh_ik_target.L", "thigh_ik_target.R", "hand_ik.L", "hand_ik.R", "upper_arm_ik_target.L", "upper_arm_ik_target.R"]
+    scene.frame_set(F0); rq = (rig.matrix_world @ pbs["root"].matrix).to_quaternion()
+    if math.degrees(rq.angle) < 1.0:
+        for j in range(n):
+            f = F0 + j; scene.frame_set(f)
+            world = {c: (rig.matrix_world @ pbs[c].matrix).copy() for c in rootspace}
+            pb = pbs["root"]; m = (rig.matrix_world @ pb.matrix).copy(); m.translation = roots[0] + travel * (j / float(n - 1))
+            pb.matrix = rig.matrix_world.inverted() @ m; bpy.context.view_layer.update()
+            pb.keyframe_insert("location", frame=f, group="root")
+            for c in rootspace:
+                pbs[c].matrix = rig.matrix_world.inverted() @ world[c]; bpy.context.view_layer.update()
+                pbs[c].keyframe_insert("location", frame=f, group=c)
+    else:
+        log("even-advance: the root is rotated (%.0f deg); left as resampled" % math.degrees(rq.angle))
+    after = []
+    for f in range(F0, F1 + 1):
+        scene.frame_set(f); after.append((rig.matrix_world @ pbs["DEF-spine"].matrix).translation.dot(axis))
+    adv2 = [after[i + 1] - after[i] for i in range(n - 1)]
+    warp = max(abs(ts[j] - (F0 + j)) for j in range(n))
+    log("even-advance x%d: hips advance per frame %.1f..%.1f mm -> %.1f..%.1f (mean %.1f), at the wrap %.1f -> %.1f mm; frames moved by up to %.2f in time; travel %.3f rig m unchanged" % (
+        K, min(a) * 1000, max(a) * 1000, min(adv2) * 1000, max(adv2) * 1000, sum(adv2) / len(adv2) * 1000, a[-1] * 1000, adv2[-1] * 1000, warp, travel.length))
+    log("even-advance profile before: " + " ".join("%.0f" % (v * 1000) for v in a))
+    log("even-advance profile after:  " + " ".join("%.0f" % (v * 1000) for v in adv2))
+
+
 def stride(act, k):
     """Shorter (or longer) steps: p' = p + (k-1)((p - r0).axis) axis for the root, torso, feet, toes, knee poles,
     IK hands and elbow poles, axis = the root's net travel direction, r0 = the root on the first frame. A
@@ -998,6 +1057,9 @@ if SPEED_SEGMENT:
 if UPPER_FROM:
     upper_from(baked, UPPER_FROM, UPPER_SEAM)
     ad.action = baked
+
+if EVEN_ADVANCE:
+    even_advance(EVEN_ADVANCE)
 
 if END_BLEND:
     end_blend(baked, END_BLEND)
