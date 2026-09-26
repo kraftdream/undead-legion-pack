@@ -50,6 +50,7 @@ EVEN_ADVANCE = int(arg("--even-advance", "0"))      # K: a locomotion loop is RE
 FOOT_CLEAR = arg("--foot-clear", "")              # Z rig m: no model's BOOT goes below Z on any frame - per frame and foot, the lowest vertex of all six characters' Boot_<side> meshes is measured and an IK foot (and its toe) is raised by the deficit, the lift running-maxed over +-1 frame and smoothed (wrapping with --loop), the knee pole kept on the FK plane. For a swinging foot that pitches toe-down while barely lifting (the strafes: the boot's toe dragged 14 mm through the floor, and a constant export lift fitted to that dip floated the whole stance 25 mm; user: "both strafe animations in unity have model float above ground")
 TORSO_DROP = float(arg("--torso-drop", "0"))       # rig m: the torso control (the hips, and with it the spine, head and FK arms) lowered by this on every frame; IK feet stay planted so the knees bend more, the poles re-aimed on the FK plane (user, Summon: "bring the torso down like 8 cm" = 0.044 rig m)
 YAW_CLIP = float(arg("--yaw-clip", "0"))          # degrees, + = left: the whole clip turned about the vertical through the root's first-frame spot - every root-level control (torso, feet, toes, knee poles, IK hands, elbow poles) and the root's path, the Root's own orientation left at identity so the export's Root stays as in every other clip (user, AOE_Cast: "animation direction the same as the feet direction in idle_02": the take faced 17 deg right)
+KNEES_IN = float(arg("--knees-in", "0"))         # rig m: the IK knees swivelled toward the body's midline so their separation shrinks by this much (each knee's pole aimed at the FK knee moved half of it inward along the hips' lateral axis; the knee can only move on its swivel circle, so the pole takes the nearest point). Runs after every other leg pass. (user, Strafe_01: "knees not that far apart, like 20 cm closer": the knees sat 276-414 mm apart with the feet 132-299)
 IK_LEGS = "--ik-legs" in argv                     # after the bake, both legs on IK on every frame, the foot/toe controls on the DEF result and the knee pole out through the FK knee (refined): lossless (the walks' legs are FK from the retarget; a foot pin on an FK leg would switch modes and jump the knee)
 FK_ARM = arg("--fk-arm", "")                      # "L" / "R" / "LR": after the bake, that arm is put on FK on every frame, the FK chain set to the arm's current (IK) result: lossless, and upper_arm_fk / forearm_fk / hand_fk then control it (user, on Block_L_Idle whose left arm was IK throughout: "upper_arm_fk_l and its children won't change the mesh")        # "A:B:F": after the bake (and pin), frames A..B of the result are resampled F times faster (Blender's own curve evaluation at fractional frames), the frames after B shift earlier (user: "speed up by 35% from frame 21 to 34")
 PIN_FOOT = arg("--pin-foot", "")                  # "L" / "L:1" / "L,R" / "L:20:20:34": SIDE[:ref[:from[:to]]] - after the bake, that foot's IK control (and toe) is held from frame `from` to `to` (default: the whole clip) at the WORLD transform it has on frame `ref` (default: the first frame): a planted foot that the capture let drift (user: "get rid of the drift on the left feet"; "left foot drift after the step forward, from frame 20")
@@ -857,6 +858,34 @@ def yaw_clip(act, deg):
     log("yaw-clip %+.1f deg: the whole clip turned about the vertical through the root's first-frame spot (Root orientation untouched)" % deg)
 
 
+def knees_in(act, d):
+    ad.action = act
+    sep0 = []; sep1 = []
+    for f in range(F0, F1 + 1):
+        scene.frame_set(f)
+        lat = ((rig.matrix_world @ pbs["DEF-spine"].matrix).to_3x3() @ Vector((1, 0, 0))); lat.z = 0
+        if lat.length < 1e-6: lat = Vector((1, 0, 0))
+        lat.normalize()
+        kl = (rig.matrix_world @ pbs["DEF-shin.L"].matrix).translation.copy(); kr = (rig.matrix_world @ pbs["DEF-shin.R"].matrix).translation.copy()
+        sep0.append((kl - kr).length)
+        mid = 0.5 * (kl + kr)
+        for sd in ("L", "R"):
+            if pbs["thigh_parent." + sd]["IK_FK"] > 0.5:
+                continue
+            fk = fk_knee(sd); side_sign = 1.0 if (fk - mid).dot(lat) > 0 else -1.0
+            tgt = fk - lat * (side_sign * 0.5 * d)
+            hip_ = (rig.matrix_world @ pbs["DEF-thigh." + sd].matrix).translation.copy(); ank_ = (rig.matrix_world @ pbs["DEF-foot." + sd].matrix).translation.copy()
+            leg_pole(sd, tgt, hip_, ank_)
+            pole = pbs["thigh_ik_target." + sd]
+            pole.keyframe_insert("location", frame=f, group="thigh_ik_target." + sd)
+            pole.keyframe_insert("rotation_quaternion" if pole.rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group="thigh_ik_target." + sd)
+            pbs["thigh_parent." + sd].keyframe_insert('["pole_vector"]', frame=f, group="thigh_parent." + sd)
+        bpy.context.view_layer.update()
+        kl = (rig.matrix_world @ pbs["DEF-shin.L"].matrix).translation; kr = (rig.matrix_world @ pbs["DEF-shin.R"].matrix).translation
+        sep1.append((kl - kr).length)
+    log("knees-in %.3f rig m: knees apart %.0f..%.0f mm -> %.0f..%.0f (the swivel circle limits the move)" % (d, min(sep0) * 1000, max(sep0) * 1000, min(sep1) * 1000, max(sep1) * 1000))
+
+
 def stride(act, k):
     """Shorter (or longer) steps: p' = p + (k-1)((p - r0).axis) axis for the root, torso, feet, toes, knee poles,
     IK hands and elbow poles, axis = the root's net travel direction, r0 = the root on the first frame. A
@@ -1125,6 +1154,8 @@ if TORSO_DROP:
     repole_legs(baked)
 if YAW_CLIP:
     yaw_clip(baked, YAW_CLIP)
+if KNEES_IN:
+    knees_in(baked, KNEES_IN)
     # the mirror is built from the pinned result
     poses = {}
     for f in range(F0, F1 + 1):
