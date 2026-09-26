@@ -44,7 +44,7 @@ every one verified on all six models with `verify_clip.py` + `ground_clip.py`; p
 | Impaled (hand-authored) | `Impaled_Idle` (loop: on its knees, hunched, sword through the belly), `Impaled_Rise` (one-shot: pulls it out, stands up, ends on the neutral standing pose) |
 | Twitch (additive) | `Twitch_01/02/03` head + jaw |
 | Locomotion (loop, root motion) | `Walk_Fwd_01`, `Walk_Back_01`, `Run_Fwd`, `Strafe_Left_01` (mirrored right), `Strafe_Right_01` (the `_01` index added 2026-09-26: the low-rank shambling set; `Run_Fwd` was not renamed, the user listed the walks and strafes); **`Walk_Fwd_02`, `Run_Fwd_02`** (2026-09-25: the "normal" pair, an upright human walk and jog for the higher ranks such as the necromancer and mage, Kimodo without the stiff-undead prompt profile), **`Walk_Back_02`** (2026-09-26, the same for the walk back), **`Strafe_Left_02` / `Strafe_Right_02`** (2026-09-26, the same for the side-steps) |
-| Per arm (2026-09-22/23, replaces the one-handed set) | `Attack_R_Stab`, `Attack_R_Slice` (the user's mannequin-app recording `attack_ref5`, frames 26–62 / 111–149, plain transfer), `Attack_L_Stab`, `Attack_L_Slice` (the same mirrored), `Block_L_Idle` (loop: shield held up on the left arm, a HELD action in the demo). Each lives on its arm's masked layer (`LeftArm` / `RightArm`) and as a full-body state on Base; the Animator carries the transitions |
+| Per arm (2026-09-22/23, replaces the one-handed set) | `Attack_R_Stab`, `Attack_R_Slice` (redone 2026-09-26, experimental, from the user's `melee in place.glb`: frames 60–104 / 1–50, plain transfers at the take's own tempo, both feet frozen, in place; the `attack_ref5` builds are the `_base` actions), `Attack_L_Stab`, `Attack_L_Slice` (the same mirrored), `Block_L_Idle` (loop: shield held up on the left arm, a HELD action in the demo). Each lives on its arm's masked layer (`LeftArm` / `RightArm`) and as a full-body state on Base; the Animator carries the transitions |
 | Two-handed | `Attack_2H_01` (downward chop with a step), `Attack_2H_02` (raise and horizontal sweep) — the user's mannequin recording (2026-09-23), legs planted, left hand on the handle through the two-handed GATE (slides 0.03..0.11 rig m below the right hand) |
 | Bow | `Shoot_01` (redone 2026-09-25 from the user's mannequin recording `aoe cast shoot.glb`: raise, draw at the cheek, release, lower, 1.9 s; the arrow aimed dead ahead by a spine twist, the hips held on the heading; the video-mocap build of 2026-09-22 and `Shoot_02` retired) |
 | Magic | `Cast_Wand_01/02`, `Cast_Staff_01` (both hands on the staff) — the user's mannequin recording `magic attacks.glb` (2026-09-25); `Cast_Staff_02` retired |
@@ -1196,6 +1196,28 @@ duplicated closing frame rebuilt from the same rule): 10, so the seam sits insid
 feet are planted (wrap steps 1–2° where the old seam had 9°). `--keep-poles`, Strafe_Right_01 re-mirrored,
 boots within ±3 mm. Rule: **put a loop's seam where both feet are planted; a seam in a foot's flight or at a
 hold's edge reads as a snap however exact its numbers.**
+**The melee-in-place take (2026-09-26, experimental: "new recording `melee in place.glb`; replace the slice with
+frames 1–40 and the stab with 48–83, feet frozen in place").** `melee_ref_arm.blend`, 104 frames (= 83 ×
+1.25, the 24 fps numbers again): slice 1–50, stab 60–104; the right hand attacks (2.1 / 1.4 m/s, the left
+calm), the pelvis stays put, so plain transfers with the legs planted and NO `drift root` (in place, root
+motion 0.000 m / 0°), `unwind_yaw` + `unwind_ref body`, no `time_scale` (the take's own tempo; the ref5 builds
+ran at 0.38–0.45) and no blade pass (the wrist as recorded). Then `anim_nla_bake --pin-foot L,R` on each right
+clip (both feet at their frame-1 transforms for the whole clip, 0.0 mm on every frame, knees 128–155°) with
+`--mirror-to` the left clip (landmarks within 3.1 mm); all four `hand_edited`, exported with the fit: the
+highest sole at 0, the others ≤ 9 mm under. Slice 50 frames (1.63 s; the cut steps the hand 37° on frame 24,
+the take's speed), stab 45 (1.47 s). The previous builds live on as `_base`; `time_scale` and
+`blade_along_arm` are the knobs if the old tempo or blade line are wanted back.
+Then (user: "for one-handed attacks only torso and above bones are used, we don't touch legs and feet poses"),
+with the updated `Attack_R_Slice_Fix` (right arm, one torso key; Combine): **`anim_nla_bake --legs-from Idle:1`**
+(every LEG control — feet, toes, knee poles, the FK leg chain, heel/spin/tweaks, the leg switches, 28 controls —
+taken from Idle's frame 1 on every frame; root, torso, pelvis and everything above stay the clip's, so the IK
+legs stand on the idle's stance under the take's hips) on both right clips, the left ones mirrored, all four
+exported in place (root motion 0). Rule: **a one-handed attack owns the torso and above; its legs are the
+idle's stance.** Reported, not changed: the take's hips sit higher than Idle's, so the left knee reaches
+166° (slice) / 171° (stab) over the idle's feet (Idle itself has 135–139°) — a `--torso-drop` of ~0.02 rig m
+would keep it bent; and the slice fix extends the right elbow to 178° at the cut with a 43° hand step (the
+straight-arm flip risk in Humanoid).
+
 **`Strafe_Right_02` / `Strafe_Left_02`**: three profile-less Kimodo side-steps to the right (`strafe_right_n1..n3`,
 kept); n3 (seed 39) for the cleanest cycle (r 0.95; n1 r 0.62 with asymmetric arms, n2's trailing foot dragging
 32 cm), knees 136–170°, chest 9–14°. Plain loco retargets along X, the left the retarget's `mirror` of the same
