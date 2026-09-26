@@ -205,7 +205,7 @@ sb.AppendLine("base Idle alone: Head moved " + Quaternion.Angle(headA[0], headA[
   sb.AppendLine(string.Format("TwitchLoop_01 toggled on over Idle: head/jaw peak {0:F1} deg in the first pass, {1:F1} deg in the second pass (frames 75..200, {2} frames visibly twitching), Hips diff {3:F2} deg", p1, p2, act2, ph));
 }
 
-// ---- layering proof: Walk_Fwd on Base + Attack_R_Slice on RightArm must give the walk's legs and
+// ---- layering proof: Walk_Fwd_01 on Base + Attack_R_Slice on RightArm must give the walk's legs and
 // spine and the attack's right arm; compared per frame against each clip played alone on the base
 // layer. Then Block_L_Idle held on LeftArm under the same mix must keep the block's left arm
 Transform lLeg = null, rArm = null, spine1 = null, lFoot = null;
@@ -219,11 +219,11 @@ var sp1Walk = new Quaternion[nf]; var lArmBlock = new Quaternion[nf]; var lArmMi
 for (int run = 0; run < 5; run++) {
   an.Rebind(); an.Update(0f);
   an.SetLayerWeight(an.GetLayerIndex("Twitch"), 0f);
-  if (run == 0) { an.Play("Walk_Fwd", 0, 0f); }
+  if (run == 0) { an.Play("Walk_Fwd_01", 0, 0f); }
   if (run == 1) { an.Play("Attack_R_Slice", 0, 0f); }
-  if (run == 2) { an.Play("Walk_Fwd", 0, 0f); an.Play("Attack_R_Slice", rArmL, 0f); }
+  if (run == 2) { an.Play("Walk_Fwd_01", 0, 0f); an.Play("Attack_R_Slice", rArmL, 0f); }
   if (run == 3) { an.Play("Block_L_Idle", 0, 0f); }
-  if (run == 4) { an.Play("Walk_Fwd", 0, 0f); an.Play("Block_L_Idle", lArmL, 0f); an.Play("Attack_R_Slice", rArmL, 0f); }
+  if (run == 4) { an.Play("Walk_Fwd_01", 0, 0f); an.Play("Block_L_Idle", lArmL, 0f); an.Play("Attack_R_Slice", rArmL, 0f); }
   an.Update(0f);
   for (int f = 0; f < nf; f++) {
     an.Update(1f / 30f);
@@ -247,8 +247,8 @@ for (int f = 0; f < nf; f++) {
   blockDev = Mathf.Max(blockDev, Quaternion.Angle(lArmBlock[f], lArmMix[f]));
   armDev2 = Mathf.Max(armDev2, Quaternion.Angle(armAtk[f], armMix2[f]));
 }
-sb.AppendLine(string.Format("layering (Walk_Fwd base + Attack_R_Slice right arm, {0} frames): LeftUpLeg follows the walk within {1:F2} deg (walk swings {2:F1} deg), LeftFoot within {3:F1} mm; RightArm follows the attack within {4:F2} deg (attack swings {5:F1} deg; it differs from the walk's arm by up to {6:F1} deg); Spine1 follows the WALK within {7:F2} deg (the attack alone swings it {8:F1} deg: arm layers are arm-only)", nf, legDev, legRange, footDev * 1000f, armDev, armRange, armVsWalk, sp1Dev, sp1Range));
-sb.AppendLine(string.Format("held block: Walk_Fwd + Block_L_Idle on LeftArm + Attack_R_Slice on RightArm: LeftArm follows the block within {0:F2} deg, RightArm follows the attack within {1:F2} deg", blockDev, armDev2));
+sb.AppendLine(string.Format("layering (Walk_Fwd_01 base + Attack_R_Slice right arm, {0} frames): LeftUpLeg follows the walk within {1:F2} deg (walk swings {2:F1} deg), LeftFoot within {3:F1} mm; RightArm follows the attack within {4:F2} deg (attack swings {5:F1} deg; it differs from the walk's arm by up to {6:F1} deg); Spine1 follows the WALK within {7:F2} deg (the attack alone swings it {8:F1} deg: arm layers are arm-only)", nf, legDev, legRange, footDev * 1000f, armDev, armRange, armVsWalk, sp1Dev, sp1Range));
+sb.AppendLine(string.Format("held block: Walk_Fwd_01 + Block_L_Idle on LeftArm + Attack_R_Slice on RightArm: LeftArm follows the block within {0:F2} deg, RightArm follows the attack within {1:F2} deg", blockDev, armDev2));
 GameObject.DestroyImmediate(go);
 return sb.ToString();
 '''

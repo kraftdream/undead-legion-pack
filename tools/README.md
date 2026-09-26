@@ -58,8 +58,8 @@ Typical loop after editing the rig in `Rig/skeleton_rig.blend`:
 
 Clip loop:
 
-    "$B" -b Animations/skeleton_anim.blend -P tools/export_fbx.py -- --clip Walk_Fwd
-    python tools/unity/verify_clip.py "Assets/UndeadLegion/Animations/Skeleton@Walk_Fwd.fbx" --loop 1
+    "$B" -b Animations/skeleton_anim.blend -P tools/export_fbx.py -- --clip Walk_Fwd_01
+    python tools/unity/verify_clip.py "Assets/UndeadLegion/Animations/Skeleton@Walk_Fwd_01.fbx" --loop 1
     rm -rf skeletons/Assets/_PipelineTest*     # verify_clip leaves its test controller there
 
 | `mesh_normals_fix.py [-- --save] [--render DIR]` | a character file | Makes each island's winding consistent, votes open cloth islands against the body surface, reports per mesh; `--render` writes EEVEE back-face-culled renders before/after (what Unity shows); `--save` writes `<Character>/prod_copy.blend`, never prod.blend. The vote can be wrong on hanging cloth (Archer): compare the culled renders before trusting a copy | with `--save`, to prod_copy |
@@ -72,7 +72,7 @@ Clip loop:
     "$B" -b Animations/skeleton_anim.blend -P tools/anim_hand_idle.py -- --save   # Hand_Idle_L/R: the empty-hand finger idles from Grip frame 2's left hand (mirrored for the right), slow sway; then export_fbx --clip each and rebuild the controller
     python tools/kimodo_batch.py            # generate every missing GLB on the laptop (detach it: an hour+); manifest no_profile = plain human prompt (no undead body profile)
     python tools/anim_batch.py --wait       # retarget -> preview -> export -> Unity verify, as GLBs arrive
-    python tools/anim_batch.py Walk_Fwd --force   # rebuild one after editing its entry or the retarget
+    python tools/anim_batch.py Walk_Fwd_01 --force   # rebuild one after editing its entry or the retarget
 
 Both log to `Animations/*.log`; `Animations/build_state.json` remembers what was built
 from which GLB and which manifest entry. Previews land in `Animations/preview/` (look at them).

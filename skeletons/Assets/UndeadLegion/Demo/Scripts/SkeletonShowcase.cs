@@ -271,11 +271,12 @@ namespace UndeadLegion.Demo
             new ClipSection { title = "Impaled", idlePreference = new[] { "Idle" },
                 members = new[] { "Impaled_Idle", "Impaled_Rise" } },
             new ClipSection { title = "Locomotion", idlePreference = new[] { "Idle" },
-                members = new[] { "Walk_Fwd", "Walk_Back", "Run_Fwd", "Strafe_Left", "Strafe_Right",
+                // _01 = the low-rank (shambling) set, renamed 2026-09-26; _02 = the normal-looking set for the higher ranks
+                members = new[] { "Walk_Fwd_01", "Walk_Back_01", "Run_Fwd", "Strafe_Left_01", "Strafe_Right_01",
                                   // the "normal" pair (2026-09-25): an upright human walk and jog, generated without the
                                   // stiff-undead prompt profile, for the higher ranks (necromancer, mage); the same
                                   // shared clips, the buyer picks per class
-                                  "Walk_Fwd_02", "Walk_Back_02", "Run_Fwd_02",
+                                  "Walk_Fwd_02", "Walk_Back_02", "Run_Fwd_02", "Strafe_Left_02", "Strafe_Right_02",
                                   "Turn_Left_90", "Turn_Right_90" } },
             // per-arm set (2026-09-22): each clip lives on its arm's masked layer; Block_L_Idle is a held toggle
             new ClipSection { title = "Right arm", idlePreference = new[] { "Idle" },
