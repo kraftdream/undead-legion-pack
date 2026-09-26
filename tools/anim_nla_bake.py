@@ -51,6 +51,9 @@ FOOT_CLEAR = arg("--foot-clear", "")              # Z rig m: no model's BOOT goe
 TORSO_DROP = float(arg("--torso-drop", "0"))       # rig m: the torso control (the hips, and with it the spine, head and FK arms) lowered by this on every frame; IK feet stay planted so the knees bend more, the poles re-aimed on the FK plane (user, Summon: "bring the torso down like 8 cm" = 0.044 rig m)
 YAW_CLIP = float(arg("--yaw-clip", "0"))          # degrees, + = left: the whole clip turned about the vertical through the root's first-frame spot - every root-level control (torso, feet, toes, knee poles, IK hands, elbow poles) and the root's path, the Root's own orientation left at identity so the export's Root stays as in every other clip (user, AOE_Cast: "animation direction the same as the feet direction in idle_02": the take faced 17 deg right)
 KNEES_IN = float(arg("--knees-in", "0"))         # rig m: the IK knees swivelled toward the body's midline so their separation shrinks by this much (each knee's pole aimed at the FK knee moved half of it inward along the hips' lateral axis; the knee can only move on its swivel circle, so the pole takes the nearest point). Runs after every other leg pass. (user, Strafe_01: "knees not that far apart, like 20 cm closer": the knees sat 276-414 mm apart with the feet 132-299)
+KEEP_POLES = "--keep-poles" in argv               # with --pin-foot: the knee poles are left as they are (no re-aim onto the FK knee plane, no repole after the leg passes) - for a clip whose poles were set by hand or by --knees-in (user, Strafe_01: the fix keys the poles)
+ARMS_DOWN = float(arg("--arms-down", "0"))         # degrees: each FK upper arm turned toward the body about the body's forward axis through its shoulder (pure adduction; the forearm and hand ride), on every frame (user, Strafe_01: "lower the arms, they stick out too much")
+LOOP_SHIFT = int(arg("--loop-shift", "0"))          # frames: the loop's phase rotated - the clip starts K frames later and the first K frames go to the end, advanced by the travel (the Root keeps its linear path); the seam moves to where the old frame K meets K+1 (user, Strafe_01: "move some frames from the start into the end, the feet snap at the end")
 IK_LEGS = "--ik-legs" in argv                     # after the bake, both legs on IK on every frame, the foot/toe controls on the DEF result and the knee pole out through the FK knee (refined): lossless (the walks' legs are FK from the retarget; a foot pin on an FK leg would switch modes and jump the knee)
 FK_ARM = arg("--fk-arm", "")                      # "L" / "R" / "LR": after the bake, that arm is put on FK on every frame, the FK chain set to the arm's current (IK) result: lossless, and upper_arm_fk / forearm_fk / hand_fk then control it (user, on Block_L_Idle whose left arm was IK throughout: "upper_arm_fk_l and its children won't change the mesh")        # "A:B:F": after the bake (and pin), frames A..B of the result are resampled F times faster (Blender's own curve evaluation at fractional frames), the frames after B shift earlier (user: "speed up by 35% from frame 21 to 34")
 PIN_FOOT = arg("--pin-foot", "")                  # "L" / "L:1" / "L,R" / "L:20:20:34": SIDE[:ref[:from[:to]]] - after the bake, that foot's IK control (and toe) is held from frame `from` to `to` (default: the whole clip) at the WORLD transform it has on frame `ref` (default: the first frame): a planted foot that the capture let drift (user: "get rid of the drift on the left feet"; "left foot drift after the step forward, from frame 20")
@@ -886,6 +889,54 @@ def knees_in(act, d):
     log("knees-in %.3f rig m: knees apart %.0f..%.0f mm -> %.0f..%.0f (the swivel circle limits the move)" % (d, min(sep0) * 1000, max(sep0) * 1000, min(sep1) * 1000, max(sep1) * 1000))
 
 
+def arms_down(act, deg):
+    ad.action = act
+    n_ = 0
+    for f in range(F0, F1 + 1):
+        scene.frame_set(f)
+        fwd = ((rig.matrix_world @ pbs["DEF-spine"].matrix).to_3x3() @ Vector((0, 0, 1))); fwd.z = 0
+        if fwd.length < 1e-6: fwd = Vector((0, -1, 0))
+        fwd.normalize()
+        for sd in ("L", "R"):
+            if pbs["upper_arm_parent." + sd]["IK_FK"] < 0.5:
+                continue                                        # an IK arm is placed by its hand; leave it
+            pb = pbs["upper_arm_fk." + sd]; m = (rig.matrix_world @ pb.matrix).copy(); sh = m.translation.copy()
+            lat = ((rig.matrix_world @ pbs["DEF-spine"].matrix).to_3x3() @ Vector((1, 0, 0))); lat.z = 0; lat.normalize()
+            el = (rig.matrix_world @ pbs["DEF-forearm." + sd].matrix).translation
+            side_sign = 1.0 if (el - sh).dot(lat) > 0 else -1.0     # which way is "out" for this arm
+            # a rotation about the forward axis that moves the elbow inward: sign found by trial on the elbow
+            R1 = Matrix.Rotation(math.radians(deg), 4, fwd); R2 = Matrix.Rotation(-math.radians(deg), 4, fwd)
+            def moved(R):
+                e = Matrix.Translation(sh) @ R @ Matrix.Translation(-sh) @ Matrix.Translation(el)
+                return (e.translation - sh).dot(lat) * side_sign
+            R = R1 if moved(R1) < moved(R2) else R2
+            pb.matrix = rig.matrix_world.inverted() @ (Matrix.Translation(sh) @ R @ Matrix.Translation(-sh) @ m); bpy.context.view_layer.update()
+            pb.keyframe_insert("rotation_quaternion" if pb.rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group="upper_arm_fk." + sd)
+            n_ += 1
+    log("arms-down %.0f deg: %d arm-frames adducted about the body's forward axis" % (deg, n_))
+
+
+def loop_shift(K):
+    global poses, baked
+    ad.action = baked
+    n = F1 - F0 + 1; m = n - 1                                   # the cycle: the last frame repeats the first + travel
+    scene.frame_set(F0); r0 = (rig.matrix_world @ pbs["root"].matrix).translation.copy()
+    scene.frame_set(F1); r1 = (rig.matrix_world @ pbs["root"].matrix).translation.copy()
+    travel = r1 - r0
+    old = {}
+    for f in range(F0, F1 + 1):
+        scene.frame_set(f); old[f] = read_pose()
+    new = {}
+    for j in range(n):
+        i = K + j; wraps = i // m; src = F0 + i % m
+        rec = {c: dict(v) for c, v in old[src].items()}
+        rec["root"] = dict(rec["root"], loc=rec["root"]["loc"] + travel * wraps)   # root: no parent, its local location is armature space
+        new[F0 + j] = rec
+    poses = new; baked = write_action(RESULT, poses, False); ad.action = baked
+    scene.frame_set(F0); a_ = (rig.matrix_world @ pbs["DEF-spine"].matrix).translation.copy(); scene.frame_set(F1); b_ = (rig.matrix_world @ pbs["DEF-spine"].matrix).translation.copy()
+    log("loop-shift %d: the clip now starts on the old frame %d, the old frames %d..%d follow at the end advanced by the travel; last frame vs first + travel on the hips %.1f mm" % (K, F0 + K, F0, F0 + K - 1, ((a_ + travel) - b_).length * 1000))
+
+
 def stride(act, k):
     """Shorter (or longer) steps: p' = p + (k-1)((p - r0).axis) axis for the root, torso, feet, toes, knee poles,
     IK hands and elbow poles, axis = the root's net travel direction, r0 = the root on the first frame. A
@@ -1101,7 +1152,8 @@ def pin_feet(act):
             pb = pbs["foot_ik." + side]; pb.matrix = rig.matrix_world.inverted() @ target[f]
             pbs["thigh_parent." + side]["IK_FK"] = 0.0; bpy.context.view_layer.update()
             hip_ = (rig.matrix_world @ pbs["DEF-thigh." + side].matrix).translation.copy()
-            leg_pole(side, fk_knee(side), hip_, target[f].translation)
+            if not KEEP_POLES:
+                leg_pole(side, fk_knee(side), hip_, target[f].translation)
             for (p0, p1), tm in toe_hold.items():
                 if p0 <= f <= p1:
                     pt = pbs["toe_ik." + side]; pt.matrix = rig.matrix_world.inverted() @ tm; bpy.context.view_layer.update()
@@ -1145,7 +1197,7 @@ if STRIDE != 1.0:
 
 if PIN_FOOT:
     pin_feet(baked)
-if PIN_FOOT or IK_LEGS or STRIDE != 1.0 or VSMOOTH:
+if (PIN_FOOT or IK_LEGS or STRIDE != 1.0 or VSMOOTH) and not KEEP_POLES:
     repole_legs(baked)
 if FOOT_CLEAR:
     foot_clear(baked, float(FOOT_CLEAR))
@@ -1208,6 +1260,9 @@ if GRIP_FOLLOW:
 if FK_ARM:
     fk_arms(baked)
 
+if ARMS_DOWN:
+    arms_down(baked, ARMS_DOWN)
+
 if LOOP_SEAM:
     loop_seam(baked, LOOP_SEAM)
 
@@ -1236,6 +1291,9 @@ if UPPER_FROM:
 
 if EVEN_ADVANCE:
     even_advance(EVEN_ADVANCE)
+
+if LOOP_SHIFT:
+    loop_shift(LOOP_SHIFT)
 
 if END_BLEND:
     end_blend(baked, END_BLEND)

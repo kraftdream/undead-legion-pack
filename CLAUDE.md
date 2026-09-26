@@ -1175,6 +1175,27 @@ pole aimed at its FK knee moved D/2 toward the body's midline along the hips' la
 nearest point on its swivel circle; runs after every other leg pass): 0.18 → knees 119–245 mm apart, right
 knee ≤ 165°, steps ≤ 11°; Strafe_Right_01 re-mirrored, boots unchanged. Rule: **"knees apart" can be the
 knee PLANE, not the stance: compare the knee separation with the feet's before moving any foot.**
+Then the user's updated `Strafe_Left_Fix` (chest, head, neck, both feet, both knee poles, torso; Combine) with
+"freeze the left foot from frame 32 to 45": baked with **`--keep-poles`** (new: `--pin-foot` neither re-aims
+the pinned leg's pole nor runs the repole after the leg passes, so the fix's own pole offsets and the knees-in
+swivel survive; with a world-space pole target the knee keeps aiming at it while the foot moves), the left foot
+held over 32–45 at frame 45's spot (seam-exact), `--loop --loop-seam 4`, `--mirror-to Strafe_Right_01`. ⚠ The
+first bake came out 51 frames: the fix's keys reach frame 51 (beyond the 45-frame strip) and the stack range
+follows the widest action — `--frames 1:45` pins it (the pre-fix clips were restored from HEAD's anim file and
+the stack rebuilt for the redo). The fix lowers the body 14 mm (hips 0.48–0.55), so `lift 0.008`: the highest
+sole at +2 mm, the others ≤ 5 mm under. Knees 149–303 mm apart now (the fix's poles), 113–158°, steps ≤ 11°.
+Rule: **a Combine fix keyed beyond the strip's end widens the flatten; give the bake `--frames`.**
+Then "lower the arms, they stick out too much; move some frames from the start into the end, the feet snap at
+the end" (2026-09-26): measured, the strafe's upper arms sat 10–25° out from vertical (Idle_02 17–23°, the
+normal strafe −5..18°). **`--arms-down DEG`** (each FK upper arm turned toward the body about the body's
+forward axis through its shoulder, the sign found on the elbow, the forearm and hand riding; IK arms left
+alone): 12° → −1..13° / −2..6°, the hands 5 cm closer to the hips. **`--loop-shift K`** (the loop's phase
+rotated: the clip starts K frames later, the first K frames go to the end advanced by the travel — the root's
+location is armature-space and every other root-level control is its child, so only the root's keys move — the
+duplicated closing frame rebuilt from the same rule): 10, so the seam sits inside the double stance where both
+feet are planted (wrap steps 1–2° where the old seam had 9°). `--keep-poles`, Strafe_Right_01 re-mirrored,
+boots within ±3 mm. Rule: **put a loop's seam where both feet are planted; a seam in a foot's flight or at a
+hold's edge reads as a snap however exact its numbers.**
 **`Strafe_Right_02` / `Strafe_Left_02`**: three profile-less Kimodo side-steps to the right (`strafe_right_n1..n3`,
 kept); n3 (seed 39) for the cleanest cycle (r 0.95; n1 r 0.62 with asymmetric arms, n2's trailing foot dragging
 32 cm), knees 136–170°, chest 9–14°. Plain loco retargets along X, the left the retarget's `mirror` of the same
