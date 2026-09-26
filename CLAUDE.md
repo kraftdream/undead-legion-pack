@@ -1289,6 +1289,26 @@ that file-wide offset; left as is, a rebuild would change them all). Result: hip
 both ends and −56° at the draw, root motion in place (2 cm, 0.6°), knees 109–136°, boots on the floor (the
 Knight sinks 13 mm at its lowest frame). Kept as captured: the bow limbs sit 116–117° from the arrow at the draw
 (a 26° cant; `bow_square` would square it).
+**WRONG, and corrected the same evening (user, with the bow and arrow attached in Blender: "in my Blender the
+shoot direction is correct, in the same direction as the feet; you imported the animation incorrectly, the
+model shoots diagonally compared to the feet").** Measured in the SOURCE: the feet stand at +38° all along and
+the shot at full draw goes +51°, along the FRONT foot and 13° left of the feet's mean — the archer shoots
+where his feet point, the hips 40–50° side-on to it. The aim build had held the hips on the heading and
+twisted the spine until the arrow was at 0° in the WORLD while the feet pointed +12° (front foot +24°): 25°
+off the front foot, the diagonal. The aim passes are for the video take whose stance was lost; on a good
+capture they break the feet/shot relation. Now: NO aim passes, **`heading feet`** (`--heading feet`, new:
+the mean yaw of both feet's ankle→toe direction over the used range, against the bind's, is zeroed — the
+feet are the facing of an archer, as they are of Idle_02) and the take as recorded: feet mean −1..+11°, the
+front foot +23° and the shot +19° at the draw, hips −34° side-on there, back to −8° at the ends; bone
+directions within 2° of the source on every arm bone (`retarget_compare`). Rule: **when the capture is good,
+the shot goes where the recorded feet point; aim only what a capture lost.** Also on the way: a batch build
+of the SAME entry came out with every arm bone 60–74° off the source (feet +33°, shot −20°) right after
+`anim_weapon_ref.py --check Shoot_01:26 --save` had left that action active and posed in the file; the
+identical retarget run again afterwards (and on copies, including a replay of that exact sequence) matched
+the source within 2° — not reproduced, cause unknown. Rule: **after a retarget "looks wrong", run
+`retarget_compare` before touching the manifest; and rebuild once before diagnosing, a bad build can be a
+transient file state.** (`anim_weapon_ref --check` leaves the checked action on an NLA track and active;
+cleared by hand this time.)
 
 **AOE_Cast fixes on the new take (2026-09-25, "updated AOE_Cast_Fix_01 and 02, this time bake 02 first, then
 01").** The order matters when the fixes share controls: Fix_02 is a held ABSOLUTE foot placement (both feet +

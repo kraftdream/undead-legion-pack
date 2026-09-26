@@ -179,7 +179,7 @@ ANCHOR_W = None                                 # pass 2: per frame weight of th
 AIM_HANDS = ("Left", "Right") if AIM_FORWARD == "L" else ("Right", "Left")
 STILL = [k for k in arg("--still-joints", "").split(",") if k]   # source joints (renamed, pre-mirror names) whose rotation vs their parent is frozen to the clip's typical value (a hand the tracker lost)
 STANCE = {k.split(":")[0]: float(k.split(":")[1]) for k in arg("--stance", "").split(",") if k}   # idle mode: "L:0.03,R:-0.03" moves each resting foot forward (+, rig m)
-HEADING = arg("--heading", "auto")             # auto: rotate the source so the hips' mean yaw vs the bind is 0 (a video capture faces wherever the performer stood); first: the first 5 frames' yaw is 0 (the ends of a one-shot face the idle); keep: as is; <deg>: fixed
+HEADING = arg("--heading", "auto")             # auto: rotate the source so the hips' mean yaw vs the bind is 0 (a video capture faces wherever the performer stood); first: the first 5 frames' yaw is 0 (the ends of a one-shot face the idle); feet: the feet's mean direction over the used range faces forward; keep: as is; <deg>: fixed
 HEAD_DAMP = float(arg("--head-damp", "1.0"))    # 0..1: scales the neck+head rotation away from rest (1 = as authored)
 TRAVEL_AXIS = arg("--travel-axis", "auto")
 GATE = [float(v) for v in arg("--gate", "").split(",")] if arg("--gate", "") else None   # "MIN,MAX" rig m: two-handed gate; the left hand rides the right hand's handle where the CAPTURE put it, clamped to that range down the hilt
@@ -629,7 +629,19 @@ if MIRROR:
 if HEADING != "keep":
     # hips yaw relative to the bind pose, mean over the clip (Kimodo ~0; the recorded idle stood 49 deg off,
     # which the retarget copied onto the pelvis while the IK feet stayed at rest: both legs twisted 49 deg)
-    if HEADING in ("auto", "first"):
+    if HEADING == "feet":
+        # the FEET face forward: the mean yaw of both feet's ankle -> toe direction over the used range, against the
+        # bind's (a side-on archer's hips face 40-50 deg away from the target; the feet, and the shot, are the facing)
+        sx = sy = 0.0
+        rng_ = SRC[SRC_BEGIN:(SRC_END + 1 if SRC_END >= 0 else len(SRC))]
+        for p in rng_:
+            for ft_, tb_ in (("LeftFoot", "LeftToeBase"), ("RightFoot", "RightToeBase")):
+                d_ = p[tb_][1] - p[ft_][1]; r_ = S_rest[tb_][1] - S_rest[ft_][1]
+                a_ = math.atan2(d_.y, d_.x) - math.atan2(r_.y, r_.x)
+                sx += math.cos(a_); sy += math.sin(a_)
+        yaw = math.atan2(sy, sx)
+        log("heading feet: the feet point %.1f deg from the bind's over the used range" % math.degrees(yaw))
+    elif HEADING in ("auto", "first"):
         sx = sy = 0.0
         for p in (SRC if HEADING == "auto" else SRC[SRC_BEGIN:SRC_BEGIN + 5]):   # first: the used RANGE's first 5 frames face forward (this block runs before the src_begin trim; a shot that turns side-on and back: the ends must face the idle's heading, the mean would not). NB "auto" is the WHOLE file's mean, not the range's
             v = (p["Hips"][0] @ S_rest["Hips"][0].inverted()) @ Vector((0, 1, 0))
