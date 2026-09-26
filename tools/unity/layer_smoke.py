@@ -2,9 +2,9 @@
 
     python tools/unity/layer_smoke.py [out_dir]
 
-Selects the Knight with a sword, plays Walk_Fwd, then clicks Attack_R_Slice (a right-arm
-clip: must land on the RightArm layer while Base stays on Walk_Fwd), then Attack_2H_01
-(a full-stop clip: must take the Base layer, and Walk_Fwd must resume after it), then the
+Selects the Knight with a sword, plays Walk_Fwd_01, then clicks Attack_R_Slice (a right-arm
+clip: must land on the RightArm layer while Base stays on Walk_Fwd_01), then Attack_2H_01
+(a full-stop clip: must take the Base layer, and Walk_Fwd_01 must resume after it), then the
 held block: Block_L_Idle toggled on (LeftArm layer holds it), Attack_R_Stab over it (standing,
 so it plays full-body on Base and the LeftArm layer keeps the block up), Block_L_Idle toggled
 off (LeftArm back to Empty). Prints
@@ -62,7 +62,7 @@ def run(out_dir):
         time.sleep(6)
         print("knight+sword:", probe('sc.SelectCharacter(0); var w = UnityEngine.Object.FindFirstObjectByType<UndeadLegion.Demo.SkeletonWeapon>(); if (w != null) w.Equip(1);'))
         time.sleep(1.5)
-        print("walk:       ", probe(PLAY % "Walk_Fwd"))
+        print("walk:       ", probe(PLAY % "Walk_Fwd_01"))
         time.sleep(2.0)
         print("walking:    ", probe())
         print("R on move:  ", probe(PLAY % "Attack_R_Slice"))

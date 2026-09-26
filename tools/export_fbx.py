@@ -7,8 +7,8 @@ Model (run in a character file):
      SIBLING nodes of the armature, at SCALE x the Blender metres, no animation.
 
 Clip (run in Animations/skeleton_anim.blend):
-    blender -b Animations/skeleton_anim.blend -P tools/export_fbx.py -- --clip Walk_Fwd [--out DIR] [--lift 0.018]
-  -> skeletons/Assets/UndeadLegion/Animations/Skeleton@Walk_Fwd.fbx : the same skeleton,
+    blender -b Animations/skeleton_anim.blend -P tools/export_fbx.py -- --clip Walk_Fwd_01 [--out DIR] [--lift 0.018]
+  -> skeletons/Assets/UndeadLegion/Animations/Skeleton@Walk_Fwd_01.fbx : the same skeleton,
      no mesh, one baked take named after the clip, plus an EMPTY node called `Body` so
      the node paths match the model files (see below).
 

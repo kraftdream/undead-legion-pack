@@ -1,6 +1,6 @@
 """Import a clip FBX as Humanoid (avatar copied from a model) and measure it on every model.
 
-    python tools/unity/verify_clip.py Assets/UndeadLegion/Animations/Skeleton@Walk_Fwd.fbx \
+    python tools/unity/verify_clip.py Assets/UndeadLegion/Animations/Skeleton@Walk_Fwd_01.fbx \
         [--avatar Assets/UndeadLegion/Models/SkeletonKnight/SK_SkeletonKnight.fbx] [--loop 1]
 
 Prints, per model: whether the clip has curves, its length, the GameObject's travel and
