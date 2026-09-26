@@ -1166,6 +1166,15 @@ Strafe_Right_01 re-mirrored; steps ≤ 11°, boots as before. ⚠ An `--even-adv
 dropped: a strafe PAUSES between side-steps (hips advance 0 for five frames), the retime compressed that pause
 and the legs stepped 18° on one frame (11° before). Rule: **the advance retime is for gaits whose hips never
 stop; a side-step's pause is the motion.**
+Then "torso higher, knees not that far apart, like 20 cm closer" (2026-09-26): measured, the knees sat WIDER
+than the feet (276–414 mm apart against feet 132–299; the walk's knees sit inside its feet at 194–221) —
+bow-legged knee planes from the Kimodo source on top of a deep crouch (hips 0.46–0.52 rig m against the
+walks' 0.53–0.56, knees 99–130°). `--torso-drop -0.04` (a 7 cm raise: hips 0.50–0.56; a 9 cm raise put the
+spread leg at full reach, knee 177° and a 71° pole flip) and the new **`--knees-in D`** (rig m: each IK knee's
+pole aimed at its FK knee moved D/2 toward the body's midline along the hips' lateral axis, the knee taking the
+nearest point on its swivel circle; runs after every other leg pass): 0.18 → knees 119–245 mm apart, right
+knee ≤ 165°, steps ≤ 11°; Strafe_Right_01 re-mirrored, boots unchanged. Rule: **"knees apart" can be the
+knee PLANE, not the stance: compare the knee separation with the feet's before moving any foot.**
 **`Strafe_Right_02` / `Strafe_Left_02`**: three profile-less Kimodo side-steps to the right (`strafe_right_n1..n3`,
 kept); n3 (seed 39) for the cleanest cycle (r 0.95; n1 r 0.62 with asymmetric arms, n2's trailing foot dragging
 32 cm), knees 136–170°, chest 9–14°. Plain loco retargets along X, the left the retarget's `mirror` of the same
