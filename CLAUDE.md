@@ -43,7 +43,7 @@ every one verified on all six models with `verify_clip.py` + `ground_clip.py`; p
 | Idles (loop) | `Idle`, `Idle_02` (hand-fixed 2026-09-21: blades forward, Idle grounded, Idle_02 upright with hanging arms, left foot 5 cm forward / right 5 cm back), `Idle_03` (the user's own video-mocap idle, 2026-09-21, slowed 3×, 10.8 s loop, fingers from the capture, right foot 10 cm forward / left 10 cm back); weapon idles `Idle_TwoHanded` (the user's mannequin recording, 2026-09-23: two-hander held ahead, both hands on the shaft), `Idle_Bow`, `Idle_Staff` (`Idle_Wand` removed 2026-09-24: "enough idle animations"; the H1Wand loadout stays, the Cast_Wand clips play over Idle_Staff / Idle; **`Idle_Propped` and the "Staff (propped)" loadout removed 2026-09-25** at the user's request: export, manifest entry, build state, fit curve, the `W_H2MagicStuff_Top` prefab, the builder's row and `ProppedHandHeight`, the grip dump entry, the demo list; the actions `Idle_Propped` / `Propped_Base` and the `prop` / `hunch` / `torso_ref` retarget passes stay as tools) |
 | Impaled (hand-authored) | `Impaled_Idle` (loop: on its knees, hunched, sword through the belly), `Impaled_Rise` (one-shot: pulls it out, stands up, ends on the neutral standing pose) |
 | Twitch (additive) | `Twitch_01/02/03` head + jaw |
-| Locomotion (loop, root motion) | `Walk_Fwd`, `Walk_Back`, `Run_Fwd`, `Strafe_Left` (mirrored right), `Strafe_Right`; **`Walk_Fwd_02`, `Run_Fwd_02`** (2026-09-25: the "normal" pair, an upright human walk and jog for the higher ranks such as the necromancer and mage, Kimodo without the stiff-undead prompt profile) |
+| Locomotion (loop, root motion) | `Walk_Fwd`, `Walk_Back`, `Run_Fwd`, `Strafe_Left` (mirrored right), `Strafe_Right`; **`Walk_Fwd_02`, `Run_Fwd_02`** (2026-09-25: the "normal" pair, an upright human walk and jog for the higher ranks such as the necromancer and mage, Kimodo without the stiff-undead prompt profile), **`Walk_Back_02`** (2026-09-26, the same for the walk back) |
 | Per arm (2026-09-22/23, replaces the one-handed set) | `Attack_R_Stab`, `Attack_R_Slice` (the user's mannequin-app recording `attack_ref5`, frames 26–62 / 111–149, plain transfer), `Attack_L_Stab`, `Attack_L_Slice` (the same mirrored), `Block_L_Idle` (loop: shield held up on the left arm, a HELD action in the demo). Each lives on its arm's masked layer (`LeftArm` / `RightArm`) and as a full-body state on Base; the Animator carries the transitions |
 | Two-handed | `Attack_2H_01` (downward chop with a step), `Attack_2H_02` (raise and horizontal sweep) — the user's mannequin recording (2026-09-23), legs planted, left hand on the handle through the two-handed GATE (slides 0.03..0.11 rig m below the right hand) |
 | Bow | `Shoot_01` (redone 2026-09-25 from the user's mannequin recording `aoe cast shoot.glb`: raise, draw at the cheek, release, lower, 1.9 s; the arrow aimed dead ahead by a spine twist, the hips held on the heading; the video-mocap build of 2026-09-22 and `Shoot_02` retired) |
@@ -61,6 +61,7 @@ identical because the avatar is shared). Ship these numbers with the pack:
 | `Run_Fwd` | 0.967 s | +1.107 m | 1.14 m/s |
 | `Walk_Fwd_02` | 1.133 s | +1.455 m | 1.28 m/s (the upright "normal" walk, 2026-09-25) |
 | `Run_Fwd_02` | 0.833 s | +1.562 m | 1.87 m/s (the "normal" jog) |
+| `Walk_Back_02` | 1.467 s | −1.132 m | 0.77 m/s (the "normal" walk back, 2026-09-26) |
 | `Strafe_Left` | 1.467 s | −0.419 m (X) | 0.29 m/s (steps 30 % shorter, 2026-09-24) |
 | `Strafe_Right` | 1.467 s | +0.419 m (X) | 0.29 m/s (the mirror of the finished Strafe_Left) |
 
@@ -1143,6 +1144,14 @@ the buyer decides per class; no per-character default exists in the demo. The sp
 both. Rule: **a prompt's body description is a style knob** — the same generator gives a shambling and
 an upright gait from the profile alone, so generate style variants by toggling it, not by re-describing
 the gait.
+**`Walk_Back_02`** (2026-09-26, "another walk_back_02, a normal looking one; this one is good for a low-grade
+skeleton, walk_back_02 for a higher rank"): the same recipe, three candidates (`walk_back_n1..n3`, kept); n3
+(seed 37) for its level head (6–9°), symmetric natural arm swing (108 / 100 mm), chest 6–11° and moderate skate
+(42–63 mm per stance; n1 had the cleanest cycle but a bowed head and a weak swing, n2 skated 17–22 cm). Plain
+loco retarget at `time_scale 1.0`: 45 frames, 1.132 m per loop, 0.77 m/s (the shambling one does 0.34), seam
+0.0000° and the hips' advance continuous across the wrap (17, 16 → 15, 14 mm per frame: no retime needed),
+knees 121–173° (all three candidates straighten to ~173° at push-off), `lift 0` (the default floated the boots
+9–16 mm; the highest model's sole at +1 mm now). In the demo's Locomotion section and on `AC_Skeleton`.
 
 **The recorded magic and specials set (2026-09-25, user: two mannequin-app files, `P:\magic attacks.glb`
 and `P:	aunts.glb`, split by frame ranges).** `External Anims/Kimodo/magic_ref_mocap.glb` →

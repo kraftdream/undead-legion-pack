@@ -144,6 +144,20 @@
    "lift": 0.008
   },
   {
+   "name": "Walk_Back_02",
+   "glb": "walk_back_n3",
+   "mode": "loco",
+   "seed": 37,
+   "frames": 240,
+   "no_profile": true,
+   "time_scale": 1.0,
+   "smooth": 1,
+   "fist": 0.4,
+   "prompt": "A person walks backwards slowly and steadily, balanced and upright, medium steps, arms at the sides.",
+   "_note": "2026-09-26, user: 'another walk_back_02, a normal looking one; this one is good for a low-grade skeleton, walk_back_02 for a higher rank'. Generated WITHOUT the stiff-undead profile (no_profile), chosen among walk_back_n1..n3: level head (6-9 deg) and a symmetric natural arm swing (108 / 100 mm), chest 6-11 deg, skate 42-63 mm per stance, cycle r 0.82; n1 had the cleanest cycle (0.97) but a bowed head (15-17) and a weak arm swing (72 / 49), n2 skated 166-215 mm. Knees reach 173 deg at push-off (all three did). lift 0 (the default 15 mm left the boots +9..+16 mm; the highest model's sole at +1 mm now, the Necromancer 6 mm under).",
+   "lift": 0.0
+  },
+  {
    "name": "Run_Fwd_02",
    "glb": "run_fwd_n2",
    "mode": "loco",

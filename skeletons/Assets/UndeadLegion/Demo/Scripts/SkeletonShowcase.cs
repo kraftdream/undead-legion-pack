@@ -275,7 +275,7 @@ namespace UndeadLegion.Demo
                                   // the "normal" pair (2026-09-25): an upright human walk and jog, generated without the
                                   // stiff-undead prompt profile, for the higher ranks (necromancer, mage); the same
                                   // shared clips, the buyer picks per class
-                                  "Walk_Fwd_02", "Run_Fwd_02",
+                                  "Walk_Fwd_02", "Walk_Back_02", "Run_Fwd_02",
                                   "Turn_Left_90", "Turn_Right_90" } },
             // per-arm set (2026-09-22): each clip lives on its arm's masked layer; Block_L_Idle is a held toggle
             new ClipSection { title = "Right arm", idlePreference = new[] { "Idle" },
