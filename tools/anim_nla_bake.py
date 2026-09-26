@@ -54,6 +54,7 @@ KNEES_IN = float(arg("--knees-in", "0"))         # rig m: the IK knees swivelled
 KEEP_POLES = "--keep-poles" in argv               # with --pin-foot: the knee poles are left as they are (no re-aim onto the FK knee plane, no repole after the leg passes) - for a clip whose poles were set by hand or by --knees-in (user, Strafe_01: the fix keys the poles)
 ARMS_DOWN = float(arg("--arms-down", "0"))         # degrees: each FK upper arm turned toward the body about the body's forward axis through its shoulder (pure adduction; the forearm and hand ride), on every frame (user, Strafe_01: "lower the arms, they stick out too much")
 LOOP_SHIFT = int(arg("--loop-shift", "0"))          # frames: the loop's phase rotated - the clip starts K frames later and the first K frames go to the end, advanced by the travel (the Root keeps its linear path); the seam moves to where the old frame K meets K+1 (user, Strafe_01: "move some frames from the start into the end, the feet snap at the end")
+LEGS_FROM = arg("--legs-from", "")                 # "Idle:1": every LEG control (feet, toes, knee poles, the FK leg chain, heel/spin/tweaks and the leg switches) taken from that action's frame on every frame; root, torso, pelvis and everything above stay the clip's, so the IK legs stand on the reference's stance under the clip's hips (user, one-handed attacks: "only torso and above bones are used, we don't touch legs and feet poses")
 IK_LEGS = "--ik-legs" in argv                     # after the bake, both legs on IK on every frame, the foot/toe controls on the DEF result and the knee pole out through the FK knee (refined): lossless (the walks' legs are FK from the retarget; a foot pin on an FK leg would switch modes and jump the knee)
 FK_ARM = arg("--fk-arm", "")                      # "L" / "R" / "LR": after the bake, that arm is put on FK on every frame, the FK chain set to the arm's current (IK) result: lossless, and upper_arm_fk / forearm_fk / hand_fk then control it (user, on Block_L_Idle whose left arm was IK throughout: "upper_arm_fk_l and its children won't change the mesh")        # "A:B:F": after the bake (and pin), frames A..B of the result are resampled F times faster (Blender's own curve evaluation at fractional frames), the frames after B shift earlier (user: "speed up by 35% from frame 21 to 34")
 PIN_FOOT = arg("--pin-foot", "")                  # "L" / "L:1" / "L,R" / "L:20:20:34": SIDE[:ref[:from[:to]]] - after the bake, that foot's IK control (and toe) is held from frame `from` to `to` (default: the whole clip) at the WORLD transform it has on frame `ref` (default: the first frame): a planted foot that the capture let drift (user: "get rid of the drift on the left feet"; "left foot drift after the step forward, from frame 20")
@@ -937,6 +938,44 @@ def loop_shift(K):
     log("loop-shift %d: the clip now starts on the old frame %d, the old frames %d..%d follow at the end advanced by the travel; last frame vs first + travel on the hips %.1f mm" % (K, F0 + K, F0, F0 + K - 1, ((a_ + travel) - b_).length * 1000))
 
 
+LEG_CTRLS = ["foot_ik.L", "foot_ik.R", "toe_ik.L", "toe_ik.R", "foot_fk.L", "foot_fk.R", "toe_fk.L", "toe_fk.R", "thigh_fk.L", "thigh_fk.R", "shin_fk.L", "shin_fk.R",
+             "thigh_ik.L", "thigh_ik.R", "thigh_ik_target.L", "thigh_ik_target.R", "thigh_parent.L", "thigh_parent.R", "foot_heel_ik.L", "foot_heel_ik.R",
+             "foot_spin_ik.L", "foot_spin_ik.R", "thigh_tweak.L", "thigh_tweak.R", "shin_tweak.L", "shin_tweak.R", "foot_tweak.L", "foot_tweak.R"]
+
+
+def legs_from(act, spec):
+    ref_name, ref_frame = spec.split(":"); ref_frame = int(ref_frame)
+    ad.action = bpy.data.actions[ref_name]; scene.frame_set(ref_frame); bpy.context.view_layer.update(); ref = read_pose()
+    ad.action = act
+    ctrls = [c for c in LEG_CTRLS if c in CONTROLS]
+    kmin = {"L": 180.0, "R": 180.0}; kmax = {"L": 0.0, "R": 0.0}
+    for f in range(F0, F1 + 1):
+        scene.frame_set(f)
+        for c in ctrls:
+            rec = ref[c]; pb = pbs[c]
+            pb.location = rec["loc"]; pb.scale = rec["scale"]
+            if pb.rotation_mode == 'QUATERNION': pb.rotation_quaternion = rec["rot"]
+            elif pb.rotation_mode == 'AXIS_ANGLE':
+                ax_, an_ = rec["rot"].to_axis_angle(); pb.rotation_axis_angle = (an_, ax_.x, ax_.y, ax_.z)
+            else: pb.rotation_euler = rec["rot"].to_euler(pb.rotation_mode)
+            for p_ in PROPS:
+                if p_ in rec and p_ in pb:
+                    pb[p_] = bool(rec[p_]) if isinstance(pb[p_], bool) else float(rec[p_])
+        bpy.context.view_layer.update()
+        for c in ctrls:
+            pb = pbs[c]
+            pb.keyframe_insert("location", frame=f, group=c)
+            pb.keyframe_insert("rotation_quaternion" if pb.rotation_mode == 'QUATERNION' else "rotation_axis_angle" if pb.rotation_mode == 'AXIS_ANGLE' else "rotation_euler", frame=f, group=c)
+            pb.keyframe_insert("scale", frame=f, group=c)
+            for p_ in PROPS:
+                if p_ in pb and p_ in ref[c]:
+                    pb.keyframe_insert('["%s"]' % p_, frame=f, group=c)
+        for sd in ("L", "R"):
+            h_ = (rig.matrix_world @ pbs["DEF-thigh." + sd].matrix).translation; k_ = (rig.matrix_world @ pbs["DEF-shin." + sd].matrix).translation; a_ = (rig.matrix_world @ pbs["DEF-foot." + sd].matrix).translation
+            ang = math.degrees((h_ - k_).angle(a_ - k_)); kmin[sd] = min(kmin[sd], ang); kmax[sd] = max(kmax[sd], ang)
+    log("legs from %s frame %d on every frame (%d controls); the clip's hips over the reference's feet: knees L %.0f..%.0f R %.0f..%.0f deg" % (ref_name, ref_frame, len(ctrls), kmin["L"], kmax["L"], kmin["R"], kmax["R"]))
+
+
 def stride(act, k):
     """Shorter (or longer) steps: p' = p + (k-1)((p - r0).axis) axis for the root, torso, feet, toes, knee poles,
     IK hands and elbow poles, axis = the root's net travel direction, r0 = the root on the first frame. A
@@ -1186,6 +1225,9 @@ for f in range(F0, F1 + 1):
         if dp > worst[0]: worst = (dp, b, f)
         if dr > worst_r[0]: worst_r = (dr, b, f)
 log("flat %s vs the stack: worst DEF position %.2f mm (%s f%d), worst rotation %.2f deg (%s f%d)" % (RESULT, worst[0], worst[1], worst[2], worst_r[0], worst_r[1], worst_r[2]))
+if LEGS_FROM:
+    legs_from(baked, LEGS_FROM)
+
 if IK_LEGS:
     ik_legs(baked)                                   # first: the height smoothing and the stride move foot_ik, which is inert on FK legs
 
