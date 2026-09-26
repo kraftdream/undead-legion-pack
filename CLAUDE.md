@@ -1066,7 +1066,12 @@ lower and the left foot 4–5° more toe-down, so `lift 0.004` (was −0.002) pu
 Left as authored and reported: the swinging left boot's toe reaches 10 mm under the floor on frames 44–46
 (Unity), and the Necromancer's robe hem between the legs, which the pelvis tilt lowers, dips 31 mm at frame 8
 (the robe class of dip). ⚠ `ground_clip` samples every 6th frame and saw neither; `ground_fit`'s per-frame
-measurement did (read its json, then delete it: no per-frame fit on a stepping loop).
+measurement did (read its json, then delete it: no per-frame fit on a stepping loop). Then (2026-09-26, "freeze the left foot from frame 1 to 27 and the right from 14 to 56"): `--pin-foot
+"L:1:1:27,R:35:14:56" --loop --loop-seam 4 --even-advance 15` on the finished clip — full-transform holds
+(the left at frame 1's spot so the seam holds, the right at its mid-stance frame 35), DEF feet on their holds to
+0.0 mm, the corrections carried through the swings, the loop re-closed and its seam retimed (hips advance
+2.9–8.8 mm per frame, 5.2 at the wrap). Knees 111–140 / 118–159, no leg bone above 11° per frame, travel
+unchanged; the highest sole at +1 mm, the others ≤ 3 mm under, the Necromancer's robe 23 mm.
 
 **Strafes (2026-09-24, "added strafe_left_fix, bake it; steps 30 % less; the right foot drifts above the
 ground from frame 1 to 19; same for strafe_right").** Traced: the right foot lands at the seam 4 cm up
