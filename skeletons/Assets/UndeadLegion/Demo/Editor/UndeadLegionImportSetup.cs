@@ -36,6 +36,7 @@ namespace UndeadLegion.DemoEditor
                     SetTexture(TexPath(c, part, "metallicsmoothness"), TextureImporterType.Default, false, TextureImporterAlphaSource.FromInput);
                 }
                 SetModel(ModelPath(c));
+                foreach (var mp in ModulePaths(c)) SetModuleModel(mp);
                 foreach (var part in new[] { "Body", "Armor" })
                     EnsureMaterial(c, part);
             }
@@ -102,6 +103,47 @@ namespace UndeadLegion.DemoEditor
         public static string ModelPath(string c)
         {
             return string.Format("{0}/Models/{1}/SK_{1}.fbx", Root, c);
+        }
+
+        /// <summary>The armour module models of a character (2026-09-27, the modular route): one FBX per piece,
+        /// `Models/Armor/&lt;Character&gt;/SK_&lt;Character&gt;_&lt;Module&gt;.fbx`, the shared skeleton + that skinned mesh.</summary>
+        public static string ArmorDir(string c) { return string.Format("{0}/Models/Armor/{1}", Root, c); }
+
+        public static System.Collections.Generic.List<string> ModulePaths(string c)
+        {
+            var list = new System.Collections.Generic.List<string>();
+            if (!AssetDatabase.IsValidFolder(ArmorDir(c))) return list;
+            foreach (var guid in AssetDatabase.FindAssets("SK_ t:Model", new[] { ArmorDir(c) }))
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                if (System.IO.Path.GetFileName(path).StartsWith("SK_" + c + "_")) list.Add(path);
+            }
+            list.Sort(string.CompareOrdinal);
+            return list;
+        }
+
+        public static string ModuleName(string modelPath, string c)
+        {
+            return System.IO.Path.GetFileNameWithoutExtension(modelPath).Substring(("SK_" + c + "_").Length);
+        }
+
+        /// <summary>A module model imports Generic without an avatar (the skin and the bone nodes survive; the
+        /// character's Animator drives the piece once ArmorModule re-binds it by bone name), materials None.</summary>
+        static void SetModuleModel(string path)
+        {
+            var imp = AssetImporter.GetAtPath(path) as ModelImporter;
+            if (imp == null) { Debug.LogWarning("[UndeadLegion] missing module model " + path); return; }
+            bool dirty = imp.animationType != ModelImporterAnimationType.Generic || imp.avatarSetup != ModelImporterAvatarSetup.NoAvatar
+                         || imp.materialImportMode != ModelImporterMaterialImportMode.None
+                         || Mathf.Abs(imp.globalScale - 1f) > 1e-4f || imp.importAnimation;
+            if (!dirty) return;
+            imp.animationType = ModelImporterAnimationType.Generic;
+            imp.avatarSetup = ModelImporterAvatarSetup.NoAvatar;
+            imp.globalScale = 1f;
+            imp.useFileScale = true;
+            imp.importAnimation = false;
+            imp.materialImportMode = ModelImporterMaterialImportMode.None;
+            imp.SaveAndReimport();
         }
 
         public static string MaterialPath(string c, string part)

@@ -21,6 +21,7 @@ and importing the exports into Unity 6000.4 through the editor bridge.
 | Skeleton Mage        | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | **yes** | **yes** |
 | Skeleton Necromancer | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | **yes** | **yes** |
 | Skeleton Warrior     | done | done | **yes** | **yes** | valid | **yes** | **yes** |
+| Armour modules (48)  | done | per character | **yes** | `Models/Armor/<Char>/SK_<Char>_<Module>.fbx` x48, Generic / No Avatar (2026-09-27) | n/a | `Prefabs/Armor/<Char>/A_<Char>_<Module>.prefab` x48, `M_<Char>_Armor` | **yes** (each character dressed from the armour map; any piece on any skeleton) |
 | Weapons (12 meshes)  | done | all textured (8 full PBR; staff, recurve bow, wand colour + normal; arrow colour only) | n/a | `SM_*.fbx` ×12 (the recurve bow skinned to its own 8-bone rig, Generic / No Avatar, 2026-09-27) | n/a | `M_Weapon_<Name>` ×12 (+ unused placeholder) | **yes** (11 loadouts, `W_*` prefabs; the propped staff removed 2026-09-25) |
 
 Shared clips so far: `Idle`, `Idle_02`, `Idle_03` (loops, 8 / 12 / 12 s) +
@@ -126,9 +127,19 @@ to drop onto any skeleton and animate correctly. That holds only if:
 2. **Every armour module is skinned to that armature**, not parented to a bone. This is
    true today for all 54 meshes (`rig_check` fails on any dangling modifier, non-bone
    vertex group, unweighted vertex or non-identity object transform).
-3. **Unity Humanoid avatar is configured once and reused.** Armour modules import as
-   separate `SkinnedMeshRenderer`s and bind at runtime by copying `bones` + `rootBone`
-   from the body's renderer — which requires identical bone arrays, i.e. rule 1.
+3. **Unity Humanoid avatar is configured once and reused.** Armour modules are their OWN
+   assets since 2026-09-27 (`Models/Armor/<Char>/SK_<Char>_<Module>.fbx`: the shared skeleton +
+   that one skinned mesh, imported Generic without an avatar; `Prefabs/Armor/<Char>/
+   A_<Char>_<Module>.prefab` with the character's armour material and an `ArmorModule`) and
+   bind to ANY character by BONE NAME (`ArmorModule.Attach`: the renderer's `bones` rebuilt
+   against the character's transforms, `rootBone` likewise, the piece reparented, the
+   module's own skeleton discarded) — which requires identical bone hierarchies, i.e. rule 1.
+   The character models `SK_<Char>.fbx` are BODY-ONLY (the Humanoid avatar source); the
+   prefab builder dresses each `PF_<Char>` from the **armour map** (`CharacterPrefabBuilder.
+   ArmorMap`: character -> `Char:Module` entries, every character's own set by default) at build
+   time, and `SkeletonModules` toggles the default set and wears any other character's piece at
+   runtime (the demo's modules panel lists the other five sets to borrow from). A module prefab
+   dropped in a scene is a prop in its rest pose on its own bones.
 
 Get this wrong and the fix is re-authoring every clip.
 
@@ -221,8 +232,10 @@ undead-legion-pack/
         ├── Animations/        shared clips — Skeleton@<Clip>.fbx, retarget to all six
         ├── Demo/{Scenes,Scripts,Editor}
         ├── Materials/{URP,BuiltIn}
-        ├── Models/<Character>/SK_<Character>.fbx   rigged body + modules, Humanoid
-        ├── Prefabs/{Characters,Modules}
+        ├── Models/<Character>/SK_<Character>.fbx   rigged BODY only, Humanoid (2026-09-27)
+        ├── Models/Armor/<Character>/SK_<Character>_<Module>.fbx   one skinned module + the skeleton, Generic
+        ├── Prefabs/Armor/<Character>/A_<Character>_<Module>.prefab   module prefab (material + ArmorModule)
+        ├── Prefabs/{Characters,Armor,Weapons}
         └── Textures/<Character>/
 ```
 
@@ -244,11 +257,13 @@ the shipped clip to 0.0000° on all 68 bones.
 
 ## 4. Conventions
 
-**Model export** — `SK_<Character>.fbx`, one file per character containing the deform
-skeleton under `Armature/Root` and every skinned mesh (`Body`, `Helm`, `Chest`,
-`Glove_L`…) as **siblings** of `Armature`, at **1.8× the Blender metres** (Hips 0.982 m,
-skull top ≈ 1.70 m, helmet ≈ 1.81 m). Unity import: **Humanoid, Create From This
-Model, `globalScale = 1`, materials None, no animation.**
+**Model export** — `export_fbx.py` on a character file writes (since 2026-09-27) the body-only
+`SK_<Character>.fbx` (the deform skeleton under `Armature/Root` + `Body` as a sibling of
+`Armature`) and one `Models/Armor/<Character>/SK_<Character>_<Module>.fbx` per armour module
+(the same skeleton + that mesh), all at **1.8× the Blender metres** (Hips 0.982 m, skull top
+≈ 1.70 m, helmet ≈ 1.81 m); `--legacy` writes the old single file with every mesh. Unity
+import: the body **Humanoid, Create From This Model, `globalScale = 1`, materials None, no
+animation**; the modules **Generic, No Avatar**, otherwise the same.
 
 **Bone names in the export** are Mixamo-style, produced by `export_fbx.game_name()`:
 `Hips, Spine, Spine1, Spine2, Neck, Neck1, Head, Jaw, Jaw2, Left/Right{Shoulder, Arm,
@@ -339,8 +354,9 @@ each, module toggles, twitch firing, no console errors.
 | menu (`Undead Legion/…`) | script | does |
 |---|---|---|
 | 1. Import Setup | `UndeadLegionImportSetup.cs` | texture importers (colour sRGB, normal `NormalMap`, packed map linear + alpha from input), `SK_*` model importers (Humanoid, scale 1, materials None), `M_<Char>_{Body,Armor}` URP/Lit materials |
-| 2. Rebuild Character Prefabs | `CharacterPrefabBuilder.cs` | `PF_<Char>.prefab` from `SK_<Char>.fbx`: materials per renderer, Animator (own avatar, `AC_Skeleton`, root motion on, always animate), CapsuleCollider 1.8/0.35, `SkeletonModules`, `SkeletonTwitch`; root at exactly 0/0/1 |
-| 3. Rebuild Demo Scene | `DemoSceneBuilder.cs` | lights (1.10 key / 0.45 fill / 0.30 rim, skybox ambient 2.0 — the creatures pack's measured turntable rig), ground, camera + `DemoTurntable`, EventSystem + `DemoEventSystemBootstrap`, the uGUI canvas, `SkeletonShowcase` wired to all six prefabs |
+| 2a. Rebuild Armour Module Prefabs | `CharacterPrefabBuilder.cs` | `Prefabs/Armor/<Char>/A_<Char>_<Module>.prefab` from every `Models/Armor/<Char>/SK_*.fbx`: the character's armour material, `ArmorModule {character, moduleName}`; regenerated every time (nothing hand-tuned) |
+| 2. Rebuild Character Prefabs | `CharacterPrefabBuilder.cs` | `PF_<Char>.prefab` from the body-only `SK_<Char>.fbx`: body material, Animator (own avatar, `AC_Skeleton`, root motion on, always animate), CapsuleCollider 1.8/0.35, dressed from `ArmorMap` (each module prefab attached by bone name, marked `ArmorPiece`), `SkeletonModules.defaultModules`, `SkeletonTwitch`, `SkeletonWeapon`; root at exactly 0/0/1 |
+| 3. Rebuild Demo Scene | `DemoSceneBuilder.cs` | also fills `SkeletonShowcase.armorCatalogue` (every character's module prefabs from the map); lights (1.10 key / 0.45 fill / 0.30 rim, skybox ambient 2.0 — the creatures pack's measured turntable rig), ground, camera + `DemoTurntable`, EventSystem + `DemoEventSystemBootstrap`, the uGUI canvas, `SkeletonShowcase` wired to all six prefabs |
 | Rebuild All (1-3) | | the three in order |
 
 Textures reach the project through `tools/pack_textures.py` (Blender + numpy: copies
@@ -2222,6 +2238,36 @@ lessons: `execute_code` REQUIRES `"action": "execute"` (a call without it fails 
 and `ScreenCapture.CaptureScreenshot` followed by `EditorApplication.Step()` while PAUSED stalls the bridge (the
 capture never flushes and every later call times out; the editor itself stays responsive and leaves play mode
 on the next stop) — render a temporary camera into a RenderTexture + `ReadPixels` instead, which is synchronous.
+
+### Armour modules as their own assets (2026-09-27, "have them separate as weapons in a project")
+
+The user chose the hard route ("since we have everything saved in git"): the character models are
+BODY-ONLY and every armour piece is an asset of its own, with a MAP of what each skeleton wears by
+default. `export_fbx.py` writes `SK_<Character>.fbx` (skeleton + `Body`) and one
+`Models/Armor/<Character>/SK_<Character>_<Module>.fbx` per module (the same 68-bone skeleton + that
+skinned mesh; 48 files: Knight 9, Archer 7, Assassin 8 incl. `Pants`, Mage 8 incl. `Robe`, Necromancer
+8, Warrior 8, no Helm); the import setup makes the modules **Generic / No Avatar** (as the rigged
+bow: `animationType None` would drop the skin). **`ArmorModule`** (`Demo/Scripts/`, on each
+`A_<Character>_<Module>` prefab): `Attach(characterRoot)` rebuilds the renderer's `bones` by NAME
+against the character's Armature transforms, sets `rootBone` the same way, copies the body's
+`localBounds`, reparents the piece next to the body, marks it with an **`ArmorPiece`** (character,
+module, source prefab) and destroys the module's own skeleton; `Wear(prefab, character)` instantiates
+and attaches in one go, in the editor (DestroyImmediate) or at runtime. ⚠ `ArmorPiece` must live in
+its own file: a MonoBehaviour declared beside another class cannot be added by `AddComponent` (the
+first build dressed every character with zero markers and no error). **The armour map**
+(`CharacterPrefabBuilder.ArmorMap`, character -> `Char:Module` entries) is what each `PF_<Char>` is
+dressed with at build time; a set may borrow across characters. **`SkeletonModules`** (rewritten)
+holds `defaultModules` (the map's prefabs, set by the builder), finds their worn pieces on Awake by
+the markers, toggles them (`Set` re-wears a piece whose instance is gone), and `Wear` / `Remove` /
+`ToggleWear` take any module prefab (a borrowed piece is destroyed on removal, a default one only
+switched off). The demo's modules panel: the current character's set as toggles, then one section
+per other character ("Knight armour" ...) whose buttons wear or remove that piece; All / None act on
+the defaults; `SkeletonShowcase.armorCatalogue` is filled by the scene builder from the map. Verified
+2026-09-27: all six prefabs dressed (every piece's 68-bone array equals the body's, the root bone the
+body's), 48 module prefabs, and in play mode the Mage wearing the Knight's helm and chest through
+`Walk_Fwd_01` on its own bones. The verify / grounding tools instantiate `PF_<Char>` now (the models
+have no boots to measure). Not done: the Asset Store validator on the new layout; Unreal notes (one
+skeletal mesh per module against the shared Skeleton is the standard there).
 
 ### Hand-authored clips and idle fixes (2026-09-21)
 

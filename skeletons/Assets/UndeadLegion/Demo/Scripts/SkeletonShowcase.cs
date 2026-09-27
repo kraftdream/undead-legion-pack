@@ -20,6 +20,18 @@ namespace UndeadLegion.Demo
             public GameObject prefab;
         }
 
+        /// <summary>One character's armour module prefabs (the catalogue the demo offers on EVERY character:
+        /// any piece fits any skeleton). Filled by the scene builder from Prefabs/Armor.</summary>
+        [System.Serializable]
+        public class ArmorSet
+        {
+            public string character;
+            public List<GameObject> modules = new List<GameObject>();
+        }
+
+        [Tooltip("Every character's armour module prefabs; the modules panel lists the current character's default set first, then the other sets to borrow from.")]
+        public List<ArmorSet> armorCatalogue = new List<ArmorSet>();
+
         [Header("Content")]
         public List<Entry> characters = new List<Entry>();
         public Transform spawnPoint;
@@ -681,19 +693,43 @@ namespace UndeadLegion.Demo
 
         // ---------------------------------------------------------------- modules
 
+        readonly List<Button> _catalogueButtons = new List<Button>();
+        readonly List<GameObject> _cataloguePrefabs = new List<GameObject>();
+
         void BuildModuleList()
         {
             Clear(moduleListContent, _moduleButtons);
+            Clear(moduleListContent, _catalogueButtons);
+            _catalogueButtons.Clear(); _cataloguePrefabs.Clear();
             if (moduleListContent == null) return;
             bool any = _modules != null && _modules.Count > 0;
             if (moduleHeaderLabel != null) moduleHeaderLabel.text = any ? "MODULES" : "MODULES  (none)";
             if (!any) return;
+            // the character's own set (the armour map's defaults), toggles
             for (int i = 0; i < _modules.Count; i++)
             {
                 int index = i;
                 var b = DemoUI.CreateListButton(moduleListContent, _modules.NameAt(i), NormalColor);
                 b.onClick.AddListener(() => ToggleModule(index));
                 _moduleButtons.Add(b);
+            }
+            // the other characters' pieces: any of them fits this skeleton (one shared rig); a click wears or
+            // removes it (2026-09-27, the modular route)
+            string current = _instance != null ? _instance.name.Replace("PF_", "") : "";
+            foreach (var set in armorCatalogue)
+            {
+                if (set == null || set.character == current || set.modules.Count == 0) continue;
+                DemoUI.CreateSectionLabel(moduleListContent, set.character.Replace("Skeleton", "") + " armour");
+                foreach (var mp in set.modules)
+                {
+                    if (mp == null) continue;
+                    var am = mp.GetComponent<ArmorModule>();
+                    var b = DemoUI.CreateListButton(moduleListContent, am != null ? am.moduleName : mp.name, NormalColor);
+                    var captured = mp;
+                    b.onClick.AddListener(() => { if (_modules != null) { _modules.ToggleWear(captured); RefreshModuleButtons(); } });
+                    _catalogueButtons.Add(b);
+                    _cataloguePrefabs.Add(mp);
+                }
             }
             RefreshModuleButtons();
         }
@@ -719,6 +755,11 @@ namespace UndeadLegion.Demo
             {
                 var img = _moduleButtons[i].GetComponent<Image>();
                 if (img != null) img.color = _modules.IsWorn(i) ? SelectedColor : NormalColor;
+            }
+            for (int i = 0; i < _catalogueButtons.Count; i++)
+            {
+                var img = _catalogueButtons[i].GetComponent<Image>();
+                if (img != null) img.color = _modules.IsWearing(_cataloguePrefabs[i]) ? SelectedColor : NormalColor;
             }
         }
 

@@ -24,7 +24,8 @@ foreach (var clipName in new string[]{ %CLIPS% }) {
   float worst = 9f; string worstModel = ""; var per = new System.Text.StringBuilder();
   foreach (var ch in new string[]{ %MODELS% }) {
     string model = "Assets/UndeadLegion/Models/" + ch + "/SK_" + ch + ".fbx";
-    var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(model);
+    var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/UndeadLegion/Prefabs/Characters/PF_" + ch + ".prefab");   // the DRESSED character: the boots and hems are modules (2026-09-27)
+    if (prefab == null) prefab = AssetDatabase.LoadAssetAtPath<GameObject>(model);
     Avatar av = null; foreach (var a in AssetDatabase.LoadAllAssetsAtPath(model)) if (a is Avatar) av = (Avatar)a;
     var ctrl = new UnityEditor.Animations.AnimatorController(); ctrl.AddLayer("Base");
     var st = ctrl.layers[0].stateMachine.AddState("X"); st.motion = clip;

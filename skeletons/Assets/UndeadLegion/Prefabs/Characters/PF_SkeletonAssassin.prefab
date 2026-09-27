@@ -109,6 +109,7 @@ GameObject:
   m_Component:
   - component: {fileID: 119263528588285748}
   - component: {fileID: 5361347978370602634}
+  - component: {fileID: 2003702007887297748}
   m_Layer: 0
   m_Name: Skirt
   m_TagString: Untagged
@@ -124,8 +125,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 337138048007059140}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -183,7 +184,7 @@ SkinnedMeshRenderer:
   m_Quality: 0
   m_UpdateWhenOffscreen: 1
   m_SkinnedMotionVectors: 1
-  m_Mesh: {fileID: -4672812091889941496, guid: 8eb7d0c88ddb9284e9b699bcf7d2f4e5, type: 3}
+  m_Mesh: {fileID: -4672812091889941496, guid: dd912119e1f339b4184e0f5f2cbf4df6, type: 3}
   m_Bones:
   - {fileID: 1832195257937913060}
   - {fileID: 8463818512798212118}
@@ -256,9 +257,24 @@ SkinnedMeshRenderer:
   m_BlendShapeWeights: []
   m_RootBone: {fileID: 1832195257937913060}
   m_AABB:
-    m_Center: {x: 0.008538097, y: 0.7602161, z: -0.02351299}
-    m_Extent: {x: 0.29004788, y: 0.3903471, z: 0.29259333}
+    m_Center: {x: 0, y: 0.8194893, z: -0.02040752}
+    m_Extent: {x: 0.49684656, y: 0.89706403, z: 0.20132706}
   m_DirtyAABB: 0
+--- !u!114 &2003702007887297748
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 337138048007059140}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2be1a96c0d0a0042b1e13b1952bd18c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UndeadLegion.Demo.ArmorPiece
+  character: SkeletonAssassin
+  moduleName: Skirt
+  sourcePrefab: {fileID: 7368358158627879690, guid: 3e17133f400f8d848b17228ba06689eb, type: 3}
 --- !u!1 &389228399932253985
 GameObject:
   m_ObjectHideFlags: 0
@@ -269,6 +285,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5677300753573396478}
   - component: {fileID: 1770130348418147760}
+  - component: {fileID: 7670135884656737643}
   m_Layer: 0
   m_Name: Glove_R
   m_TagString: Untagged
@@ -284,8 +301,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 389228399932253985}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -343,7 +360,7 @@ SkinnedMeshRenderer:
   m_Quality: 0
   m_UpdateWhenOffscreen: 1
   m_SkinnedMotionVectors: 1
-  m_Mesh: {fileID: -7538175878941148568, guid: 8eb7d0c88ddb9284e9b699bcf7d2f4e5, type: 3}
+  m_Mesh: {fileID: -7538175878941148568, guid: 2d3880124704ebe4cb90ff1b86f4f2e8, type: 3}
   m_Bones:
   - {fileID: 1832195257937913060}
   - {fileID: 8463818512798212118}
@@ -416,9 +433,24 @@ SkinnedMeshRenderer:
   m_BlendShapeWeights: []
   m_RootBone: {fileID: 1832195257937913060}
   m_AABB:
-    m_Center: {x: 0.36191982, y: 1.002313, z: -0.00972192}
-    m_Extent: {x: 0.11853594, y: 0.16754425, z: 0.12751365}
+    m_Center: {x: 0, y: 0.8194893, z: -0.02040752}
+    m_Extent: {x: 0.49684656, y: 0.89706403, z: 0.20132706}
   m_DirtyAABB: 0
+--- !u!114 &7670135884656737643
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 389228399932253985}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2be1a96c0d0a0042b1e13b1952bd18c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UndeadLegion.Demo.ArmorPiece
+  character: SkeletonAssassin
+  moduleName: Glove_R
+  sourcePrefab: {fileID: 2553079920313339869, guid: a335836cecd6f904a870ae78fd78af8d, type: 3}
 --- !u!1 &500997767829159146
 GameObject:
   m_ObjectHideFlags: 0
@@ -461,6 +493,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2989216127599296019}
   - component: {fileID: 6679960589426463964}
+  - component: {fileID: 1184749482026381216}
   m_Layer: 0
   m_Name: Boot_R
   m_TagString: Untagged
@@ -476,8 +509,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 512059464698850756}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -535,7 +568,7 @@ SkinnedMeshRenderer:
   m_Quality: 0
   m_UpdateWhenOffscreen: 1
   m_SkinnedMotionVectors: 1
-  m_Mesh: {fileID: 4941620039140502853, guid: 8eb7d0c88ddb9284e9b699bcf7d2f4e5, type: 3}
+  m_Mesh: {fileID: 4941620039140502853, guid: 6dee1ff638683344ba1ef6ea16440396, type: 3}
   m_Bones:
   - {fileID: 1832195257937913060}
   - {fileID: 8463818512798212118}
@@ -608,9 +641,24 @@ SkinnedMeshRenderer:
   m_BlendShapeWeights: []
   m_RootBone: {fileID: 1832195257937913060}
   m_AABB:
-    m_Center: {x: 0.19023588, y: 0.21270426, z: 0.02356632}
-    m_Extent: {x: 0.1132034, y: 0.33110887, z: 0.20873843}
+    m_Center: {x: 0, y: 0.8194893, z: -0.02040752}
+    m_Extent: {x: 0.49684656, y: 0.89706403, z: 0.20132706}
   m_DirtyAABB: 0
+--- !u!114 &1184749482026381216
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 512059464698850756}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2be1a96c0d0a0042b1e13b1952bd18c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UndeadLegion.Demo.ArmorPiece
+  character: SkeletonAssassin
+  moduleName: Boot_R
+  sourcePrefab: {fileID: 2825153049538102320, guid: 7bcecb5b4c193a648b21024fd333b8a1, type: 3}
 --- !u!1 &847357898555522277
 GameObject:
   m_ObjectHideFlags: 0
@@ -621,6 +669,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8892389673914336042}
   - component: {fileID: 9116088451364742084}
+  - component: {fileID: 2106074985486051406}
   m_Layer: 0
   m_Name: Boot_L
   m_TagString: Untagged
@@ -636,8 +685,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 847357898555522277}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -695,7 +744,7 @@ SkinnedMeshRenderer:
   m_Quality: 0
   m_UpdateWhenOffscreen: 1
   m_SkinnedMotionVectors: 1
-  m_Mesh: {fileID: 7826692497257275367, guid: 8eb7d0c88ddb9284e9b699bcf7d2f4e5, type: 3}
+  m_Mesh: {fileID: 7826692497257275367, guid: 50e2eb5c62a3e7244904ed21b4cf9986, type: 3}
   m_Bones:
   - {fileID: 1832195257937913060}
   - {fileID: 8463818512798212118}
@@ -768,9 +817,24 @@ SkinnedMeshRenderer:
   m_BlendShapeWeights: []
   m_RootBone: {fileID: 1832195257937913060}
   m_AABB:
-    m_Center: {x: -0.19023567, y: 0.21270442, z: 0.023566484}
-    m_Extent: {x: 0.11320326, y: 0.3311088, z: 0.20873831}
+    m_Center: {x: 0, y: 0.8194893, z: -0.02040752}
+    m_Extent: {x: 0.49684656, y: 0.89706403, z: 0.20132706}
   m_DirtyAABB: 0
+--- !u!114 &2106074985486051406
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 847357898555522277}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2be1a96c0d0a0042b1e13b1952bd18c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UndeadLegion.Demo.ArmorPiece
+  character: SkeletonAssassin
+  moduleName: Boot_L
+  sourcePrefab: {fileID: 4570086393086637725, guid: a00916eef0c875046839ec3122ec2ac8, type: 3}
 --- !u!1 &976502563852600598
 GameObject:
   m_ObjectHideFlags: 0
@@ -1068,6 +1132,7 @@ GameObject:
   m_Component:
   - component: {fileID: 616328763759588182}
   - component: {fileID: 7717962505621347970}
+  - component: {fileID: 3293485908736569208}
   m_Layer: 0
   m_Name: Pants
   m_TagString: Untagged
@@ -1083,8 +1148,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1762859739784219788}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1142,7 +1207,7 @@ SkinnedMeshRenderer:
   m_Quality: 0
   m_UpdateWhenOffscreen: 1
   m_SkinnedMotionVectors: 1
-  m_Mesh: {fileID: 7666266049737368757, guid: 8eb7d0c88ddb9284e9b699bcf7d2f4e5, type: 3}
+  m_Mesh: {fileID: 7666266049737368757, guid: be5158212349a5744908e000b6323006, type: 3}
   m_Bones:
   - {fileID: 1832195257937913060}
   - {fileID: 8463818512798212118}
@@ -1215,9 +1280,24 @@ SkinnedMeshRenderer:
   m_BlendShapeWeights: []
   m_RootBone: {fileID: 1832195257937913060}
   m_AABB:
-    m_Center: {x: 0.006842561, y: 0.7562079, z: -0.029956728}
-    m_Extent: {x: 0.22354111, y: 0.32734245, z: 0.1980103}
+    m_Center: {x: 0, y: 0.8194893, z: -0.02040752}
+    m_Extent: {x: 0.49684656, y: 0.89706403, z: 0.20132706}
   m_DirtyAABB: 0
+--- !u!114 &3293485908736569208
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1762859739784219788}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2be1a96c0d0a0042b1e13b1952bd18c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UndeadLegion.Demo.ArmorPiece
+  character: SkeletonAssassin
+  moduleName: Pants
+  sourcePrefab: {fileID: 9069837004752537904, guid: 33a75a21d2801fd47b684879b26993d9, type: 3}
 --- !u!1 &1771667906617486910
 GameObject:
   m_ObjectHideFlags: 0
@@ -1380,14 +1460,14 @@ Transform:
   m_Children:
   - {fileID: 1186660079629354839}
   - {fileID: 3951376552341325742}
-  - {fileID: 8892389673914336042}
-  - {fileID: 2989216127599296019}
+  - {fileID: 1087181856873341396}
   - {fileID: 5593284701474575062}
+  - {fileID: 119263528588285748}
+  - {fileID: 616328763759588182}
   - {fileID: 6405594331275113396}
   - {fileID: 5677300753573396478}
-  - {fileID: 1087181856873341396}
-  - {fileID: 616328763759588182}
-  - {fileID: 119263528588285748}
+  - {fileID: 8892389673914336042}
+  - {fileID: 2989216127599296019}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &7514658424531642324
@@ -1448,6 +1528,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UndeadLegion.Demo.SkeletonModules
   bodyRendererName: Body
+  defaultModules:
+  - {fileID: 1604011650821867666, guid: cb9e505bd9b1648448ccf16336331f3c, type: 3}
+  - {fileID: 3232721056940078374, guid: 6ce9bc144a46e994bbabc359afbda559, type: 3}
+  - {fileID: 7368358158627879690, guid: 3e17133f400f8d848b17228ba06689eb, type: 3}
+  - {fileID: 9069837004752537904, guid: 33a75a21d2801fd47b684879b26993d9, type: 3}
+  - {fileID: 3342362700727504398, guid: 50be6c5ba0a14994292242550ae0a5e0, type: 3}
+  - {fileID: 2553079920313339869, guid: a335836cecd6f904a870ae78fd78af8d, type: 3}
+  - {fileID: 4570086393086637725, guid: a00916eef0c875046839ec3122ec2ac8, type: 3}
+  - {fileID: 2825153049538102320, guid: 7bcecb5b4c193a648b21024fd333b8a1, type: 3}
   offByDefault: []
 --- !u!114 &9146845616936775146
 MonoBehaviour:
@@ -1535,66 +1624,71 @@ MonoBehaviour:
       hand: 0
   gripLeft:
   - bone: LeftHandThumb1
-    localRotation: {x: 0.017012207, y: -0.76783156, z: -0.30761525, w: 0.56170994}
+    localRotation: {x: 0.017015874, y: -0.7678318, z: -0.30761498, w: 0.56170976}
   - bone: LeftHandThumb2
-    localRotation: {x: 0.52181244, y: 0.14422524, z: -0.036230557, w: 0.83999896}
+    localRotation: {x: 0.521809, y: 0.14422625, z: -0.036230013, w: 0.840001}
   - bone: LeftHandThumb3
-    localRotation: {x: 0.48238763, y: 0.085513294, z: 0.028644368, w: 0.8713031}
+    localRotation: {x: 0.48238766, y: 0.08551421, z: 0.02864391, w: 0.8713031}
   - bone: LeftHandIndex1
-    localRotation: {x: 0.32892644, y: -0.06574243, z: 0.27280048, w: 0.9017013}
+    localRotation: {x: 0.32892713, y: -0.06574294, z: 0.27280027, w: 0.9017011}
   - bone: LeftHandIndex2
-    localRotation: {x: 0.54636276, y: -0.07672699, z: -0.08240787, w: 0.82994556}
+    localRotation: {x: 0.54636127, y: -0.076727584, z: -0.08241069, w: 0.8299463}
   - bone: LeftHandIndex3
-    localRotation: {x: 0.41147575, y: -0.6069199, z: -0.20721811, w: 0.6476084}
+    localRotation: {x: 0.41147557, y: -0.6069191, z: -0.20721892, w: 0.64760906}
   - bone: LeftHandMiddle1
-    localRotation: {x: 0.3769402, y: -0.10861559, z: 0.2810204, w: 0.8758689}
+    localRotation: {x: 0.37694, y: -0.108615756, z: 0.28102025, w: 0.87586904}
   - bone: LeftHandMiddle2
-    localRotation: {x: 0.5041036, y: -0.008164182, z: -0.013492167, w: 0.8634992}
+    localRotation: {x: 0.5041031, y: -0.00816463, z: -0.013496133, w: 0.86349946}
   - bone: LeftHandMiddle3
-    localRotation: {x: 0.44622216, y: -0.14939003, z: 0.15525043, w: 0.8685999}
+    localRotation: {x: 0.4462229, y: -0.14938848, z: 0.15524924, w: 0.8686}
   - bone: LeftHandRing1
-    localRotation: {x: 0.36933267, y: -0.06535615, z: 0.29662555, w: 0.878257}
+    localRotation: {x: 0.36933294, y: -0.0653559, z: 0.2966256, w: 0.87825686}
   - bone: LeftHandRing2
-    localRotation: {x: 0.5498126, y: -0.07737744, z: 0.026105199, w: 0.83128655}
+    localRotation: {x: 0.5498146, y: -0.07737847, z: 0.026104625, w: 0.8312851}
   - bone: LeftHandRing3
-    localRotation: {x: 0.4019069, y: -0.08567496, z: 0.134283, w: 0.90171987}
+    localRotation: {x: 0.40190673, y: -0.085674986, z: 0.13428268, w: 0.90172005}
   - bone: LeftHandPinky1
-    localRotation: {x: 0.23995519, y: 0.02505513, z: 0.3127709, w: 0.9186774}
+    localRotation: {x: 0.23995657, y: 0.025055647, z: 0.31276992, w: 0.91867733}
   - bone: LeftHandPinky2
-    localRotation: {x: 0.47263706, y: -0.054119408, z: 0.11031824, w: 0.8726484}
+    localRotation: {x: 0.47263655, y: -0.05411882, z: 0.11031608, w: 0.87264895}
   - bone: LeftHandPinky3
-    localRotation: {x: 0.27488726, y: -0.010471999, z: 0.38766876, w: 0.8797956}
+    localRotation: {x: 0.27488816, y: -0.010470926, z: 0.38766834, w: 0.87979555}
   gripRight:
   - bone: RightHandThumb1
-    localRotation: {x: -0.09266797, y: -0.77767986, z: -0.32163802, w: -0.53214264}
+    localRotation: {x: -0.09266998, y: -0.77768075, z: -0.321639, w: -0.5321404}
   - bone: RightHandThumb2
-    localRotation: {x: -0.58663654, y: 0.13823079, z: -0.04302004, w: -0.79680556}
+    localRotation: {x: -0.58662736, y: 0.13823245, z: -0.04301834, w: -0.7968122}
   - bone: RightHandThumb3
-    localRotation: {x: -0.43018755, y: 0.08631009, z: 0.023707628, w: -0.8982913}
+    localRotation: {x: -0.4301874, y: 0.086310714, z: 0.023707986, w: -0.89829135}
   - bone: RightHandIndex1
-    localRotation: {x: -0.48187053, y: -0.09164586, z: 0.3126348, w: -0.81342566}
+    localRotation: {x: -0.4818702, y: -0.091646194, z: 0.31263492, w: -0.8134258}
   - bone: RightHandIndex2
-    localRotation: {x: -0.6709682, y: -0.06569759, z: -0.104088105, w: -0.7311985}
+    localRotation: {x: -0.67097014, y: -0.06569888, z: -0.10409035, w: -0.7311963}
   - bone: RightHandIndex3
-    localRotation: {x: -0.418323, y: -0.60540664, z: -0.21590953, w: -0.6417724}
+    localRotation: {x: -0.41832298, y: -0.6054062, z: -0.21591014, w: -0.6417726}
   - bone: RightHandMiddle1
-    localRotation: {x: -0.43989474, y: -0.1329979, z: 0.34389547, w: -0.8188652}
+    localRotation: {x: -0.4398945, y: -0.13299799, z: 0.34389567, w: -0.8188652}
   - bone: RightHandMiddle2
-    localRotation: {x: -0.5644621, y: -0.006974847, z: -0.016526083, w: -0.82526416}
+    localRotation: {x: -0.5644613, y: -0.006975339, z: -0.016529458, w: -0.8252646}
   - bone: RightHandMiddle3
-    localRotation: {x: -0.39417094, y: -0.1394607, z: 0.16044295, w: -0.89411306}
+    localRotation: {x: -0.39417177, y: -0.13945973, z: 0.16044249, w: -0.8941129}
   - bone: RightHandRing1
-    localRotation: {x: 0.40093344, y: 0.09118082, z: -0.36946362, w: 0.8333278}
+    localRotation: {x: -0.40093338, y: -0.09118073, z: 0.36946374, w: -0.8333277}
   - bone: RightHandRing2
-    localRotation: {x: -0.59491134, y: -0.07454709, z: 0.028397288, w: -0.7998231}
+    localRotation: {x: -0.59491175, y: -0.07454811, z: 0.028394282, w: -0.7998228}
   - bone: RightHandRing3
-    localRotation: {x: -0.32546028, y: -0.07439218, z: 0.13023439, w: -0.9335847}
+    localRotation: {x: -0.32546088, y: -0.074391074, z: 0.13023403, w: -0.9335847}
   - bone: RightHandPinky1
-    localRotation: {x: 0.2694779, y: -0.014468936, z: -0.35086745, w: 0.8966963}
+    localRotation: {x: -0.26947835, y: 0.014468789, z: 0.35086715, w: -0.8966964}
   - bone: RightHandPinky2
-    localRotation: {x: -0.49605933, y: -0.053224366, z: 0.11570722, w: -0.8588971}
+    localRotation: {x: -0.49605644, y: -0.053224206, z: 0.115704186, w: -0.8588992}
   - bone: RightHandPinky3
-    localRotation: {x: -0.21345672, y: 0.013615772, z: 0.36632487, w: -0.90557003}
+    localRotation: {x: -0.2134571, y: 0.013616531, z: 0.36632466, w: -0.90557}
+  fireProjectile: 1
+  arrowSpeed: 30
+  arrowDirection: 0
+  arrowHideSeconds: 1.2
+  fingerFade: 0.15
 --- !u!1 &2015440392650792239
 GameObject:
   m_ObjectHideFlags: 0
@@ -1795,6 +1889,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6405594331275113396}
   - component: {fileID: 2240084396831030359}
+  - component: {fileID: 1296025757796080440}
   m_Layer: 0
   m_Name: Glove_L
   m_TagString: Untagged
@@ -1810,8 +1905,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2514103835232309494}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1869,7 +1964,7 @@ SkinnedMeshRenderer:
   m_Quality: 0
   m_UpdateWhenOffscreen: 1
   m_SkinnedMotionVectors: 1
-  m_Mesh: {fileID: -5692142992305888907, guid: 8eb7d0c88ddb9284e9b699bcf7d2f4e5, type: 3}
+  m_Mesh: {fileID: -5692142992305888907, guid: 6121b3bdcc1487948a2e330bb5e2c503, type: 3}
   m_Bones:
   - {fileID: 1832195257937913060}
   - {fileID: 8463818512798212118}
@@ -1942,9 +2037,24 @@ SkinnedMeshRenderer:
   m_BlendShapeWeights: []
   m_RootBone: {fileID: 1832195257937913060}
   m_AABB:
-    m_Center: {x: -0.36191982, y: 1.0023133, z: -0.009721875}
-    m_Extent: {x: 0.118535906, y: 0.16754422, z: 0.12751363}
+    m_Center: {x: 0, y: 0.8194893, z: -0.02040752}
+    m_Extent: {x: 0.49684656, y: 0.89706403, z: 0.20132706}
   m_DirtyAABB: 0
+--- !u!114 &1296025757796080440
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2514103835232309494}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2be1a96c0d0a0042b1e13b1952bd18c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UndeadLegion.Demo.ArmorPiece
+  character: SkeletonAssassin
+  moduleName: Glove_L
+  sourcePrefab: {fileID: 3342362700727504398, guid: 50be6c5ba0a14994292242550ae0a5e0, type: 3}
 --- !u!1 &2521035701187155943
 GameObject:
   m_ObjectHideFlags: 0
@@ -3238,6 +3348,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1087181856873341396}
   - component: {fileID: 9115999360449844823}
+  - component: {fileID: 8090565326811730619}
   m_Layer: 0
   m_Name: Helm
   m_TagString: Untagged
@@ -3253,8 +3364,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6900643576606717324}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3312,7 +3423,7 @@ SkinnedMeshRenderer:
   m_Quality: 0
   m_UpdateWhenOffscreen: 1
   m_SkinnedMotionVectors: 1
-  m_Mesh: {fileID: -1133273598262949773, guid: 8eb7d0c88ddb9284e9b699bcf7d2f4e5, type: 3}
+  m_Mesh: {fileID: -1133273598262949773, guid: 78cfe4a75bb820e48a411343ebdfd175, type: 3}
   m_Bones:
   - {fileID: 1832195257937913060}
   - {fileID: 8463818512798212118}
@@ -3385,9 +3496,24 @@ SkinnedMeshRenderer:
   m_BlendShapeWeights: []
   m_RootBone: {fileID: 1832195257937913060}
   m_AABB:
-    m_Center: {x: 0.004136957, y: 1.5800438, z: -0.019173354}
-    m_Extent: {x: 0.1365926, y: 0.16183323, z: 0.15644088}
+    m_Center: {x: 0, y: 0.8194893, z: -0.02040752}
+    m_Extent: {x: 0.49684656, y: 0.89706403, z: 0.20132706}
   m_DirtyAABB: 0
+--- !u!114 &8090565326811730619
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6900643576606717324}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2be1a96c0d0a0042b1e13b1952bd18c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UndeadLegion.Demo.ArmorPiece
+  character: SkeletonAssassin
+  moduleName: Helm
+  sourcePrefab: {fileID: 1604011650821867666, guid: cb9e505bd9b1648448ccf16336331f3c, type: 3}
 --- !u!1 &6954091491977856792
 GameObject:
   m_ObjectHideFlags: 0
@@ -3588,6 +3714,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5593284701474575062}
   - component: {fileID: 6054242282985349442}
+  - component: {fileID: 824479305222356232}
   m_Layer: 0
   m_Name: Chest
   m_TagString: Untagged
@@ -3603,8 +3730,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7634253518610232875}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3662,7 +3789,7 @@ SkinnedMeshRenderer:
   m_Quality: 0
   m_UpdateWhenOffscreen: 1
   m_SkinnedMotionVectors: 1
-  m_Mesh: {fileID: -69760931014144829, guid: 8eb7d0c88ddb9284e9b699bcf7d2f4e5, type: 3}
+  m_Mesh: {fileID: -69760931014144829, guid: 93ed084387639c04ea570ef5c0146676, type: 3}
   m_Bones:
   - {fileID: 1832195257937913060}
   - {fileID: 8463818512798212118}
@@ -3735,9 +3862,24 @@ SkinnedMeshRenderer:
   m_BlendShapeWeights: []
   m_RootBone: {fileID: 1832195257937913060}
   m_AABB:
-    m_Center: {x: 0.009215236, y: 1.2882049, z: -0.065595746}
-    m_Extent: {x: 0.32919693, y: 0.27566594, z: 0.22715461}
+    m_Center: {x: 0, y: 0.8194893, z: -0.02040752}
+    m_Extent: {x: 0.49684656, y: 0.89706403, z: 0.20132706}
   m_DirtyAABB: 0
+--- !u!114 &824479305222356232
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7634253518610232875}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2be1a96c0d0a0042b1e13b1952bd18c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UndeadLegion.Demo.ArmorPiece
+  character: SkeletonAssassin
+  moduleName: Chest
+  sourcePrefab: {fileID: 3232721056940078374, guid: 6ce9bc144a46e994bbabc359afbda559, type: 3}
 --- !u!1 &7805679368985245361
 GameObject:
   m_ObjectHideFlags: 0

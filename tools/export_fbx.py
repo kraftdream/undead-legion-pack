@@ -393,9 +393,14 @@ def source_rig():
     return src, meta
 
 
-def export_model(out_dir, bst):
+def export_model(out_dir, bst, legacy=False):
+    """Body-only `Models/<Character>/SK_<Character>.fbx` (the skeleton + `Body`: the Humanoid avatar source) plus one
+    `Models/Armor/<Character>/SK_<Character>_<Module>.fbx` per armour module (the same skeleton + that one skinned
+    mesh, imported Generic in Unity and re-bound to any character's bones by name: the modular route, 2026-09-27).
+    `legacy=True` writes the old single file with every mesh."""
     character = os.path.basename(os.path.dirname(bpy.data.filepath))
     out_dir = out_dir or os.path.join(UNITY, "Models", character)
+    armor_dir = os.path.join(UNITY, "Models", "Armor", character) if out_dir == os.path.join(UNITY, "Models", character) else os.path.join(out_dir, "Armor")
     src, meta = source_rig()
     for pb in src.pose.bones:
         pb.matrix_basis.identity()
@@ -413,7 +418,13 @@ def export_model(out_dir, bst):
     scale_rig(rig)
     top = max(v.co.z for v in meshes[0].data.vertices)
     log("scale x%.2f -> Hips at %.3f m, Body top at %.3f m" % (SCALE, rig.data.bones["Hips"].head_local.z, top))
-    fbx(os.path.join(out_dir, "SK_%s.fbx" % character), [rig] + meshes, False, bst)
+    if legacy:
+        fbx(os.path.join(out_dir, "SK_%s.fbx" % character), [rig] + meshes, False, bst)
+        return
+    fbx(os.path.join(out_dir, "SK_%s.fbx" % character), [rig, meshes[0]], False, bst)
+    for mesh, n in zip(meshes[1:], names[1:]):
+        fbx(os.path.join(armor_dir, "SK_%s_%s.fbx" % (character, n)), [rig, mesh], False, bst)
+    log(character, "- body-only model + %d armour modules in %s" % (len(meshes) - 1, os.path.relpath(armor_dir, ROOT)))
 
 
 def export_clip(clip, out_dir, bst, lift=0.0, lift_curve=None):
@@ -506,7 +517,7 @@ def main():
         lift_curve = argv[argv.index("--lift-curve") + 1] if "--lift-curve" in argv else None
         export_clip(argv[argv.index("--clip") + 1], out_dir, bst, lift, lift_curve)
     else:
-        export_model(out_dir, bst)
+        export_model(out_dir, bst, legacy="--legacy" in argv)
 
 
 main()

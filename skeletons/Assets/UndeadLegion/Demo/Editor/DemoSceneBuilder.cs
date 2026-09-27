@@ -179,6 +179,22 @@ namespace UndeadLegion.DemoEditor
                 showcase.characters.Add(e);
             }
 
+            // the armour catalogue: every character's module prefabs (the modules panel borrows across characters)
+            showcase.armorCatalogue = new List<SkeletonShowcase.ArmorSet>();
+            foreach (var c in UndeadLegionImportSetup.Characters)
+            {
+                var set = new SkeletonShowcase.ArmorSet { character = c };
+                string[] names;
+                if (CharacterPrefabBuilder.ArmorMap.TryGetValue(c, out names))
+                    foreach (var entry in names)
+                    {
+                        var parts = entry.Split(':');
+                        var mp = AssetDatabase.LoadAssetAtPath<GameObject>(CharacterPrefabBuilder.ModulePrefabPath(parts[0], parts[1]));
+                        if (mp != null) set.modules.Add(mp);
+                    }
+                if (set.modules.Count > 0) showcase.armorCatalogue.Add(set);
+            }
+
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene, ScenePath);
             AssetDatabase.SaveAssets();
@@ -190,6 +206,7 @@ namespace UndeadLegion.DemoEditor
         public static void RebuildAll()
         {
             UndeadLegionImportSetup.Run();
+            CharacterPrefabBuilder.BuildModulePrefabs();      // 2a: the armour module prefabs the characters are dressed from
             CharacterPrefabBuilder.Run();
             Build();
         }
