@@ -48,7 +48,7 @@ every one verified on all six models with `verify_clip.py` + `ground_clip.py`; p
 | Two-handed | `Attack_2H_01` (downward chop with a step), `Attack_2H_02` (raise and horizontal sweep) — the user's mannequin recording (2026-09-23), legs planted, left hand on the handle through the two-handed GATE (slides 0.03..0.11 rig m below the right hand) |
 | Bow | `Idle_Bow` hand-edited 2026-09-27 (knees 3 cm narrower than the retarget's build by the pole swivel, at the retarget's height; `Idle_Bow_base` is that build); `Shoot_01` (redone 2026-09-25 from the user's mannequin recording `aoe cast shoot.glb`: raise, draw at the cheek, release, lower, 1.9 s; the shot goes where the recorded feet point, `heading feet`; the video-mocap build of 2026-09-22 and `Shoot_02` retired; 2026-09-27: the user's `Shoot_01_Fix` baked, `hand_edited`, and animation events `BowAttach` 15 / `BowRelease` 21 on the clip — the recurve bow is a skinned model now and its string follows the draw hand between them, and a fired arrow flies along the character's forward on the release, §8 "The recurve bow bends"; imported in place; legs from `Idle_Bow`'s stance under the take's hips) |
 | Magic | `Cast_Wand_01/02`, `Cast_Staff_01` (both hands on the staff; redone 2026-09-27 from the user's `cast staff.glb`, frames 88–155, in place, both feet frozen) — the user's mannequin recording `magic attacks.glb` (2026-09-25); `Cast_Staff_02` retired |
-| Specials | `Summon` (necromancer, both hands overhead), `AOE_Cast` (mage; redone 2026-09-27 from the user's `aoe cast.glb`: a left-hand gesture, then the staff raised overhead and lowered, 4.8 s; a hold/release split was tried and reverted), `Taunt_01/02/03` (warrior), `Cutthroat` (assassin), `Rally` (knight, sword raised) — all from the user's recording `taunts.glb` (2026-09-25); the Kimodo `Taunt` retired |
+| Specials | `Summon` (necromancer, both hands overhead), `AOE_Cast` (mage; redone 2026-09-27 from the user's `aoe cast.glb`: a left-hand gesture, then the staff raised overhead and lowered, 4.8 s, on `Idle_Staff`'s legs, in place; a hold/release split was tried and reverted), `Taunt_01/02/03` (warrior), `Cutthroat` (assassin), `Rally` (knight, sword raised) — all from the user's recording `taunts.glb` (2026-09-25); the Kimodo `Taunt` retired |
 | Death | `Death_01` (struck, falls on the back), `Death_02` (kneels, crumples sideways) |
 
 **Measured speed table** (Unity, Humanoid, root motion on, Knight; the other five are
@@ -2208,7 +2208,14 @@ step boxed with a delay row, each button playing from its step, the running step
 held through the pending follow-up, one-shot steps advancing on their end — the table is empty now) and
 `DemoUI.CreateGroup` (ported from the creatures pack). ⚠ A play-mode test right after a script compile ran in
 the STALE play session (Time.time 281 s): the domain reload keeps the showcase instance but empties its
-non-serialized clip lists — stop play mode before a test that follows a compile. ⚠ Two bridge
+non-serialized clip lists — stop play mode before a test that follows a compile.
+**AOE_Cast on Idle_Staff's legs (2026-09-27, "fix the legs pose for aoe_cast, use the pose from idle_staff").**
+After the user's `AOE_Cast_Fix_01` bake: `anim_nla_bake --root-hold --legs-from Idle_Staff:1 --keep-poles`
+(the staff idle's constant leg controls on every frame; the take's 5.5 cm root step held at frame 1, `drift
+root` dropped, the clip imports in place), then `--torso-drop 0.012`: over the idle's feet the take's hips
+reached 0.541 rig m and the left knee 169° (the straight-leg risk), 2 cm down gives hips 0.484–0.529 and knees
+118–152°. Feet identical to Idle_Staff's on every frame, hips within 14 mm of the idle's on frame 1 and 6 mm on
+the last frame; boots on the floor on all six after the fit. ⚠ Two bridge
 lessons: `execute_code` REQUIRES `"action": "execute"` (a call without it fails validation, and a JSON with C#
 `
 ` literals written through a shell heredoc arrives with real newlines — run C# from a file, `runcs.py`-style);
