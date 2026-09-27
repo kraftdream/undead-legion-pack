@@ -31,6 +31,7 @@ HAND_GRIP = arg("--hand-grip", "")                # "L" / "R" / "LR": after the 
 SPEED_SEGMENT = arg("--speed-segment", "")
 ARM_POLE_FK = arg("--arm-pole-fk", "")           # "L" / "R" / "LR": on the frames where that arm is on IK, re-aim the elbow pole at the FK chain's elbow (the FK controls carry the capture's arm on every frame even while the switch is at IK), so an IK stretch inside an FK clip keeps the capture's elbow plane (a gate pull put the elbow on the rest pole: 82 mm jump at the switch)
 TORSO_YAW = float(arg("--torso-yaw", "0"))       # degrees: counter-rotate the upper body against its OWN yaw excursion - at the frame where the chest has turned furthest from its first-frame heading the correction is this many degrees the other way, scaled by the excursion on every other frame (0 at the ends), spread over spine_fk.001 / .002 / chest; an IK left hand (the gate) and its pole ride along with the right hand so the two-handed grip holds (user: "attack direction is a bit to the left, add torso rotation like 50-60 degrees so the attack ends more forward")
+SHAFT_CLAMP = [float(v) for v in arg("--shaft-clamp", "").split(",")] if arg("--shaft-clamp", "") else None   # "MIN,MAX" rig m: the seated hand's distance along the shaft is clamped to this range (- = below the other hand, toward the pommel / the staff's foot), so a hand the performer holds past the prop's end stays on it (user, Cast_Staff_01: "the left hand doesn't follow the staff handle from 14 to 43")
 SHAFT_HAND = arg("--shaft-hand", "")              # "L:0.056": re-seat that hand's socket ON the other hand's hilt axis every frame (0 mm off the shaft, its hilt axis parallel to the shaft, the hand's own roll about the shaft kept) and slide it this many rig m UP the shaft (toward the blade; negative = down) from where it sits now (user: "bring the left hand 10 cm higher on the weapon grip; it should follow the shaft perfectly")
 _pe = arg("--pin-ease", "0").split(":")
 PIN_EASE = int(_pe[0]); PIN_EASE_OUT = int(_pe[1]) if len(_pe) > 1 else PIN_EASE   # "6" or "6:2": frames to ease INTO a hold and OUT of it (a long ease-out on a walk's push-off held the lifting foot back and straightened the knee to 177 deg)           # frames: a pinned foot eases into and out of each hold over this many frames instead of switching (user: "remove the right foot snap at frames 34-35" = the release of a held landing)
@@ -578,6 +579,8 @@ def grip_follow(act, spec):
                 if gap_v.length < 0.003 and over <= 0.0:
                     break
                 pull = (sh_s - want).normalized() * max(gap_v.length, over)
+                if SHAFT_DEBUG:
+                    log("shaft-hand debug f%d pull it%d: gap %.0f mm, over %.0f mm -> pull %.0f mm" % (f, _it, gap_v.length * 1000, over * 1000, pull.length * 1000))
                 sw_o = pbs["upper_arm_parent." + other_]
                 if sw_o["IK_FK"] > 0.5:
                     # the other arm on IK, elbow on its FK plane, hand where it is now
@@ -615,6 +618,20 @@ def grip_follow(act, spec):
         side, act.name, max(b[0] for b in before), max(b[1] for b in before), worst, worst_ang))
 
 
+_SLOT_CACHE = {}
+SHAFT_SHORT = []
+SHAFT_DEBUG = "--shaft-debug" in argv
+
+
+def _SLOT(sd):
+    """The hand slot's transform in its socket bone's frame (Unity metres / 1.8, X flipped into the Blender socket frame)."""
+    if sd not in _SLOT_CACHE:
+        import json as _json, os as _os
+        _g = _json.load(open(_os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))), "Animations", "unity_grips.json"), encoding="utf-8"))
+        px, py, pz = _g["slots"][sd]["pos"]; _SLOT_CACHE[sd] = Matrix.Translation(Vector((-px, py, pz)) / 1.8)
+    return _SLOT_CACHE[sd]
+
+
 def shaft_hand(act, spec):
     """Put SIDE's weapon socket on the other hand's hilt axis (socket +Y) every frame, moved `off` rig m along
     it, with the socket's own Y turned parallel to the shaft and its roll about the shaft kept; the hand's IK
@@ -646,14 +663,47 @@ def shaft_hand(act, spec):
                 pl_ = pbs["upper_arm_ik_target." + side]; pm_ = pl_.matrix.copy(); pm_.translation = rig.matrix_world.inverted() @ (el_ + perp_.normalized() * 0.4); pl_.matrix = pm_
                 bpy.context.view_layer.update()
             sock_s = (rig.matrix_world @ pbs["DEF-weapon." + side].matrix).copy()
+        # the weapon hangs from the hand SLOT (Animations/unity_grips.json, the user's tuned offset from the socket
+        # bone, ~3.5 cm), so the shaft's axis runs through the OTHER hand's slot and this hand's SLOT is what sits
+        # on it (2026-09-27; the socket-based seat left the fist beside the shaft by that offset)
+        slot_o = sock_o @ _SLOT(other_); slot_s = sock_s @ _SLOT(side)
         y_ = (sock_o.to_3x3() @ Vector((0, 1, 0))).normalized()
-        along = (sock_s.translation - sock_o.translation).dot(y_)              # + = toward the blade
+        along = (slot_s.translation - slot_o.translation).dot(y_)              # + = toward the blade
         along_new = along + off
-        pos_new = sock_o.translation + y_ * along_new
+        if SHAFT_CLAMP:
+            along_new = max(SHAFT_CLAMP[0], min(SHAFT_CLAMP[1], along_new))
+        pos_new_slot = slot_o.translation + y_ * along_new
+        if SHAFT_DEBUG:
+            log("shaft-hand debug f%d geo: sock_o %s slot_o %s y_ %s along %.3f -> %.3f pos_new_slot %s slot_s %s" % (f, tuple(round(v, 3) for v in sock_o.translation), tuple(round(v, 3) for v in slot_o.translation), tuple(round(v, 2) for v in y_), along, along_new, tuple(round(v, 3) for v in pos_new_slot), tuple(round(v, 3) for v in slot_s.translation)))
+        # reach (2026-09-27): the wanted spot must stay within GRIP_REACH of this arm's length from its shoulder,
+        # or the IK locks the elbow and Humanoid flips it (Cast_Staff_01: a 116 deg upper-arm step at frame 38).
+        # First the spot slides along the shaft (inside the clamp) toward the point nearest the shoulder; what is
+        # still short is pulled in with --grip-pull (the OTHER hand toward this shoulder, as grip-follow does)
+        arm_len_ = (rig.data.bones["DEF-forearm." + side].head_local - rig.data.bones["DEF-upper_arm." + side].head_local).length + (rig.data.bones["DEF-hand." + side].head_local - rig.data.bones["DEF-forearm." + side].head_local).length
+        sh_s_ = (rig.matrix_world @ pbs["DEF-upper_arm." + side].matrix).translation.copy()
+        wr_off_ = (rig.matrix_world @ pbs["DEF-hand." + side].matrix).translation - slot_s.translation      # the wrist relative to the slot
+        def _over(p_): return (p_ + wr_off_ - sh_s_).length - GRIP_REACH * arm_len_
+        if _over(pos_new_slot) > 0.0:
+            t_near = (sh_s_ - slot_o.translation).dot(y_)                       # the shoulder's projection on the shaft
+            lo_, hi_ = (SHAFT_CLAMP if SHAFT_CLAMP else (along_new - 0.5, along_new + 0.5))
+            cand = max(lo_, min(hi_, t_near))
+            # binary search between the wanted spot and the nearest one for the farthest reachable point
+            a_, b_ = along_new, cand
+            for _b in range(12):
+                m_ = 0.5 * (a_ + b_)
+                if _over(slot_o.translation + y_ * m_) > 0.0: a_ = m_
+                else: b_ = m_
+            along_new = b_ if _over(slot_o.translation + y_ * b_) <= 0.0 else cand
+            pos_new_slot = slot_o.translation + y_ * along_new
+            SHAFT_SHORT.append((f, max(0.0, _over(pos_new_slot))))
+            if SHAFT_DEBUG:
+                log("shaft-hand debug f%d: wanted along %.3f -> slid to %.3f (shoulder proj %.3f, clamp %s), still over reach by %.0f mm" % (f, along + off, along_new, t_near, SHAFT_CLAMP, max(0.0, _over(pos_new_slot)) * 1000))
         ys = (sock_s.to_3x3() @ Vector((0, 1, 0))).normalized()
         q_align = ys.rotation_difference(y_)                                    # least rotation: the socket's hilt axis onto the shaft
-        m_new = q_align.to_matrix().to_4x4() @ Matrix.Translation(-sock_s.translation) @ sock_s
-        m_new = Matrix.Translation(pos_new) @ m_new
+        m_new_slot = q_align.to_matrix().to_4x4() @ Matrix.Translation(-slot_s.translation) @ slot_s
+        m_new_slot.translation = pos_new_slot
+        m_new = m_new_slot @ _SLOT(side).inverted()
+        pos_new = m_new.translation.copy()                                   # m_new already carries the position (the slot seat); the old socket seat added it here
         if w_ < 1.0:                                                            # the ease: blend the wanted socket with the clip's own
             qa_ = sock_s.to_quaternion(); qb_ = m_new.to_quaternion()
             if qa_.dot(qb_) < 0: qb_ = -qb_
@@ -661,6 +711,53 @@ def shaft_hand(act, spec):
         T = m_new @ sock_s.inverted()
         h = pbs["hand_ik." + side]; hm = (rig.matrix_world @ h.matrix).copy()
         h.matrix = rig.matrix_world.inverted() @ (T @ hm); pbs["upper_arm_parent." + side]["IK_FK"] = 0.0
+        if SHAFT_DEBUG:
+            bpy.context.view_layer.update()
+            _sk = (rig.matrix_world @ pbs["DEF-weapon." + side].matrix).translation; _sh = (rig.matrix_world @ pbs["DEF-upper_arm." + side].matrix).translation
+            _el = (rig.matrix_world @ pbs["DEF-forearm." + side].matrix).translation; _wr = (rig.matrix_world @ pbs["DEF-hand." + side].matrix).translation
+            log("shaft-hand debug f%d w %.2f: socket wanted %s got %s (err %.0f mm); wanted-shoulder %.3f of arm %.3f; elbow %.0f deg; hm was %s" % (
+                f, w_, tuple(round(v, 3) for v in m_new.translation), tuple(round(v, 3) for v in _sk), (_sk - m_new.translation).length * 1000, (m_new.translation + wr_off_ - _sh).length, arm_len_, math.degrees((_sh - _el).angle(_wr - _el)), tuple(round(v, 3) for v in hm.translation)))
+        if GRIP_PULL and w_ >= 1.0 - 1e-6:
+            bpy.context.view_layer.update()
+            for _it in range(3):
+                sock_o2 = (rig.matrix_world @ pbs["DEF-weapon." + other_].matrix).copy(); sock_s2 = (rig.matrix_world @ pbs["DEF-weapon." + side].matrix).copy()
+                slot_o2 = sock_o2 @ _SLOT(other_); slot_s2 = sock_s2 @ _SLOT(side)
+                y2 = (sock_o2.to_3x3() @ Vector((0, 1, 0))).normalized()
+                want = slot_o2.translation + y2 * along_new; gap_v = want - slot_s2.translation
+                sh_s = (rig.matrix_world @ pbs["DEF-upper_arm." + side].matrix).translation.copy()
+                wr_want = want + (rig.matrix_world @ pbs["DEF-hand." + side].matrix).translation - slot_s2.translation
+                over = (wr_want - sh_s).length - GRIP_REACH * arm_len_
+                if gap_v.length < 0.003 and over <= 0.0:
+                    break
+                pull = (sh_s - want).normalized() * max(gap_v.length, over)
+                sw_o = pbs["upper_arm_parent." + other_]
+                if sw_o["IK_FK"] > 0.5:
+                    sh_o = (rig.matrix_world @ pbs["DEF-upper_arm." + other_].matrix).translation.copy()
+                    wr_o = (rig.matrix_world @ pbs["DEF-hand." + other_].matrix).translation.copy()
+                    el_fk = (rig.matrix_world @ pbs["forearm_fk." + other_].matrix).translation.copy()
+                    if not HAND_FROM_SOCK: _hand_from_sock()
+                    ho = pbs["hand_ik." + other_]; ho.matrix = rig.matrix_world.inverted() @ (sock_o2 @ HAND_FROM_SOCK[other_])
+                    sw_o["IK_FK"] = 0.0; bpy.context.view_layer.update()
+                    ax = (wr_o - sh_o).normalized(); d_ = el_fk - sh_o; perp = d_ - ax * d_.dot(ax)
+                    if perp.length > 0.005:
+                        sw_o["pole_vector"] = True
+                        pole = pbs["upper_arm_ik_target." + other_]; pm = pole.matrix.copy(); pm.translation = rig.matrix_world.inverted() @ (el_fk + perp.normalized() * 0.4); pole.matrix = pm
+                        bpy.context.view_layer.update()
+                ho = pbs["hand_ik." + other_]; hom = (rig.matrix_world @ ho.matrix).copy()
+                ho.matrix = rig.matrix_world.inverted() @ (Matrix.Translation(pull) @ hom); bpy.context.view_layer.update()
+                sock_o2 = (rig.matrix_world @ pbs["DEF-weapon." + other_].matrix).copy(); sock_s2 = (rig.matrix_world @ pbs["DEF-weapon." + side].matrix).copy()
+                slot_o2 = sock_o2 @ _SLOT(other_); y2 = (sock_o2.to_3x3() @ Vector((0, 1, 0))).normalized()
+                want_slot = slot_o2.translation + y2 * along_new
+                ys2 = (sock_s2.to_3x3() @ Vector((0, 1, 0))).normalized()
+                m2 = ys2.rotation_difference(y2).to_matrix().to_4x4() @ Matrix.Translation(-(sock_s2 @ _SLOT(side)).translation) @ (sock_s2 @ _SLOT(side))
+                m2.translation = want_slot; m2 = m2 @ _SLOT(side).inverted()
+                T2 = m2 @ sock_s2.inverted(); hm2 = (rig.matrix_world @ h.matrix).copy()
+                h.matrix = rig.matrix_world.inverted() @ (T2 @ hm2); bpy.context.view_layer.update()
+            for b in ("hand_ik." + other_, "upper_arm_ik_target." + other_):
+                pbo = pbs[b]; pbo.keyframe_insert("location", frame=f, group=b)
+                pbo.keyframe_insert("rotation_quaternion" if pbo.rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group=b)
+            pbs["upper_arm_parent." + other_].keyframe_insert('["IK_FK"]', frame=f, group="upper_arm_parent." + other_)
+            pbs["upper_arm_parent." + other_].keyframe_insert('["pole_vector"]', frame=f, group="upper_arm_parent." + other_)
         bpy.context.view_layer.update()
         for b in ("upper_arm_ik_target." + side,):
             pbs[b].keyframe_insert("location", frame=f, group=b)
@@ -671,11 +768,13 @@ def shaft_hand(act, spec):
         pbs["upper_arm_parent." + side].keyframe_insert('["IK_FK"]', frame=f, group="upper_arm_parent." + side)
         # verify on the DEF result
         sock_o = (rig.matrix_world @ pbs["DEF-weapon." + other_].matrix).copy(); sock_s = (rig.matrix_world @ pbs["DEF-weapon." + side].matrix).copy()
-        y_ = (sock_o.to_3x3() @ Vector((0, 1, 0))).normalized(); d = sock_s.translation - sock_o.translation
+        y_ = (sock_o.to_3x3() @ Vector((0, 1, 0))).normalized(); d = (sock_s @ _SLOT(side)).translation - (sock_o @ _SLOT(other_)).translation
         al = d.dot(y_); off_axis = (d - y_ * al).length * 1000
         ang = math.degrees((sock_s.to_3x3() @ Vector((0, 1, 0))).normalized().angle(y_))
         worst_off = max(worst_off, off_axis); worst_ang = max(worst_ang, ang); d_min = min(d_min, al); d_max = max(d_max, al); n += 1
-    log("shaft-hand %s %+.3f rig m: on %d frames the %s socket sits %.3f..%.3f rig m along the %s hand's hilt axis (- = below the hand), %.1f mm off the shaft at worst, hilt axes within %.1f deg" % (
+    if SHAFT_SHORT:
+        log("shaft-hand: on %d frames the wanted spot was beyond %.0f %% of the arm's reach and slid along the shaft toward the shoulder (still short on %d of them by up to %.0f mm%s)" % (len(SHAFT_SHORT), GRIP_REACH * 100, sum(1 for t in SHAFT_SHORT if t[1] > 0.001), max(t[1] for t in SHAFT_SHORT) * 1000, "; --grip-pull pulled the other hand in" if GRIP_PULL else ""))
+    log("shaft-hand %s %+.3f rig m: on %d frames the %s SLOT sits %.3f..%.3f rig m along the %s hand's hilt axis (- = below the hand), %.1f mm off the shaft at worst, hilt axes within %.1f deg" % (
         side, off, n, side, d_min, d_max, other_, worst_off, worst_ang))
 
 

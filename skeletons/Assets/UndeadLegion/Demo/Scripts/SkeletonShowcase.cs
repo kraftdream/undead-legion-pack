@@ -150,6 +150,13 @@ namespace UndeadLegion.Demo
             if (!_current.isLooping && !_animator.IsInTransition(0))
             {
                 var st = _animator.GetCurrentAnimatorStateInfo(0);
+                if (!st.IsName(_current.name))
+                {
+                    // the controller carried the one-shot into a follow-up loop of its own (manifest `next`, e.g.
+                    // Cast_Staff_01 -> Idle_Staff from frame 54): adopt that loop instead of crossfading back
+                    var landed = _clips.Find(x => x.isLooping && st.IsName(x.name));
+                    if (landed != null) { _current = landed; ShowClipInfo(landed); HighlightClip(landed); return; }
+                }
                 if (st.normalizedTime < 1f) return;
                 var idle = ReturnClipFor(_current);
                 if (_current.name.StartsWith("Death") && deathHold > 0f && idle != null && idle != _current)
@@ -437,6 +444,17 @@ namespace UndeadLegion.Demo
             Highlight(_clipButtons, _clips.IndexOf(clip));
             ShowClipInfo(clip);
         }
+
+        void HighlightClip(AnimationClip clip)
+
+        {
+
+            int i = _clips.IndexOf(clip);
+
+            if (i >= 0 && i < _clipButtons.Count) Highlight(_clipButtons, i);
+
+        }
+
 
         void ShowClipInfo(AnimationClip clip)
         {

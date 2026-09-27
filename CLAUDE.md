@@ -2156,7 +2156,29 @@ left fist is past the staff's foot, up to 17 cm.** Two ways out, the user's call
 keeps 0.5 m of shaft), or clamp the left hand's distance along the line (an IK pull that leaves the recording).
 Rule: **a two-handed prop's second hand needs the LINE between the hands, not the first hand's hilt axis, when
 the capture's hand roll is unreliable; measure the projection and the off-axis distance on a plain transfer
-before choosing the gate.** ⚠ Two bridge
+before choosing the gate.**
+**Then the user's `Cast_Staff_01_Fix` (right arm, Combine) + "the left hand doesn't follow the staff handle from
+14 to 43; use idle_staff after the cast, transitioning from frame 54".** The fix flattened (0.00 mm), then
+`--shaft-hand L:0:14:43 --shaft-clamp -0.27,-0.08 --grip-pull --grip-reach 0.96 --fk-arm R`. Three things in
+the seat tool: (1) **`shaft_hand` is SLOT-based now** (the hand slot from `unity_grips.json` on the other SLOT's
+axis, as `grip_follow` already was) — the socket seat left the fist beside the shaft by the slot offset in
+Unity; (2) **`--shaft-clamp MIN,MAX`** (rig m along the shaft, − = below the other hand) keeps the seated
+hand on the prop: the staff's 0.52 m below the grip is 0.288 rig m, the performer's hand went to 0.38, so
+frames 36–43 slide up the shaft (eased over `--grip-ease` 6 at both ends of the range, so 38–43 return to the
+recording); (3) the seat is reach-aware: a spot beyond `--grip-reach` of the arm slides along the shaft
+(inside the clamp) toward the shoulder's projection, and `--grip-pull` pulls the other hand in for what is
+still short (none needed here). ⚠ The first run folded the left elbow to 12° with 88° right-arm steps: the
+old socket seat ADDED the position after the rotation (`Matrix.Translation(pos_new) @ m_new`) and the slot
+version already carried it, so the fully seated frames got a doubled position (z 1.45 rig m, above the head)
+while the eased frames looked sane (their translation is lerped separately) — found by printing the wanted
+socket per frame; a pass that "works at the edges and breaks in the middle" is a code path difference, not
+geometry. Result: left elbow 66–112°, steps ≤ 28°, the left slot on the shaft to 0.0 mm over 20–37. **The
+follow-up loop**: manifest **`next: "Idle_Staff"`, `next_at: 54`** → the controller builder adds an exit-time
+transition on the Base state (exitTime (54 − 1)/68, fixed duration the remaining 14 frames) and
+`SkeletonShowcase` adopts the loop the controller lands in (when the Base state is no longer the one-shot's
+and is a looping clip, `_current` becomes that clip, its button highlighted) instead of crossfading back to
+the loop it came from. The clip's own last 14 frames are the user's (their fix moves the staff away from the
+left hand from 58 on, the lowering into the idle); no end blend was baked. ⚠ Two bridge
 lessons: `execute_code` REQUIRES `"action": "execute"` (a call without it fails validation, and a JSON with C#
 `
 ` literals written through a shell heredoc arrives with real newlines — run C# from a file, `runcs.py`-style);
