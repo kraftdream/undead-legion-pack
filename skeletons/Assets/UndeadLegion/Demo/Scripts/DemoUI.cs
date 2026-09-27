@@ -82,6 +82,27 @@ namespace UndeadLegion.Demo
             text.raycastTarget = false;
         }
 
+        /// <summary>A tinted container that groups a few rows (its own vertical layout; the height fixed by the
+        /// caller). Ported from the creatures pack's demo for the paired knockback / get-up rows (2026-09-27).</summary>
+        public static RectTransform CreateGroup(RectTransform parent, float height)
+        {
+            var go = new GameObject("Group", typeof(RectTransform), typeof(Image));
+            var rt = (RectTransform)go.transform;
+            rt.SetParent(parent, false);
+            go.GetComponent<Image>().color = new Color(0.16f, 0.17f, 0.20f, 1f);
+            var le = go.AddComponent<LayoutElement>();
+            le.minHeight = height;
+            le.preferredHeight = height;
+            var vlg = go.AddComponent<VerticalLayoutGroup>();
+            vlg.spacing = 2f;
+            vlg.padding = new RectOffset(4, 4, 4, 4);
+            vlg.childForceExpandHeight = false;
+            vlg.childForceExpandWidth = true;
+            vlg.childControlHeight = true;
+            vlg.childControlWidth = true;
+            return rt;
+        }
+
         /// <summary>Non-interactive informational row. Slimmer and darker than a button.</summary>
         public static Text CreateInfoRow(RectTransform parent, string label)
         {

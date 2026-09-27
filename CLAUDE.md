@@ -48,7 +48,7 @@ every one verified on all six models with `verify_clip.py` + `ground_clip.py`; p
 | Two-handed | `Attack_2H_01` (downward chop with a step), `Attack_2H_02` (raise and horizontal sweep) — the user's mannequin recording (2026-09-23), legs planted, left hand on the handle through the two-handed GATE (slides 0.03..0.11 rig m below the right hand) |
 | Bow | `Idle_Bow` hand-edited 2026-09-27 (knees 3 cm narrower than the retarget's build by the pole swivel, at the retarget's height; `Idle_Bow_base` is that build); `Shoot_01` (redone 2026-09-25 from the user's mannequin recording `aoe cast shoot.glb`: raise, draw at the cheek, release, lower, 1.9 s; the shot goes where the recorded feet point, `heading feet`; the video-mocap build of 2026-09-22 and `Shoot_02` retired; 2026-09-27: the user's `Shoot_01_Fix` baked, `hand_edited`, and animation events `BowAttach` 15 / `BowRelease` 21 on the clip — the recurve bow is a skinned model now and its string follows the draw hand between them, and a fired arrow flies along the character's forward on the release, §8 "The recurve bow bends"; imported in place; legs from `Idle_Bow`'s stance under the take's hips) |
 | Magic | `Cast_Wand_01/02`, `Cast_Staff_01` (both hands on the staff; redone 2026-09-27 from the user's `cast staff.glb`, frames 88–155, in place, both feet frozen) — the user's mannequin recording `magic attacks.glb` (2026-09-25); `Cast_Staff_02` retired |
-| Specials | `Summon` (necromancer, both hands overhead), `AOE_Cast` (mage: hands up, then a slam with a crouch), `Taunt_01/02/03` (warrior), `Cutthroat` (assassin), `Rally` (knight, sword raised) — all from the user's recording `taunts.glb` (2026-09-25); the Kimodo `Taunt` retired |
+| Specials | `Summon` (necromancer, both hands overhead), `AOE_Cast` (mage; redone 2026-09-27 from the user's `aoe cast.glb`: a left-hand gesture, then the staff raised overhead and lowered, 4.8 s; a hold/release split was tried and reverted), `Taunt_01/02/03` (warrior), `Cutthroat` (assassin), `Rally` (knight, sword raised) — all from the user's recording `taunts.glb` (2026-09-25); the Kimodo `Taunt` retired |
 | Death | `Death_01` (struck, falls on the back), `Death_02` (kneels, crumples sideways) |
 
 **Measured speed table** (Unity, Humanoid, root motion on, Knight; the other five are
@@ -2178,7 +2178,37 @@ transition on the Base state (exitTime (54 − 1)/68, fixed duration the remaini
 `SkeletonShowcase` adopts the loop the controller lands in (when the Base state is no longer the one-shot's
 and is a looping clip, `_current` becomes that clip, its button highlighted) instead of crossfading back to
 the loop it came from. The clip's own last 14 frames are the user's (their fix moves the staff away from the
-left hand from 58 on, the lowering into the idle); no end blend was baked. ⚠ Two bridge
+left hand from 58 on, the lowering into the idle); no end blend was baked.
+**AOE_Cast redone from a new recording (2026-09-27, "replace the existing aoe_cast with P:\aoe cast.glb").** The
+mannequin app, 144 frames at 30 fps (4.8 s), the whole file (`aoe_cast_ref_mocap.glb` → `aoe_cast_ref_arm.blend`;
+no frame range given): a slow left-hand gesture at chest height (frames 1–80, the right hand still at 1.0 m),
+the right hand raised to 1.9 m (81–110), lowered (111–143). Plain transfer with the previous entry's settings
+(`mode action`, `plant_feet`, `drift root`, `unwind_yaw` + `unwind_ref body`, `lift 0.004`, `ground_fit`, `fist
+0.3`), the `aoe cast shoot.glb` build with its yaw-clip / shaft-hand bakes retired (`AOE_Cast_base` holds it).
+Arms within 1–2° of the recording, spine 3–7°, steps ≤ 15° (the raise), knees 112–146°, root motion −9 cm
+(the performer steps back; in place with the toggle off), boots: the highest sole on the floor, the others
+≤ 10 mm under. The left hand never touches the staff in this take (0.19–0.71 rig m off the right hand's axis),
+so no seat, no `grip_hands`.
+**A split into a sequence, tried and REVERTED (2026-09-27).** The user asked for `AOE_Cast_Hold` (a loopable
+31–61) and `AOE_Cast_Release` (75–144) played in the demo as hold → delay → release, like the creatures pack's
+knockback / get-up. Built as three clips (Start 1–30, Hold 31–53 after a loop-point search, Release 75–144),
+the hold's loop closed by a manifest-driven bake, its torso re-centred over the feet, the joins blended, a
+boxed UI group with a delay row — and rejected: "the hold animation is bad, only half of what I expected is in
+it, the body position shifts from start to hold". Lesson: **a hold cut from a one-shot take is not a hold** —
+the performer never held still or cycled, so any loop point is a compromise and the re-centring that makes it
+stand is what pops at the join; a hold needs to be RECORDED as a loop (the performer channelling in place for a
+few seconds), then the pieces cut from it share its heading (per-piece `unwind_yaw` broke the joins: pieces of
+one take must keep the take's yaw). AOE_Cast is the single 144-frame clip again (its action was never removed,
+re-exported with the fit; the three clips, exports, fit curves, build-state entries and the sequence entry
+removed). What stays, for a recorded hold: the batch's manifest keys **`bake`** (a list of `anim_nla_bake` args
+run on the fresh retarget before the export) and **`loops`** (import a non-idle/loco clip looping); the bake
+tool's **`--torso-shift X,Y`** (the torso moved horizontally over the IK feet) and `end_blend` skipping the
+`root` control (travel, not pose); `SkeletonShowcase.Sequences` (a step list with `holdSeconds`: one button per
+step boxed with a delay row, each button playing from its step, the running step highlighted, a looping step
+held through the pending follow-up, one-shot steps advancing on their end — the table is empty now) and
+`DemoUI.CreateGroup` (ported from the creatures pack). ⚠ A play-mode test right after a script compile ran in
+the STALE play session (Time.time 281 s): the domain reload keeps the showcase instance but empties its
+non-serialized clip lists — stop play mode before a test that follows a compile. ⚠ Two bridge
 lessons: `execute_code` REQUIRES `"action": "execute"` (a call without it fails validation, and a JSON with C#
 `
 ` literals written through a shell heredoc arrives with real newlines — run C# from a file, `runcs.py`-style);

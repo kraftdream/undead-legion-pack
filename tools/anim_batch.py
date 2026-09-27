@@ -80,7 +80,7 @@ def retarget_args(c):
 
 def unity_flags(c):
     mode = c["mode"]
-    loop = "1" if mode in ("idle", "loco") else "0"
+    loop = "1" if (mode in ("idle", "loco") or c.get("loops")) else "0"          # `loops true`: a looping clip built in another mode (AOE_Cast_Hold: action mode + a --loop-seam bake)
     inplace = "0" if (mode == "loco" or c.get("drift") == "root") else "1"
     extra = []
     if c.get("events"):
@@ -140,6 +140,14 @@ def build_pass(args, force, unity):
             notes += key
             if code != 0 or not any("saved" in l for l in lines):
                 ok = False
+            if ok and c.get("bake"):
+                # manifest `bake`: anim_nla_bake passes run on the fresh retarget before the export (a reproducible
+                # post-pass, e.g. ["--loop", "--loop-seam", "6"] to close a hold loop cut from a one-shot take)
+                code, out = run([BLENDER, "-b", ANIM, "-P", os.path.join(ROOT, "tools", "anim_nla_bake.py"), "--", "--action", c["name"], "--result", c["name"]] + [str(a) for a in c["bake"]] + ["--save"])
+                blines = [l for l in out.splitlines() if l.startswith("[nla_bake]") or "Traceback" in l or "Error" in l]
+                notes += ["bake " + " ".join(str(a) for a in c["bake"])] + [l for l in blines if any(k in l for k in ("seam", "loop", "Traceback", "Error"))]
+                if code != 0 or not any("saved" in l for l in blines):
+                    ok = False
         if ok:
             os.makedirs(PREVIEW, exist_ok=True)
             blender("anim_preview.py", ["--action", c["name"], "--out", PREVIEW])
