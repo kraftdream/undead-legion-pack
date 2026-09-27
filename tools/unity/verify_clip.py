@@ -36,7 +36,7 @@ string evs = "%EVENTS%";
 if (evs.Length > 0) foreach (var c in clips) {
   var list = new System.Collections.Generic.List<AnimationEvent>();
   foreach (var kv in evs.Split(',')) { var p2 = kv.Split(':'); float fr = float.Parse(p2[1], System.Globalization.CultureInfo.InvariantCulture);
-    var ev = new AnimationEvent(); ev.functionName = p2[0]; ev.time = (fr - 1f) / Mathf.Max(1f, c.lastFrame - c.firstFrame); list.Add(ev); }   // importer events: normalised time; frames are 1-based
+    var ev = new AnimationEvent(); ev.functionName = p2[0]; ev.messageOptions = SendMessageOptions.DontRequireReceiver; ev.time = (fr - 1f) / Mathf.Max(1f, c.lastFrame - c.firstFrame); list.Add(ev); }   // importer events: normalised time; frames are 1-based
   c.events = list.ToArray();
 }
 imp.clipAnimations = clips;

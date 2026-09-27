@@ -45,6 +45,7 @@ LOOP = "--loop" in argv                           # the clip is a cycle: a pin's
 UPPER_FROM = arg("--upper-from", "")              # "Idle_03:1": after the retime, every control ABOVE the legs (the torso's rotation - its location stays the clip's - spine, chest, neck, head, jaw, shoulders, arms, hands, fingers and the arm IK/FK switches) is taken frame by frame from that action starting at that frame (wrapping over its length), the clip keeping its root, hips, legs and feet (user, Walk_Back: "too much movement above the legs, use the above-torso animation from idle_3")
 UPPER_SEAM = int(arg("--upper-seam", "8"))         # frames: the copied window's end crossfaded to its start so the loop closes
 HAND_WEIGHT = arg("--hand-weight", "")            # "R:0.015:4:6": that IK hand bobs against the body's vertical sway as if the held item had weight - the hips' height over the clip, normalised to -1..1, delayed DELAY frames (wrapping over a loop), moves the hand AMP rig m the OTHER way and pitches it PITCH degrees about the socket's finger axis (the tip dips as the hand drops) (user, Idle_Wand: "right hand sway that mimics the wand's weight, in sync with the character swaying up and down")
+START_BLEND = arg("--start-blend", "")           # "Idle_Bow:1:8": the FIRST N frames crossfade from that action's frame into the clip (frame 1 = the reference exactly), the mirror of --end-blend, so a one-shot starts on the pose the demo crossfades from (user, Shoot_01: "a noticeable snap between idle and shoot, both start and end")
 END_BLEND = arg("--end-blend", "")               # "Idle:1:8": after the retime, the last N frames crossfade every control to that action's frame (locations, rotations, scales, the switches on the last frame), so a one-shot ends EXACTLY on the pose the demo crossfades to next; the IK legs keep their knee poles on the FK plane through it (user, Impaled_Rise: "lower the torso on the fully standing pose, use it to fix the floating feet at the end")
 EVEN_ADVANCE = int(arg("--even-advance", "0"))      # K: a locomotion loop is RETIMED so the hips' advance per frame along the travel follows a circularly smoothed (K passes of [1,2,1], wrapping at the seam) version of its own profile; same frame count, same travel, the Root kept linear. Removes the speed dip that a loop-closing crossfade leaves at the seam (the hips advanced 55 mm per frame and then 17 at Run_Fwd_02's wrap; Walk_Back lurched 14 mm and stalled to 0 on its last frames), which plays as a hitch every cycle under root motion (user: "walk_back, run_fwd and run_fwd_02 have looping issues")
 FOOT_CLEAR = arg("--foot-clear", "")              # Z rig m: no model's BOOT goes below Z on any frame - per frame and foot, the lowest vertex of all six characters' Boot_<side> meshes is measured and an IK foot (and its toe) is raised by the deficit, the lift running-maxed over +-1 frame and smoothed (wrapping with --loop), the knee pole kept on the FK plane. For a swinging foot that pitches toe-down while barely lifting (the strafes: the boot's toe dragged 14 mm through the floor, and a constant export lift fitted to that dip floated the whole stance 25 mm; user: "both strafe animations in unity have model float above ground")
@@ -366,18 +367,21 @@ def hand_weight(act, spec):
     log("hand-weight %s: hips sway +-%.1f mm -> hand %+.1f..%+.1f mm the other way, delayed %d frames, pitch +-%.0f deg" % (side, half * 1000, lo * 1000, hi * 1000, delay, math.degrees(pitch)))
 
 
-def end_blend(act, spec):
+def end_blend(act, spec, at_start=False):
+    """The last (or, at_start, the FIRST) N frames crossfaded to the reference pose: weight 1 on the clip's end frame."""
     tgt_name, tgt_frame, n = spec.split(":"); tgt_frame = int(tgt_frame); n = int(n)
     ad.action = bpy.data.actions[tgt_name]; scene.frame_set(tgt_frame); bpy.context.view_layer.update(); tgt = read_pose()
     ad.action = act
     legs_ik = [sd for sd in ("L", "R") if pbs["thigh_parent." + sd]["IK_FK"] < 0.5]
-    for i, f in enumerate(range(F1 - n + 1, F1 + 1)):
-        w = (i + 1) / float(n); w = w * w * (3 - 2 * w)
+    frames = list(range(F0, F0 + n)) if at_start else list(range(F1 - n + 1, F1 + 1))
+    for i, f in enumerate(frames):
+        w = (n - i) / float(n) if at_start else (i + 1) / float(n)
+        w = w * w * (3 - 2 * w)
         scene.frame_set(f); cur = read_pose()
         for c in CONTROLS:
             pb = pbs[c]; a = cur[c]; b = tgt[c]
-            if c.startswith("thigh_ik_target") or c.startswith("thigh_parent"):
-                continue                                        # the legs' IK stays as it is; the pole is re-aimed below
+            if c.startswith("thigh_parent") or (c.startswith("thigh_ik_target") and not KEEP_POLES):
+                continue                                        # the legs' IK stays as it is; the pole is re-aimed below (with --keep-poles the pole CONTROL is blended like any other: a clip whose FK legs are a rest chain has no knee plane to re-aim at)
             qa = a["rot"]; qb = b["rot"]
             if qa.dot(qb) < 0: qb = -qb
             q = qa.slerp(qb, w)
@@ -391,7 +395,7 @@ def end_blend(act, spec):
                     if p_ in b and p_ in pb and not c.startswith("thigh_parent"):
                         pb[p_] = bool(b[p_]) if isinstance(pb[p_], bool) else float(b[p_])
         bpy.context.view_layer.update()
-        for sd in legs_ik:
+        for sd in ([] if KEEP_POLES else legs_ik):
             pbs["thigh_parent." + sd]["IK_FK"] = 0.0
             hip_ = (rig.matrix_world @ pbs["DEF-thigh." + sd].matrix).translation.copy(); ank_ = (rig.matrix_world @ pbs["DEF-foot." + sd].matrix).translation.copy()
             leg_pole(sd, fk_knee(sd), hip_, ank_)
@@ -403,9 +407,9 @@ def end_blend(act, spec):
             for p_ in PROPS:
                 if p_ in pb:
                     pb.keyframe_insert('["%s"]' % p_, frame=f, group=c)
-    scene.frame_set(F1); hz = (rig.matrix_world @ pbs["DEF-spine"].matrix).translation.z
+    scene.frame_set(F0 if at_start else F1); hz = (rig.matrix_world @ pbs["DEF-spine"].matrix).translation.z
     ad.action = bpy.data.actions[tgt_name]; scene.frame_set(tgt_frame); hz_t = (rig.matrix_world @ pbs["DEF-spine"].matrix).translation.z; ad.action = act
-    log("end-blend: the last %d frames crossfaded to %s frame %d; last-frame hips %.3f vs the target's %.3f" % (n, tgt_name, tgt_frame, hz, hz_t))
+    log("%s-blend: the %s %d frames crossfaded to %s frame %d; %s-frame hips %.3f vs the target's %.3f" % ("start" if at_start else "end", "first" if at_start else "last", n, tgt_name, tgt_frame, "first" if at_start else "last", hz, hz_t))
 
 
 HAND_FROM_SOCK = {}
@@ -1336,6 +1340,9 @@ if EVEN_ADVANCE:
 
 if LOOP_SHIFT:
     loop_shift(LOOP_SHIFT)
+
+if START_BLEND:
+    end_blend(baked, START_BLEND, at_start=True)
 
 if END_BLEND:
     end_blend(baked, END_BLEND)
