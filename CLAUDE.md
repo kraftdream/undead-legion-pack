@@ -46,7 +46,7 @@ every one verified on all six models with `verify_clip.py` + `ground_clip.py`; p
 | Locomotion (loop, root motion) | `Walk_Fwd_01`, `Walk_Back_01`, `Run_Fwd`, `Strafe_Left_01` (mirrored right), `Strafe_Right_01` (the `_01` index added 2026-09-26: the low-rank shambling set; `Run_Fwd` was not renamed, the user listed the walks and strafes); **`Walk_Fwd_02`, `Run_Fwd_02`** (2026-09-25: the "normal" pair, an upright human walk and jog for the higher ranks such as the necromancer and mage, Kimodo without the stiff-undead prompt profile), **`Walk_Back_02`** (2026-09-26, the same for the walk back), **`Strafe_Left_02` / `Strafe_Right_02`** (2026-09-26, the same for the side-steps) |
 | Per arm (2026-09-22/23, replaces the one-handed set) | `Attack_R_Stab`, `Attack_R_Slice` (redone 2026-09-26, experimental, from the user's `melee in place.glb`: frames 60–104 / 1–50, plain transfers at the take's own tempo, both feet frozen, in place; the `attack_ref5` builds are the `_base` actions), `Attack_L_Stab`, `Attack_L_Slice` (the same mirrored), `Block_L_Idle` (loop: shield held up on the left arm, a HELD action in the demo). Each lives on its arm's masked layer (`LeftArm` / `RightArm`) and as a full-body state on Base; the Animator carries the transitions |
 | Two-handed | `Attack_2H_01` (downward chop with a step), `Attack_2H_02` (raise and horizontal sweep) — the user's mannequin recording (2026-09-23), legs planted, left hand on the handle through the two-handed GATE (slides 0.03..0.11 rig m below the right hand) |
-| Bow | `Shoot_01` (redone 2026-09-25 from the user's mannequin recording `aoe cast shoot.glb`: raise, draw at the cheek, release, lower, 1.9 s; the shot goes where the recorded feet point, `heading feet`; the video-mocap build of 2026-09-22 and `Shoot_02` retired; 2026-09-27: the user's `Shoot_01_Fix` baked, `hand_edited`, and animation events `BowAttach` 15 / `BowRelease` 21 on the clip — the recurve bow is a skinned model now and its string follows the draw hand between them, §8 "The recurve bow bends") |
+| Bow | `Shoot_01` (redone 2026-09-25 from the user's mannequin recording `aoe cast shoot.glb`: raise, draw at the cheek, release, lower, 1.9 s; the shot goes where the recorded feet point, `heading feet`; the video-mocap build of 2026-09-22 and `Shoot_02` retired; 2026-09-27: the user's `Shoot_01_Fix` baked, `hand_edited`, and animation events `BowAttach` 15 / `BowRelease` 21 on the clip — the recurve bow is a skinned model now and its string follows the draw hand between them, and a fired arrow flies along the character's forward on the release, §8 "The recurve bow bends"; imported in place; legs from `Idle_Bow`'s stance under the take's hips) |
 | Magic | `Cast_Wand_01/02`, `Cast_Staff_01` (both hands on the staff) — the user's mannequin recording `magic attacks.glb` (2026-09-25); `Cast_Staff_02` retired |
 | Specials | `Summon` (necromancer, both hands overhead), `AOE_Cast` (mage: hands up, then a slam with a crouch), `Taunt_01/02/03` (warrior), `Cutthroat` (assassin), `Rally` (knight, sword raised) — all from the user's recording `taunts.glb` (2026-09-25); the Kimodo `Taunt` retired |
 | Death | `Death_01` (struck, falls on the back), `Death_02` (kneels, crumples sideways) |
@@ -2048,7 +2048,33 @@ the root's LATER forward, which I misread as the turntable). `drift root` droppe
 (rotation and XZ baked into the pose; the take's own root travel was 2 cm / 0.6°), re-exported with the events
 and the fit. Measured with root motion on: the root's yaw stays 0.0° through the whole clip and the projectile
 flies exactly along the root's +Z. Rule: **a one-shot whose body turns must bake its root rotation into the
-pose, or every GO-transform direction read during it turns with the body.** ⚠ Two bridge
+pose, or every GO-transform direction read during it turns with the body.** Then "change the legs animation for
+shoot_01 with the legs animation from idle_bow": `anim_nla_bake --action Shoot_01 --result Shoot_01 --legs-from
+Idle_Bow:1` — the bow idle's 28 leg controls are CONSTANT over its 597-frame loop (IK feet at rest in the
+archer's stance, L 5 cm forward / R 5 cm back; only the torso sways), so its frame 1 is its whole leg animation
+and the take's stepping feet (4 cm of shuffle) are replaced by the idle's stance under the take's own hips
+(0.485 rig m, 3 cm lower than the idle's 0.518: knees 115–140°, more bent than the idle's 138–158°, no lock).
+Exported with the events and the fit (the Knight's sole the highest, the others ≤ 6 mm under). The events now
+carry `SendMessageOptions.DontRequireReceiver` (`verify_clip.py`): the verify's bare test models, and any
+buyer's character without `SkeletonWeapon`, logged "AnimationEvent has no receiver" on every play.
+**Then "a noticeable snap between idle and shoot, both start and end".** Measured against Idle_Bow's frame 1
+(`seamdiff`-style: landmark DEF bones' world position and rotation), the clip's two ends sat 33 mm rig LOWER at
+the hips (6 cm in the engine), the chest 27–37° off, the bow hand 16–17 cm and 73° off, the shins 12° — the
+take's standing pose is not the idle's, and the demo's 0.15 s crossfade cannot hide 6 cm of hips. The bake
+tool's new **`--start-blend ACTION:FRAME:N`** (the mirror of `--end-blend`: the first N frames crossfade FROM
+the reference pose into the clip, frame 1 = the reference exactly) with `--end-blend Idle_Bow:1:12` and
+`--legs-from Idle_Bow:1`, all in ONE run on the clip restored from HEAD (`Shoot_01_blendtry`-style: the
+committed action appended back over the tried one, so no pass rides on an earlier round's output): frame 1 and
+frame 59 now equal Idle_Bow's frame 1 to 0.0 mm / 0.0° on every landmark, the attach at 15 untouched (the
+start blend is over by frame 10), knees 120–151°, worst steps 20° on the release hand and 16° on the bow arm
+inside the 10-frame raise. ⚠ The first try flipped the LEFT shin 200°: the blends re-aim each IK leg's pole at
+the FK knee, and this clip's FK leg chain is the idle's REST chain (straight, no knee plane). `--keep-poles`
+now also applies to the blends: the pole CONTROLS are lerped like every other control and never re-aimed.
+And the lift: `lift 0.015` (the idle's default) with `ground_fit` dropped (the feet are the idle's constant
+controls on every frame, so nothing needs a per-frame fit) puts the clip in Unity exactly where Idle_Bow sits:
+boots +2..+7 mm on all six through the clip. Rule: **a one-shot played from an idle starts AND ends on that
+idle's pose with that idle's lift; blend both ends in the bake, never rely on the engine crossfade for more
+than a few cm.** ⚠ Two bridge
 lessons: `execute_code` REQUIRES `"action": "execute"` (a call without it fails validation, and a JSON with C#
 `
 ` literals written through a shell heredoc arrives with real newlines — run C# from a file, `runcs.py`-style);
