@@ -46,7 +46,7 @@ every one verified on all six models with `verify_clip.py` + `ground_clip.py`; p
 | Locomotion (loop, root motion) | `Walk_Fwd_01`, `Walk_Back_01`, `Run_Fwd`, `Strafe_Left_01` (mirrored right), `Strafe_Right_01` (the `_01` index added 2026-09-26: the low-rank shambling set; `Run_Fwd` was not renamed, the user listed the walks and strafes); **`Walk_Fwd_02`, `Run_Fwd_02`** (2026-09-25: the "normal" pair, an upright human walk and jog for the higher ranks such as the necromancer and mage, Kimodo without the stiff-undead prompt profile), **`Walk_Back_02`** (2026-09-26, the same for the walk back), **`Strafe_Left_02` / `Strafe_Right_02`** (2026-09-26, the same for the side-steps) |
 | Per arm (2026-09-22/23, replaces the one-handed set) | `Attack_R_Stab`, `Attack_R_Slice` (redone 2026-09-26, experimental, from the user's `melee in place.glb`: frames 60–104 / 1–50, plain transfers at the take's own tempo, both feet frozen, in place; the `attack_ref5` builds are the `_base` actions), `Attack_L_Stab`, `Attack_L_Slice` (the same mirrored), `Block_L_Idle` (loop: shield held up on the left arm, a HELD action in the demo). Each lives on its arm's masked layer (`LeftArm` / `RightArm`) and as a full-body state on Base; the Animator carries the transitions |
 | Two-handed | `Attack_2H_01` (downward chop with a step), `Attack_2H_02` (raise and horizontal sweep) — the user's mannequin recording (2026-09-23), legs planted, left hand on the handle through the two-handed GATE (slides 0.03..0.11 rig m below the right hand) |
-| Bow | `Shoot_01` (redone 2026-09-25 from the user's mannequin recording `aoe cast shoot.glb`: raise, draw at the cheek, release, lower, 1.9 s; the shot goes where the recorded feet point, `heading feet`; the video-mocap build of 2026-09-22 and `Shoot_02` retired; 2026-09-27: the user's `Shoot_01_Fix` baked, `hand_edited`, and animation events `BowAttach` 15 / `BowRelease` 21 on the clip — the recurve bow is a skinned model now and its string follows the draw hand between them, and a fired arrow flies along the character's forward on the release, §8 "The recurve bow bends"; imported in place; legs from `Idle_Bow`'s stance under the take's hips) |
+| Bow | `Idle_Bow` hand-edited 2026-09-27 (knees 3 cm narrower than the retarget's build by the pole swivel, at the retarget's height; `Idle_Bow_base` is that build); `Shoot_01` (redone 2026-09-25 from the user's mannequin recording `aoe cast shoot.glb`: raise, draw at the cheek, release, lower, 1.9 s; the shot goes where the recorded feet point, `heading feet`; the video-mocap build of 2026-09-22 and `Shoot_02` retired; 2026-09-27: the user's `Shoot_01_Fix` baked, `hand_edited`, and animation events `BowAttach` 15 / `BowRelease` 21 on the clip — the recurve bow is a skinned model now and its string follows the draw hand between them, and a fired arrow flies along the character's forward on the release, §8 "The recurve bow bends"; imported in place; legs from `Idle_Bow`'s stance under the take's hips) |
 | Magic | `Cast_Wand_01/02`, `Cast_Staff_01` (both hands on the staff) — the user's mannequin recording `magic attacks.glb` (2026-09-25); `Cast_Staff_02` retired |
 | Specials | `Summon` (necromancer, both hands overhead), `AOE_Cast` (mage: hands up, then a slam with a crouch), `Taunt_01/02/03` (warrior), `Cutthroat` (assassin), `Rally` (knight, sword raised) — all from the user's recording `taunts.glb` (2026-09-25); the Kimodo `Taunt` retired |
 | Death | `Death_01` (struck, falls on the back), `Death_02` (kneels, crumples sideways) |
@@ -2074,7 +2074,42 @@ And the lift: `lift 0.015` (the idle's default) with `ground_fit` dropped (the f
 controls on every frame, so nothing needs a per-frame fit) puts the clip in Unity exactly where Idle_Bow sits:
 boots +2..+7 mm on all six through the clip. Rule: **a one-shot played from an idle starts AND ends on that
 idle's pose with that idle's lift; blend both ends in the bake, never rely on the engine crossfade for more
-than a few cm.** ⚠ Two bridge
+than a few cm.**
+**Then "for shoot_01 the distance between knees is ~15 cm bigger than for idle_bow; increase it ~10 cm for
+idle_bow, bring the torso down if there is not enough space".** Measured (`kneesep`-style: DEF-shin heads):
+Idle_Bow's knees 41–48 cm apart in the engine, Shoot_01's 45–54 (the take's 3 cm lower hips bend the idle's
+legs more and push the knees out), feet 40 cm apart in both. Idle_Bow is now hand-edited: `anim_nla_bake
+--action Idle_Bow_base --result Idle_Bow --torso-drop 0.012 --knees-in -0.056` (a NEGATIVE knees-in widens):
+knees 53–60 cm (+12), hips 2 cm lower, knees 123–146° (were 130–158°), the loop's worst step 4° on a hand.
+Three things the tool needed, all for a clip whose legs are on IK with the FK chain at REST (every idle-mode
+retarget): (1) `knees_in` aimed at `fk_knee`, the rest chain's straight knee — no plane; it now checks
+**`fk_leg_straight`** (the FK chain's own knee angle > 168°, measured on the chain itself: measuring the FK
+knee against the IK ankle hid it, the stance offset tilts that axis) and then moves the clip's OWN IK knee on
+its swivel circle directly: the perpendicular from the hip→ankle axis keeps its radius, the lateral share grows
+by d/2 outward, the forward share shrinks to match, the pole is put in that plane and its swivel error corrected
+(a 12-step scan of the pole round the axis, then two signed-angle refinements; the knee must end in FRONT of
+the leg, "front" = the BODY's forward, never the knee's own share, or the frame keeps its pole). A knee whose
+radius cannot give the lateral offset is reported short (`--torso-drop` bends the knees and widens the circle:
+alone the swivel reached +5..+8 cm with 17 mm short and the knees pointing nearly sideways; drop 0.025 gave
++16; 0.012 the +12 kept). (2) `repole_legs` (which `--torso-drop` runs) re-aimed the poles at that same
+straight FK knee and flipped the LEFT knee BEHIND the leg (perp y +71..+114 mm, hyperextension) — it now
+skips a straight FK chain. (3) The first flip guard compared against the knee's own forward share and let a
+flipped knee stay flipped. Then Shoot_01 rebuilt on the widened idle (restored from the pre-legs commit
+`c571ad9`, the same one run: legs-from, keep-poles, both blends): seams 0.0 mm / 0.0° again, knees 57–69 cm
+against the idle's 53–60 (the take's lower hips; 15 → 7–9 cm of difference). Rule: **on an idle-mode clip
+the FK legs are a rest chain; every pole pass must test `fk_leg_straight` and fall back to the IK knee (or
+leave the pole alone), and "in front" is the body's forward.**
+**Then "the knees are too far apart for both, make it 15 cm less, and maybe bring the torso 8 cm up".** The
+raise first, probed on `Idle_Bow_base` (`raiseprobe`-style: the torso control lifted on sampled frames, knees
+and separation read): +1 cm above the retarget's height already puts the right (rear) knee at 170°, +2 cm at
+177°, +8 cm both knees at 177° with the legs fully extended — the retarget had lowered the hips to the reach
+limit (`PLANT_REACH`), so **the 8 cm is not available**; the idle went back UP to that height (2 cm above the
+previous round) and no further. Knees: `--knees-in 0.017` at that height → 39–45 cm apart (−14 / −15 from
+53–60; the original build had 41–47). Shoot_01 rebuilt the same way on the final idle with `--torso-drop
+-0.02` (a 3.6 cm RAISE of the take's hips, 0.500–0.533 rig m, level with the idle's so the mid-shot crouch is
+gone; knees 129–159°): 39–46 cm apart (−18 / −23 from 57–69, 1 cm from the idle's), seams 0.0 mm / 0.0°,
+boots on the floor on all six. Rule: **a torso raise is bounded by the rear foot's reach on the sway's peak
+frame; probe the knee angle across the loop before promising a height.** ⚠ Two bridge
 lessons: `execute_code` REQUIRES `"action": "execute"` (a call without it fails validation, and a JSON with C#
 `
 ` literals written through a shell heredoc arrives with real newlines — run C# from a file, `runcs.py`-style);

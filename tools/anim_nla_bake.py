@@ -866,6 +866,9 @@ def yaw_clip(act, deg):
     log("yaw-clip %+.1f deg: the whole clip turned about the vertical through the root's first-frame spot (Root orientation untouched)" % deg)
 
 
+KNEES_SHORT = []
+
+
 def knees_in(act, d):
     ad.action = act
     sep0 = []; sep1 = []
@@ -880,9 +883,73 @@ def knees_in(act, d):
         for sd in ("L", "R"):
             if pbs["thigh_parent." + sd]["IK_FK"] > 0.5:
                 continue
-            fk = fk_knee(sd); side_sign = 1.0 if (fk - mid).dot(lat) > 0 else -1.0
-            tgt = fk - lat * (side_sign * 0.5 * d)
             hip_ = (rig.matrix_world @ pbs["DEF-thigh." + sd].matrix).translation.copy(); ank_ = (rig.matrix_world @ pbs["DEF-foot." + sd].matrix).translation.copy()
+            fk = fk_knee(sd)
+            ax_ = (ank_ - hip_).normalized()
+            if fk_leg_straight(sd):
+                # the FK chain is a rest (straight) leg with no knee plane (an idle-mode clip: legs on IK, FK untouched).
+                # The clip's own IK knee is the reference, and the move is done ON ITS SWIVEL CIRCLE directly: the knee's
+                # perpendicular from the hip->ankle axis keeps its radius, its lateral share grows by d/2 outward (d < 0
+                # widens) and the forward share shrinks to match, so the knee stays a knee; the pole is put in that plane
+                # and its swivel error corrected twice (user, Idle_Bow: "increase the knee distance ~10 cm, bring the
+                # torso down if there won't be enough space" - a knee that cannot reach is logged as short).
+                knee0 = (rig.matrix_world @ pbs["DEF-shin." + sd].matrix).translation.copy()
+                dk = knee0 - hip_; along = dk.dot(ax_); perp = dk - ax_ * along; r_ = perp.length
+                lat_out = lat * (1.0 if (knee0 - mid).dot(lat) > 0 else -1.0)
+                lat_c = perp.dot(lat_out)
+                want = lat_c - 0.5 * d
+                short_ = max(0.0, want - r_ * 0.98); want = min(want, r_ * 0.98)
+                fwd_len = math.sqrt(max(0.0, r_ * r_ - want * want))
+                # "in front" is the BODY's forward (the hips' facing) projected perpendicular to the axis, never the
+                # knee's own forward share: a knee an earlier pass flipped behind the leg would otherwise stay there
+                fwd_b = ((rig.matrix_world @ pbs["DEF-spine"].matrix).to_3x3() @ Vector((0, 0, 1))); fwd_b.z = 0
+                if fwd_b.length < 1e-6: fwd_b = Vector((0, -1, 0))
+                fwd_b = fwd_b - ax_ * fwd_b.dot(ax_); fwd_b = fwd_b - lat_out * fwd_b.dot(lat_out)
+                fwd_dir = fwd_b.normalized() if fwd_b.length > 1e-6 else (-ax_.cross(lat_out)).normalized()
+                p_new = lat_out * want + fwd_dir * fwd_len
+                sw_ = pbs["thigh_parent." + sd]; pole_ = pbs["thigh_ik_target." + sd]; sw_["pole_vector"] = True
+                pm0 = pole_.matrix.copy()
+                # the pole's swivel about the axis vs the knee's is a constant offset (Rigify's pole angle) but not 1:1
+                # near the flip, so: a 12-step scan of the pole round the axis picks the sample whose knee is nearest
+                # the wanted direction, then two signed-angle refinements; the knee must end in FRONT (its forward
+                # share positive) or the frame keeps its own pole
+                base_pt = hip_ + ax_ * along + p_new.normalized() * 0.4
+                def knee_perp():
+                    k2 = (rig.matrix_world @ pbs["DEF-shin." + sd].matrix).translation; d2 = k2 - hip_; return d2 - ax_ * d2.dot(ax_)
+                def set_pole(pt_):
+                    pm = pole_.matrix.copy(); pm.translation = rig.matrix_world.inverted() @ pt_; pole_.matrix = pm; bpy.context.view_layer.update()
+                best = None
+                for k12 in range(12):
+                    pt_ = hip_ + Matrix.Rotation(math.radians(30.0 * k12), 3, ax_) @ (base_pt - hip_)
+                    set_pole(pt_); pk = knee_perp()
+                    err = pk.normalized().angle(p_new.normalized()) if pk.length > 1e-6 else math.pi
+                    if best is None or err < best[0]:
+                        best = (err, pt_)
+                pt = best[1]
+                for _ in range(2):
+                    set_pole(pt); pk = knee_perp()
+                    if pk.length < 1e-6:
+                        break
+                    a_ = pk.normalized(); b_ = p_new.normalized()
+                    ang = math.atan2(a_.cross(b_).dot(ax_), a_.dot(b_))
+                    if abs(ang) < math.radians(0.05):
+                        break
+                    pt = hip_ + Matrix.Rotation(ang, 3, ax_) @ (pt - hip_)
+                set_pole(pt); pk = knee_perp()
+                if pk.dot(fwd_dir) <= 0.0 or pk.normalized().angle(p_new.normalized()) > math.radians(20):
+                    set_pole(best[1]); pk = knee_perp()                      # the refinement went past the flip: the scan's best
+                    if pk.dot(fwd_dir) <= 0.0:
+                        pole_.matrix = pm0; bpy.context.view_layer.update()  # the knee would flip: keep the frame's own pole
+                        log("knees-in: frame %d %s knee would flip, left as it was" % (f, sd))
+                if short_ > 0.001:
+                    KNEES_SHORT.append((f, sd, short_))
+                pole = pbs["thigh_ik_target." + sd]
+                pole.keyframe_insert("location", frame=f, group="thigh_ik_target." + sd)
+                pole.keyframe_insert("rotation_quaternion" if pole.rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group="thigh_ik_target." + sd)
+                pbs["thigh_parent." + sd].keyframe_insert('["pole_vector"]', frame=f, group="thigh_parent." + sd)
+                continue
+            side_sign = 1.0 if (fk - mid).dot(lat) > 0 else -1.0
+            tgt = fk - lat * (side_sign * 0.5 * d)
             leg_pole(sd, tgt, hip_, ank_)
             pole = pbs["thigh_ik_target." + sd]
             pole.keyframe_insert("location", frame=f, group="thigh_ik_target." + sd)
@@ -892,6 +959,9 @@ def knees_in(act, d):
         kl = (rig.matrix_world @ pbs["DEF-shin.L"].matrix).translation; kr = (rig.matrix_world @ pbs["DEF-shin.R"].matrix).translation
         sep1.append((kl - kr).length)
     log("knees-in %.3f rig m: knees apart %.0f..%.0f mm -> %.0f..%.0f (the swivel circle limits the move)" % (d, min(sep0) * 1000, max(sep0) * 1000, min(sep1) * 1000, max(sep1) * 1000))
+    if KNEES_SHORT:
+        worst = max(KNEES_SHORT, key=lambda t: t[2])
+        log("knees-in: %d knee-frames could not reach the wanted lateral offset on their swivel circle (worst %.0f mm short, frame %d %s): a --torso-drop bends the knees and widens the circle" % (len(KNEES_SHORT), worst[2] * 1000, worst[0], worst[1]))
 
 
 def arms_down(act, deg):
@@ -1067,6 +1137,16 @@ def fk_knee(side):
     return (rig.matrix_world @ pbs["shin_fk." + side].matrix).translation.copy()
 
 
+def fk_leg_straight(side):
+    """True when the FK leg chain is (near) straight - a rest chain on an idle-mode clip: its knee is no plane reference
+    (measured on the FK chain itself, not against the IK ankle: a stance offset tilts that axis and hides a straight chain)."""
+    a = (rig.matrix_world @ pbs["thigh_fk." + side].matrix).translation; b = (rig.matrix_world @ pbs["shin_fk." + side].matrix).translation
+    c = (rig.matrix_world @ pbs["foot_fk." + side].matrix).translation
+    if (a - b).length < 1e-6 or (c - b).length < 1e-6:
+        return True
+    return math.degrees((a - b).angle(c - b)) > 168.0
+
+
 def repole_legs(act):
     """Aim both legs' IK poles at the FK knee plane on every frame and key them."""
     ad.action = act
@@ -1078,6 +1158,8 @@ def repole_legs(act):
                 continue
             hip_ = (rig.matrix_world @ pbs["DEF-thigh." + side].matrix).translation.copy()
             ank_ = (rig.matrix_world @ pbs["DEF-foot." + side].matrix).translation.copy()
+            if fk_leg_straight(side):
+                continue                                        # a rest (straight) FK chain has no knee plane (idle-mode clips): the pole is left as it is
             leg_pole(side, fk_knee(side), hip_, ank_)
             pole = pbs["thigh_ik_target." + side]
             pole.keyframe_insert("location", frame=f, group="thigh_ik_target." + side)
