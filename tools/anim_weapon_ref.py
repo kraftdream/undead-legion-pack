@@ -50,11 +50,12 @@ if coll is None:
     coll = bpy.data.collections.new(COLL); scene.collection.children.link(coll)
 names_attached = {n for n, _ in ATTACH}
 for ob in list(coll.objects):
-    if REMOVE or ob.name[4:] in names_attached:
+    base_ = ob.name[4:-4] if ob.name.endswith("_Rig") else ob.name[4:]
+    if REMOVE or base_ in names_attached:
         print("[weapon-ref] removed", ob.name)
         me = ob.data; bpy.data.objects.remove(ob, do_unlink=True)
         if me and me.users == 0:
-            bpy.data.meshes.remove(me)
+            (bpy.data.armatures if isinstance(me, bpy.types.Armature) else bpy.data.meshes).remove(me)
 
 # ------------------------------------------------------------------ frames
 M_ = Matrix(((-1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)))          # Unity slot -> Blender socket
@@ -75,6 +76,7 @@ if ATTACH:
         want = [n for n, _ in ATTACH if n in src.objects]
         missing = [n for n, _ in ATTACH if n not in src.objects]
         assert not missing, "not in Weapons/prod.blend: %s" % missing
+        want += [n + "_Rig" for n in want if n + "_Rig" in src.objects]      # a rigged weapon (the recurve bow) comes with its armature
         dst.objects = want
     appended = {}                                          # a same-named object already in the file renames the appended one to NAME.001
     for o in dst.objects:
@@ -91,14 +93,47 @@ if ATTACH:
         assert name in grips["grips"], "no W_%s Grip in %s (run tools/unity/dump_grips.py)" % (name, GRIPS)
         local = M_ @ unity_local(grips["slots"][side]) @ unity_local(grips["grips"][name]).inverted() @ C_
         assert abs(local.to_3x3().determinant() - 1.0) < 1e-6
-        con = ob.constraints.new('CHILD_OF')
+        holder = ob
+        wrig = appended.get(name + "_Rig")
+        if wrig is not None:
+            # a rigged weapon: its armature (bones + drivers) transformed into the same export-local frame as the mesh,
+            # the mesh bound to it; the ARMATURE carries the socket constraint, the mesh rides as its child
+            T = export_weapons.export_local_matrix(src_ob, name)
+            wrig.data.transform(T); wrig.name = "Ref_%s_Rig" % name; wrig.data.name = wrig.name
+            for c in list(wrig.users_collection): c.objects.unlink(wrig)
+            coll.objects.link(wrig); wrig.matrix_basis = Matrix.Identity(4); wrig.parent = None
+            ob.parent = wrig; ob.parent_type = 'OBJECT'; ob.matrix_parent_inverse.identity(); ob.matrix_basis = Matrix.Identity(4)
+            mod = ob.modifiers.new("Armature", 'ARMATURE'); mod.object = wrig; mod.use_vertex_groups = True
+            holder = wrig
+            # the string: its Nock bone follows the OTHER hand's socket while that hand is within draw distance of the
+            # string's rest point (Brace); the limb bend drivers read the Nock's draw
+            if "Nock" in wrig.pose.bones and "Pull" in wrig.pose.bones:
+                # Pull copies the draw hand; its LOCAL location is then the hand in the string's frame (y = behind the string
+                # plane = the draw, x/z = off the string's midpoint). The Nock follows it only while the hand is behind the
+                # string and within a corridor round the midpoint (measured on Shoot_01: drawing 0.10..0.41 behind, 0.12..0.21
+                # off; at rest 0.10 in FRONT; after the release 0.33 off), and the string's apex follows the fingers along
+                # the bow. The limb bend drivers read the Nock's y.
+                other = "R" if side == "L" else "L"
+                cl = wrig.pose.bones["Pull"].constraints.new('COPY_LOCATION'); cl.target = rig; cl.subtarget = "DEF-weapon." + other; cl.name = "Draw_Hand"
+                gate = "max(0, min(1, (0.28 - sqrt(px*px + pz*pz)) * 20)) * max(0, min(1, py * 40))"
+                for axis, expr in ((0, "px * (%s)" % gate), (1, "max(0, min(0.45, py)) * (%s)" % gate), (2, "pz * (%s)" % gate)):
+                    fc = wrig.pose.bones["Nock"].driver_add("location", axis); d = fc.driver; d.type = 'SCRIPTED'
+                    for vn, tt in (("px", 'LOC_X'), ("py", 'LOC_Y'), ("pz", 'LOC_Z')):
+                        v = d.variables.new(); v.name = vn; v.type = 'TRANSFORMS'
+                        v.targets[0].id = wrig; v.targets[0].bone_target = "Pull"; v.targets[0].transform_type = tt; v.targets[0].transform_space = 'LOCAL_SPACE'
+                    d.expression = expr
+                    assert d.is_simple_expression, "the string driver is not a simple expression (it would need script auto-execution): " + expr
+                print("[weapon-ref] Ref_%s_Rig: the string's Nock follows DEF-weapon.%s while that hand is behind the string plane and within 0.28 rig m of the string's midpoint; the limbs bend with the draw" % (name, other))
+        con = holder.constraints.new('CHILD_OF')
         con.target = rig; con.subtarget = bone
         con.inverse_matrix = Matrix.Identity(4)
-        ob.matrix_basis = local
-        print("[weapon-ref] Ref_%s on %s: local offset (%.4f, %.4f, %.4f) rig m, rotation %.0f deg" % (
-            name, bone, *local.translation, math.degrees(local.to_quaternion().angle)))
+        holder.matrix_basis = local
+        print("[weapon-ref] %s on %s: local offset (%.4f, %.4f, %.4f) rig m, rotation %.0f deg" % (
+            holder.name, bone, *local.translation, math.degrees(local.to_quaternion().angle)))
     # the appended source objects (and their materials' textures) are not needed: the meshes were copied
     for o in appended.values():
+        if o.name.startswith("Ref_"):
+            continue                                       # a weapon rig kept as the reference's armature
         me = o.data; bpy.data.objects.remove(o, do_unlink=True)
         if me and me.users == 0:
             bpy.data.meshes.remove(me)
@@ -112,6 +147,8 @@ if CHECK:
     pbs = rig.pose.bones
     def sockm(side): return rig.matrix_world @ pbs["DEF-weapon." + side].matrix
     for ob in coll.objects:
+        if not ob.constraints:
+            continue                                        # a rigged weapon's mesh rides on its armature
         name = ob.name[4:]
         side = ob.constraints[0].subtarget[-1]
         expect = sockm(side) @ ob.matrix_basis
@@ -119,8 +156,8 @@ if CHECK:
         length = (ob.matrix_world.to_3x3() @ Vector((0, 0, 1))).normalized()   # export-local +Z = the length / hilt axis
         print("[weapon-ref] %s on %s: constraint vs bone-frame placement %.5f m; length axis world (%.2f, %.2f, %.2f), socket +Y (hilt) dot %.3f, socket +X (fingers) dot %.3f" % (
             ob.name, side, err, *length, length.dot((sockm(side).to_3x3() @ Vector((0, 1, 0))).normalized()), length.dot((sockm(side).to_3x3() @ Vector((1, 0, 0))).normalized())))
-    if "Ref_Arrow" in coll.objects and any(o.name != "Ref_Arrow" for o in coll.objects):
-        arrow = coll.objects["Ref_Arrow"]; bow = next(o for o in coll.objects if o.name != "Ref_Arrow")
+    if "Ref_Arrow" in coll.objects and any(o.name != "Ref_Arrow" and o.constraints for o in coll.objects):
+        arrow = coll.objects["Ref_Arrow"]; bow = next(o for o in coll.objects if o.name != "Ref_Arrow" and o.constraints)
         a_side = arrow.constraints[0].subtarget[-1]; b_side = bow.constraints[0].subtarget[-1]
         shaft = (arrow.matrix_world.to_3x3() @ Vector((0, 0, 1))).normalized()
         limbs = (bow.matrix_world.to_3x3() @ Vector((0, 0, 1))).normalized()

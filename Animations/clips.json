@@ -426,7 +426,12 @@
    "unwind_ref": "body",
    "lift": 0.004,
    "ground_fit": true,
-   "_note": "2026-09-25: the user's mannequin recording 'aoe cast shoot.glb' (224 frames at 30 fps; the user's frame numbers are 24 fps, x1.25), plain transfer like the arm attacks. Frames 130-177: raise 163-180, draw 180-200 (the RIGHT hand at the head, 0.24 m from its shoulder; the LEFT hand the bow, extended 0.54 m: no mirror), release ~200-208, lowered by 221. Replaces the video-mocap build and its aim / anchor / bow-square / head-aim / pose-ref passes (kept in the retarget). Previous: {\"glb\": \"shoot_mocap_3\", \"mode\": \"upper\", \"rename\": \"jnt\", \"mirror\": true, \"still_joints\": \"LeftHand\", \"smooth\": 1, \"blend_from\": \"Idle_Bow:1\", \"blend_in\": 10, \"blend_to\": \"Idle_Bow:1\", \"blend_out\": 20, \"layer\": \"upper\", \"prompt\": \"(not Kimodo) video mocap 'bow attacks 2_default.glb' from the P: drive, *_JNT skeleton, 80 frames at 30 fps: the one shoot clip (user 2026-09-22: 'let's do only 1 shoot animation')\", \"stance\": \"L:0.06,R:-0.06\", \"aim_forward\": \"L\", \"hips_drop\": 0.056, \"aim_body\": 0.0, \"aim_line\": \"sight\", \"aim_offset\": 10, \"anchor\": 1.0, \"anchor_gap\": 0.083, \"bow_square\": true, \"head_aim\": true, \"head_smooth\": 3, \"time_warp\": \"22:11\", \"pose_ref\": \"Fire_Base:1@37\"}.  heading feet (new; user: 'in my Blender the shoot direction is the same as the feet; you imported it incorrectly, the model shoots diagonally compared to the feet'): NO aim passes - measured in the source the feet stand at +38 deg and the shot at full draw goes +51 (along the front foot); the aim build had held the hips and twisted the spine to put the arrow at 0 while the feet pointed +12, 25 deg off the front foot. Now the feet's mean direction is the heading (the idle's facing) and the shot follows them as recorded, 13 deg left of the mean; the hips turn ~40 deg side-on as the performer's do."
+   "_note": "2026-09-25: the user's mannequin recording 'aoe cast shoot.glb' (224 frames at 30 fps; the user's frame numbers are 24 fps, x1.25), plain transfer like the arm attacks. Frames 130-177: raise 163-180, draw 180-200 (the RIGHT hand at the head, 0.24 m from its shoulder; the LEFT hand the bow, extended 0.54 m: no mirror), release ~200-208, lowered by 221. Replaces the video-mocap build and its aim / anchor / bow-square / head-aim / pose-ref passes (kept in the retarget). Previous: {\"glb\": \"shoot_mocap_3\", \"mode\": \"upper\", \"rename\": \"jnt\", \"mirror\": true, \"still_joints\": \"LeftHand\", \"smooth\": 1, \"blend_from\": \"Idle_Bow:1\", \"blend_in\": 10, \"blend_to\": \"Idle_Bow:1\", \"blend_out\": 20, \"layer\": \"upper\", \"prompt\": \"(not Kimodo) video mocap 'bow attacks 2_default.glb' from the P: drive, *_JNT skeleton, 80 frames at 30 fps: the one shoot clip (user 2026-09-22: 'let's do only 1 shoot animation')\", \"stance\": \"L:0.06,R:-0.06\", \"aim_forward\": \"L\", \"hips_drop\": 0.056, \"aim_body\": 0.0, \"aim_line\": \"sight\", \"aim_offset\": 10, \"anchor\": 1.0, \"anchor_gap\": 0.083, \"bow_square\": true, \"head_aim\": true, \"head_smooth\": 3, \"time_warp\": \"22:11\", \"pose_ref\": \"Fire_Base:1@37\"}.  heading feet (new; user: 'in my Blender the shoot direction is the same as the feet; you imported it incorrectly, the model shoots diagonally compared to the feet'): NO aim passes - measured in the source the feet stand at +38 deg and the shot at full draw goes +51 (along the front foot); the aim build had held the hips and twisted the spine to put the arrow at 0 while the feet pointed +12, 25 deg off the front foot. Now the feet's mean direction is the heading (the idle's facing) and the shot follows them as recorded, 13 deg left of the mean; the hips turn ~40 deg side-on as the performer's do. 2026-09-27: the user's Shoot_01_Fix (both arms, hands, left shoulder; Combine over 1-17) baked; bow string attach / release events at frames 15 / 21 (manifest events -> the clip importer's AnimationEvents, received by SkeletonWeapon.BowAttach/BowRelease).",
+   "hand_edited": true,
+   "events": {
+    "BowAttach": 15,
+    "BowRelease": 21
+   }
   },
   {
    "name": "Cast_Wand_01",
@@ -672,7 +677,7 @@
    ],
    "layer": "full",
    "prompt": "(not Kimodo) video mocap 'standing up.glb' from the P: drive, 24 fps frame 34 = 30 fps frame 42",
-   "_note": "hand_edited (2026-09-24): post-processed by anim_nla_bake: frames 47-65 cut (--speed-segment 47:65:19) and the last 8 frames crossfaded to Idle frame 1 (--end-blend: the torso lowered to the idle's height so the knees bend and the feet plant). user-supplied mocap 2026-09-21, replaces the Kimodo rise_a splice; starts on Impaled_Idle's frame (the hand-posed base with the idle's analytic legs, so the two clips meet exactly) and crossfades into the capture",
+   "_note": "hand_edited (2026-09-24): post-processed by anim_nla_bake: frames 47-65 cut (--speed-segment 47:65:19) and the last 8 frames crossfaded to Idle frame 1 (--end-blend: the torso lowered to the idle's height so the knees bend and the feet plant). user-supplied mocap 2026-09-21, replaces the Kimodo rise_a splice; starts on Impaled_Idle's frame (the hand-posed base with the idle's analytic legs, so the two clips meet exactly) and crossfades into the capture disabled 2026-09-26 (user: 'remove impale idle/rise from the export for now'): the export, build state and controller states removed; the actions stay in the anim file.",
    "src_end": 110,
    "ground": "twoway",
    "ground_ignore": "Robe,Skirt",
@@ -682,7 +687,8 @@
    "rename": "jnt",
    "src_start": 42,
    "plant_feet": 0.001,
-   "hand_edited": true
+   "hand_edited": true,
+   "disabled": true
   }
  ]
 }

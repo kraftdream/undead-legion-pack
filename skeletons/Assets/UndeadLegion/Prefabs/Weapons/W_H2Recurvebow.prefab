@@ -40,6 +40,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3280090875198922135}
+  - component: {fileID: 2358194468738536271}
   m_Layer: 0
   m_Name: W_H2Recurvebow
   m_TagString: Untagged
@@ -64,6 +65,25 @@ Transform:
   - {fileID: 1238380864981939816}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2358194468738536271
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5441438366863020905}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a9a28ef476350824796eb73fad1ad2ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UndeadLegion.Demo.BowString
+  drawHand: {fileID: 0}
+  attached: 0
+  fullDraw: 0.5
+  corridor: 0.5
+  bendLimb1: 10
+  bendLimb2: 14
+  returnSpeed: 8
 --- !u!1001 &6226141237128889490
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -113,6 +133,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: 49814273989f5724ab9c9781dd6f93b4, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 74b0dc355736c4a4dbf2065561ad25c7, type: 2}
+    - target: {fileID: -6136741534077745558, guid: 49814273989f5724ab9c9781dd6f93b4, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 74b0dc355736c4a4dbf2065561ad25c7, type: 2}

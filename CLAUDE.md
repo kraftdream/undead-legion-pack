@@ -21,7 +21,7 @@ and importing the exports into Unity 6000.4 through the editor bridge.
 | Skeleton Mage        | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | **yes** | **yes** |
 | Skeleton Necromancer | done | partial (no `armor_metallic`) | **yes** | **yes** | valid | **yes** | **yes** |
 | Skeleton Warrior     | done | done | **yes** | **yes** | valid | **yes** | **yes** |
-| Weapons (12 meshes)  | done | all textured (8 full PBR; staff, recurve bow, wand colour + normal; arrow colour only) | n/a | `SM_*.fbx` ×12 | n/a | `M_Weapon_<Name>` ×12 (+ unused placeholder) | **yes** (11 loadouts, `W_*` prefabs; the propped staff removed 2026-09-25) |
+| Weapons (12 meshes)  | done | all textured (8 full PBR; staff, recurve bow, wand colour + normal; arrow colour only) | n/a | `SM_*.fbx` ×12 (the recurve bow skinned to its own 8-bone rig, Generic / No Avatar, 2026-09-27) | n/a | `M_Weapon_<Name>` ×12 (+ unused placeholder) | **yes** (11 loadouts, `W_*` prefabs; the propped staff removed 2026-09-25) |
 
 Shared clips so far: `Idle`, `Idle_02`, `Idle_03` (loops, 8 / 12 / 12 s) +
 `Twitch_01..03` (additive), on `AC_Skeleton`. Armour materials render both faces
@@ -41,12 +41,12 @@ every one verified on all six models with `verify_clip.py` + `ground_clip.py`; p
 | Group | Clips |
 |---|---|
 | Idles (loop) | `Idle`, `Idle_02` (hand-fixed 2026-09-21: blades forward, Idle grounded, Idle_02 upright with hanging arms, left foot 5 cm forward / right 5 cm back), `Idle_03` (the user's own video-mocap idle, 2026-09-21, slowed 3×, 10.8 s loop, fingers from the capture, right foot 10 cm forward / left 10 cm back); weapon idles `Idle_TwoHanded` (the user's mannequin recording, 2026-09-23: two-hander held ahead, both hands on the shaft), `Idle_Bow`, `Idle_Staff` (`Idle_Wand` removed 2026-09-24: "enough idle animations"; the H1Wand loadout stays, the Cast_Wand clips play over Idle_Staff / Idle; **`Idle_Propped` and the "Staff (propped)" loadout removed 2026-09-25** at the user's request: export, manifest entry, build state, fit curve, the `W_H2MagicStuff_Top` prefab, the builder's row and `ProppedHandHeight`, the grip dump entry, the demo list; the actions `Idle_Propped` / `Propped_Base` and the `prop` / `hunch` / `torso_ref` retarget passes stay as tools) |
-| Impaled (hand-authored) | `Impaled_Idle` (loop: on its knees, hunched, sword through the belly), `Impaled_Rise` (one-shot: pulls it out, stands up, ends on the neutral standing pose) |
+| Impaled (hand-authored) | `Impaled_Idle` (loop: on its knees, hunched, sword through the belly), `Impaled_Rise` (one-shot: pulls it out, stands up, ends on the neutral standing pose) — **not exported since 2026-09-26** (user: "remove impale idle/rise from the export for now"): FBX + meta, build state and controller states removed, the actions and the tools stay; `Impaled_Rise`'s manifest entry carries `disabled true` (`anim_batch` skips such entries), `Impaled_Idle` never had one (`anim_author_impaled.py` writes both); drop the flag and re-export to bring them back |
 | Twitch (additive) | `Twitch_01/02/03` head + jaw |
 | Locomotion (loop, root motion) | `Walk_Fwd_01`, `Walk_Back_01`, `Run_Fwd`, `Strafe_Left_01` (mirrored right), `Strafe_Right_01` (the `_01` index added 2026-09-26: the low-rank shambling set; `Run_Fwd` was not renamed, the user listed the walks and strafes); **`Walk_Fwd_02`, `Run_Fwd_02`** (2026-09-25: the "normal" pair, an upright human walk and jog for the higher ranks such as the necromancer and mage, Kimodo without the stiff-undead prompt profile), **`Walk_Back_02`** (2026-09-26, the same for the walk back), **`Strafe_Left_02` / `Strafe_Right_02`** (2026-09-26, the same for the side-steps) |
 | Per arm (2026-09-22/23, replaces the one-handed set) | `Attack_R_Stab`, `Attack_R_Slice` (redone 2026-09-26, experimental, from the user's `melee in place.glb`: frames 60–104 / 1–50, plain transfers at the take's own tempo, both feet frozen, in place; the `attack_ref5` builds are the `_base` actions), `Attack_L_Stab`, `Attack_L_Slice` (the same mirrored), `Block_L_Idle` (loop: shield held up on the left arm, a HELD action in the demo). Each lives on its arm's masked layer (`LeftArm` / `RightArm`) and as a full-body state on Base; the Animator carries the transitions |
 | Two-handed | `Attack_2H_01` (downward chop with a step), `Attack_2H_02` (raise and horizontal sweep) — the user's mannequin recording (2026-09-23), legs planted, left hand on the handle through the two-handed GATE (slides 0.03..0.11 rig m below the right hand) |
-| Bow | `Shoot_01` (redone 2026-09-25 from the user's mannequin recording `aoe cast shoot.glb`: raise, draw at the cheek, release, lower, 1.9 s; the arrow aimed dead ahead by a spine twist, the hips held on the heading; the video-mocap build of 2026-09-22 and `Shoot_02` retired) |
+| Bow | `Shoot_01` (redone 2026-09-25 from the user's mannequin recording `aoe cast shoot.glb`: raise, draw at the cheek, release, lower, 1.9 s; the shot goes where the recorded feet point, `heading feet`; the video-mocap build of 2026-09-22 and `Shoot_02` retired; 2026-09-27: the user's `Shoot_01_Fix` baked, `hand_edited`, and animation events `BowAttach` 15 / `BowRelease` 21 on the clip — the recurve bow is a skinned model now and its string follows the draw hand between them, §8 "The recurve bow bends") |
 | Magic | `Cast_Wand_01/02`, `Cast_Staff_01` (both hands on the staff) — the user's mannequin recording `magic attacks.glb` (2026-09-25); `Cast_Staff_02` retired |
 | Specials | `Summon` (necromancer, both hands overhead), `AOE_Cast` (mage: hands up, then a slam with a crouch), `Taunt_01/02/03` (warrior), `Cutthroat` (assassin), `Rally` (knight, sword raised) — all from the user's recording `taunts.glb` (2026-09-25); the Kimodo `Taunt` retired |
 | Death | `Death_01` (struck, falls on the back), `Death_02` (kneels, crumples sideways) |
@@ -1967,6 +1967,75 @@ the arrow's mesh +Y runs 175° from the draw-hand → bow-hand line, exactly as 
 the model reads right there). Objects `Ref_H2Recurvebow` / `Ref_Arrow` in collection
 `Ref_Weapons`; reference only (clip exports are rig-only; grounding takes only skinned
 `Skeleton*` meshes); `--remove --save` deletes them.
+
+### The recurve bow bends (2026-09-27, "update the recurve bow .blend so it can bend when the string is pulled")
+
+`Weapons/prod.blend` now carries **`H2Recurvebow_Rig`**, an armature the bow mesh is parented and skinned to
+(built by the session script `bowrig.py`, kept as the description here): `Riser` (the grip, rigid), `Limb_U1` /
+`Limb_U2` and `Limb_L1` / `Limb_L2` (two segments per limb on the limb's measured centreline), `Nock` (the
+string's centre, pointing along the draw axis = the bow's local +Y, the string side), plus two non-deforming
+helpers at the string's rest point, `Brace` and `Pull`. Weights by height along the bow: riser → limb 1 → limb 2
+with smoothstep blends, the tip pieces on limb 2, and the STRING linearly between `Nock` (its middle) and the
+limb-2 tips (its ends), so a pulled string is a clean V. ⚠ The string mesh was a 5-sided tube with vertices only
+at its two ends (the loose part of 38 vertices is the two nock loops), so it could not bend: its five long
+edges are subdivided into 17 segments (1875 → 1955 vertices; the static `SM_H2Recurvebow.fbx` re-exported, no
+visible change). **Drivers** on the limb bones' local X rotation read the Nock's local Y (the draw): limb 1 bends
+10° and limb 2 14° at a 0.28 m draw (0.5 m in the engine), the sign per limb found on the tip (U −, L +),
+clamped at 1.5× the draw. Measured with the Nock pulled 0.28 m: the string's middle moves 0.26 m, its ends
+stay on the limb tips, the tips flex 36–40 mm toward the archer. The export is unchanged in kind
+(`export_local_mesh` copies the rest mesh, the armature parent is at identity).
+
+**In the anim file** (`anim_weapon_ref.py --attach H2Recurvebow:L`): a weapon with a `<Name>_Rig` armature in
+prod.blend is appended WITH it — the armature's rest pose transformed into the export-local frame by the new
+`export_weapons.export_local_matrix` (the same transform the mesh gets), the mesh bound to it as its child, the
+ARMATURE carrying the Child Of constraint on the socket (`Ref_H2Recurvebow_Rig` + `Ref_H2Recurvebow`). **The
+string pull**: `Pull` copies the OTHER hand's socket (`DEF-weapon.R` for a left-hand bow); its local location
+is then the hand in the string's frame (y = behind the string plane, x/z = off the midpoint), and simple-
+expression drivers put the `Nock` at that hand while the hand is behind the string and within 0.28 rig m of the
+midpoint (`gate = clamp((0.28 − lateral)·20) · clamp(py·40)`; Nock y = clamp(py, 0, 0.45)·gate, x/z =
+px/pz·gate so the apex follows the fingers along the bow). Measured on Shoot_01 in the string's frame: drawing
+0.10–0.41 behind and 0.12–0.21 off, at rest 0.10 IN FRONT, after the release 0.33 off — so the string sits at
+brace with the hands down (frames 1–14, 50–59), follows the fingers through the draw (its middle 30–40 mm from
+the hand socket, the limbs at 12–13° at full draw) and falls back as the hand swings away (frame 40 half).
+A plain distance gate could not do this (full draw is 0.44 rig m from the brace point while the hanging hand
+is 0.19). The bow limbs sit 72° to the arrow at the draw on the current shot.
+
+**The engine side (2026-09-27, "let's export to unity; the arrow/string should attach at frame 15 and be
+released at frame 21").** `export_weapons.py` exports a weapon whose mesh has an ARMATURE parent skinned: the
+armature data copied and transformed by `export_local_matrix` + the 1.8× (the same frame the mesh gets), the
+mesh its child with an Armature modifier, `object_types {ARMATURE, MESH}`, `bake_space_transform` OFF (the
+exporter refuses it with an armature; the rig node therefore imports at (270, 0, 0) with the mesh under it,
+which changes nothing: bounds and the Grip are as before), `add_leaf_bones` off, and the source object + data
+renamed `_src` for the run so the export rig keeps the clean name `H2Recurvebow_Rig` (the file is not saved).
+`SM_H2Recurvebow.fbx` now carries 8 bones and 2138 skinned vertices; the import setup's `RiggedWeapons` list
+makes such a model **Generic, No Avatar** (`animationType None` imports the skin as a plain MeshRenderer and
+drops the bones — measured; the other weapons stay None). The existing `W_H2Recurvebow` prefab is an instance
+of the model, so it picked the skinned renderer up by itself; its material override was lost because the
+renderer moved from the root to a child node (set back to `M_Weapon_H2Recurvebow` by `execute_code`; the Grip,
+the user's (−0.010, −0.126, 0) / yaw 165°, untouched) and it now carries **`BowString`**
+(`Demo/Scripts/BowString.cs`): it finds `Nock` / `Brace` / `Limb_*` by name, and in LateUpdate, while
+`attached`, reads the draw hand's slot in the `Brace` bone's frame (its +Y is the draw axis, as in Blender:
+measured on Shoot_01, the hand at y −0.27 m in front of the string on frame 2, −0.03 on frame 15, +0.003 on 16,
++0.57 at full draw on 26–30), gates it by the same corridor rule as the Blender drivers (behind the string, within
+`corridor` 0.5 m of the midpoint), puts the Nock at the hand (0 mm on every attached frame) and bends the limbs
+`bendLimb1/2` 10° / 14° at `fullDraw` 0.5 m (the drivers' values); on release the string returns at
+`returnSpeed` 8 m/s (two frames). `SkeletonWeapon.Equip` hands every spawned `BowString` the OTHER hand's slot
+as `drawHand`. **The events**: manifest `events {"BowAttach": 15, "BowRelease": 21}` → `anim_batch` passes
+`--events` to `verify_clip.py`, which writes `ModelImporterClipAnimation.events` (normalised time
+(frame − 1) / (last − first); verified on the imported clip: 0.467 s = frame 15.0, 0.667 s = 21.0) and prints
+them; the Animator fires them on the character, `SkeletonWeapon.BowAttach()` / `BowRelease()` set `attached` on
+the spawned bows, and for the demo `BowRelease` hides the `W_Arrow` renderers for `arrowHideSeconds` (1.2 s) so
+the shot reads. Verified in play mode on the Archer, stepped at 30 fps: attached from 15.4, the Nock on the slot
+from 16.6 (draw 0.035 → 0.267 m by 20.8, limb 1 at 5.4°), released at 21.4 (string back at brace by 22.0, arrow
+hidden, back after 1.2 s), the string never moves while the hands are down. **Note for the user: frame 21 is
+mid-draw** — the hand keeps drawing to 0.57 m at frames 26–30 with the string already at rest (renders
+`f20_drawn` / `f24_released` in the session scratchpad); the numbers are two manifest fields. ⚠ Two bridge
+lessons: `execute_code` REQUIRES `"action": "execute"` (a call without it fails validation, and a JSON with C#
+`
+` literals written through a shell heredoc arrives with real newlines — run C# from a file, `runcs.py`-style);
+and `ScreenCapture.CaptureScreenshot` followed by `EditorApplication.Step()` while PAUSED stalls the bridge (the
+capture never flushes and every later call times out; the editor itself stays responsive and leaves play mode
+on the next stop) — render a temporary camera into a RenderTexture + `ReadPixels` instead, which is synchronous.
 
 ### Hand-authored clips and idle fixes (2026-09-21)
 

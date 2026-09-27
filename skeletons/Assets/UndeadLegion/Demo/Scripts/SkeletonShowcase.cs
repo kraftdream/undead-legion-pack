@@ -269,7 +269,7 @@ namespace UndeadLegion.Demo
             // impaled: kneeling with the sword in the belly (loop), then pull it out and rise (one-shot,
             // ends on the neutral standing pose so the crossfade lands on whichever idle follows)
             new ClipSection { title = "Impaled", idlePreference = new[] { "Idle" },
-                members = new[] { "Impaled_Idle", "Impaled_Rise" } },
+                members = new[] { "Impaled_Idle", "Impaled_Rise" } },   // not exported since 2026-09-26 ("for now"); the section hides itself while the clips are missing
             new ClipSection { title = "Locomotion", idlePreference = new[] { "Idle" },
                 // _01 = the low-rank (shambling) set, renamed 2026-09-26; _02 = the normal-looking set for the higher ranks
                 members = new[] { "Walk_Fwd_01", "Walk_Back_01", "Run_Fwd", "Strafe_Left_01", "Strafe_Right_01",

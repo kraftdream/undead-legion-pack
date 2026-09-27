@@ -56,6 +56,21 @@ OLD_EXTENT = {
 PRE = {"Arrow": Matrix.Rotation(math.radians(90), 4, 'X')}   # prod.blend's Arrow (real since 4a70422) lies along +Y, head at +Y
 
 
+def export_local_matrix(src, name, log=print):
+    """The affine transform export_local_mesh applies (source object space -> export-local frame)."""
+    grip, roll = GRIP[name]
+    T = src.matrix_world.copy()
+    if name in PRE:
+        T = PRE[name] @ T
+    if name in OLD_EXTENT:
+        zs = [(T @ v.co).z for v in src.data.vertices]
+        o0, o1 = OLD_EXTENT[name]; n0, n1 = min(zs), max(zs)
+        if abs((n1 - n0) - (o1 - o0)) > 0.005 or abs(n0 - o0) > 0.005:
+            t = (grip.z - o0) / (o1 - o0)
+            grip = Vector((grip.x, grip.y, n0 + t * (n1 - n0)))
+    return Matrix.Rotation(math.radians(roll), 4, 'Z') @ Matrix.Translation(-grip) @ T
+
+
 def export_local_mesh(src, name, log=print):
     """A copy of src's mesh data in the EXPORT-LOCAL frame at source scale: the object transform
     and PRE applied, the grip point at the origin, the length axis +Z, the roll about it. The
@@ -90,6 +105,17 @@ for name, (grip, roll) in (GRIP.items() if __name__ == "__main__" else ()):
     ob = bpy.data.objects.new("SM_" + name, export_local_mesh(src, name))
     bpy.context.scene.collection.objects.link(ob)
     ob.data.transform(Matrix.Scale(SCALE, 4))
+    rig_ob = None
+    if src.parent is not None and src.parent.type == 'ARMATURE':
+        # a rigged weapon (the recurve bow, 2026-09-27): the armature's rest pose goes through the same export-local
+        # transform as the mesh (and the 1.8x), the mesh binds to it, both are exported (a Generic rig in Unity;
+        # BowString.cs moves the bones at runtime). No baked space transform with an armature (unsupported).
+        arm = src.parent.data.copy(); src.parent.name += "_src"; src.parent.data.name += "_src"; arm.name = src.parent.name[:-4]   # the export copy takes the clean name (the file is not saved)
+        arm.transform(export_local_matrix(src, name)); arm.transform(Matrix.Scale(SCALE, 4))
+        rig_ob = bpy.data.objects.new(arm.name, arm); bpy.context.scene.collection.objects.link(rig_ob)
+        ob.parent = rig_ob; ob.parent_type = 'OBJECT'; ob.matrix_parent_inverse.identity()
+        mod = ob.modifiers.new("Armature", 'ARMATURE'); mod.object = rig_ob; mod.use_vertex_groups = True
+        print("[weapons] %-15s rigged: %d bones exported with the mesh (%d vertex groups)" % (name, len(arm.bones), len(ob.vertex_groups)))
     # the Tripo meshes are wound inside out in places (a fully inverted mesh is invisible
     # under back-face culling): make the winding consistent and outward
     import bmesh
@@ -98,15 +124,17 @@ for name, (grip, roll) in (GRIP.items() if __name__ == "__main__" else ()):
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     flipped = sum(1 for f, v in zip(bm.faces, before) if f.normal.dot(v) < 0)
     bm.to_mesh(ob.data); bm.free()
-    ob.matrix_world = Matrix.Identity(4)
+    ob.matrix_world = Matrix.Identity(4) if rig_ob is None else ob.matrix_world
     bpy.ops.object.select_all(action='DESELECT')
     ob.select_set(True); bpy.context.view_layer.objects.active = ob
+    if rig_ob is not None: rig_ob.select_set(True)
     path = os.path.join(OUT, "SM_%s.fbx" % name)
-    bpy.ops.export_scene.fbx(filepath=path, use_selection=True, object_types={'MESH'},
+    bpy.ops.export_scene.fbx(filepath=path, use_selection=True, object_types={'MESH'} if rig_ob is None else {'ARMATURE', 'MESH'},
                              apply_unit_scale=True, global_scale=1.0, apply_scale_options='FBX_SCALE_ALL',
-                             axis_forward='-Z', axis_up='Y', bake_space_transform=True,
-                             use_mesh_modifiers=True, mesh_smooth_type='OFF', path_mode='AUTO',
-                             embed_textures=False, use_custom_props=False, bake_anim=False)
+                             axis_forward='-Z', axis_up='Y', bake_space_transform=rig_ob is None,
+                             use_mesh_modifiers=rig_ob is None, mesh_smooth_type='OFF', path_mode='AUTO',
+                             embed_textures=False, use_custom_props=False, bake_anim=False,
+                             add_leaf_bones=False, use_armature_deform_only=False, armature_nodetype='NULL')
     co = [v.co for v in ob.data.vertices]
     print("[weapons] %-15s -> %s  length %.3f m  (z %.3f..%.3f)  %d faces re-wound of %d" % (name, os.path.relpath(path, ROOT),
           max(c.z for c in co) - min(c.z for c in co), min(c.z for c in co), max(c.z for c in co), flipped, len(ob.data.polygons)))

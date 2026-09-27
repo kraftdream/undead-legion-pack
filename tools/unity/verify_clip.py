@@ -32,11 +32,19 @@ imp.materialImportMode = ModelImporterMaterialImportMode.None; imp.bakeAxisConve
 imp.importBlendShapes = false; imp.importCameras = false; imp.importLights = false;
 var clips = imp.defaultClipAnimations;
 foreach (var c in clips) { c.loopTime = loop; c.loopPose = false; c.hasAdditiveReferencePose = additive; c.additiveReferencePoseFrame = 0f; c.lockRootRotation = inPlace; c.lockRootHeightY = true; c.lockRootPositionXZ = inPlace; c.keepOriginalOrientation = true; c.keepOriginalPositionY = true; c.keepOriginalPositionXZ = true; }
+string evs = "%EVENTS%";
+if (evs.Length > 0) foreach (var c in clips) {
+  var list = new System.Collections.Generic.List<AnimationEvent>();
+  foreach (var kv in evs.Split(',')) { var p2 = kv.Split(':'); float fr = float.Parse(p2[1], System.Globalization.CultureInfo.InvariantCulture);
+    var ev = new AnimationEvent(); ev.functionName = p2[0]; ev.time = (fr - 1f) / Mathf.Max(1f, c.lastFrame - c.firstFrame); list.Add(ev); }   // importer events: normalised time; frames are 1-based
+  c.events = list.ToArray();
+}
 imp.clipAnimations = clips;
 imp.SaveAndReimport();
 AnimationClip clip = null;
 foreach (var a in AssetDatabase.LoadAllAssetsAtPath(clipPath)) if (a is AnimationClip && !a.name.StartsWith("__preview")) clip = (AnimationClip)a;
 if (clip == null) return "NO CLIP imported from " + clipPath + " (node paths mismatch?)";
+if (clip.events.Length > 0) { sb.Append("events:"); foreach (var e in clip.events) sb.Append(" " + e.functionName + "@" + e.time.ToString("F3") + "s"); sb.Append("\n"); }
 var bindings = AnimationUtility.GetCurveBindings(clip);
 sb.AppendLine(string.Format("clip {0}: length={1:F3}s frameRate={2} curves={3} humanMotion={4} isHumanMotion={5} apparentSpeed={6:F3} averageSpeed={7}",
   clip.name, clip.length, clip.frameRate, bindings.Length, clip.hasMotionCurves, clip.isHumanMotion, clip.apparentSpeed, clip.averageSpeed.ToString("F3")));
@@ -77,7 +85,8 @@ if __name__ == "__main__":
     loop = "true" if ("--loop" in args and args[args.index("--loop") + 1] == "1") else "false"
     additive = "true" if ("--additive" in args and args[args.index("--additive") + 1] == "1") else "false"
     inplace = "true" if ("--in-place" in args and args[args.index("--in-place") + 1] == "1") else "false"
-    code = CODE.replace("%CLIP%", clip).replace("%AVATAR%", avatar).replace("%LOOP%", loop).replace("%ADDITIVE%", additive).replace("%INPLACE%", inplace) \
+    events = args[args.index("--events") + 1] if "--events" in args else ""          # "BowAttach:15,BowRelease:21" (1-based frames)
+    code = CODE.replace("%CLIP%", clip).replace("%AVATAR%", avatar).replace("%LOOP%", loop).replace("%ADDITIVE%", additive).replace("%INPLACE%", inplace).replace("%EVENTS%", events) \
                .replace("%MODELS%", ", ".join('"%s"' % m for m in MODELS))
     c = Client()
     try:
