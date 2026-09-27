@@ -78,15 +78,23 @@ namespace UndeadLegion.Demo
         /// Runs in LateUpdate (after the Animator); edit-mode renders call it by hand.</summary>
         public void ApplyGrip()
         {
-            if (_holdLeft && _gripLeftBones.Count == gripLeft.Count)
-                for (int i = 0; i < gripLeft.Count; i++) if (_gripLeftBones[i] != null) _gripLeftBones[i].localRotation = gripLeft[i].localRotation;
-            if (_holdRight && _gripRightBones.Count == gripRight.Count)
-                for (int i = 0; i < gripRight.Count; i++) if (_gripRightBones[i] != null) _gripRightBones[i].localRotation = gripRight[i].localRotation;
+            // the fist blends in by 1 - the hand's finger-layer weight (that layer fades over `fingerFade`), so a hand
+            // closes on the item or the shaft over the crossfade; on an item held from the start the weight is 1
+            float wl = GripWeight(_fingersLeft), wr = GripWeight(_fingersRight);
+            if ((_holdLeft || _clipHoldLeft) && _gripLeftBones.Count == gripLeft.Count && wl > 0f)
+                for (int i = 0; i < gripLeft.Count; i++) if (_gripLeftBones[i] != null) _gripLeftBones[i].localRotation = Quaternion.Slerp(_gripLeftBones[i].localRotation, gripLeft[i].localRotation, wl);
+            if ((_holdRight || _clipHoldRight) && _gripRightBones.Count == gripRight.Count && wr > 0f)
+                for (int i = 0; i < gripRight.Count; i++) if (_gripRightBones[i] != null) _gripRightBones[i].localRotation = Quaternion.Slerp(_gripRightBones[i].localRotation, gripRight[i].localRotation, wr);
         }
 
         void LateUpdate()
         {
-            if (_holdLeft || _holdRight) ApplyGrip();
+            bool changed = _clipHoldLeft != _clipHoldLeftFrame || _clipHoldRight != _clipHoldRightFrame;
+            _clipHoldLeft = _clipHoldLeftFrame; _clipHoldRight = _clipHoldRightFrame;
+            _clipHoldLeftFrame = _clipHoldRightFrame = false;
+            if (changed) ApplyFingerLayers();
+            FadeFingers();
+            if (_holdLeft || _holdRight || _clipHoldLeft || _clipHoldRight) ApplyGrip();
         }
 
         /// <summary>The empty-hand finger idles (2026-09-25): AC_Skeleton's LeftFingers / RightFingers layers loop
@@ -98,8 +106,15 @@ namespace UndeadLegion.Demo
             if (_animator == null) _animator = GetComponent<Animator>();
             if (_animator == null || _animator.runtimeAnimatorController == null) return;
             if (_fingersLeft == -2) { _fingersLeft = _animator.GetLayerIndex("LeftFingers"); _fingersRight = _animator.GetLayerIndex("RightFingers"); }
-            if (_fingersLeft >= 0) _animator.SetLayerWeight(_fingersLeft, _holdLeft ? 0f : 1f);
-            if (_fingersRight >= 0) _animator.SetLayerWeight(_fingersRight, _holdRight ? 0f : 1f);
+            // the weight is a target: Update fades the layer over `fingerFade` seconds (a clip-hold from a state's
+            // SkeletonGripState begins with the crossfade into it, so the fingers close as the hand reaches the shaft)
+            _fingerTargetLeft = (_holdLeft || _clipHoldLeft) ? 0f : 1f;
+            _fingerTargetRight = (_holdRight || _clipHoldRight) ? 0f : 1f;
+            if (!Application.isPlaying)
+            {
+                if (_fingersLeft >= 0) _animator.SetLayerWeight(_fingersLeft, _fingerTargetLeft);
+                if (_fingersRight >= 0) _animator.SetLayerWeight(_fingersRight, _fingerTargetRight);
+            }
         }
 
         void Start()
@@ -176,6 +191,32 @@ namespace UndeadLegion.Demo
         {
             if (_arrowShowAt > 0f && Time.time >= _arrowShowAt) { _arrowShowAt = -1f; SetArrowVisible(true); }
         }
+
+        [Tooltip("Seconds the empty-hand finger layers take to fade in or out (matches the demo's crossfade).")]
+        public float fingerFade = 0.15f;
+        float _fingerTargetLeft = 1f, _fingerTargetRight = 1f;
+        bool _clipHoldLeft, _clipHoldRight, _clipHoldLeftFrame, _clipHoldRightFrame;
+
+        /// <summary>Called by a SkeletonGripState every frame its state is evaluated: this hand rides the weapon (a
+        /// two-hander's second hand) and counts as holding for the finger layers and the grip fist. Forgotten
+        /// in LateUpdate, so a hold lasts exactly as long as some grip state is active.</summary>
+        public void ClipHoldThisFrame(Hand hand)
+        {
+            if (hand == Hand.Left) _clipHoldLeftFrame = true; else if (hand == Hand.Right) _clipHoldRightFrame = true;
+        }
+
+        /// <summary>The empty-hand finger layers fade toward their targets; the grip fist fades in with them
+        /// (weight = 1 - the layer's weight), so equipping, a clip-hold's start and its end close or open the
+        /// hand over `fingerFade` instead of snapping.</summary>
+        void FadeFingers()
+        {
+            if (_animator == null) return;
+            float step = fingerFade > 0f ? Time.deltaTime / fingerFade : 1f;
+            if (_fingersLeft >= 0) _animator.SetLayerWeight(_fingersLeft, Mathf.MoveTowards(_animator.GetLayerWeight(_fingersLeft), _fingerTargetLeft, step));
+            if (_fingersRight >= 0) _animator.SetLayerWeight(_fingersRight, Mathf.MoveTowards(_animator.GetLayerWeight(_fingersRight), _fingerTargetRight, step));
+        }
+
+        float GripWeight(int layer) { return layer >= 0 && _animator != null && Application.isPlaying ? 1f - _animator.GetLayerWeight(layer) : 1f; }
 
         public int Count { get { return loadouts.Count; } }
         public int Current { get { return _current; } }

@@ -50,7 +50,8 @@
    "gate": "0.03,0.11",
    "_note": "left hand closed with the Grip fist by anim_nla_bake --hand-grip L (2026-09-23: the left hand rides the shaft but holds no item, so the engine gives it no grip pose). ground_fit (2026-09-23, 'in Unity the feet drift up/down slightly': Humanoid bobs the whole body 6 mm with the hips sway on top of the 15 mm lift; both boots track together so the per-frame Root fit lands them). hand_edited (2026-09-23): the user's Idle_TwoHanded_Fix (right forearm/hand FK, left hand IK + elbow pole, one held key each, Combine over the strip) baked in with the longsword attached as reference. 2026-09-23: the user's frame numbers count at 24 fps (the recording is 30 fps): 77-150 / 170-235 / 236-281 / 284-330 x1.25 -> 213-294 (measured: the two attacks' hand speed peaks at 304-327 and 368-412, nothing moves in 236-281). 2026-09-23: attack_ref6 frames 170-235; the performer still stands propped until ~200 and raises the two-hander by 206, so the loop uses 206-235 slowed 2x; the left hand rides the shaft through the gate. Replaces the Kimodo axe-on-the-shoulder build | earlier: ",
    "hand_edited": true,
-   "ground_fit": true
+   "ground_fit": true,
+   "grip_hands": "L"
   },
   {
    "name": "Idle_Bow",
@@ -278,7 +279,8 @@
    "lift": 0.004,
    "ground_fit": true,
    "_note": "2026-09-24: the user's Attack_2H_01_Fix baked; right arm converted to FK (arm_pole_fk + fk_arm); torso counter-yaw 55 (the chest's 73 deg leftward swing peak reduced to ~0, so the cut lands forward); 20% faster (57 -> 48 frames). hand_edited (2026-09-23): feet pinned by anim_nla_bake --pin-foot 'L:1:1:99:xy,R:auto' (rear left foot held horizontally, heel lift kept; the stepping right foot held on each auto-detected planted phase). 2026-09-23: the user's frame numbers count at 24 fps (the recording is 30 fps): 77-150 / 170-235 / 236-281 / 284-330 x1.25 -> 295-351 (measured: the two attacks' hand speed peaks at 304-327 and 368-412, nothing moves in 236-281). 2026-09-23: attack_ref6 frames 236-281, plain transfer with the legs (planted, the step on Root), both hands on the shaft through the gate | earlier: two-handed gate (user 2026-09-22): the left hand slides on the handle where the capture put it, 0.03..0.11 rig m below the right hand (the battle axe's handle below the socket is 0.13, the longsword's 0.108); replaces the fixed lock_left_hand 0.085",
-   "hand_edited": true
+   "hand_edited": true,
+   "grip_hands": "L"
   },
   {
    "name": "Attack_2H_02",
@@ -302,7 +304,8 @@
    "lift": 0.004,
    "ground_fit": true,
    "_note": "hand_edited (2026-09-23): feet pinned by anim_nla_bake --pin-foot 'L:1:1:99:xy,R:auto' (rear left foot held horizontally, heel lift kept; the stepping right foot held on each auto-detected planted phase). 2026-09-23: the user's frame numbers count at 24 fps (the recording is 30 fps): 77-150 / 170-235 / 236-281 / 284-330 x1.25 -> 355-413 (measured: the two attacks' hand speed peaks at 304-327 and 368-412, nothing moves in 236-281). 2026-09-23: attack_ref6 frames 284-330 (raise, sweep down with a 25 cm step and a 44 deg turn, unwound on the body orientation) | earlier: two-handed gate (user 2026-09-22): the left hand slides on the handle where the capture put it, 0.03..0.11 rig m below the right hand (the battle axe's handle below the socket is 0.13, the longsword's 0.108); replaces the fixed lock_left_hand 0.085",
-   "hand_edited": true
+   "hand_edited": true,
+   "grip_hands": "L"
   },
   {
    "name": "Attack_R_Stab",
@@ -498,7 +501,8 @@
    "gate": "-0.35,-0.15",
    "hand_grip": "L",
    "_note": "2026-09-25: the user's mannequin recording (magic_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 99-160; both hands on the staff through the gate (the shaft below the right hand), the left hand closed with the Grip fist (it holds no item in the engine). Previous (Kimodo build): {\"glb\": \"cast_staff_slam\", \"mode\": \"action\", \"seed\": 33, \"frames\": 120, \"time_scale\": 1.0, \"smooth\": 1, \"fist\": 0.9, \"prompt\": \"A person holds a long staff in both hands and slams its base into the ground, casting a spell.\", \"lock_left_hand\": 0.22, \"layer\": \"full\"}.  gate -0.35,-0.15 (NEGATIVE: the left hand on the +Y side of the right hand, toward the staff's long end - the performer's left hand is 0.3-0.6 m away on that side; the sword-style range 0.05,0.28 clamped it to 5 cm and the pull dragged the right arm to the chest). Then two anim_nla_bake passes, hand_edited: --arm-pole-fk R --fk-arm R (the gate pull's right arm back on FK with the elbow on the capture's plane), then --arm-pole-fk L --grip-follow L:@0.15 --grip-pull --grip-reach 0.96 --fk-arm R (the left slot held 0.15 rig m up the shaft from the right slot to 0.0 mm, the right hand pulled in where the left would pass 96 %% of its reach; the left elbow 51-147 deg, it locked at 180 with a 65 deg flip on frames 39-49 before).",
-   "hand_edited": true
+   "hand_edited": true,
+   "grip_hands": "L"
   },
   {
    "name": "Summon",

@@ -1286,7 +1286,22 @@ on Start, Equip and Clear: 1 while the hand holds nothing, 0 while it holds an i
 on in LateUpdate as before). So on every clip an empty hand shows the relaxed sway and a full hand the fist;
 a clip's own recorded fingers are only seen if a buyer turns the layers off. Rule: the two hand poses live
 in the anim file's `Grip` action (frame 1 fist, frame 2 relaxed); re-run the tool and the prefab builder
-after editing it.
+after editing it. **The second hand of a two-hander (2026-09-27, user: "idle_twohanded, attack_2h_01 and 02:
+the left hand doesn't use the grip pose, most likely due to the default hand pose change").** Right: the
+left hand rides the shaft but holds no item, so the finger layer played the relaxed sway over the clip's
+baked fist. Manifest **`grip_hands: "L"`** (Idle_TwoHanded, Attack_2H_01/02, Cast_Staff_01) → the controller
+builder puts a **`SkeletonGripState`** (a `StateMachineBehaviour`, `Demo/Scripts/`) on those states, on every
+layer they live on. It re-asserts the hold EVERY frame its state is evaluated (`OnStateEnter` + `OnStateUpdate`
+→ `SkeletonWeapon.ClipHoldThisFrame(hand)`, forgotten in `LateUpdate`): the first version used
+OnStateEnter / OnStateExit with a bool and Unity fired the outgoing Attack_2H_01's exit AFTER the incoming
+Idle_TwoHanded's enter, which opened the hand on the return. A clip-held hand counts as holding for the finger
+layer AND gets `ApplyGrip`, so it closes exactly like a hand holding an item (measured on the Knight: left
+middle tip to wrist 113 mm with the shield in hand and 113 mm on Idle_TwoHanded's clip-hold, 132 relaxed;
+the right fist reads 98: the user's Grip fist differs per hand, not a bug). The
+finger layer weights are TARGETS faded in `LateUpdate` over `fingerFade` (0.15 s, the demo's crossfade) and
+`ApplyGrip` slerps the fist in by 1 − the layer's weight, so equipping and a clip-hold's start and end close
+or open the hand over the crossfade instead of snapping. Per-clip, not per-loadout, because the staff is held
+one-handed in Idle_Staff and two-handed in Cast_Staff_01.
 
 **"walk_back, run_fwd and run_fwd_02 have looping issues" (2026-09-25).** Every seam was POSITION-exact
 (last frame = first + travel to 0.0 mm on feet and hips, no rotation step at the wrap), so the defect was
@@ -2109,7 +2124,12 @@ previous round) and no further. Knees: `--knees-in 0.017` at that height → 39�
 -0.02` (a 3.6 cm RAISE of the take's hips, 0.500–0.533 rig m, level with the idle's so the mid-shot crouch is
 gone; knees 129–159°): 39–46 cm apart (−18 / −23 from 57–69, 1 cm from the idle's), seams 0.0 mm / 0.0°,
 boots on the floor on all six. Rule: **a torso raise is bounded by the rear foot's reach on the sway's peak
-frame; probe the knee angle across the loop before promising a height.** ⚠ Two bridge
+frame; probe the knee angle across the loop before promising a height.** (Tried the same evening and
+REVERTED at the user's request: Cast_Staff_01 on Idle_Staff's legs with the take's step removed — `anim_nla_bake
+--root-hold --legs-from Idle_Staff:1 --keep-poles`, then `--torso-drop 0.015` because the take's hips sit
+1.3 cm above the staff idle's and locked the left knee over the idle's feet; "nope, let's revert this one".
+The clip, its export, manifest entry and fit curve are HEAD's again; **`--root-hold`** stays in the bake tool:
+the `root` control held at its frame-1 transform on every frame, for a take whose step should go.) ⚠ Two bridge
 lessons: `execute_code` REQUIRES `"action": "execute"` (a call without it fails validation, and a JSON with C#
 `
 ` literals written through a shell heredoc arrives with real newlines — run C# from a file, `runcs.py`-style);

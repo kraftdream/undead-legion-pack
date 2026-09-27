@@ -45,6 +45,7 @@ LOOP = "--loop" in argv                           # the clip is a cycle: a pin's
 UPPER_FROM = arg("--upper-from", "")              # "Idle_03:1": after the retime, every control ABOVE the legs (the torso's rotation - its location stays the clip's - spine, chest, neck, head, jaw, shoulders, arms, hands, fingers and the arm IK/FK switches) is taken frame by frame from that action starting at that frame (wrapping over its length), the clip keeping its root, hips, legs and feet (user, Walk_Back: "too much movement above the legs, use the above-torso animation from idle_3")
 UPPER_SEAM = int(arg("--upper-seam", "8"))         # frames: the copied window's end crossfaded to its start so the loop closes
 HAND_WEIGHT = arg("--hand-weight", "")            # "R:0.015:4:6": that IK hand bobs against the body's vertical sway as if the held item had weight - the hips' height over the clip, normalised to -1..1, delayed DELAY frames (wrapping over a loop), moves the hand AMP rig m the OTHER way and pitches it PITCH degrees about the socket's finger axis (the tip dips as the hand drops) (user, Idle_Wand: "right hand sway that mimics the wand's weight, in sync with the character swaying up and down")
+ROOT_HOLD = "--root-hold" in argv                 # the root control held at its first-frame transform on every frame: a clip whose take travelled (drift root) loses the step, the torso and the legs-from feet stay put (user, Cast_Staff_01: "use the legs pose from idle_staff, so no step forward")
 START_BLEND = arg("--start-blend", "")           # "Idle_Bow:1:8": the FIRST N frames crossfade from that action's frame into the clip (frame 1 = the reference exactly), the mirror of --end-blend, so a one-shot starts on the pose the demo crossfades from (user, Shoot_01: "a noticeable snap between idle and shoot, both start and end")
 END_BLEND = arg("--end-blend", "")               # "Idle:1:8": after the retime, the last N frames crossfade every control to that action's frame (locations, rotations, scales, the switches on the last frame), so a one-shot ends EXACTLY on the pose the demo crossfades to next; the IK legs keep their knee poles on the FK plane through it (user, Impaled_Rise: "lower the torso on the fully standing pose, use it to fix the floating feet at the end")
 EVEN_ADVANCE = int(arg("--even-advance", "0"))      # K: a locomotion loop is RETIMED so the hips' advance per frame along the travel follows a circularly smoothed (K passes of [1,2,1], wrapping at the seam) version of its own profile; same frame count, same travel, the Root kept linear. Removes the speed dip that a loop-closing crossfade leaves at the seam (the hips advanced 55 mm per frame and then 17 at Run_Fwd_02's wrap; Walk_Back lurched 14 mm and stalled to 0 on its last frames), which plays as a hitch every cycle under root motion (user: "walk_back, run_fwd and run_fwd_02 have looping issues")
@@ -1422,6 +1423,20 @@ if EVEN_ADVANCE:
 
 if LOOP_SHIFT:
     loop_shift(LOOP_SHIFT)
+
+if ROOT_HOLD:
+    ad.action = baked; scene.frame_set(F0); root_ = pbs["root"]
+    loc0 = root_.location.copy(); rot0 = root_.rotation_quaternion.copy() if root_.rotation_mode == 'QUATERNION' else root_.rotation_euler.copy(); scl0 = root_.scale.copy()
+    travel_ = 0.0
+    for f in range(F0, F1 + 1):
+        scene.frame_set(f); travel_ = max(travel_, (root_.location - loc0).length)
+        root_.location = loc0; root_.scale = scl0
+        if root_.rotation_mode == 'QUATERNION': root_.rotation_quaternion = rot0
+        else: root_.rotation_euler = rot0
+        root_.keyframe_insert("location", frame=f, group="root")
+        root_.keyframe_insert("rotation_quaternion" if root_.rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group="root")
+        root_.keyframe_insert("scale", frame=f, group="root")
+    log("root held at its frame-%d transform on every frame (the clip's root had travelled up to %.0f mm rig)" % (F0, travel_ * 1000))
 
 if START_BLEND:
     end_blend(baked, START_BLEND, at_start=True)
