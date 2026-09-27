@@ -17,6 +17,14 @@ namespace UndeadLegion.DemoEditor
         const string Root = UndeadLegionImportSetup.Root;
         const string ControllerPath = Root + "/Animations/AC_Skeleton.controller";
 
+        [MenuItem("Undead Legion/2a. Rebuild Armour Module Prefabs")]
+        public static void RebuildModulePrefabs()
+        {
+            int n = BuildModulePrefabs();
+            AssetDatabase.SaveAssets();
+            Debug.Log("[UndeadLegion] " + n + " armour module prefabs rebuilt");
+        }
+
         [MenuItem("Undead Legion/2. Rebuild Character Prefabs")]
         public static void Run()
         {
@@ -184,6 +192,64 @@ namespace UndeadLegion.DemoEditor
             return null;
         }
 
+        /// <summary>The armour MAP (2026-09-27, the modular route): which module prefabs each skeleton wears by
+        /// default. Each character's own set, in the order the demo lists them; any character's piece fits any
+        /// skeleton (one shared rig), so a set may borrow across characters here.</summary>
+        public static readonly System.Collections.Generic.Dictionary<string, string[]> ArmorMap =
+            new System.Collections.Generic.Dictionary<string, string[]>
+            {
+                { "SkeletonKnight",      new[] { "SkeletonKnight:Helm", "SkeletonKnight:Chest", "SkeletonKnight:Skirt", "SkeletonKnight:Glove_L", "SkeletonKnight:Glove_R", "SkeletonKnight:Greave_L", "SkeletonKnight:Greave_R", "SkeletonKnight:Boot_L", "SkeletonKnight:Boot_R" } },
+                { "SkeletonArcher",      new[] { "SkeletonArcher:Helm", "SkeletonArcher:Chest", "SkeletonArcher:Skirt", "SkeletonArcher:Glove_L", "SkeletonArcher:Glove_R", "SkeletonArcher:Boot_L", "SkeletonArcher:Boot_R" } },
+                { "SkeletonAssassin",    new[] { "SkeletonAssassin:Helm", "SkeletonAssassin:Chest", "SkeletonAssassin:Skirt", "SkeletonAssassin:Pants", "SkeletonAssassin:Glove_L", "SkeletonAssassin:Glove_R", "SkeletonAssassin:Boot_L", "SkeletonAssassin:Boot_R" } },
+                { "SkeletonMage",        new[] { "SkeletonMage:Helm", "SkeletonMage:Robe", "SkeletonMage:Glove_L", "SkeletonMage:Glove_R", "SkeletonMage:Greave_L", "SkeletonMage:Greave_R", "SkeletonMage:Boot_L", "SkeletonMage:Boot_R" } },
+                { "SkeletonNecromancer", new[] { "SkeletonNecromancer:Helm", "SkeletonNecromancer:Robe", "SkeletonNecromancer:Glove_L", "SkeletonNecromancer:Glove_R", "SkeletonNecromancer:Greave_L", "SkeletonNecromancer:Greave_R", "SkeletonNecromancer:Boot_L", "SkeletonNecromancer:Boot_R" } },
+                { "SkeletonWarrior",     new[] { "SkeletonWarrior:Chest", "SkeletonWarrior:Skirt", "SkeletonWarrior:Glove_L", "SkeletonWarrior:Glove_R", "SkeletonWarrior:Greave_L", "SkeletonWarrior:Greave_R", "SkeletonWarrior:Boot_L", "SkeletonWarrior:Boot_R" } },
+            };
+
+        public static string ModulePrefabPath(string c, string module)
+        {
+            return string.Format("{0}/Prefabs/Armor/{1}/A_{1}_{2}.prefab", Root, c, module);
+        }
+
+        /// <summary>`Prefabs/Armor/&lt;Character&gt;/A_&lt;Character&gt;_&lt;Module&gt;.prefab`: the module model with the
+        /// character's armour material and an ArmorModule. Regenerated on every build (nothing hand-tuned lives
+        /// here; the hand slots and weapon Grips are the tuned things, and they live elsewhere).</summary>
+        static GameObject BuildModulePrefab(string c, string modelPath)
+        {
+            string module = UndeadLegionImportSetup.ModuleName(modelPath, c);
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
+            if (model == null) { Debug.LogWarning("[UndeadLegion] missing module model " + modelPath); return null; }
+            var armor = AssetDatabase.LoadAssetAtPath<Material>(UndeadLegionImportSetup.MaterialPath(c, "Armor"));
+            var go = (GameObject)PrefabUtility.InstantiatePrefab(model);
+            PrefabUtility.UnpackPrefabInstance(go, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+            go.name = "A_" + c + "_" + module;
+            go.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+            go.transform.localScale = Vector3.one;
+            foreach (var r in go.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                if (armor != null) { var mats = r.sharedMaterials; for (int i = 0; i < mats.Length; i++) mats[i] = armor; r.sharedMaterials = mats; }
+                r.updateWhenOffscreen = true;
+            }
+            foreach (var a in go.GetComponentsInChildren<Animator>(true)) Object.DestroyImmediate(a);
+            var mod = go.AddComponent<ArmorModule>();
+            mod.character = c; mod.moduleName = module;
+            string path = ModulePrefabPath(c, module);
+            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path));
+            var saved = PrefabUtility.SaveAsPrefabAsset(go, path);
+            Object.DestroyImmediate(go);
+            return saved;
+        }
+
+        /// <summary>Every character's module prefabs, rebuilt from the module models.</summary>
+        public static int BuildModulePrefabs()
+        {
+            int n = 0;
+            foreach (var c in UndeadLegionImportSetup.Characters)
+                foreach (var mp in UndeadLegionImportSetup.ModulePaths(c))
+                    if (BuildModulePrefab(c, mp) != null) n++;
+            return n;
+        }
+
         static bool Build(string c, AnimatorController controller)
         {
             // the hand slots are the user's to edit: carry their poses over from the current prefab
@@ -232,6 +298,24 @@ namespace UndeadLegion.DemoEditor
             col.height = 1.8f;
             col.radius = 0.35f;
 
+            // dress the body with its default set from the armour map: each module prefab attached by bone name
+            // (ArmorModule.Wear), the pieces plain children of the Armature's parent, marked with their source prefab
+            var modules = go.GetComponent<SkeletonModules>();
+            if (modules == null) modules = go.AddComponent<SkeletonModules>();
+            modules.defaultModules = new System.Collections.Generic.List<GameObject>();
+            string[] set;
+            if (ArmorMap.TryGetValue(c, out set))
+                foreach (var entry in set)
+                {
+                    var parts = entry.Split(':');
+                    var mp = AssetDatabase.LoadAssetAtPath<GameObject>(ModulePrefabPath(parts[0], parts[1]));
+                    if (mp == null) { Debug.LogWarning("[UndeadLegion] " + c + ": missing module prefab " + entry); continue; }
+                    var piece = ArmorModule.Wear(mp, go, null);
+                    if (piece == null) { Debug.LogWarning("[UndeadLegion] " + c + ": could not attach " + entry); continue; }
+                    modules.defaultModules.Add(mp);
+                }
+            Debug.Log("[UndeadLegion] " + c + ": dressed with " + modules.defaultModules.Count + " modules from the armour map");
+
             // Ground the character on its LOWEST module, not on the bare foot: boot soles sit
             // 4-8 mm below the body's foot and read as sinking. The lift goes on the Armature
             // node, never on the prefab root (the validator wants the root at exactly 0/0/1).
@@ -258,7 +342,6 @@ namespace UndeadLegion.DemoEditor
                 Debug.Log(string.Format("[UndeadLegion] {0}: lowest rest vertex at {1:+0.0000;-0.0000} m (clips carry the clearance)", c, minY));
             }
 
-            if (go.GetComponent<SkeletonModules>() == null) go.AddComponent<SkeletonModules>();
             if (go.GetComponent<SkeletonTwitch>() == null) go.AddComponent<SkeletonTwitch>();
             var weapon = go.GetComponent<SkeletonWeapon>();
             if (weapon == null) weapon = go.AddComponent<SkeletonWeapon>();

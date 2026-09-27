@@ -54,7 +54,8 @@ ctrl.AddMotion(clip);
 var models = new string[]{ %MODELS% };
 foreach (var m in models) {
   var path = "Assets/UndeadLegion/Models/" + m + "/SK_" + m + ".fbx";
-  var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+  var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/UndeadLegion/Prefabs/Characters/PF_" + m + ".prefab");   // the DRESSED character (the models are body-only since 2026-09-27)
+  if (prefab == null) prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
   Avatar av = null; foreach (var a in AssetDatabase.LoadAllAssetsAtPath(path)) if (a is Avatar) av = (Avatar)a;
   var go = (GameObject)GameObject.Instantiate(prefab); go.name = "__test_" + m;
   var an = go.GetComponent<Animator>(); if (an == null) an = go.AddComponent<Animator>();
