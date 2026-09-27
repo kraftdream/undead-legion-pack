@@ -47,7 +47,7 @@ every one verified on all six models with `verify_clip.py` + `ground_clip.py`; p
 | Per arm (2026-09-22/23, replaces the one-handed set) | `Attack_R_Stab`, `Attack_R_Slice` (redone 2026-09-26, experimental, from the user's `melee in place.glb`: frames 60–104 / 1–50, plain transfers at the take's own tempo, both feet frozen, in place; the `attack_ref5` builds are the `_base` actions), `Attack_L_Stab`, `Attack_L_Slice` (the same mirrored), `Block_L_Idle` (loop: shield held up on the left arm, a HELD action in the demo). Each lives on its arm's masked layer (`LeftArm` / `RightArm`) and as a full-body state on Base; the Animator carries the transitions |
 | Two-handed | `Attack_2H_01` (downward chop with a step), `Attack_2H_02` (raise and horizontal sweep) — the user's mannequin recording (2026-09-23), legs planted, left hand on the handle through the two-handed GATE (slides 0.03..0.11 rig m below the right hand) |
 | Bow | `Idle_Bow` hand-edited 2026-09-27 (knees 3 cm narrower than the retarget's build by the pole swivel, at the retarget's height; `Idle_Bow_base` is that build); `Shoot_01` (redone 2026-09-25 from the user's mannequin recording `aoe cast shoot.glb`: raise, draw at the cheek, release, lower, 1.9 s; the shot goes where the recorded feet point, `heading feet`; the video-mocap build of 2026-09-22 and `Shoot_02` retired; 2026-09-27: the user's `Shoot_01_Fix` baked, `hand_edited`, and animation events `BowAttach` 15 / `BowRelease` 21 on the clip — the recurve bow is a skinned model now and its string follows the draw hand between them, and a fired arrow flies along the character's forward on the release, §8 "The recurve bow bends"; imported in place; legs from `Idle_Bow`'s stance under the take's hips) |
-| Magic | `Cast_Wand_01/02`, `Cast_Staff_01` (both hands on the staff) — the user's mannequin recording `magic attacks.glb` (2026-09-25); `Cast_Staff_02` retired |
+| Magic | `Cast_Wand_01/02`, `Cast_Staff_01` (both hands on the staff; redone 2026-09-27 from the user's `cast staff.glb`, frames 88–155, in place, both feet frozen) — the user's mannequin recording `magic attacks.glb` (2026-09-25); `Cast_Staff_02` retired |
 | Specials | `Summon` (necromancer, both hands overhead), `AOE_Cast` (mage: hands up, then a slam with a crouch), `Taunt_01/02/03` (warrior), `Cutthroat` (assassin), `Rally` (knight, sword raised) — all from the user's recording `taunts.glb` (2026-09-25); the Kimodo `Taunt` retired |
 | Death | `Death_01` (struck, falls on the back), `Death_02` (kneels, crumples sideways) |
 
@@ -2129,7 +2129,34 @@ REVERTED at the user's request: Cast_Staff_01 on Idle_Staff's legs with the take
 --root-hold --legs-from Idle_Staff:1 --keep-poles`, then `--torso-drop 0.015` because the take's hips sit
 1.3 cm above the staff idle's and locked the left knee over the idle's feet; "nope, let's revert this one".
 The clip, its export, manifest entry and fit curve are HEAD's again; **`--root-hold`** stays in the bake tool:
-the `root` control held at its frame-1 transform on every frame, for a take whose step should go.) ⚠ Two bridge
+the `root` control held at its frame-1 transform on every frame, for a take whose step should go.)
+**Cast_Staff_01 redone from a new recording (2026-09-27, "P:\cast staff.glb, use frames 70 to 124, freeze both
+feet").** The mannequin app (157 frames at 30 fps = the user's 124 × 1.25; `cast_staff_ref_mocap.glb` →
+`cast_staff_ref_arm.blend`), frames 88–155: a raise of both hands to 1.4–1.5 m (source 91–120), a swing
+(121–130), a settle; the source's hands 0.32–0.67 m apart. Same manifest as the previous take minus `drift root`
+(in place), 68 frames (2.27 s). **The first build reused the staff GATE and was wrong** (user: "it looks
+different from the original animation I see in Blender; the left hand should be below the right during the
+cast"). Measured on a plain transfer (no gate, no arm passes; arms within 0–1° of the recording): the left
+hand sits BELOW the right on every frame (0.45–0.76 vs 0.54–0.83 rig m) and 0.17–0.38 rig m OFF the right
+hand's hilt axis with a projection near 0 — this performer's captured right-hand orientation puts the socket's
++Y ~90° off the hand-to-hand line, so the gate (project the left hand onto that axis, clamp, pin on IK)
+dragged the left arm 76–109° off the recording, locked its elbow, and the previous take's `grip-follow
+L:@0.15` then put the left hand ABOVE the right. **`staff_line "R,L"`** (`--staff-line`, `--staff-roll`, new
+in the retarget) replaces the gate for this take: both hands stay where the capture has them and each is
+rebuilt from its forearm's zero-twist hand (the `blade_along_arm` construction) turned so its hilt axis lies
+on the line from the LEFT socket to the RIGHT (the top of the staff beyond the right hand, the left hand below
+it on the shaft), two rounds because turning a hand moves its palm. Result: arms within 1° of the recording,
+the left socket on the right hand's axis to 0.002 rig m, 0.17–0.38 rig m below it, left elbow 66–112°, worst
+steps 28° (the swing's wrists), then `anim_nla_bake --pin-foot L,R` (both feet at their frame-1 transforms,
+knees 117–147°), `hand_edited`, `grip_hands L`. Boots: the highest sole on the floor, the others ≤ 9 mm under.
+**Reported, not changed: the staff is 0.52 m long below its grip point and the performer's left hand sits
+0.30–0.69 m below the right, so on 30 of 68 frames (1–11, 36–49, 64–68: the start, the swing and the end) the
+left fist is past the staff's foot, up to 17 cm.** Two ways out, the user's call: move `W_H2MagicStuff`'s Grip
+15–20 cm up the shaft (every staff clip then holds it higher; AOE_Cast's left hand is 20 cm ABOVE the right and
+keeps 0.5 m of shaft), or clamp the left hand's distance along the line (an IK pull that leaves the recording).
+Rule: **a two-handed prop's second hand needs the LINE between the hands, not the first hand's hilt axis, when
+the capture's hand roll is unreliable; measure the projection and the off-axis distance on a plain transfer
+before choosing the gate.** ⚠ Two bridge
 lessons: `execute_code` REQUIRES `"action": "execute"` (a call without it fails validation, and a JSON with C#
 `
 ` literals written through a shell heredoc arrives with real newlines — run C# from a file, `runcs.py`-style);
