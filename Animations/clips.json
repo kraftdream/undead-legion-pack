@@ -529,14 +529,12 @@
   },
   {
    "name": "AOE_Cast",
-   "glb": "aoe_shoot_ref_arm",
+   "glb": "aoe_cast_ref_arm",
    "src_ext": "blend",
    "rename": "ue5",
    "fist": 0.3,
    "heading": "auto",
    "mode": "action",
-   "src_begin": 13,
-   "src_end": 151,
    "time_scale": 1.0,
    "smooth": 1,
    "layer": "full",
@@ -546,7 +544,7 @@
    "unwind_ref": "body",
    "lift": 0.004,
    "ground_fit": true,
-   "_note": "2026-09-25: the user's mannequin recording 'aoe cast shoot.glb' (224 frames at 30 fps; the user's frame numbers are 24 fps, x1.25), plain transfer like the arm attacks. Frames 10-121: both hands raised (to 1.6 m at source 101-110), the slam with a deep crouch (pelvis 0.9 m/s at 111-130), settling by 151. Replaces the taunts.glb take with its two fixes and the left-hand grip-follow. Previous: {\"glb\": \"taunts_ref_arm\", \"src_ext\": \"blend\", \"rename\": \"ue5\", \"fist\": 0.3, \"heading\": \"auto\", \"mode\": \"action\", \"src_begin\": 559, \"src_end\": 666, \"time_scale\": 1.0, \"smooth\": 1, \"layer\": \"full\", \"plant_feet\": 0.001, \"drift\": \"root\", \"unwind_yaw\": true, \"unwind_ref\": \"body\", \"lift\": 0.004, \"ground_fit\": true, \"hand_edited\": true}.  hand_edited (2026-09-25): the user's updated AOE_Cast_Fix_02 (both feet + the left knee pole, held, Replace) baked first, then AOE_Cast_Fix_01 (chest + fingers, Combine, held) over that result, as asked ('bake 02 first, then 01'); two stack setups (setup_stack2.py) and two flattens. 2026-09-25: --yaw-clip 17 (the take faced 17 deg right by its feet; now the feet's mean yaw is 0 as in Idle_02, the Root untouched) and --shaft-hand L:0:100:125 (the left socket seated on the staff's axis over frames 100-125 at its own height on the shaft, eased in/out over 6 frames, the arm on IK there with the pole on the FK elbow).",
+   "_note": "2026-09-27 (user: 'replace the existing aoe_cast with the new recorded animation P:/aoe cast.glb'): the mannequin app, 144 frames at 30 fps (4.8 s), the whole file (aoe_cast_ref_mocap.glb -> aoe_cast_ref_arm.blend): a slow left-hand gesture at chest height (1-80), the right hand raised to 1.9 m (81-110), lowered (111-143). Plain transfer. A split into AOE_Cast_Start / AOE_Cast_Hold (31-53, looped) / AOE_Cast_Release (75-144) with a demo sequence was built and REVERTED the same evening (user: 'the hold animation is bad, only half of what I expected is in it, the body position shifts from start to hold'): a hold cut from a one-shot take does not loop as a recorded hold would. The sequence machinery (manifest bake / loops keys, SkeletonShowcase.Sequences, DemoUI.CreateGroup) stays for a hold recorded as a loop. 2026-09-27 (user: 'updated aoe_cast_fix_01, bake it'): the fix (one held key on the chest, both hands' finger chains and more; the finger masters keyed on all 144 frames; Combine over the strip) flattened by anim_nla_bake --result AOE_Cast (AOE_Cast_base keeps the plain build); hand_edited.",
    "hand_edited": true
   },
   {

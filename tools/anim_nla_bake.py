@@ -47,6 +47,7 @@ UPPER_FROM = arg("--upper-from", "")              # "Idle_03:1": after the retim
 UPPER_SEAM = int(arg("--upper-seam", "8"))         # frames: the copied window's end crossfaded to its start so the loop closes
 HAND_WEIGHT = arg("--hand-weight", "")            # "R:0.015:4:6": that IK hand bobs against the body's vertical sway as if the held item had weight - the hips' height over the clip, normalised to -1..1, delayed DELAY frames (wrapping over a loop), moves the hand AMP rig m the OTHER way and pitches it PITCH degrees about the socket's finger axis (the tip dips as the hand drops) (user, Idle_Wand: "right hand sway that mimics the wand's weight, in sync with the character swaying up and down")
 ROOT_HOLD = "--root-hold" in argv                 # the root control held at its first-frame transform on every frame: a clip whose take travelled (drift root) loses the step, the torso and the legs-from feet stay put (user, Cast_Staff_01: "use the legs pose from idle_staff, so no step forward")
+TORSO_SHIFT = [float(v) for v in arg("--torso-shift", "").split(",")] if arg("--torso-shift", "") else None   # "X,Y" rig m, world/armature space: the torso control moved horizontally on every frame (the IK feet stay, the knees adjust, the poles re-aimed unless --keep-poles) - a lean's centre of gravity put back over the feet (user, AOE_Cast_Hold: "the center of gravity seems off, adjust the torso")
 START_BLEND = arg("--start-blend", "")           # "Idle_Bow:1:8": the FIRST N frames crossfade from that action's frame into the clip (frame 1 = the reference exactly), the mirror of --end-blend, so a one-shot starts on the pose the demo crossfades from (user, Shoot_01: "a noticeable snap between idle and shoot, both start and end")
 END_BLEND = arg("--end-blend", "")               # "Idle:1:8": after the retime, the last N frames crossfade every control to that action's frame (locations, rotations, scales, the switches on the last frame), so a one-shot ends EXACTLY on the pose the demo crossfades to next; the IK legs keep their knee poles on the FK plane through it (user, Impaled_Rise: "lower the torso on the fully standing pose, use it to fix the floating feet at the end")
 EVEN_ADVANCE = int(arg("--even-advance", "0"))      # K: a locomotion loop is RETIMED so the hips' advance per frame along the travel follows a circularly smoothed (K passes of [1,2,1], wrapping at the seam) version of its own profile; same frame count, same travel, the Root kept linear. Removes the speed dip that a loop-closing crossfade leaves at the seam (the hips advanced 55 mm per frame and then 17 at Run_Fwd_02's wrap; Walk_Back lurched 14 mm and stalled to 0 on its last frames), which plays as a hitch every cycle under root motion (user: "walk_back, run_fwd and run_fwd_02 have looping issues")
@@ -384,6 +385,8 @@ def end_blend(act, spec, at_start=False):
             pb = pbs[c]; a = cur[c]; b = tgt[c]
             if c.startswith("thigh_parent") or (c.startswith("thigh_ik_target") and not KEEP_POLES):
                 continue                                        # the legs' IK stays as it is; the pole is re-aimed below (with --keep-poles the pole CONTROL is blended like any other: a clip whose FK legs are a rest chain has no knee plane to re-aim at)
+            if c == "root":
+                continue                                        # the root carries TRAVEL, not pose: a blend toward another clip's root cancelled AOE_Cast_Start's 10 cm step and turned it 13 deg (2026-09-27)
             qa = a["rot"]; qb = b["rot"]
             if qa.dot(qb) < 0: qb = -qb
             q = qa.slerp(qb, w)
@@ -1432,6 +1435,18 @@ if FOOT_CLEAR:
 if TORSO_DROP:
     torso_drop(baked, TORSO_DROP)
     repole_legs(baked)
+
+if TORSO_SHIFT:
+    ad.action = baked; sx_, sy_ = TORSO_SHIFT
+    for f in range(F0, F1 + 1):
+        scene.frame_set(f)
+        pbt = pbs["torso"]; mt = (rig.matrix_world @ pbt.matrix).copy(); mt.translation.x += sx_; mt.translation.y += sy_
+        pbt.matrix = rig.matrix_world.inverted() @ mt; bpy.context.view_layer.update()
+        pbt.keyframe_insert("location", frame=f, group="torso")
+    scene.frame_set(F0); hp_ = (rig.matrix_world @ pbs["DEF-spine"].matrix).translation
+    log("torso shifted by (%+.3f, %+.3f) rig m on every frame: hips at (%.3f, %.3f) on frame %d" % (sx_, sy_, hp_.x, hp_.y, F0))
+    if not KEEP_POLES:
+        repole_legs(baked)
 if YAW_CLIP:
     yaw_clip(baked, YAW_CLIP)
 if KNEES_IN:
