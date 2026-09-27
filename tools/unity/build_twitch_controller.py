@@ -59,8 +59,16 @@ var baseSm = ctrl.layers[0].stateMachine;
 // penetration -5 mm -> -18 mm). Grounding is a per-clip lift measured in Unity instead
 // (tools/unity/ground_clip.py -> export_fbx --lift) plus the prefab's clearance.
 var idleState = baseSm.AddState("Idle"); idleState.motion = idle; baseSm.defaultState = idleState;
-foreach (var cl in idleClips) { var vs = baseSm.AddState(cl.name); vs.motion = cl; }
-sb.AppendLine("base layer: Idle + " + idleClips.Count + " more states");
+// manifest `grip_hands: L` (2026-09-27): the clip's LEFT hand rides the weapon without holding an item (a two-hander's
+// second hand), so its state carries a SkeletonGripState that makes SkeletonWeapon fade that hand's empty-hand finger
+// layer out while the state is active (the clip's baked Grip fist shows instead of the relaxed sway)
+var gripL = new System.Collections.Generic.HashSet<string>(new string[]{ %GRIPL% });
+int nGrip = 0;
+foreach (var cl in idleClips) {
+  var vs = baseSm.AddState(cl.name); vs.motion = cl;
+  if (gripL.Contains(cl.name)) { var gb = vs.AddStateMachineBehaviour<UndeadLegion.Demo.SkeletonGripState>(); gb.hand = UndeadLegion.Demo.SkeletonWeapon.Hand.Left; nGrip++; }
+}
+sb.AppendLine("base layer: Idle + " + idleClips.Count + " more states (" + nGrip + " with a left-hand grip state)");
 
 // ---- masks: humanoid parts on/off + the extra (non-humanoid) transforms under a bone. UpperBody:
 // Body/Head/Arms/Fingers, transforms under Spine1. LeftArm / RightArm (2026-09-22, the per-arm attack
@@ -126,6 +134,7 @@ System.Action<int, string, string[]> fillLayer = (li, label, names) => {
   foreach (var nm_ in names) {
     var cl_ = load(nm_); if (cl_ == null) { sb.AppendLine("missing " + label + " clip " + nm_); continue; }
     var st_ = lsm_.AddState(nm_); st_.motion = cl_;
+    if (gripL.Contains(nm_)) { var gb_ = st_.AddStateMachineBehaviour<UndeadLegion.Demo.SkeletonGripState>(); gb_.hand = UndeadLegion.Demo.SkeletonWeapon.Hand.Left; }
     if (cl_.isLooping) held_++;
     else { var back_ = st_.AddTransition(empty_); back_.hasExitTime = true; back_.exitTime = 1f; back_.duration = 0.25f; back_.hasFixedDuration = true; }   // 0.25 s: the arm clips end mid-action and the Animator carries the return
     n_++;
@@ -258,7 +267,9 @@ if __name__ == "__main__":
     clips = json.load(open(manifest))["clips"]
     tagged = lambda tag: [c["name"] for c in clips if c.get("layer") == tag]
     print("from the manifest: upper", ", ".join(tagged("upper")), "| left", ", ".join(tagged("left")), "| right", ", ".join(tagged("right")))
-    code = CODE.replace("%UPPER%", ", ".join('"%s"' % u for u in tagged("upper"))).replace("%LEFT%", ", ".join('"%s"' % u for u in tagged("left"))).replace("%RIGHT%", ", ".join('"%s"' % u for u in tagged("right")))
+    grip_l = [c["name"] for c in clips if c.get("grip_hands") == "L"]
+    print("left hand on the weapon (grip_hands L):", ", ".join(grip_l))
+    code = CODE.replace("%UPPER%", ", ".join('"%s"' % u for u in tagged("upper"))).replace("%LEFT%", ", ".join('"%s"' % u for u in tagged("left"))).replace("%RIGHT%", ", ".join('"%s"' % u for u in tagged("right"))).replace("%GRIPL%", ", ".join('"%s"' % u for u in grip_l))
     c = Client()
     try:
         c.call("refresh_unity", {"mode": "force", "scope": "all", "compile": "request", "wait_for_ready": True}, timeout=600)
