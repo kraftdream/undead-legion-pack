@@ -122,6 +122,43 @@ namespace UndeadLegion.Demo
             bool any = false;
             foreach (var go in _spawned) if (go != null) foreach (var b in go.GetComponentsInChildren<BowString>(true)) { b.attached = false; any = true; }
             if (any && arrowHideSeconds > 0f) { SetArrowVisible(false); _arrowShowAt = Time.time + arrowHideSeconds; }
+            if (any && fireProjectile) FireArrow();
+        }
+
+        [Tooltip("On BowRelease, launch a copy of the held arrow as an ArrowProjectile (demo only, no collision).")]
+        public bool fireProjectile = true;
+        [Tooltip("Launch speed of the fired arrow, m/s.")]
+        public float arrowSpeed = 30f;
+        [Tooltip("Where the fired arrow flies: the character's forward for now (a static direction, not the bow's aim).")]
+        public ArrowDirection arrowDirection = ArrowDirection.CharacterForward;
+        public enum ArrowDirection { CharacterForward, BowAim }
+
+        /// <summary>Spawn a free copy of the held arrow at the held arrow's transform and launch it.</summary>
+        void FireArrow()
+        {
+            if (_current < 0 || _current >= loadouts.Count) return;
+            GameObject held = null;
+            foreach (var go in _spawned) if (go != null && go.name.StartsWith("W_Arrow")) held = go;
+            if (held == null) return;
+            GameObject model = null;
+            foreach (var it in loadouts[_current].items) if (it.model != null && it.model.name.StartsWith("W_Arrow")) model = it.model;
+            if (model == null) return;
+            Vector3 dir = transform.forward;
+            if (arrowDirection == ArrowDirection.BowAim)
+            {
+                // the bow hand to the draw hand's slot, reversed: the shot line as the pose has it
+                var bow = _left != null && _holdLeft ? _left : _right;
+                var draw = bow == _left ? _right : _left;
+                if (bow != null && draw != null && (bow.position - draw.position).sqrMagnitude > 1e-6f) dir = (bow.position - draw.position).normalized;
+            }
+            var arrow = Instantiate(model, held.transform.position, held.transform.rotation);
+            arrow.name = model.name + "_Projectile";
+            arrow.transform.localScale = Vector3.one;
+            foreach (var r in arrow.GetComponentsInChildren<Renderer>(true)) r.enabled = true;
+            var p = arrow.GetComponent<ArrowProjectile>();
+            if (p == null) p = arrow.AddComponent<ArrowProjectile>();
+            p.speed = arrowSpeed;
+            p.Launch(dir);
         }
 
         [Tooltip("After BowRelease the arrow in the draw hand is hidden this long (seconds) so the shot reads in the demo; 0 = never hidden.")]

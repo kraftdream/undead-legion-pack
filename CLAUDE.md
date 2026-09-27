@@ -353,8 +353,8 @@ that catches this is to sample `<part>_color` through the imported mesh's UVs at
 triangle centroids and count near-black hits, in Unity and in the source `.blend`;
 they must agree. Reference (2026-09-19): bodies ≤ 0.7 %, armour Knight 7 %, Assassin
 4 %, Mage 2 %, Necromancer 22 % (dark cloth, present in the source art), others < 1 %. Runtime
-scripts live in `Demo/Scripts/` (`SkeletonShowcase`, `SkeletonModules`, `SkeletonTwitch`,
-`DemoTurntable`, `DemoUI`, `DemoEventSystemBootstrap`), namespace `UndeadLegion.Demo`.
+scripts live in `Demo/Scripts/` (`SkeletonShowcase`, `SkeletonModules`, `SkeletonTwitch`, `SkeletonWeapon`,
+`BowString`, `ArrowProjectile`, `DemoTurntable`, `DemoUI`, `DemoEventSystemBootstrap`), namespace `UndeadLegion.Demo`.
 Legacy uGUI Text on purpose (no TMP import prompt for buyers); input read through both
 backends. `tools/unity/demo_smoke.py` plays the scene headlessly and screenshots it.
 
@@ -2029,7 +2029,18 @@ the shot reads. Verified in play mode on the Archer, stepped at 30 fps: attached
 from 16.6 (draw 0.035 → 0.267 m by 20.8, limb 1 at 5.4°), released at 21.4 (string back at brace by 22.0, arrow
 hidden, back after 1.2 s), the string never moves while the hands are down. **Note for the user: frame 21 is
 mid-draw** — the hand keeps drawing to 0.57 m at frames 26–30 with the string already at rest (renders
-`f20_drawn` / `f24_released` in the session scratchpad); the numbers are two manifest fields. ⚠ Two bridge
+`f20_drawn` / `f24_released` in the session scratchpad); the numbers are two manifest fields. **The user's
+answer: "the arrow is too short, and the tip of it is not on the bow at frame 30; frame 21 is already the latest
+we can do with this arrow/bow meshes"** — 21 stays; a longer arrow mesh is what would move it. **The fired arrow
+(same request: "an actual arrow projectile released when the arrow shoots, in a static direction from the
+skeleton for now")**: `Demo/Scripts/ArrowProjectile.cs` + `SkeletonWeapon.FireArrow()` on `BowRelease`: a fresh
+instance of the loadout's `W_Arrow` prefab at the held arrow's transform, renderers on, launched along the
+CHARACTER's forward (`arrowDirection CharacterForward`; `BowAim` = draw slot → bow slot is there but off) at
+`arrowSpeed` 30 m/s, the prefab's +Y (the shaft, head at +Y) turned onto the velocity (`LookRotation · Euler(90,0,0)`),
+`gravity` 0 (dead straight), destroyed after `lifetime` 4 s or under the floor; no collision, no damage
+(`fireProjectile` off disables it). Measured in play mode: the projectile appears on the release frame at the
+hand's height (1.34 m) and covers 30 m/s along the forward the character had at that moment (the demo's
+turntable turns the character on, so the shaft reads 0.87 of the later forward: expected). ⚠ Two bridge
 lessons: `execute_code` REQUIRES `"action": "execute"` (a call without it fails validation, and a JSON with C#
 `
 ` literals written through a shell heredoc arrives with real newlines — run C# from a file, `runcs.py`-style);
