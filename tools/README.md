@@ -18,7 +18,7 @@ All Blender scripts run with Blender 5.2 in background mode and never open a UI:
 | `export_fbx.py -- --clip Name` | the anim file | Builds the game skeleton constrained to the source rig, bakes the action, scales rest + location keys ×1.8, writes `skeletons/Assets/UndeadLegion/Animations/Skeleton@Name.fbx` (rig + `Body` empty, one take) | no |
 | `kimodo_gen.ps1` (PowerShell) | a text prompt | Generates a clip on the Kimodo laptop over SSH, fetches `External Anims/Kimodo/<Name>.glb/.bvh/.txt` | writes External Anims |
 | `rig_lib_no_stretch.py` | `Rig/skeleton_rig.blend` | Sets `ik_stretch = 0` on every pose bone and `IK_Stretch = 0` on the limb switches (CLAUDE.md §8: rigid IK chains or Unity sinks the feet) | **overwrites the library** |
-| `anim_weapon_ref.py -- --attach H2Recurvebow:L,Arrow:R [--check Shoot_01:36] [--save]` / `--remove --save` | the anim file | appends the named weapons from `Weapons/prod.blend`, puts each in the export-local frame (`export_weapons.export_local_mesh`) and parents it to `DEF-weapon.<side>` with a Child Of constraint whose local matrix reproduces Unity's `AlignGrip` (slot × Grip⁻¹, read from `Animations/unity_grips.json`), so a reference pose can be authored on the bow and arrow exactly where Unity shows them; collection `Ref_Weapons`, objects `Ref_<Name>`, never exported. `--check` prints the arrow's shaft against the draw-hand → bow-hand line and the bow's limbs against the arrow (Shoot_01:36: 175° / 88°, the same as Unity) | with `--save` |
+| `anim_weapon_ref.py -- --attach H2Recurvebow:L,Arrow:R [--check Shoot_01:36] [--save]` / `--remove --save` | the anim file | appends the named weapons from `Weapons/prod.blend`, puts each in the export-local frame (`export_weapons.export_local_mesh`) and parents it to `DEF-weapon.<side>` with a Child Of constraint whose local matrix reproduces Unity's `AlignGrip` (slot × Grip⁻¹, read from `Animations/unity_grips.json`), so a reference pose can be authored on the bow and arrow exactly where Unity shows them; collection `Ref_Weapons`, objects `Ref_<Name>`, never exported. `--check` prints the arrow's shaft against the draw-hand → bow-hand line and the bow's limbs against the arrow (Shoot_01:36: 175° / 88°, the same as Unity) | with `--save` | A weapon with a `<Name>_Rig` armature in prod.blend (the recurve bow) comes with it, the mesh skinned to it; its string bone follows the other hand while that hand draws (a corridor gate in the string's frame).
 | `bvh_to_glb.py -- SRC.bvh DST.glb [--yup]` | (no file) | converts a video-mocap BVH to the Y-up GLB the retarget reads (the `*_JNT` app's BVH is Z-up with a T-pose rest; an Unreal-mannequin BVH is Y-up in cm with a stacked rest: `--yup`, then `--rename ue5 --bind stacked`); prints the rest hand/head/hips positions so a wrong up axis shows | writes DST |
 | `glb_nodes_to_armature.py -- SRC.glb DST.glb` | (no file) | a skinless node-hierarchy GLB (the mannequin app) → an armature: rest from the JSON node TRS in the importer's convention, the empties' animation baked on; writes `DST.blend` (the retarget source: manifest `src_ext blend`) and a viewer GLB | writes both |
 | `retarget_compare.py -- --src SRC --clip NAME --src-begin A --src-end B --time-scale S [--mirror] [--render DIR]` | the anim file | poses the source capture and the built clip frame by frame: per-joint position error (engine cm, hips-relative, scaled, yaw-aligned on the shoulders) and per-bone DIRECTION error in degrees (proportion-free); `--render` puts red spheres at the capture's joints on the Knight. The first thing to run when a retarget "looks different from the reference" | |
@@ -73,6 +73,7 @@ Clip loop:
     python tools/kimodo_batch.py            # generate every missing GLB on the laptop (detach it: an hour+); manifest no_profile = plain human prompt (no undead body profile)
     python tools/anim_batch.py --wait       # retarget -> preview -> export -> Unity verify, as GLBs arrive
     python tools/anim_batch.py Walk_Fwd_01 --force   # rebuild one after editing its entry or the retarget
+    # manifest `disabled true` = the batch skips the entry (delete its FBX by hand); `hand_edited true` = never regenerated, --export-only exports the anim file's clip
 
 Both log to `Animations/*.log`; `Animations/build_state.json` remembers what was built
 from which GLB and which manifest entry. Previews land in `Animations/preview/` (look at them).
@@ -87,7 +88,12 @@ weighted to the shin lands elsewhere (Death_02 Necromancer: -5.6 cm during the k
 Weapons: `blender -b Weapons/prod.blend -P tools/export_weapons.py` writes every
 `Models/Weapons/SM_*.fbx` (12, the Arrow included since 4a70422, the untextured spellbook dropped) with the grip at the origin
 and the length along the socket's +Y (grip table inside the script, carried over to rescaled
-meshes; `PRE` rotates a mesh modelled along another axis first); `blender -b -P
+meshes; `PRE` rotates a mesh modelled along another axis first). A mesh with an ARMATURE parent
+(the recurve bow, `H2Recurvebow_Rig`) is exported skinned, the rig transformed into the same
+export-local frame (`export_local_matrix`), no baked space transform; the import setup's
+`RiggedWeapons` list imports it Generic / No Avatar and `Demo/Scripts/BowString.cs` on the
+`W_H2Recurvebow` prefab moves its string and limbs at runtime (CLAUDE.md §8 "The recurve bow
+bends"); `blender -b -P
 tools/pack_textures.py -- Weapons` copies colour/normal and packs a metallic-smoothness map
 for every weapon in `WEAPON_MAPS` that has a roughness map into `Textures/Weapons/`; then
 Unity menu 1 (materials, plain 0/0.35 metallic/smoothness when there is no packed map) and
@@ -138,7 +144,9 @@ prefab's `Grip` (`Prefabs/Weapons/W_*.prefab`).
 - `verify_clip.py` — imports a clip FBX as Humanoid with the avatar copied from a model,
   then steps an Animator through it on all six models in edit mode and prints travel and
   yaw with root motion on and off, plus how far key bones rotated. This is how the
-  shipped speed table gets measured (CLAUDE.md §8).
+  shipped speed table gets measured (CLAUDE.md §8). `--events "BowAttach:15,BowRelease:21"`
+  (1-based frames; `anim_batch` passes the manifest's `events`) writes AnimationEvents on the
+  importer's clip (normalised time) and prints the imported clip's events.
 
 ## Lessons baked into these scripts (do not re-learn)
 

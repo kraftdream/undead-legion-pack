@@ -82,7 +82,10 @@ def unity_flags(c):
     mode = c["mode"]
     loop = "1" if mode in ("idle", "loco") else "0"
     inplace = "0" if (mode == "loco" or c.get("drift") == "root") else "1"
-    return ["--loop", loop, "--in-place", inplace]
+    extra = []
+    if c.get("events"):
+        extra += ["--events", ",".join("%s:%s" % (k, v) for k, v in c["events"].items())]   # animation events on the clip (1-based frames)
+    return ["--loop", loop, "--in-place", inplace] + extra
 
 
 EXPORT_ONLY = False
@@ -116,6 +119,8 @@ def build_pass(args, force, unity):
         glb = os.path.join(GLB_DIR, c["glb"] + ".glb")
         if not os.path.exists(glb):
             continue
+        if c.get("disabled"):
+            log("%-16s disabled in the manifest: not built, not exported (delete its FBX by hand when disabling; drop the flag to bring it back)" % c["name"]); continue
         if c.get("hand_edited") and not EXPORT_ONLY:
             log("%-16s hand-edited in the anim file (manifest hand_edited): not regenerated; use --export-only to export it, or drop the flag to rebuild from the recording" % c["name"])
             continue

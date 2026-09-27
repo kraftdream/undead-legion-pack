@@ -16,6 +16,8 @@ namespace UndeadLegion.DemoEditor
     public static class UndeadLegionImportSetup
     {
         public const string Root = "Assets/UndeadLegion";
+        /// <summary>Weapon models exported skinned to their own small rig (tools/export_weapons.py): imported Generic, no avatar.</summary>
+        static readonly string[] RiggedWeapons = { "SM_H2Recurvebow" };
         public static readonly string[] Characters =
         {
             "SkeletonKnight", "SkeletonArcher", "SkeletonAssassin",
@@ -37,16 +39,21 @@ namespace UndeadLegion.DemoEditor
                 foreach (var part in new[] { "Body", "Armor" })
                     EnsureMaterial(c, part);
             }
-            // weapons: plain meshes at the pack scale, no rig, no materials of their own
+            // weapons: plain meshes at the pack scale, no rig, no materials of their own — except the RIGGED
+            // ones (the recurve bow, 2026-09-27: skinned to a small armature so BowString can bend it), which
+            // import as Generic without an avatar so the skinning and the bone nodes survive
             foreach (var guid in AssetDatabase.FindAssets("SM_ t:Model", new[] { Root + "/Models/Weapons" }))
             {
                 var path = AssetDatabase.GUIDToAssetPath(guid);
                 var imp = AssetImporter.GetAtPath(path) as ModelImporter;
                 if (imp == null) continue;
-                if (imp.animationType != ModelImporterAnimationType.None || imp.materialImportMode != ModelImporterMaterialImportMode.None
-                    || Mathf.Abs(imp.globalScale - 1f) > 1e-4f || imp.importAnimation)
+                bool rigged = System.Array.IndexOf(RiggedWeapons, System.IO.Path.GetFileNameWithoutExtension(path)) >= 0;
+                var wantType = rigged ? ModelImporterAnimationType.Generic : ModelImporterAnimationType.None;
+                if (imp.animationType != wantType || imp.materialImportMode != ModelImporterMaterialImportMode.None
+                    || Mathf.Abs(imp.globalScale - 1f) > 1e-4f || imp.importAnimation || (rigged && imp.avatarSetup != ModelImporterAvatarSetup.NoAvatar))
                 {
-                    imp.animationType = ModelImporterAnimationType.None;
+                    imp.animationType = wantType;
+                    if (rigged) imp.avatarSetup = ModelImporterAvatarSetup.NoAvatar;
                     imp.importAnimation = false;
                     imp.materialImportMode = ModelImporterMaterialImportMode.None;
                     imp.globalScale = 1f;
