@@ -64,11 +64,25 @@ var idleState = baseSm.AddState("Idle"); idleState.motion = idle; baseSm.default
 // layer out while the state is active (the clip's baked Grip fist shows instead of the relaxed sway)
 var gripL = new System.Collections.Generic.HashSet<string>(new string[]{ %GRIPL% });
 int nGrip = 0;
+var baseStates = new System.Collections.Generic.Dictionary<string, UnityEditor.Animations.AnimatorState>();
+baseStates["Idle"] = idleState;
 foreach (var cl in idleClips) {
-  var vs = baseSm.AddState(cl.name); vs.motion = cl;
+  var vs = baseSm.AddState(cl.name); vs.motion = cl; baseStates[cl.name] = vs;
   if (gripL.Contains(cl.name)) { var gb = vs.AddStateMachineBehaviour<UndeadLegion.Demo.SkeletonGripState>(); gb.hand = UndeadLegion.Demo.SkeletonWeapon.Hand.Left; nGrip++; }
 }
-sb.AppendLine("base layer: Idle + " + idleClips.Count + " more states (" + nGrip + " with a left-hand grip state)");
+// manifest `next` + `next_at` (2026-09-27, Cast_Staff_01 -> Idle_Staff from frame 54): a one-shot's Base state gets an
+// exit-time transition into the named loop state, starting at that 1-based frame and lasting the clip's remaining
+// frames; the showcase adopts the loop it lands in (SkeletonShowcase.AdoptFollowUp)
+string[] nextSpec = new string[]{ %NEXT% };
+int nNext = 0;
+foreach (var ns in nextSpec) {
+  var p3 = ns.Split(':'); var from_ = baseStates.ContainsKey(p3[0]) ? baseStates[p3[0]] : null; var to_ = baseStates.ContainsKey(p3[1]) ? baseStates[p3[1]] : null;
+  if (from_ == null || to_ == null) { sb.AppendLine("next: missing state for " + ns); continue; }
+  var clipN = from_.motion as AnimationClip; float nfrN = clipN.length * clipN.frameRate; float atN = float.Parse(p3[2], System.Globalization.CultureInfo.InvariantCulture);
+  var trN = from_.AddTransition(to_); trN.hasExitTime = true; trN.exitTime = (atN - 1f) / nfrN; trN.hasFixedDuration = true; trN.duration = (nfrN - (atN - 1f)) / clipN.frameRate; trN.canTransitionToSelf = false;
+  nNext++;
+}
+sb.AppendLine("base layer: Idle + " + idleClips.Count + " more states (" + nGrip + " with a left-hand grip state, " + nNext + " with a follow-up transition)");
 
 // ---- masks: humanoid parts on/off + the extra (non-humanoid) transforms under a bone. UpperBody:
 // Body/Head/Arms/Fingers, transforms under Spine1. LeftArm / RightArm (2026-09-22, the per-arm attack
@@ -268,8 +282,9 @@ if __name__ == "__main__":
     tagged = lambda tag: [c["name"] for c in clips if c.get("layer") == tag]
     print("from the manifest: upper", ", ".join(tagged("upper")), "| left", ", ".join(tagged("left")), "| right", ", ".join(tagged("right")))
     grip_l = [c["name"] for c in clips if c.get("grip_hands") == "L"]
+    nexts = ["%s:%s:%s" % (c["name"], c["next"], c.get("next_at", 1)) for c in clips if c.get("next")]
     print("left hand on the weapon (grip_hands L):", ", ".join(grip_l))
-    code = CODE.replace("%UPPER%", ", ".join('"%s"' % u for u in tagged("upper"))).replace("%LEFT%", ", ".join('"%s"' % u for u in tagged("left"))).replace("%RIGHT%", ", ".join('"%s"' % u for u in tagged("right"))).replace("%GRIPL%", ", ".join('"%s"' % u for u in grip_l))
+    code = CODE.replace("%UPPER%", ", ".join('"%s"' % u for u in tagged("upper"))).replace("%LEFT%", ", ".join('"%s"' % u for u in tagged("left"))).replace("%RIGHT%", ", ".join('"%s"' % u for u in tagged("right"))).replace("%GRIPL%", ", ".join('"%s"' % u for u in grip_l)).replace("%NEXT%", ", ".join('"%s"' % u for u in nexts))
     c = Client()
     try:
         c.call("refresh_unity", {"mode": "force", "scope": "all", "compile": "request", "wait_for_ready": True}, timeout=600)

@@ -123,6 +123,8 @@ STAB_AIM = arg("--stab-aim", "")                # "R" / "L": as that arm extends
 STAB_PITCH = math.radians(float(arg("--stab-pitch", "0")))   # deg: where the hilt axis (blade) pitches at full extension (0 = level)
 BLADE_ALONG = arg("--blade-along-arm", "")      # "R" / "L": that hand is rebuilt every frame so the hilt axis (blade) continues the FOREARM line (the weapon as an extension of the arm through a swing), from the forearm's zero-twist hand; fades with the blend-from/to crossfades
 BLADE_ALONG_ROLL = math.radians(float(arg("--blade-roll", "0")))
+STAFF_LINE = [x for x in arg("--staff-line", "").split(",") if x]   # "R,L": a two-handed prop with NO gate: both hands stay where the capture has them and each is rebuilt from its forearm's zero-twist hand so its hilt axis lies along the LINE FROM THE LEFT HAND TO THE RIGHT (the top of the staff beyond the right hand, the left hand below it on the shaft); the first listed hand's socket and the other's define the line (user, Cast_Staff_01 2026-09-27: "the left hand should be below the right during the cast" - this capture's right-hand hilt axis sat ~90 deg off the hand-to-hand line, so the gate dragged the left arm off the recording)
+STAFF_LINE_ROLL = math.radians(float(arg("--staff-roll", "0")))
 STAB_YAW = math.radians(float(arg("--stab-yaw", "0")))        # deg, + = towards the body's left: where the blade points at full extension (a little inward keeps the wrist natural)
 STAB_ROLL = math.radians(float(arg("--stab-roll", "0")))      # deg: the hand's roll about the blade at full extension, from the forearm's zero-twist hand
 STAB_SHORTEN = float(arg("--stab-shorten", "0"))            # rig m: bend the elbow so the hand comes this much closer to the shoulder at full extension
@@ -1166,6 +1168,27 @@ def pose(f, dz=0.0, f_travel=None):
                 q_new.negate()
             set_world(hf_, (q_cur.slerp(q_new, wa_) @ q_cur.inverted()) @ world_rot(hf_))
             update()
+    if STAFF_LINE:
+        # the staff through both fists: line d = from the L socket to the R socket (the blade/top beyond R); each hand
+        # in the list is the forearm's zero-twist hand turned by the least rotation that lays its hilt axis on d,
+        # rolled STAFF_LINE_ROLL about it; two rounds, since turning a hand moves its socket (the palm) a little
+        for _round in range(2):
+            sr_ = (rig.matrix_world @ pbs["DEF-weapon.R"].matrix).translation; sl_ = (rig.matrix_world @ pbs["DEF-weapon.L"].matrix).translation
+            d_ = sr_ - sl_
+            if d_.length < 1e-4:
+                break
+            d_.normalize()
+            for hd_ in STAFF_LINE:
+                hf_ = pbs["hand_fk." + hd_]
+                q_cur = (rig.matrix_world @ pbs["DEF-weapon." + hd_].matrix).to_quaternion()
+                S_ = world_rot(hf_).inverted() @ q_cur
+                sq0 = world_rot(pbs["forearm_fk." + hd_]) @ WRIST_REST[hd_] @ S_
+                y0 = (sq0 @ Vector((0, 1, 0))).normalized()
+                q_new = Quaternion(d_, STAFF_LINE_ROLL) @ (y0.rotation_difference(d_) @ sq0)
+                if q_cur.dot(q_new) < 0:
+                    q_new.negate()
+                set_world(hf_, (q_new @ q_cur.inverted()) @ world_rot(hf_))
+                update()
     if STAB_AIM:
         # the stab aim (user, from a top view: "both the arm and the weapon (hand rotation) extend not
         # forward for a stab attack"): weight = how far the hand is out from the shoulder horizontally

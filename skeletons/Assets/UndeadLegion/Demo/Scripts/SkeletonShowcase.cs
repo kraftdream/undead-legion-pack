@@ -118,7 +118,8 @@ namespace UndeadLegion.Demo
                 {
                     var follow = _pendingFollow;
                     _pendingFollow = null;
-                    Play(follow, false);
+                    if (_pendingIsSequence && _seq != null) { _pendingIsSequence = false; AdvanceSequence(); }
+                    else Play(follow, false);
                 }
                 return;
             }
@@ -150,7 +151,16 @@ namespace UndeadLegion.Demo
             if (!_current.isLooping && !_animator.IsInTransition(0))
             {
                 var st = _animator.GetCurrentAnimatorStateInfo(0);
+                if (!st.IsName(_current.name))
+                {
+                    // the controller carried the one-shot into a follow-up loop of its own (manifest `next`, e.g.
+                    // Cast_Staff_01 -> Idle_Staff from frame 54): adopt that loop instead of crossfading back
+                    var landed = _clips.Find(x => x.isLooping && st.IsName(x.name));
+                    if (landed != null) { _current = landed; ShowClipInfo(landed); HighlightClip(landed); return; }
+                }
                 if (st.normalizedTime < 1f) return;
+                if (_seq != null && _seqIndex + 1 < _seq.steps.Length) { AdvanceSequence(); return; }
+                _seq = null;
                 var idle = ReturnClipFor(_current);
                 if (_current.name.StartsWith("Death") && deathHold > 0f && idle != null && idle != _current)
                 {
@@ -300,6 +310,36 @@ namespace UndeadLegion.Demo
 
         readonly Dictionary<string, ClipSection> _sectionOf = new Dictionary<string, ClipSection>();
 
+        /// <summary>A clip SEQUENCE listed as one button (2026-09-27, user: "aoe_cast as hold (loopable) + release,
+        /// played as a sequence: the hold looping with a delay, then the release"; the creatures pack's
+        /// knockdown / get-up idea): the steps play in order; a looping step holds for holdSeconds before the next
+        /// step, a one-shot step advances when it ends; after the last step the usual return to the section's idle.</summary>
+        public class ClipSequence
+        {
+            public string name;
+            public string[] steps;
+            public float holdSeconds;
+        }
+
+        static readonly ClipSequence[] Sequences =
+        {
+            // (the AOE_Cast Start / Hold / Release sequence was reverted 2026-09-27: a hold cut from a one-shot take
+            // did not read as a hold; add an entry here once a hold is recorded as a loop)
+        };
+
+        ClipSequence _seq;
+        int _seqIndex;
+        bool _seqPlaying;
+        bool _pendingIsSequence;
+        readonly List<Button> _seqButtons = new List<Button>();
+        readonly List<AnimationClip> _seqClips = new List<AnimationClip>();   // the steps: not in the list (no button), reachable by name
+
+        AnimationClip FindClip(string name)
+        {
+            var c = _clips.Find(x => x.name == name);
+            return c != null ? c : _seqClips.Find(x => x.name == name);
+        }
+
         void BuildClipList()
         {
             if (clipListContent == null) return;
@@ -310,6 +350,15 @@ namespace UndeadLegion.Demo
             foreach (var s in Sections)
                 foreach (var m in s.members)
                     claimed.Add(m);
+            _seqClips.Clear();
+            foreach (var q in Sequences)
+                foreach (var step in q.steps)
+                {
+                    claimed.Add(step);                          // the steps are reached through the sequence button
+                    var sc_ = _clips.Find(x => x.name == step);
+                    if (sc_ != null && !_seqClips.Contains(sc_)) _seqClips.Add(sc_);
+                }
+            _seqButtons.Clear();
 
             var ordered = new List<AnimationClip>();
             foreach (var s in Sections)
@@ -328,7 +377,11 @@ namespace UndeadLegion.Demo
                         if (c != null) present.Add(c);
                     }
                 }
-                if (present.Count == 0) continue;
+                var seqs = new List<ClipSequence>();
+                foreach (var m in s.members)
+                    foreach (var q in Sequences)
+                        if (q.name == m && SequenceAvailable(q)) seqs.Add(q);
+                if (present.Count == 0 && seqs.Count == 0) continue;
                 DemoUI.CreateSectionLabel(clipListContent, s.title);
                 foreach (var clip in present)
                 {
@@ -338,6 +391,27 @@ namespace UndeadLegion.Demo
                     b.onClick.AddListener(() => Play(captured));
                     _clipButtons.Add(b);
                     ordered.Add(clip);
+                }
+                foreach (var q in seqs)
+                {
+                    // the sequence's steps boxed together like the creatures pack's knockback / get-up pair:
+                    // one button per step (each plays the sequence FROM that step) and a delay row after the
+                    // looping step (rows 30 each, info rows 20, spacing 2, padding 4+4)
+                    float h = 8f;
+                    foreach (var step in q.steps) { var sc_ = FindClip(step); h += 30f + 2f; if (sc_ != null && sc_.isLooping && step != q.steps[q.steps.Length - 1]) h += 20f + 2f; }
+                    var group = DemoUI.CreateGroup(clipListContent, h);
+                    for (int si = 0; si < q.steps.Length; si++)
+                    {
+                        var stepClip = FindClip(q.steps[si]);
+                        if (stepClip == null) continue;
+                        _sectionOf[stepClip.name] = s;
+                        var bq = DemoUI.CreateListButton(group, stepClip.name, NormalColor);
+                        var capturedQ = q; int capturedI = si;
+                        bq.onClick.AddListener(() => PlaySequence(capturedQ, capturedI));
+                        _seqButtons.Add(bq);
+                        if (stepClip.isLooping && si + 1 < q.steps.Length)
+                            DemoUI.CreateInfoRow(group, string.Format("delay  {0:0.0} s", q.holdSeconds));
+                    }
                 }
             }
             _clips.Clear();
@@ -397,9 +471,67 @@ namespace UndeadLegion.Demo
         /// <param name="resetFacing">Kept for callers; the position is no longer reset when a
         /// clip starts or ends (the character stays where root motion left it, the turntable
         /// follows it). Only the Recenter button and turning root motion off recenter.</param>
+        void HighlightSequenceStep(AnimationClip clip)
+        {
+            int k = 0;
+            foreach (var q in Sequences)
+                foreach (var step in q.steps)
+                {
+                    if (FindClip(step) == null) continue;
+                    if (k < _seqButtons.Count) _seqButtons[k].image.color = step == clip.name ? SelectedColor : NormalColor;
+                    k++;
+                }
+        }
+
+        bool SequenceAvailable(ClipSequence q)
+        {
+            foreach (var step in q.steps) if (FindClip(step) == null) return false;
+            return true;
+        }
+
+        public void PlaySequence(ClipSequence q) { PlaySequence(q, 0); }
+
+        /// <summary>Play the sequence from its step `from` (a step's own button starts there).</summary>
+        public void PlaySequence(ClipSequence q, int from)
+        {
+            if (_animator == null || q == null || !SequenceAvailable(q)) return;
+            _seq = q; _seqIndex = from - 1;
+            AdvanceSequence();
+        }
+
+        /// <summary>The next step of the running sequence: a looping step is held for holdSeconds (the pending
+        /// follow-up mechanism), a one-shot step runs to its end (the one-shot fallback in Update advances it).</summary>
+        void AdvanceSequence()
+        {
+            if (_seq == null) return;
+            _seqIndex++;
+            if (_seqIndex >= _seq.steps.Length) { _seq = null; return; }
+            var clip = FindClip(_seq.steps[_seqIndex]);
+            if (clip == null) { _seq = null; return; }
+            _seqPlaying = true;
+            Play(clip, false);
+            _seqPlaying = false;
+            HighlightSequenceStep(clip);
+            string tail = clip.isLooping ? "looping" : "one-shot";
+            if (clip.isLooping && _seqIndex + 1 < _seq.steps.Length)
+            {
+                var next = FindClip(_seq.steps[_seqIndex + 1]);
+                if (next != null)
+                {
+                    _pendingFollow = next;
+                    _pendingAt = Time.time + _seq.holdSeconds;
+                    _pendingIsSequence = true;
+                    tail = string.Format("holds {0:0.0} s, then {1}", _seq.holdSeconds, next.name);
+                }
+            }
+            if (clipInfoLabel != null)
+                clipInfoLabel.text = string.Format("{0}   |   step {1}/{2}: {3}   |   {4}", _seq.name, _seqIndex + 1, _seq.steps.Length, clip.name, tail);
+        }
+
         public void Play(AnimationClip clip, bool resetFacing = true)
         {
             if (_animator == null || clip == null) return;
+            if (!_seqPlaying) { _seq = null; _pendingIsSequence = false; }
             int masked = LayerFor(clip);
             if (masked >= 0 && clip.isLooping)          // a held action (Block_L_Idle): toggle it on its layer
             {
@@ -437,6 +569,17 @@ namespace UndeadLegion.Demo
             Highlight(_clipButtons, _clips.IndexOf(clip));
             ShowClipInfo(clip);
         }
+
+        void HighlightClip(AnimationClip clip)
+
+        {
+
+            int i = _clips.IndexOf(clip);
+
+            if (i >= 0 && i < _clipButtons.Count) Highlight(_clipButtons, i);
+
+        }
+
 
         void ShowClipInfo(AnimationClip clip)
         {

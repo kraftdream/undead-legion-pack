@@ -52,7 +52,7 @@ def retarget_args(c):
                     ("arm_pose", "--arm-pose"), ("head_damp", "--head-damp"), ("travel_axis", "--travel-axis"),
                     ("lock_left_hand", "--lock-left-hand"), ("lock_left_roll", "--lock-left-roll"),
                     ("blend_from", "--blend-from"), ("blend_in", "--blend-in"), ("ground", "--ground"),
-                    ("ground_ignore", "--ground-ignore"), ("blend_to", "--blend-to"), ("blend_out", "--blend-out"), ("rename", "--rename"), ("plant_feet", "--plant-feet"), ("blend_from_lift", "--blend-from-lift"), ("heading", "--heading"), ("stance", "--stance"), ("still_joints", "--still-joints"), ("prop", "--prop"), ("prop_damp", "--prop-damp"), ("torso_ref", "--torso-ref"), ("hand_ref", "--hand-ref"), ("hand_offset", "--hand-offset"), ("wrist_twist", "--wrist-twist"), ("hand_clear", "--hand-clear"), ("aim_forward", "--aim-forward"), ("step_lift", "--step-lift"), ("wrist_limit", "--wrist-limit"), ("hips_drop", "--hips-drop"), ("aim_body", "--aim-body"), ("aim_line", "--aim-line"), ("aim_offset", "--aim-offset"), ("anchor", "--anchor"), ("anchor_gap", "--anchor-gap"), ("anchor_roll", "--anchor-roll"), ("time_warp", "--time-warp"), ("head_smooth", "--head-smooth"), ("pose_ref", "--pose-ref"), ("gate", "--gate"), ("gate_smooth", "--gate-smooth"), ("only_arm", "--only-arm"), ("stab_aim", "--stab-aim"), ("stab_pitch", "--stab-pitch"), ("stab_shorten", "--stab-shorten"), ("stab_yaw", "--stab-yaw"), ("blade_along_arm", "--blade-along-arm"), ("blade_roll", "--blade-roll"), ("pose_ref_in", "--pose-ref-in"), ("pose_ref_tail", "--pose-ref-tail"), ("speed_segment", "--speed-segment"), ("bind", "--bind"), ("src_begin", "--src-begin"), ("wrist_fix", "--wrist-fix"), ("shoulders", "--shoulders"), ("hand_from_forearm", "--hand-from-forearm"), ("arm_roll_geometric", "--arm-roll-geometric"), ("arm_ik", "--arm-ik"), ("drift", "--drift"), ("hand_tilt", "--hand-tilt"), ("ik_always", "--ik-always"), ("unwind_ref", "--unwind-ref"), ("hand_grip", "--hand-grip"), ("arm_pose_reach", "--arm-pose-reach"), ("aim_fade", "--aim-fade")):
+                    ("ground_ignore", "--ground-ignore"), ("blend_to", "--blend-to"), ("blend_out", "--blend-out"), ("rename", "--rename"), ("plant_feet", "--plant-feet"), ("blend_from_lift", "--blend-from-lift"), ("heading", "--heading"), ("stance", "--stance"), ("still_joints", "--still-joints"), ("prop", "--prop"), ("prop_damp", "--prop-damp"), ("torso_ref", "--torso-ref"), ("hand_ref", "--hand-ref"), ("hand_offset", "--hand-offset"), ("wrist_twist", "--wrist-twist"), ("hand_clear", "--hand-clear"), ("aim_forward", "--aim-forward"), ("step_lift", "--step-lift"), ("wrist_limit", "--wrist-limit"), ("hips_drop", "--hips-drop"), ("aim_body", "--aim-body"), ("aim_line", "--aim-line"), ("aim_offset", "--aim-offset"), ("anchor", "--anchor"), ("anchor_gap", "--anchor-gap"), ("anchor_roll", "--anchor-roll"), ("time_warp", "--time-warp"), ("head_smooth", "--head-smooth"), ("pose_ref", "--pose-ref"), ("gate", "--gate"), ("gate_smooth", "--gate-smooth"), ("only_arm", "--only-arm"), ("stab_aim", "--stab-aim"), ("stab_pitch", "--stab-pitch"), ("stab_shorten", "--stab-shorten"), ("stab_yaw", "--stab-yaw"), ("blade_along_arm", "--blade-along-arm"), ("blade_roll", "--blade-roll"), ("pose_ref_in", "--pose-ref-in"), ("pose_ref_tail", "--pose-ref-tail"), ("speed_segment", "--speed-segment"), ("bind", "--bind"), ("src_begin", "--src-begin"), ("wrist_fix", "--wrist-fix"), ("shoulders", "--shoulders"), ("hand_from_forearm", "--hand-from-forearm"), ("arm_roll_geometric", "--arm-roll-geometric"), ("arm_ik", "--arm-ik"), ("drift", "--drift"), ("hand_tilt", "--hand-tilt"), ("ik_always", "--ik-always"), ("unwind_ref", "--unwind-ref"), ("hand_grip", "--hand-grip"), ("arm_pose_reach", "--arm-pose-reach"), ("aim_fade", "--aim-fade"), ("staff_line", "--staff-line"), ("staff_roll", "--staff-roll")):
         if k in c:
             a += [flag, str(c[k])]
     if c.get("mirror"):
@@ -80,7 +80,7 @@ def retarget_args(c):
 
 def unity_flags(c):
     mode = c["mode"]
-    loop = "1" if mode in ("idle", "loco") else "0"
+    loop = "1" if (mode in ("idle", "loco") or c.get("loops")) else "0"          # `loops true`: a looping clip built in another mode (AOE_Cast_Hold: action mode + a --loop-seam bake)
     inplace = "0" if (mode == "loco" or c.get("drift") == "root") else "1"
     extra = []
     if c.get("events"):
@@ -140,6 +140,14 @@ def build_pass(args, force, unity):
             notes += key
             if code != 0 or not any("saved" in l for l in lines):
                 ok = False
+            if ok and c.get("bake"):
+                # manifest `bake`: anim_nla_bake passes run on the fresh retarget before the export (a reproducible
+                # post-pass, e.g. ["--loop", "--loop-seam", "6"] to close a hold loop cut from a one-shot take)
+                code, out = run([BLENDER, "-b", ANIM, "-P", os.path.join(ROOT, "tools", "anim_nla_bake.py"), "--", "--action", c["name"], "--result", c["name"]] + [str(a) for a in c["bake"]] + ["--save"])
+                blines = [l for l in out.splitlines() if l.startswith("[nla_bake]") or "Traceback" in l or "Error" in l]
+                notes += ["bake " + " ".join(str(a) for a in c["bake"])] + [l for l in blines if any(k in l for k in ("seam", "loop", "Traceback", "Error"))]
+                if code != 0 or not any("saved" in l for l in blines):
+                    ok = False
         if ok:
             os.makedirs(PREVIEW, exist_ok=True)
             blender("anim_preview.py", ["--action", c["name"], "--out", PREVIEW])
