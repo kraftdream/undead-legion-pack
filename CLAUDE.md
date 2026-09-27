@@ -2039,8 +2039,16 @@ CHARACTER's forward (`arrowDirection CharacterForward`; `BowAim` = draw slot →
 `arrowSpeed` 30 m/s, the prefab's +Y (the shaft, head at +Y) turned onto the velocity (`LookRotation · Euler(90,0,0)`),
 `gravity` 0 (dead straight), destroyed after `lifetime` 4 s or under the floor; no collision, no damage
 (`fireProjectile` off disables it). Measured in play mode: the projectile appears on the release frame at the
-hand's height (1.34 m) and covers 30 m/s along the forward the character had at that moment (the demo's
-turntable turns the character on, so the shaft reads 0.87 of the later forward: expected). ⚠ Two bridge
+hand's height (1.34 m) and covers 30 m/s along the forward the character had at that moment. **Then (user:
+"the direction depends on the animation frame; make it GO transform direction based").** It WAS the
+GameObject's forward — the GameObject itself was turning: Shoot_01 carried `drift root`, so it imported with
+root rotation as root motion (`loopBlendOrientation 0`), and with Root Motion on the Animator turned the
+character's root with the archer's side-on body (hips −34° at the draw; the first probe read the shaft 0.87 of
+the root's LATER forward, which I misread as the turntable). `drift root` dropped: the clip imports IN PLACE
+(rotation and XZ baked into the pose; the take's own root travel was 2 cm / 0.6°), re-exported with the events
+and the fit. Measured with root motion on: the root's yaw stays 0.0° through the whole clip and the projectile
+flies exactly along the root's +Z. Rule: **a one-shot whose body turns must bake its root rotation into the
+pose, or every GO-transform direction read during it turns with the body.** ⚠ Two bridge
 lessons: `execute_code` REQUIRES `"action": "execute"` (a call without it fails validation, and a JSON with C#
 `
 ` literals written through a shell heredoc arrives with real newlines — run C# from a file, `runcs.py`-style);
