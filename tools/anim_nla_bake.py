@@ -1382,17 +1382,19 @@ def pin_feet(act):
     for spec in PIN_FOOT.split(","):
         if not spec:
             continue
-        parts = spec.split(":"); side = parts[0]; xy = parts[-1] == "xy"
-        if xy:
+        parts = spec.split(":"); side = parts[0]; mode = parts[-1] if parts[-1] in ("xy", "toe") else ""
+        if mode:
             parts = parts[:-1]
-        specs.setdefault(side, []).append((parts[1:], xy))
+        specs.setdefault(side, []).append((parts[1:], mode))
     for side, lst in specs.items():
         # the clip's own foot, per frame
-        own = {}; zs = {}
+        own = {}; zs = {}; balls = {}
         for f in range(F0, F1 + 1):
             scene.frame_set(f); own[f] = (rig.matrix_world @ pbs["foot_ik." + side].matrix).copy(); zs[f] = (rig.matrix_world @ pbs["DEF-foot." + side].matrix).translation.z
+            balls[f] = (rig.matrix_world @ pbs["DEF-toe." + side].matrix).translation.copy()   # the ball of the foot (the toe joint): the `toe` mode's pivot
         phases = []
-        for parts, xy in lst:
+        for parts, mode in lst:
+            xy = mode
             if parts and parts[0] == "auto":
                 zmin = min(zs.values()); planted = [f for f in range(F0, F1 + 1) if zs[f] <= zmin + 0.012]
                 ph = []
@@ -1415,7 +1417,12 @@ def pin_feet(act):
         for ref_, p0, p1, xy in phases:
             foot_m = own[ref_]
             for f in range(p0, p1 + 1):
-                if xy:
+                if xy == "toe":
+                    # the BALL of the foot held at the reference's spot, the foot's own rotation and the ankle's height
+                    # relative to it kept (the heel may lift and the foot pitch on its toes; user, Death_04: "frozen at
+                    # the toes' position, even when they bend")
+                    t = own[f].copy(); t.translation = own[f].translation + (balls[ref_] - balls[f])
+                elif xy:
                     t = own[f].copy(); t.translation = Vector((foot_m.translation.x, foot_m.translation.y, own[f].translation.z))
                 else:
                     t = foot_m.copy()
@@ -1464,7 +1471,7 @@ def pin_feet(act):
         # apply
         worst_gap = 0.0; kmin = 180.0; kmax = 0.0; toe_hold = {}
         for ref_, p0, p1, xy in phases:
-            if not xy:
+            if not xy:                                        # a full hold also holds the toe control; xy / toe keep the clip's own
                 scene.frame_set(ref_); toe_hold[(p0, p1)] = (rig.matrix_world @ pbs["toe_ik." + side].matrix).copy()
         for f in range(F0, F1 + 1):
             if f not in target:
@@ -1488,7 +1495,7 @@ def pin_feet(act):
             if any(p0 <= f <= p1 for _, p0, p1, _ in phases):
                 worst_gap = max(worst_gap, (ank - target[f].translation).length * 1000)
         log("foot %s: %s; corrections carried through %d flight phase(s)%s; knee %.0f..%.0f deg, DEF foot within %.1f mm of its hold on every held frame" % (
-            side, ", ".join("%d..%d @f%d%s" % (p0, p1, r_, " xy" if xy else "") for r_, p0, p1, xy in phases), len(gaps), " (loop)" if LOOP else "", kmin, kmax, worst_gap))
+            side, ", ".join("%d..%d @f%d%s" % (p0, p1, r_, (" " + xy) if xy else "") for r_, p0, p1, xy in phases), len(gaps), " (loop)" if LOOP else "", kmin, kmax, worst_gap))
 
 
 # 2. check that the flat action reproduces the stack: DEF bones before vs after

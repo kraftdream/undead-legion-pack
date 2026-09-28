@@ -2400,6 +2400,15 @@ memory is for a knee ON the axis; a bent knee that changes side has really chang
 **Death_04_Fix (2026-09-28):** chest, head, neck, torso, both feet and both forearms (one or two keys each over
 1–88, Combine); flattened (0.00 mm), no leg bone above 13° per frame, `hand_edited`, `Death_04_base` the retarget,
 re-exported. All four deaths are hand-edited now; their `bake` lists record what built the bases.
+**Death_04's feet on their toes (2026-09-28, "freeze the feet from frame 1 to 45 at the toes' position, even when they
+bend").** Measured: over 1–45 the balls of the feet drifted up to 4 cm sideways and rose up to 4 cm while the heels
+lifted 6–9 cm (the body falling forward over the toes). New pin mode **`SIDE:ref:from:to:toe`** (bake tool): the
+BALL of the foot (the `DEF-toe` joint) is held at the reference frame's spot in all three axes while the foot keeps
+each frame's own rotation and its ankle height relative to the ball, so the heel lifts and the foot pitches on its
+toes; the toe control is the clip's own (a full hold would freeze it). `anim_nla_bake --action Death_04 --result
+Death_04 --pin-foot "L:1:1:45:toe,R:1:1:45:toe" --pin-ease 0:8 --leg-reach 0.985`: balls on their spots to 0.0 mm
+on every held frame, the release eased over 8 frames, the torso lowered up to 7 mm rig on frames 1–19 where the held
+feet would have locked a knee, no leg bone above 13° per frame (the toes 19° at the release), re-exported.
 
 ### Hand-authored clips and idle fixes (2026-09-21)
 
