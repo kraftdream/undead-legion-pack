@@ -316,7 +316,7 @@ namespace UndeadLegion.Demo
             new ClipSection { title = "Reactions", idlePreference = new[] { "Idle" },
                 members = new[] { "Hit_Front", "Hit_Back", "Stagger", "Knockdown", "Get_Up", "Rise" } },
             new ClipSection { title = "Death", idlePreference = new string[0],
-                members = new[] { "Death_01", "Death_02" } },
+                members = new[] { "Death_01", "Death_02", "Death_03", "Death_04" } },   // the four instant-fall generations the user kept (2026-09-27): drop, face-down, on the back, puppet
             new ClipSection { title = "Other", idlePreference = new string[0], members = new string[0] },
         };
 
