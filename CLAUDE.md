@@ -2331,6 +2331,21 @@ builds, 1-based, both ends inclusive): Death_01 18–93, Death_02 1–87, Death_
 `src_begin` = start − 1 (0-based source frames; omitted for a start at 1) and `src_end` = end − 1 (inclusive),
 so clip frame N of the full build is source frame N − 1: 76 / 87 / 70 / 88 frames (2.5 / 2.9 / 2.3 / 2.9 s).
 The controller's states reference the clip assets, so a length change needs no controller rebuild.
+**Death_01's feet (2026-09-28, "can't control the legs with foot_ik; freeze the feet from frame 1 to 27, they leave
+the ground from frame 1 because of the torso's height").** Measured: frame 1 has both boots on the floor (+6 / −5 mm
+rig), then the generation raises the hips 2.8 cm rig by frame 13 and both feet lift 3–4 cm and slide 9 cm back before
+the fall (the wind-up). Death mode's legs are FK from the source, hence no foot_ik control. `anim_nla_bake --action
+Death_01 --result Death_01 --ik-legs --pin-foot "L:1:1:27,R:1:1:27" --pin-ease 0:8 --leg-reach 0.985`: legs to IK
+losslessly, both feet held at their frame-1 transforms over 1–27 (eased out over 8 frames into the fall), and the new
+**`--leg-reach K`** (bake tool): after the pins, per frame, the torso is lowered by the least amount that keeps every
+IK foot target within K of its leg (hip → knee → ankle), the need running-maxed over ±2 frames and low-passed twice,
+0 where nothing is needed — here up to 7 mm rig on frames 1–23 (knees peak at 160°, no lock; a constant `--torso-drop`
+would have moved the whole fall). Feet on their holds to 0.0 mm, no leg bone above 15° per frame, the largest
+acceleration at the release on 27. `hand_edited`, `Death_01_base` is the retarget. Rule: **a held foot under a rising
+source needs a per-frame reach drop, not a constant one.**
+Then the user's `Death_01_Fix` (Combine over the strip: both feet with two keys each over frames 37–70, the right thigh
+FK and the torso with one key) baked by `anim_nla_bake -- --result Death_01 --save` (flat = stack to 0.00 mm; the
+first `_base`, the retarget, kept), re-exported with `--export-only --force`.
 
 ### Hand-authored clips and idle fixes (2026-09-21)
 
