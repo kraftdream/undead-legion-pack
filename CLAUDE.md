@@ -2409,6 +2409,10 @@ toes; the toe control is the clip's own (a full hold would freeze it). `anim_nla
 Death_04 --pin-foot "L:1:1:45:toe,R:1:1:45:toe" --pin-ease 0:8 --leg-reach 0.985`: balls on their spots to 0.0 mm
 on every held frame, the release eased over 8 frames, the torso lowered up to 7 mm rig on frames 1–19 where the held
 feet would have locked a knee, no leg bone above 13° per frame (the toes 19° at the release), re-exported.
+**Death_03 the same (2026-09-28, "freeze the feet from frame 1 to 31"):** the balls had slid 3–7 cm back and sideways
+over 1–31 with the heels flat (this fall goes backwards). `--pin-foot "L:1:1:31:toe,R:1:1:31:toe" --pin-ease 0:8
+--leg-reach 0.985` (no frame needed the drop): balls on their spots to 0.0 mm, knees 84–134°, no leg bone above 14°
+per frame, re-exported.
 
 ### Hand-authored clips and idle fixes (2026-09-21)
 
