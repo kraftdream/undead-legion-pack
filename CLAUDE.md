@@ -2346,6 +2346,36 @@ source needs a per-frame reach drop, not a constant one.**
 Then the user's `Death_01_Fix` (Combine over the strip: both feet with two keys each over frames 37–70, the right thigh
 FK and the torso with one key) baked by `anim_nla_bake -- --result Death_01 --save` (flat = stack to 0.00 mm; the
 first `_base`, the retarget, kept), re-exported with `--export-only --force`.
+**Deaths and the finger idles (2026-09-28, three "small issues").** (1) "hand_idle_l/r are not highlighted when
+active": the two clips sat in the demo's "Other" section as plain buttons (no Base state, nothing to highlight).
+They are a section of their own now, **"Hand idle (empty hand, toggle)"** (`SkeletonShowcase.handIdlePrefix`):
+each button is lit while its finger layer's TARGET weight is 1 (`SkeletonWeapon.IsFingerIdleActive`: the hand
+empty, the toggle on, no death playing), refreshed every 8 frames, and clicking it toggles
+`SkeletonWeapon.fingerIdleLeft / Right` (`SetFingerIdle`; off = the clip's own fingers). (2) "when a death plays,
+twitch and hand idle should stop": `Play` calls `SetDeathSuspend(IsDeath(clip))` — every `TwitchLoop_NN` layer to
+weight 0 and `SkeletonWeapon.SetFingerIdleSuspended(true)` (both finger layers fade to 0 over `fingerFade`) for
+the death and its hold, restored by the next `Play` (the twitch toggles and the hand-idle toggles keep their
+state; `SetTwitchLoop` respects the suspension). (3) "bake the hand idle into the deaths so the fingers don't
+look bad": bake tool **`--fingers-from "L:Hand_Idle_L:1,R:Hand_Idle_R:1"`** — every finger control the source
+action keys for that side (thumb / f_* / palm chains) taken frame by frame from `Hand_Idle_L/R` starting at
+frame 1 (wrapping), so with the finger layers off the death shows the relaxed sway instead of the retarget's
+constant curl. On Death_01 run by hand (hand-edited), on Death_02–04 as the manifest **`bake`** list (run on the
+fresh retarget before the export). Rule: **a clip that turns the finger layers off must carry the relaxed hand
+itself.**
+Then "adjust death_02/3/4 so that foot_ik.L/R controls the feet": `--ik-legs` first in their `bake` lists (the
+retarget's FK legs converted to IK losslessly on every frame, the foot/toe controls on the DEF result, the knee
+pole out through the FK knee), so all four deaths are editable through the foot IK controls like Death_01.
+**"Death 2/3/4 now have their origin shifted" (2026-09-28).** Measured: the rebuilt clips' torso control sat at a
+CONSTANT offset (−0.75, −0.30, −0.47 rig m on every frame, Death_03 included) equal to Death_02's held last pose;
+the `_base` copies and two dry bakes on them were clean, so the bake tool was not it. The cause is the RETARGET
+writing under the user's live NLA state: the file had a `Death_02` strip (Replace) under `Death_02_Fix` active in
+COMBINE, `glb_retarget` removes and recreates the clip's action, assigns it as the active action and keys it with
+the blend type still Combine and the track unmuted — Blender then REMAPS every inserted key against the strip's
+value (the strip holds its last pose beyond its range), so the stored torso keys carried minus that pose. The
+retarget now mutes every NLA track and sets the active blend to Replace for the whole write (mutes restored
+before the save; the bake tool that follows in the batch restores the user's fix and re-points the strip), the
+three rebuilt. Rule kept and widened: **any tool that reads OR WRITES a named action must silence the NLA first;
+a key inserted under a Combine active action is remapped, not stored.**
 
 ### Hand-authored clips and idle fixes (2026-09-21)
 

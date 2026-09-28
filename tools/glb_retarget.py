@@ -361,8 +361,21 @@ def set_world(pb, q, translation=None):
 
 
 # ------------------------------------------------------------- 1. target rest
-if rig.animation_data is not None:
-    rig.animation_data.action = None
+rig.animation_data_create()
+# the user's NLA state must be SILENT BEFORE the rest is read and while the keys are written (2026-09-28, "death 2/3/4 now have their origin
+# shifted"): with a strip live in Replace under an active action in Combine, Blender REMAPS every inserted key
+# against the strip's value (the deaths came out offset by the Death_02 strip's held last pose, on every frame).
+# Clearing the active action is not enough: an unmuted strip still poses the rig, and the rest transforms
+# (T_rest, the torso's rest position among them) were read from the strip's held corpse frame. The tracks are muted and the active action's blend set to Replace for the whole run; the mutes are restored
+# before the save (anim_nla_bake restores the user's active fix and re-points the strip when it runs after this).
+_ad = rig.animation_data
+NLA_MUTES = [(t, t.mute) for t in _ad.nla_tracks]
+for _t in _ad.nla_tracks:
+    _t.mute = True
+if _ad.nla_tracks:
+    log("NLA: %d track(s) muted for the write (active blend %s -> REPLACE)" % (len(_ad.nla_tracks), _ad.action_blend_type))
+_ad.action_blend_type = 'REPLACE'; _ad.action_influence = 1.0
+rig.animation_data.action = None
 zero_pose()
 T_rest = {}
 for _, tgt, _, _ in MAP:
@@ -2085,5 +2098,7 @@ for lc in _EXCLUDED:
     lc.exclude = True
 if SAVE:
     bpy.context.preferences.filepaths.save_version = 0
+    for _t, _m in NLA_MUTES:
+        _t.mute = _m
     bpy.ops.wm.save_mainfile(filepath=bpy.data.filepath, compress=True)
     log("saved")
