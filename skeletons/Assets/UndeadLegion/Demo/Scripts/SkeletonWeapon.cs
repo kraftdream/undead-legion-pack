@@ -108,8 +108,8 @@ namespace UndeadLegion.Demo
             if (_fingersLeft == -2) { _fingersLeft = _animator.GetLayerIndex("LeftFingers"); _fingersRight = _animator.GetLayerIndex("RightFingers"); }
             // the weight is a target: Update fades the layer over `fingerFade` seconds (a clip-hold from a state's
             // SkeletonGripState begins with the crossfade into it, so the fingers close as the hand reaches the shaft)
-            _fingerTargetLeft = (_holdLeft || _clipHoldLeft) ? 0f : 1f;
-            _fingerTargetRight = (_holdRight || _clipHoldRight) ? 0f : 1f;
+            _fingerTargetLeft = (_holdLeft || _clipHoldLeft || _fingerSuspend || !fingerIdleLeft) ? 0f : 1f;
+            _fingerTargetRight = (_holdRight || _clipHoldRight || _fingerSuspend || !fingerIdleRight) ? 0f : 1f;
             if (!Application.isPlaying)
             {
                 if (_fingersLeft >= 0) _animator.SetLayerWeight(_fingersLeft, _fingerTargetLeft);
@@ -194,6 +194,29 @@ namespace UndeadLegion.Demo
 
         [Tooltip("Seconds the empty-hand finger layers take to fade in or out (matches the demo's crossfade).")]
         public float fingerFade = 0.15f;
+        [Tooltip("The empty-hand finger idle on the left / right hand (the demo's Hand idle toggles); off = the clip's own fingers.")]
+        public bool fingerIdleLeft = true, fingerIdleRight = true;
+        bool _fingerSuspend;   // a death plays: both finger idles off whatever the toggles say (SetFingerIdleSuspended)
+
+        /// <summary>Is the finger idle currently driving this hand (its layer's target weight is 1: the hand is empty,
+        /// the toggle on, no suspension)?</summary>
+        public bool IsFingerIdleActive(Hand hand)
+        {
+            return hand == Hand.Left ? _fingerTargetLeft > 0.5f : hand == Hand.Right ? _fingerTargetRight > 0.5f : false;
+        }
+
+        public void SetFingerIdle(Hand hand, bool on)
+        {
+            if (hand == Hand.Left) fingerIdleLeft = on; else if (hand == Hand.Right) fingerIdleRight = on;
+            ApplyFingerLayers();
+        }
+
+        /// <summary>A death (or any clip whose own fingers must show): both finger idles fade out until released.</summary>
+        public void SetFingerIdleSuspended(bool on)
+        {
+            _fingerSuspend = on;
+            ApplyFingerLayers();
+        }
         float _fingerTargetLeft = 1f, _fingerTargetRight = 1f;
         bool _clipHoldLeft, _clipHoldRight, _clipHoldLeftFrame, _clipHoldRightFrame;
 

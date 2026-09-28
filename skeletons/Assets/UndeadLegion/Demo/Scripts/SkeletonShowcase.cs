@@ -63,6 +63,8 @@ namespace UndeadLegion.Demo
         public float rootMotionLeash = 0f;
         [Tooltip("Prefix of the clips that live on the additive twitch layer.")]
         public string twitchPrefix = "Twitch_";
+        [Tooltip("Prefix of the empty-hand finger idle clips (LeftFingers / RightFingers layers): listed as toggles, highlighted while their layer drives the hand.")]
+        public string handIdlePrefix = "Hand_Idle_";
 
         static readonly Color NormalColor = new Color(0.22f, 0.23f, 0.26f, 1f);
         static readonly Color SelectedColor = new Color(0.55f, 0.72f, 0.30f, 1f);
@@ -82,6 +84,9 @@ namespace UndeadLegion.Demo
         // a twitch toggled on loops on its own additive layer (TwitchLoop_NN) over whatever plays;
         // all on when the demo starts, remembered across character switches
         readonly List<bool> _twitchLoopOn = new List<bool>();
+        readonly List<AnimationClip> _handIdles = new List<AnimationClip>();   // Hand_Idle_L / _R (finger-layer clips, 2026-09-28)
+        readonly List<Button> _handIdleButtons = new List<Button>();
+        bool _deathSuspend;   // a death plays: the twitch loops and the finger idles are off until the next clip
         AnimationClip _current;
         AnimationClip _pendingFollow;
         // layered playback: clips with a state on the "UpperBody" layer (attacks that can be
@@ -123,6 +128,7 @@ namespace UndeadLegion.Demo
         void Update()
         {
             if (_animator == null) return;
+            if (_handIdleButtons.Count > 0 && (Time.frameCount & 7) == 0) RefreshHandIdleButtons();
 
             if (_pendingFollow != null)
             {
@@ -219,6 +225,8 @@ namespace UndeadLegion.Demo
             _maskedLayers.Clear();
             _clips.Clear();
             _twitches.Clear();
+            _handIdles.Clear();
+            _deathSuspend = false;
 
             var entry = characters[index];
             if (entry.prefab == null)
@@ -269,10 +277,12 @@ namespace UndeadLegion.Demo
             {
                 if (c == null || !seen.Add(c.name)) continue;
                 if (c.name.StartsWith(twitchPrefix)) _twitches.Add(c);
+                else if (c.name.StartsWith(handIdlePrefix)) _handIdles.Add(c);
                 else _clips.Add(c);
             }
             _clips.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
             _twitches.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
+            _handIdles.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
         }
 
         class ClipSection
@@ -444,6 +454,72 @@ namespace UndeadLegion.Demo
                 DemoUI.CreateInfoRow(clipListContent, "on = keeps adding to the current clip");
                 for (int i = 0; i < _twitches.Count; i++) SetTwitchLoop(i, _twitchLoopOn[i]);
             }
+
+            // the empty-hand finger idles (2026-09-28, user: "hand_idle_l/r are not highlighted when they are
+            // active"): one toggle per hand, lit while its finger layer drives the hand (empty, toggle on, no
+            // death playing); the weight itself is SkeletonWeapon's (0 on a hand that holds an item)
+            _handIdleButtons.Clear();
+            if (_handIdles.Count > 0)
+            {
+                DemoUI.CreateSectionLabel(clipListContent, "Hand idle  (empty hand, toggle)");
+                for (int i = 0; i < _handIdles.Count; i++)
+                {
+                    var hc = _handIdles[i];
+                    var hb = DemoUI.CreateListButton(clipListContent, hc.name, NormalColor);
+                    var hand = HandOf(hc);
+                    hb.onClick.AddListener(() => ToggleHandIdle(hand));
+                    _handIdleButtons.Add(hb);
+                }
+                DemoUI.CreateInfoRow(clipListContent, "lit = driving that hand's fingers");
+                RefreshHandIdleButtons();
+            }
+        }
+
+        SkeletonWeapon.Hand HandOf(AnimationClip clip)
+        {
+            return clip != null && clip.name.EndsWith("_L") ? SkeletonWeapon.Hand.Left : SkeletonWeapon.Hand.Right;
+        }
+
+        public void ToggleHandIdle(SkeletonWeapon.Hand hand)
+        {
+            if (_weapon == null) return;
+            bool on = hand == SkeletonWeapon.Hand.Left ? _weapon.fingerIdleLeft : _weapon.fingerIdleRight;
+            _weapon.SetFingerIdle(hand, !on);
+            RefreshHandIdleButtons();
+            if (clipInfoLabel != null)
+                clipInfoLabel.text = string.Format("Hand idle {0}   |   {1}   |   over {2}", hand == SkeletonWeapon.Hand.Left ? "L" : "R", !on ? "ON while the hand is empty" : "off", _current != null ? _current.name : "-");
+        }
+
+        void RefreshHandIdleButtons()
+        {
+            for (int i = 0; i < _handIdleButtons.Count && i < _handIdles.Count; i++)
+            {
+                bool active = _weapon != null && _weapon.IsFingerIdleActive(HandOf(_handIdles[i]));
+                var img = _handIdleButtons[i].GetComponent<Image>();
+                if (img != null) img.color = active ? SelectedColor : NormalColor;
+            }
+        }
+
+        /// <summary>A death plays (2026-09-28, user: "when death plays, twitch and hand idle animations should stop"):
+        /// every twitch loop layer and both finger idles go to 0 until the next clip; the toggles keep their state.</summary>
+        void SetDeathSuspend(bool on)
+        {
+            if (_deathSuspend == on) return;
+            _deathSuspend = on;
+            if (_animator != null)
+                for (int i = 0; i < _twitches.Count; i++)
+                {
+                    int layer = _animator.GetLayerIndex("TwitchLoop_" + _twitches[i].name.Substring(_twitches[i].name.Length - 2));
+                    if (layer >= 0) _animator.SetLayerWeight(layer, (!on && i < _twitchLoopOn.Count && _twitchLoopOn[i]) ? 1f : 0f);
+                }
+            if (_weapon != null) _weapon.SetFingerIdleSuspended(on);
+            RefreshHandIdleButtons();
+        }
+
+        bool IsDeath(AnimationClip clip)
+        {
+            ClipSection s;
+            return clip != null && _sectionOf.TryGetValue(clip.name, out s) && s.title == "Death";
         }
 
         bool IsLocomotion(AnimationClip clip)
@@ -568,6 +644,7 @@ namespace UndeadLegion.Demo
             if (IsLocomotion(clip)) _lastLoco = clip;
             else if (clip.isLooping) _lastLoco = null;          // an idle picked by hand ends the walk
             _pendingFollow = null;
+            SetDeathSuspend(IsDeath(clip));
             int hash = Animator.StringToHash(clip.name);
             bool hasEvents = clip.events != null && clip.events.Length > 0;
             bool restart = !clip.isLooping && !_animator.IsInTransition(0)
@@ -650,7 +727,7 @@ namespace UndeadLegion.Demo
             if (_animator != null)
             {
                 int layer = _animator.GetLayerIndex("TwitchLoop_" + _twitches[index].name.Substring(_twitches[index].name.Length - 2));
-                if (layer >= 0) _animator.SetLayerWeight(layer, on ? 1f : 0f);
+                if (layer >= 0) _animator.SetLayerWeight(layer, (on && !_deathSuspend) ? 1f : 0f);
                 else Debug.LogWarning("SkeletonShowcase: no TwitchLoop layer for " + _twitches[index].name + " (rebuild the controller)", this);
             }
             if (index < _twitchButtons.Count)

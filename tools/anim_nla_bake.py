@@ -43,6 +43,7 @@ VSMOOTH = [int(v) for v in arg("--vsmooth", "").split(",") if v]   # frames: on 
 STRIDE = float(arg("--stride", "1"))             # locomotion: scale the travel along the clip's travel axis - the root's advance AND every root-level control's position along that axis about the root's first-frame spot - by this factor (0.7 = steps 30 % shorter; a planted foot stays planted, the knees bend more). Run before pins and the speed segment
 LOOP_SEAM = int(arg("--loop-seam", "0"))         # frames: re-close a loop after edits - over the last N frames every control is crossfaded to its FIRST-frame pose (root-space locations shifted by the root's travel), so the last frame equals the first + travel exactly (a fix keyed near the ends had left the left foot 10 mm higher on the last frame than on the first)
 LOOP = "--loop" in argv                           # the clip is a cycle: a pin's flight-phase correction wraps across the seam (last frame -> first)
+FINGERS_FROM = arg("--fingers-from", "")          # "L:Hand_Idle_L:1,R:Hand_Idle_R:1": that hand's finger controls (every control the source action keys with that side's suffix) taken frame by frame from the action starting at that frame, wrapping over its length - the relaxed empty-hand sway baked INTO a clip whose fingers must read right with the finger layers off (user, the deaths: "bake the hand idle into the death animations")
 UPPER_FROM = arg("--upper-from", "")              # "Idle_03:1": after the retime, every control ABOVE the legs (the torso's rotation - its location stays the clip's - spine, chest, neck, head, jaw, shoulders, arms, hands, fingers and the arm IK/FK switches) is taken frame by frame from that action starting at that frame (wrapping over its length), the clip keeping its root, hips, legs and feet (user, Walk_Back: "too much movement above the legs, use the above-torso animation from idle_3")
 UPPER_SEAM = int(arg("--upper-seam", "8"))         # frames: the copied window's end crossfaded to its start so the loop closes
 HAND_WEIGHT = arg("--hand-weight", "")            # "R:0.015:4:6": that IK hand bobs against the body's vertical sway as if the held item had weight - the hips' height over the clip, normalised to -1..1, delayed DELAY frames (wrapping over a loop), moves the hand AMP rig m the OTHER way and pitches it PITCH degrees about the socket's finger axis (the tip dips as the hand drops) (user, Idle_Wand: "right hand sway that mimics the wand's weight, in sync with the character swaying up and down")
@@ -338,6 +339,40 @@ def upper_from(act, spec, seam):
                 if p_ in pb and p_ in win[f][c]:
                     pb.keyframe_insert('["%s"]' % p_, frame=f, group=c)
     log("upper body from %s frames %d..%d (of %d) onto %d controls, the last %d frames crossfaded to the first (torso: rotation only)" % (src_name, start, start + (F1 - F0), n_src, len(ctrls), seam))
+
+
+def fingers_from(act, spec):
+    for part in spec.split(","):
+        side, src_name, start = part.split(":"); start = int(start); src = bpy.data.actions[src_name]
+        s0, s1 = (int(round(x)) for x in src.frame_range); n_src = s1 - s0 + 1
+        keyed = set()
+        for l_ in src.layers:
+            for st_ in l_.strips:
+                for cb in st_.channelbags:
+                    for fc in cb.fcurves:
+                        if '"' in fc.data_path: keyed.add(fc.data_path.split('"')[1])
+        ctrls = sorted(n for n in keyed if n in pbs and n.startswith(("thumb", "f_", "palm")) and (n.endswith("." + side) or n.endswith("." + side + ".001")))
+        ad.action = src; win = {}
+        for i in range(F1 - F0 + 1):
+            sf = s0 + ((start - s0) + i) % n_src
+            scene.frame_set(sf); win[F0 + i] = read_pose()
+        ad.action = act
+        for f in range(F0, F1 + 1):
+            scene.frame_set(f)
+            for c in ctrls:
+                rec = win[f][c]; pb = pbs[c]
+                pb.location = rec["loc"]; pb.scale = rec["scale"]
+                if pb.rotation_mode == 'QUATERNION': pb.rotation_quaternion = rec["rot"]
+                elif pb.rotation_mode == 'AXIS_ANGLE':
+                    ax_, an_ = rec["rot"].to_axis_angle(); pb.rotation_axis_angle = (an_, ax_.x, ax_.y, ax_.z)
+                else: pb.rotation_euler = rec["rot"].to_euler(pb.rotation_mode)
+            bpy.context.view_layer.update()
+            for c in ctrls:
+                pb = pbs[c]
+                pb.keyframe_insert("location", frame=f, group=c)
+                pb.keyframe_insert("rotation_quaternion" if pb.rotation_mode == 'QUATERNION' else "rotation_axis_angle" if pb.rotation_mode == 'AXIS_ANGLE' else "rotation_euler", frame=f, group=c)
+                pb.keyframe_insert("scale", frame=f, group=c)
+        log("fingers %s from %s frames %d..%d (of %d) onto %d controls" % (side, src_name, start, start + (F1 - F0), n_src, len(ctrls)))
 
 
 def hand_weight(act, spec):
@@ -1585,6 +1620,10 @@ if SPEED_SEGMENT:
 
 if UPPER_FROM:
     upper_from(baked, UPPER_FROM, UPPER_SEAM)
+    ad.action = baked
+
+if FINGERS_FROM:
+    fingers_from(baked, FINGERS_FROM)
     ad.action = baked
 
 if EVEN_ADVANCE:
