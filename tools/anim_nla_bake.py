@@ -52,6 +52,7 @@ START_BLEND = arg("--start-blend", "")           # "Idle_Bow:1:8": the FIRST N f
 END_BLEND = arg("--end-blend", "")               # "Idle:1:8": after the retime, the last N frames crossfade every control to that action's frame (locations, rotations, scales, the switches on the last frame), so a one-shot ends EXACTLY on the pose the demo crossfades to next; the IK legs keep their knee poles on the FK plane through it (user, Impaled_Rise: "lower the torso on the fully standing pose, use it to fix the floating feet at the end")
 EVEN_ADVANCE = int(arg("--even-advance", "0"))      # K: a locomotion loop is RETIMED so the hips' advance per frame along the travel follows a circularly smoothed (K passes of [1,2,1], wrapping at the seam) version of its own profile; same frame count, same travel, the Root kept linear. Removes the speed dip that a loop-closing crossfade leaves at the seam (the hips advanced 55 mm per frame and then 17 at Run_Fwd_02's wrap; Walk_Back lurched 14 mm and stalled to 0 on its last frames), which plays as a hitch every cycle under root motion (user: "walk_back, run_fwd and run_fwd_02 have looping issues")
 FOOT_CLEAR = arg("--foot-clear", "")              # Z rig m: no model's BOOT goes below Z on any frame - per frame and foot, the lowest vertex of all six characters' Boot_<side> meshes is measured and an IK foot (and its toe) is raised by the deficit, the lift running-maxed over +-1 frame and smoothed (wrapping with --loop), the knee pole kept on the FK plane. For a swinging foot that pitches toe-down while barely lifting (the strafes: the boot's toe dragged 14 mm through the floor, and a constant export lift fitted to that dip floated the whole stance 25 mm; user: "both strafe animations in unity have model float above ground")
+LEG_REACH = float(arg("--leg-reach", "0"))         # 0..1 of the leg length: after the foot pins, the torso is lowered PER FRAME by what a held IK foot needs to stay within this reach (running max +-2 frames, smoothed), 0 elsewhere - a source whose hips rise over a held foot straightens the knee and lifts it otherwise (user, Death_01: "the feet leave the ground from frame 1; it is the torso height that lifts them")
 TORSO_DROP = float(arg("--torso-drop", "0"))       # rig m: the torso control (the hips, and with it the spine, head and FK arms) lowered by this on every frame; IK feet stay planted so the knees bend more, the poles re-aimed on the FK plane (user, Summon: "bring the torso down like 8 cm" = 0.044 rig m)
 YAW_CLIP = float(arg("--yaw-clip", "0"))          # degrees, + = left: the whole clip turned about the vertical through the root's first-frame spot - every root-level control (torso, feet, toes, knee poles, IK hands, elbow poles) and the root's path, the Root's own orientation left at identity so the export's Root stays as in every other clip (user, AOE_Cast: "animation direction the same as the feet direction in idle_02": the take faced 17 deg right)
 KNEES_IN = float(arg("--knees-in", "0"))         # rig m: the IK knees swivelled toward the body's midline so their separation shrinks by this much (each knee's pole aimed at the FK knee moved half of it inward along the hips' lateral axis; the knee can only move on its swivel circle, so the pole takes the nearest point). Runs after every other leg pass. (user, Strafe_01: "knees not that far apart, like 20 cm closer": the knees sat 276-414 mm apart with the feet 132-299)
@@ -950,6 +951,58 @@ def torso_drop(act, d):
     log("torso lowered by %.3f rig m (%.0f mm engine) on every frame: hips at %.3f on frame %d" % (d, d * 1800, hz, F0))
 
 
+def leg_reach(act, k):
+    """Per frame: lower the torso by the least amount that brings every IK foot target within k of its leg
+    (hip joint -> knee -> ankle, rigid lengths); the need is running-maxed over +-2 frames and low-passed
+    twice so the drop eases in and out, and frames that need nothing stay at 0. A target whose HORIZONTAL
+    distance already exceeds the reach cannot be fixed by a drop and is logged."""
+    ad.action = act
+    W_ = lambda n: (rig.matrix_world @ pbs[n].matrix)
+    need = {}; short = []
+    for f in range(F0, F1 + 1):
+        scene.frame_set(f); d = 0.0
+        for sd in ("L", "R"):
+            if pbs["thigh_parent." + sd]["IK_FK"] > 0.5:
+                continue
+            hip_ = W_("DEF-thigh." + sd).translation.copy(); knee_ = W_("DEF-shin." + sd).translation.copy(); ank_ = W_("DEF-foot." + sd).translation.copy()
+            L_ = (knee_ - hip_).length + (ank_ - knee_).length; r_ = k * L_
+            v = W_("foot_ik." + sd).translation - hip_
+            if v.length <= r_:
+                continue
+            hor2 = v.x * v.x + v.y * v.y
+            if hor2 >= r_ * r_:
+                short.append((f, sd, (math.sqrt(hor2) - r_) * 1000)); continue
+            d = max(d, -v.z - math.sqrt(r_ * r_ - hor2))
+        need[f] = d
+    fr = list(range(F0, F1 + 1)); n = len(fr)
+    arr = [max(need[fr[j]] for j in range(max(0, i - 2), min(n, i + 3))) for i in range(n)]
+    for _ in range(2):
+        arr = [(arr[max(0, i - 1)] + 2 * arr[i] + arr[min(n - 1, i + 1)]) / 4.0 for i in range(n)]
+    if max(arr) <= 1e-6:
+        log("leg-reach %.3f: no frame needs a torso drop" % k); return
+    for i, f in enumerate(fr):
+        if arr[i] <= 1e-6:
+            continue
+        scene.frame_set(f)
+        pb = pbs["torso"]; m = (rig.matrix_world @ pb.matrix).copy(); m.translation.z -= arr[i]
+        pb.matrix = rig.matrix_world.inverted() @ m; bpy.context.view_layer.update()
+        pb.keyframe_insert("location", frame=f, group="torso")
+    # what remains after the smoothing
+    worst = 0.0
+    for f in fr:
+        scene.frame_set(f)
+        for sd in ("L", "R"):
+            if pbs["thigh_parent." + sd]["IK_FK"] > 0.5:
+                continue
+            hip_ = W_("DEF-thigh." + sd).translation; knee_ = W_("DEF-shin." + sd).translation; ank_ = W_("DEF-foot." + sd).translation
+            L_ = (knee_ - hip_).length + (ank_ - knee_).length
+            worst = max(worst, (W_("foot_ik." + sd).translation - hip_).length / L_)
+    on = [fr[i] for i in range(n) if arr[i] > 1e-6]
+    log("leg-reach %.3f: torso lowered on frames %d..%d, up to %.1f mm rig (%.0f mm engine) at frame %d; worst reach after %.3f of the leg%s" % (
+        k, on[0], on[-1], max(arr) * 1000, max(arr) * 1800, fr[arr.index(max(arr))], worst,
+        "; %d leg-frames beyond the horizontal reach (worst %.0f mm, frame %d %s)" % (len(short), max(short, key=lambda x: x[2])[2], max(short, key=lambda x: x[2])[0], max(short, key=lambda x: x[2])[1]) if short else ""))
+
+
 def yaw_clip(act, deg):
     ad.action = act
     scene.frame_set(F0); pivot = (rig.matrix_world @ pbs["root"].matrix).translation.copy()
@@ -1428,6 +1481,8 @@ if STRIDE != 1.0:
 
 if PIN_FOOT:
     pin_feet(baked)
+if LEG_REACH:
+    leg_reach(baked, LEG_REACH)
 if (PIN_FOOT or IK_LEGS or STRIDE != 1.0 or VSMOOTH) and not KEEP_POLES:
     repole_legs(baked)
 if FOOT_CLEAR:
