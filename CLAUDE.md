@@ -2368,14 +2368,38 @@ pole out through the FK knee), so all four deaths are editable through the foot 
 **"Death 2/3/4 now have their origin shifted" (2026-09-28).** Measured: the rebuilt clips' torso control sat at a
 CONSTANT offset (−0.75, −0.30, −0.47 rig m on every frame, Death_03 included) equal to Death_02's held last pose;
 the `_base` copies and two dry bakes on them were clean, so the bake tool was not it. The cause is the RETARGET
-writing under the user's live NLA state: the file had a `Death_02` strip (Replace) under `Death_02_Fix` active in
-COMBINE, `glb_retarget` removes and recreates the clip's action, assigns it as the active action and keys it with
-the blend type still Combine and the track unmuted — Blender then REMAPS every inserted key against the strip's
-value (the strip holds its last pose beyond its range), so the stored torso keys carried minus that pose. The
-retarget now mutes every NLA track and sets the active blend to Replace for the whole write (mutes restored
-before the save; the bake tool that follows in the batch restores the user's fix and re-points the strip), the
-three rebuilt. Rule kept and widened: **any tool that reads OR WRITES a named action must silence the NLA first;
-a key inserted under a Combine active action is remapped, not stored.**
+reading the rig's REST transforms (`T_rest`: the torso's rest position among them) from a rig that was still
+POSED: the file had a `Death_02` strip (Replace) on the rig's NLA under `Death_02_Fix` active in Combine, and
+`glb_retarget` only cleared the active action before `zero_pose()` — an unmuted strip keeps posing the rig
+(holding its last frame beyond its range), so every torso target was built on the corpse's torso. A first fix
+that muted the tracks only for the WRITE changed nothing (the rest read comes first); the retarget now creates
+the animation data, mutes every NLA track and sets the active blend to Replace BEFORE the rest read and keeps
+them so for the run (mutes restored before the save; the bake tool that follows in the batch restores the
+user's fix and re-points the strip). This is also the "not reproduced, cause unknown" build of 2026-09-25
+(every arm bone 60–74° off after `anim_weapon_ref --check` had left a posed action live). Side effect noted: the
+user's first `Death_02_Fix` (empty, 0 f-curves, no fake user) was dropped by that rebuild's save. Rule kept and
+widened: **any tool that reads or writes a named action must silence the NLA first, and "the rest pose" is only
+the rest pose with no action AND no strip live.**
+**Death_02_Fix (2026-09-28, "added Death_02_Fix, bake it").** Both feet and the torso, two keys each over 38–87, in
+Combine over the strip: flattened (0.00 mm), `hand_edited`, `Death_02_base` the retarget. The leg scan after the
+bake showed the RIGHT SHIN turning 87° in one frame at 52 with the knee jumping 17 cm — and a dry `--ik-legs` on the
+`_base` reproduced it, so it was the IK conversion, not the fix (the tool's own "knee within 9.5 mm" check missed
+it). Cause: **the pole memory rule** (`leg_pole` / `ik_pole`: "a side flip vs last frame keeps the old plane")
+fired on a knee 7–16 cm OFF the axis that genuinely swung across it as the leg folded in the fall, held the old
+plane for 30 frames and snapped when the memory let go. The clause now applies only while the knee is within 4 cm
+of the axis (both tools); a bent knee's FK plane is the truth. Then a 39.5° step at 68: from frame 67 the user's
+right foot placement puts that leg at its FULL length (knee 177°, hip→ankle 0.472 rig m = the leg), where the
+swivel is undefined and the refinement loop chased noise (the pole moved 20 cm between two locked frames) — a
+near-straight reference knee now takes the memory's plane without refinement. Death_02 re-aimed (`--action
+Death_02 --result Death_02 --ik-legs`: the feet are the fix's, the poles from the retarget's FK knees),
+re-exported. **Reported, not changed: the right knee is locked straight on frames 67–87 by the fix's foot spot
+(the straight-leg flip risk in Humanoid); a foot ~3 cm closer to the hips would keep it bent.** Rule: **a pole
+memory is for a knee ON the axis; a bent knee that changes side has really changed side.**
+**Death_03_Fix (2026-09-28):** both feet (two keys each) and `hand_fk.R` (three) over 34–70, Combine; flattened
+(0.00 mm), no leg bone above 14° per frame, `hand_edited`, `Death_03_base` the retarget, re-exported.
+**Death_04_Fix (2026-09-28):** chest, head, neck, torso, both feet and both forearms (one or two keys each over
+1–88, Combine); flattened (0.00 mm), no leg bone above 13° per frame, `hand_edited`, `Death_04_base` the retarget,
+re-exported. All four deaths are hand-edited now; their `bake` lists record what built the bases.
 
 ### Hand-authored clips and idle fixes (2026-09-21)
 
