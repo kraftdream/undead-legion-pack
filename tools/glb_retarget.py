@@ -172,6 +172,7 @@ AIM_PEAK = 1.0                                  # the full turn, for the step's 
 AIM_FADE = int(arg("--aim-fade", "0"))          # frames: the aim turn fades in over the first N output frames and out over the last N even WITHOUT a blend_from / blend_to (a plain-transfer shot: the nearest raised value otherwise holds the full twist through the standing ends, 2026-09-25)
 AIM_BODY = float(arg("--aim-body", "1.0"))      # share of the aim turn taken by the WHOLE body (pelvis + feet); the rest is a spine twist above the pelvis (1 = side-on archer, 0 = pelvis stays on the idle heading)
 STEP_LIFT = float(arg("--step-lift", "0.04"))   # rig m: how high the stepping foot lifts mid-transition
+HIPS_MAP = arg("--hips-map", "delta")            # delta: the hips' offset from the clip's FIRST frame, scaled, on the rig's rest torso (a standing clip starts at the rest height); floor: the source's hips HEIGHT scaled proportionally from the floor (a lying pelvis at 5 cm lands at 5 cm x scale, not at rest minus the drop) - deaths, 2026-09-27
 HIPS_DROP = float(arg("--hips-drop", "0"))      # rig m: an extra, deliberate crouch on top of the reach drop; with a blend-from/to it fades with the crossfades
 AIM_FIX = None                                  # pass 2: per frame yaw to apply to the whole body
 PELVIS_FIX = None                               # pass 2: per frame yaw that holds the pelvis on the idle's heading (used by 1 - AIM_BODY)
@@ -833,6 +834,10 @@ def hips_target(f, src):
     first frame but its root has travelled the whole loop (the first build snapped the
     root back to 0 on the seam frame, so Unity measured zero travel)."""
     h = src["Hips"][1] - hips0
+    if HIPS_MAP == "floor":
+        # proportional from the floor: DEF hips z = source hips z * scale (the rest torso sits at
+        # hip_z_s * scale above it, so the bind's hips land on the rest and a lying pelvis on the floor)
+        h.z = src["Hips"][1].z - hip_z_s
     if MODE == "loco":
         root = travel_v * f
         local = h - (travel_v + drift_v) * (f % LOOP)
@@ -1886,7 +1891,13 @@ elif MODE == "idle" and max(idle_need) > 1e-4:
     log("reach: hips lowered by %.4f rig m (%.0f mm) so the IK legs never straighten" % (HIP_DROP[0], HIP_DROP[0] * 1800))
 
 # ground correction per frame (rig metres)
-if MODE in ("idle", "upper"):
+if GROUND == "none":
+    # no per-frame floor correction at all: the source's own heights (scaled), a constant export lift on top.
+    # Deaths (user, 2026-09-27: "the original Kimodo animations, just raised 6-7 cm; the per-node raise applied
+    # to all the bones makes them float"): a lying body's stray node under the floor must not lift the corpse
+    dz = [0.0] * N_OUT
+    log("ground: none (the source's heights as they are; the export lift is the only offset)")
+elif MODE in ("idle", "upper"):
     dz = [0.0] * N_OUT
 elif MODE == "loco":
     dz = smooth_series([-m for m in raw_min], 3)                 # two-way: lowest point on the floor

@@ -50,7 +50,7 @@ every one verified on all six models with `verify_clip.py` + `ground_clip.py`; p
 | Bow | `Idle_Bow` hand-edited 2026-09-27 (knees 3 cm narrower than the retarget's build by the pole swivel, at the retarget's height; `Idle_Bow_base` is that build); `Shoot_01` (redone 2026-09-25 from the user's mannequin recording `aoe cast shoot.glb`: raise, draw at the cheek, release, lower, 1.9 s; the shot goes where the recorded feet point, `heading feet`; the video-mocap build of 2026-09-22 and `Shoot_02` retired; 2026-09-27: the user's `Shoot_01_Fix` baked, `hand_edited`, and animation events `BowAttach` 15 / `BowRelease` 21 on the clip — the recurve bow is a skinned model now and its string follows the draw hand between them, and a fired arrow flies along the character's forward on the release, §8 "The recurve bow bends"; imported in place; legs from `Idle_Bow`'s stance under the take's hips) |
 | Magic | `Cast_Wand_01/02`, `Cast_Staff_01` (both hands on the staff; redone 2026-09-27 from the user's `cast staff.glb`, frames 88–155, in place, both feet frozen) — the user's mannequin recording `magic attacks.glb` (2026-09-25); `Cast_Staff_02` retired |
 | Specials | `Summon` (necromancer, both hands overhead), `AOE_Cast` (mage; redone 2026-09-27 from the user's `aoe cast.glb`: a left-hand gesture, then the staff raised overhead and lowered, 4.8 s, on `Idle_Staff`'s legs, in place; a hold/release split was tried and reverted), `Taunt_01/02/03` (warrior), `Cutthroat` (assassin), `Rally` (knight, sword raised) — all from the user's recording `taunts.glb` (2026-09-25); the Kimodo `Taunt` retired |
-| Death | `Death_01` (struck, falls on the back), `Death_02` (kneels, crumples sideways) |
+| Death | `Death_01` (drops straight down), `Death_02` (face-down), `Death_03` (flat on the back), `Death_04` (limp, like a puppet) — the four instant-fall Kimodo generations the user kept on 2026-09-27 from seven candidates, the full 100-frame generations on the rig with no floor pass and no lift (§8 "Death candidates"); the user gives each one's start frame; the old struck-on-the-back / kneel-and-crumple deaths are gone |
 
 **Measured speed table** (Unity, Humanoid, root motion on, Knight; the other five are
 identical because the avatar is shared). Ship these numbers with the pack:
@@ -2268,6 +2268,69 @@ body's), 48 module prefabs, and in play mode the Mage wearing the Knight's helm 
 `Walk_Fwd_01` on its own bones. The verify / grounding tools instantiate `PF_<Char>` now (the models
 have no boots to measure). Not done: the Asset Store validator on the new layout; Unreal notes (one
 skeletal mesh per module against the shared Skeleton is the standard there).
+
+### Death candidates (2026-09-27, "redo the deaths: too long a wind-up, the models end up floating; a prompt that falls immediately; five, pick later")
+
+Five Kimodo generations with the skeleton profile, 100 frames each (`death_instant_{drop,face,back,knees,puppet}`,
+seeds 3 / 5 / 13 / 17 / 23), mode `death`, as `Death_03`–`Death_07` next to the old `Death_01` / `02`; all
+seven in the demo's Death section (the hold, then the return to the idle). **Kimodo starts standing whatever the
+prompt says**: measured (`deatheval`-style: the frame where the hips have dropped 5 cm rig), the plain builds
+stand 0.6–1.2 s before dropping (the old two 1.43 / 0.87 s). A round that trimmed each clip with `src_begin`
+from that measurement was REJECTED ("your estimates for a fall start are off; use the full clips, I will tell you
+the start frame for each"), so the seven are the plain FULL builds again and the user's frame numbers go into
+`src_begin` (the clip's frame N = the source's frame N, 30 fps, no time_scale). Also tried and withdrawn at the
+user's request ("no grounding fix here, many body parts still end up floating; the grounding is a separate
+task"): a per-frame `ground_fit` (wrong for a corpse: the highest model's lowest point on the floor sank the
+others 3–10 cm, a lying body's spread across the six being far larger than the soles') and `ground_ignore
+Robe,Skirt` + `lift 0.003`. What that round measured, for the grounding task: rendering the LAST frame on the
+Knight with the camera on the corpse (`deathrender`-style, the corpse's bounds baked) showed the corpse's lowest
+vertex 7–12 cm up on every death, old and new, while the whole-clip minimum read ~0 only because a hand touched
+the floor mid-fall — the retarget's grounding takes the lowest of all six characters' meshes and a lying
+Necromancer's robe hangs far below the body, so the other five were lifted by the robe's overhang; with the
+robes and skirts out of the measure the Knight's corpse rested within 2–21 mm on all seven, but the cloth then
+hangs through (the Mage's robe 3–22 cm, the Necromancer's up to 50 cm prone, the skirts up to 9 cm) and the
+user reports parts still floating. **The decision (user, same evening: "don't use any clothes when calculating
+the thickness, just a body-part average; meshes overlapping the ground are fine, I care about a natural-looking
+animation over clipping").** Two things stacked: the robe overhang (the bug) and the armour's own thickness (a
+lying Knight rests on pauldrons and backplate, so his hips centre sits ~15 cm up where the recorded human's sits at
+5; and the six bodies differ, so one shared Root height cannot ground them all). So every death entry now grounds
+on the six bare BODY meshes only — `ground_ignore "Robe,Skirt,Pants,Chest,Helm,Glove,Boot,Greave"` (the retarget's
+floor measure keeps only meshes whose names contain none of these, i.e. `Skeleton*_Body`) — with `lift 0`:
+Death_05's last frame has the hips at 0.06 m engine against the human's 0.05, the Archer's body on the floor, the
+Knight's chest plate 7 cm into it, the Mage's robe 15 cm and the Necromancer's 18 cm, all accepted. The engine-side
+per-character curve stays an option if clipping ever matters. Rules kept: **check a corpse on the LAST frame's
+lowest vertex, the whole-clip minimum hides it; Kimodo's standing start is trimmed from the user's frame, not
+from a heuristic; and a lying body is grounded on the BONES, its armour and cloth clip into the floor.**
+**Then "still off; what I want is the original Kimodo animation, just raised 6–7 cm: during the animation some
+nodes fall under the ground and you apply the raise based on that node to ALL the bones, so they float."** Two
+things, both in the retarget and both new manifest keys on the seven deaths: **`ground "none"`** (`--ground
+none`: no per-frame floor correction at all, the export lift the only offset) with a plain **`lift 0.065`**, and
+**`hips_map "floor"`** (`--hips-map delta|floor`): the torso target used to be the rig's REST torso plus the
+hips' offset from the clip's FIRST frame, scaled (`delta`) — right for a clip that starts standing at the rest
+height, but a corpse then ends at rest minus the drop: Death_05's source pelvis goes 0.896 → 0.050 m and the
+rig's ended at 0.093 rig m (0.17 m engine) where the proportional height is 0.028. `floor` maps the source's
+hips HEIGHT proportionally from the floor (DEF hips z = source z × the hip-height ratio; the bind's hips land
+on the rest, so a standing clip is unchanged within the source's own crouch): Death_05 now ends at 0.042 rig m
+(the pelvis pivot's offset from the torso control on a rotated pelvis is the rest), 0.14 m in Unity with the
+lift. Measured on the Knight's LAST frame (`deathrender`-style corpse bounds): lowest vertex −4..+2 cm on six of
+the seven, −13 cm on Death_07 (the puppet's limb through the floor), against +7..+12 cm before. Rule: **a death's
+hips height is proportional from the floor, never a delta from the standing start; and grounding is a constant
+lift chosen by eye, not a per-frame fit to the lowest node.**
+Then "still off: they start off the ground now, which makes sense for a 6.5 cm lift; no changes to the Kimodo
+animations this time": **`lift 0`** on all seven, so the clip IS the generation on the rig (no floor pass, the
+hips proportional from the floor, no lift). Knight, Unity: the standing first frame's lowest vertex within
+±2 cm of the floor on every clip; the corpse's lowest vertex on the last frame −5..−13 cm (Death_07 −20 cm),
+i.e. the lying body clips into the floor by its own thickness, as the user accepts.
+**The pick (2026-09-27, "we keep 03, 04, 05, 07")**: renumbered to `Death_01` (drop, `death_instant_drop`),
+`Death_02` (face-down, `death_instant_face`), `Death_03` (on the back, `death_instant_back`), `Death_04` (puppet,
+`death_instant_puppet`) — manifest entries, actions (the seven dropped from the anim file and the four rebuilt
+under the new names), exports, build state, the showcase's Death members, the controller and the demo scene; the
+old `Death_01` / `Death_02` (`death_back`, `death_crumple`) and the knees candidate are removed from the pack (their
+GLBs stay in `External Anims/Kimodo/`). **The user's ranges (2026-09-28, Blender clip frames of the full
+builds, 1-based, both ends inclusive): Death_01 18–93, Death_02 1–87, Death_03 8–77, Death_04 1–88** → manifest
+`src_begin` = start − 1 (0-based source frames; omitted for a start at 1) and `src_end` = end − 1 (inclusive),
+so clip frame N of the full build is source frame N − 1: 76 / 87 / 70 / 88 frames (2.5 / 2.9 / 2.3 / 2.9 s).
+The controller's states reference the clip assets, so a length change needs no controller rebuild.
 
 ### Hand-authored clips and idle fixes (2026-09-21)
 
