@@ -939,7 +939,7 @@ def ik_pole(kind, side, mid_target, hip_, end_):
     # plane of its own and a sudden side change (> 90 deg from last frame) is a flip - both keep last frame's
     # direction (Impaled_Rise: the left FK leg is dead straight over frames 40-46, the knee jumped 105 mm)
     key_ = (kind, side); prev_ = POLE_PREV.get(key_)
-    if perp.length < 0.015 or (prev_ is not None and perp.normalized().dot(prev_) < 0.0):
+    if perp.length < 0.015 or (prev_ is not None and perp.length < 0.04 and perp.normalized().dot(prev_) < 0.0):
         if prev_ is None:
             return
         perp = prev_ * 0.05

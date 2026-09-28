@@ -221,15 +221,20 @@ def leg_pole(side, knee_target, hip_, ankle_):
     if ax.length < 1e-6:
         return
     ax.normalize(); d_ = knee_target - hip_; perp = d_ - ax * d_.dot(ax)
-    prev_ = LEG_POLE_PREV.get(side)                            # memory: a near-straight leg or a side flip keeps last frame's plane
-    if perp.length < 0.015 or (prev_ is not None and perp.normalized().dot(prev_) < 0.0):
+    straight_ = perp.length < 0.015                            # the reference knee on the axis: no plane of its own
+    prev_ = LEG_POLE_PREV.get(side)                            # memory: a near-straight leg keeps last frame's plane
+    # the side-flip clause applies only while the knee is NEAR the axis (2026-09-28, Death_02: a knee 7-16 cm off-axis
+    # that genuinely swung across the axis in the fall was held on the old plane for 30 frames and snapped 87 deg at
+    # frame 52 when the memory let go; a bent knee's FK plane is the truth)
+    if perp.length < 0.015 or (prev_ is not None and perp.length < 0.04 and perp.normalized().dot(prev_) < 0.0):
         if prev_ is None:
             return
         perp = prev_ * 0.05
     LEG_POLE_PREV[side] = perp.normalized()
     sw["pole_vector"] = True
     pt = knee_target + perp.normalized() * 0.4
-    for _ in range(3):
+    pm = pole.matrix.copy(); pm.translation = rig.matrix_world.inverted() @ pt; pole.matrix = pm; bpy.context.view_layer.update()
+    for _ in range(0 if straight_ else 3):                     # a near-straight leg: the plane is the memory's, no refinement (its swivel error is noise and moved the pole 20 cm between two locked frames)
         pm = pole.matrix.copy(); pm.translation = rig.matrix_world.inverted() @ pt; pole.matrix = pm; bpy.context.view_layer.update()
         k_ = (rig.matrix_world @ pbs["DEF-shin." + side].matrix).translation
         dk = k_ - hip_; pk = dk - ax * dk.dot(ax)
