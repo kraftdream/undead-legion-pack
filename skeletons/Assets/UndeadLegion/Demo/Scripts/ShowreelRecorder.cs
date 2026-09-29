@@ -23,7 +23,7 @@ namespace UndeadLegion.Demo
     /// first character; a change of character is a hard cut too (no fades: they belong to the stitch). A caption panel
     /// (title + one line) sits in the frame, drawn on a canvas parented to the recording camera. Stages: "modular" (the
     /// six presets, then the Knight dressed in other classes' pieces, then every weapon with its idle), "movement" (each
-    /// character's locomotion set looping in place) and "attacks" (each preset's weapons, one attack each). Configure a ShowreelRecorder in the scene or use the menu / headless
+    /// character's locomotion set looping in place) and "attacks" "weapons" (weapons & utils: each class's utility one-shots, its weapons' attacks and a death; "attacks" is the old id). Configure a ShowreelRecorder in the scene or use the menu / headless
     /// launcher.
     /// </summary>
     public class ShowreelRecorder : MonoBehaviour
@@ -36,7 +36,9 @@ namespace UndeadLegion.Demo
             public string idle = "Idle_01";             // the looping clip on Base
             public string attack;                       // optional one-shot played after `seconds` of the idle
             public List<string> attacks = new List<string>();  // several one-shots in a row (holdAfter between them); wins over `attack`
-            public float attackSpeed = 1f;              // Animator.speed while the attacks play (user, Assassin: "60 % faster")
+            public float attackSpeed = 1f;
+            public float afterSeconds = -1f;            // the settle after each attack; < 0 = holdAfter (a death holds longer)
+            public bool followHips;                     // the camera follows the hips, not the root (a death's fall lives in the pose: the root stays)              // Animator.speed while the attacks play (user, Assassin: "60 % faster")
             public string holdOn;                       // a looping masked-layer clip to hold before the attacks (Block_L_Idle: the shield stays up)
             public string holdOff;                      // ... and one to release
             public float seconds = 3f;                  // hold on the idle before the attack / the next step
@@ -63,11 +65,15 @@ namespace UndeadLegion.Demo
         public float fieldOfView = 32f;
 
         [Header("Stage")]
-        [Tooltip("modular | movement | attacks")]
-        public string stage = "attacks";
+        [Tooltip("modular | movement | weapons (\"attacks\" is accepted)")]
+        public string stage = "weapons";
         public float titleCardSeconds = 1.6f;
         [Tooltip("Movement stage: seconds per locomotion clip.")]
         public float movementSeconds = 3f;
+        [Tooltip("Weapons & utils stage: how long a death's corpse is held before the cut.")]
+        public float deathHoldSeconds = 1.6f;
+        [Tooltip("Death steps: how far the following camera sinks so the corpse sits mid-frame, not on the bottom edge (m).")]
+        public float deathCameraDrop = 0.5f;
         [Header("Root motion (attacks stage)")]
         [Tooltip("Attacks stage: root motion ON, the camera follows the character with damping and the character is recentred after every attack - the camera moved by the same offset in the same frame, so the recenter is invisible (user, 2026-09-29).")]
         public bool attacksRootMotion = true;
@@ -102,7 +108,7 @@ namespace UndeadLegion.Demo
         SkeletonShowcase _showcase;
         Animator _animator; SkeletonWeapon _weapon; SkeletonModules _modules;
         string _currentCharacter, _currentIdle;
-        bool _rootMotion; Vector3 _camHomePos, _camOffset; Quaternion _camHomeRot;
+        bool _rootMotion, _followHips; Vector3 _camHomePos, _camOffset; Quaternion _camHomeRot;
         readonly List<Canvas> _hidden = new List<Canvas>();
         string _dir;
         // the caption canvas
@@ -199,23 +205,39 @@ namespace UndeadLegion.Demo
         /// wand casts; Necromancer on Idle_Staff - the two wand casts and the staff cast.</summary>
         public List<Step> BuildAttacks()
         {
+            // "Weapons & utils" (2026-09-29): the attacks script, plus each class's utility one-shots before its attacks and a death after
             var steps = new List<Step>();
-            steps.Add(new Step { titleCard = true, title = "COMBAT", text = "every weapon with its idle and attacks  |  in place, root motion optional", seconds = titleCardSeconds });
+            steps.Add(new Step { titleCard = true, title = "WEAPONS & UTILS", text = "every weapon with its idle and attacks  |  taunts, specials, deaths", seconds = titleCardSeconds });
+            steps.Add(A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Taunt", "Taunt_01"));
             steps.Add(A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Two-handed idle; the second hand rides the handle", "Attack_2H_01", "Attack_2H_02"));
             steps.Add(A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "The same two-handed grip and attacks on every long weapon", "Attack_2H_01", "Attack_2H_02"));
-            steps.Add(A("Knight", "Axe + round shield", "Idle_03", "Skeleton Knight  |  Axe + round shield", "One-handed attacks per arm", "Attack_R_Slice"));   // the stab skipped on the axe (user)
-            steps.Add(A("Knight", "Sword + shield", "Idle_03", "Skeleton Knight  |  Sword + heater shield", "Any one-handed weapon, any shield", "Attack_R_Slice"));
-            var blk = A("Knight", "Sword + shield", "Idle_03", "Skeleton Knight  |  Sword + heater shield", "Left-arm block HELD on its own layer; the right arm attacks under it", "Attack_R_Stab", "Attack_R_Slice");
-            blk.holdOn = "Block_L_Idle"; steps.Add(blk);
-            var mace = A("Knight", "Mace", "Idle_03", "Skeleton Knight  |  Mace", "Block released", "Attack_R_Slice");   // the stab skipped on the mace (user)
-            mace.holdOff = "Block_L_Idle"; steps.Add(mace);
-            var d1 = A("Assassin", "Dagger", "Idle_02", "Skeleton Assassin  |  Dagger", "Right-arm attacks at 1.6x speed", "Attack_R_Stab", "Attack_R_Slice"); d1.attackSpeed = 1.6f; steps.Add(d1);
-            var d2 = A("Assassin", "Two daggers", "Idle_02", "Skeleton Assassin  |  Two daggers", "Left-arm attacks at 1.6x speed", "Attack_L_Stab", "Attack_L_Slice"); d2.attackSpeed = 1.6f; steps.Add(d2);
+            steps.Add(Death(A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "Death", "Death_01")));
+            // Knight: taunt and rally, then the combat idle with the left block HELD; axe + round shield slice; sword + heater shield
+            // with both right attacks under the block; the sword alone with the block released and both attacks; then the death
+            steps.Add(A("Knight", "Axe + round shield", "Idle_1H_Combat", "Skeleton Knight  |  Axe + round shield", "Taunt and rally", "Taunt_02", "Rally"));
+            var axe = A("Knight", "Axe + round shield", "Idle_1H_Combat", "Skeleton Knight  |  Axe + round shield", "Left-arm block HELD on its own layer; the right arm attacks under it", "Attack_R_Slice");
+            axe.holdOn = "Block_L_Idle"; steps.Add(axe);
+            steps.Add(A("Knight", "Sword + shield", "Idle_1H_Combat", "Skeleton Knight  |  Sword + heater shield", "Any one-handed weapon, any shield; the block still held", "Attack_R_Stab", "Attack_R_Slice"));
+            var sw = A("Knight", "Sword", "Idle_1H_Combat", "Skeleton Knight  |  Sword", "Block released; the same attacks with the free hand", "Attack_R_Stab", "Attack_R_Slice");
+            sw.holdOff = "Block_L_Idle"; steps.Add(sw);
+            steps.Add(Death(A("Knight", "Sword", "Idle_1H_Combat", "Skeleton Knight  |  Sword", "Death", "Death_02")));
+            // Assassin: the cutthroat at normal speed, the attacks at 1.6x, the death at normal speed
+            steps.Add(A("Assassin", "Dagger", "Idle_1H_Combat", "Skeleton Assassin  |  Dagger", "Cutthroat", "Cutthroat"));
+            var d1 = A("Assassin", "Dagger", "Idle_1H_Combat", "Skeleton Assassin  |  Dagger", "Right-arm attacks at 1.6x speed", "Attack_R_Stab", "Attack_R_Slice"); d1.attackSpeed = 1.6f; steps.Add(d1);
+            var d2 = A("Assassin", "Two daggers", "Idle_1H_Combat", "Skeleton Assassin  |  Two daggers", "Left-arm attacks at 1.6x speed", "Attack_L_Stab", "Attack_L_Slice"); d2.attackSpeed = 1.6f; steps.Add(d2);
+            steps.Add(Death(A("Assassin", "Two daggers", "Idle_1H_Combat", "Skeleton Assassin  |  Two daggers", "Death", "Death_03")));
             steps.Add(A("Archer", "Recurve bow", "Idle_Bow", "Skeleton Archer  |  Recurve bow", "The string follows the draw hand; an arrow is fired on release", "Shoot_01"));
             steps.Add(A("Mage", "Wand", "Idle_03", "Skeleton Mage  |  Wand", "Two wand casts", "Cast_Wand_01", "Cast_Wand_02"));
+            // Necromancer: summon, the casts, the area cast, the death
+            steps.Add(A("Necromancer", "Staff", "Idle_Staff", "Skeleton Necromancer  |  Staff", "Summon", "Summon"));
             steps.Add(A("Necromancer", "Staff", "Idle_Staff", "Skeleton Necromancer  |  Staff", "The wand casts on the staff, then the two-handed staff cast", "Cast_Wand_01", "Cast_Wand_02", "Cast_Staff_01"));
+            steps.Add(A("Necromancer", "Staff", "Idle_Staff", "Skeleton Necromancer  |  Staff", "Area cast", "AOE_Cast"));
+            steps.Add(Death(A("Necromancer", "Staff", "Idle_Staff", "Skeleton Necromancer  |  Staff", "Death", "Death_04")));
             return steps;
         }
+
+        /// <summary>A death step: the corpse held `deathHoldSeconds` before the cut (holdAfter is too short to read the landing).</summary>
+        Step Death(Step st) { st.afterSeconds = deathHoldSeconds; st.followHips = true; st.seconds = 0.3f; return st; }
 
         // ------------------------------------------------------------------ the run
 
@@ -231,7 +253,8 @@ namespace UndeadLegion.Demo
             Directory.CreateDirectory(_dir);
 
             foreach (var cv in FindObjectsByType<Canvas>(FindObjectsSortMode.None)) if (cv.enabled) { cv.enabled = false; _hidden.Add(cv); }
-            _rootMotion = stage == "attacks" && attacksRootMotion;
+            bool weaponsStage = stage == "weapons" || stage == "attacks";
+            _rootMotion = weaponsStage && attacksRootMotion;
             if (_showcase.rootMotionToggle != null) _showcase.rootMotionToggle.isOn = _rootMotion;
             if (_showcase.turntableToggle != null) _showcase.turntableToggle.isOn = false;
 
@@ -284,6 +307,7 @@ namespace UndeadLegion.Demo
                 }
                 if (!string.IsNullOrEmpty(step.holdOff)) { var h = FindClip(_animator, step.holdOff); if (h != null && _showcase.IsHolding) _showcase.ToggleHeld(h, _showcase.LayerFor(h)); }
                 if (!string.IsNullOrEmpty(step.holdOn)) { var h = FindClip(_animator, step.holdOn); if (h != null && !_showcase.IsHolding) _showcase.ToggleHeld(h, _showcase.LayerFor(h)); }
+                _followHips = step.followHips;
                 HideCard(); ShowCaption(step.title, step.text);
                 if (newCharacter) { yield return null; yield return null; SetFade(0f); }   // two uncaptured frames to settle the new character, then the hard cut
                 yield return Capture(Mathf.RoundToInt(step.seconds * fps));
@@ -299,7 +323,7 @@ namespace UndeadLegion.Demo
                     if (Application.isBatchMode) Debug.Log("Showreel: attack " + attack.name + " playing at " + sp + "x");
                     yield return Capture(Mathf.RoundToInt((attack.length / sp + _showcase.crossFade) * fps) + 2);
                     _animator.speed = 1f;
-                    yield return Capture(Mathf.RoundToInt(holdAfter * fps));
+                    yield return Capture(Mathf.RoundToInt((step.afterSeconds >= 0f ? step.afterSeconds : holdAfter) * fps));
                     if (_rootMotion) RecenterSeamless();
                 }
                 if (attackNames.Count > 0) ShowCaption(step.title, step.text);
@@ -377,7 +401,14 @@ namespace UndeadLegion.Demo
         void FollowCamera()
         {
             if (!_rootMotion || _animator == null) return;
-            var target = _animator.transform.position + _camOffset;
+            var anchor = _animator.transform.position;
+            if (_followHips)
+            {
+                var hips = _animator.GetBoneTransform(HumanBodyBones.Hips);
+                if (hips != null) { anchor.x = hips.position.x; anchor.z = hips.position.z; }
+                anchor.y -= deathCameraDrop;                                                      // the camera sinks with the fall (damped), its rotation unchanged
+            }
+            var target = anchor + _camOffset;
             float k = 1f - Mathf.Exp(-followDamping / fps);
             _cam.transform.position = Vector3.Lerp(_cam.transform.position, target, k);
         }
