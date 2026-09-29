@@ -41,7 +41,7 @@ every one verified on all six models with `verify_clip.py` + `ground_clip.py`; p
 
 | Group | Clips |
 |---|---|
-| Idles (loop) | `Idle`, `Idle_02` (hand-fixed 2026-09-21: blades forward, Idle grounded, Idle_02 upright with hanging arms, left foot 5 cm forward / right 5 cm back), `Idle_03` (the user's own video-mocap idle, 2026-09-21, slowed 3×, 10.8 s loop, fingers from the capture, right foot 10 cm forward / left 10 cm back); weapon idles `Idle_TwoHanded` (the user's mannequin recording, 2026-09-23: two-hander held ahead, both hands on the shaft), `Idle_Bow`, `Idle_Staff` (`Idle_Wand` removed 2026-09-24: "enough idle animations"; the H1Wand loadout stays, the Cast_Wand clips play over Idle_Staff / Idle; **`Idle_Propped` and the "Staff (propped)" loadout removed 2026-09-25** at the user's request: export, manifest entry, build state, fit curve, the `W_H2MagicStuff_Top` prefab, the builder's row and `ProppedHandHeight`, the grip dump entry, the demo list; the actions `Idle_Propped` / `Propped_Base` and the `prop` / `hunch` / `torso_ref` retarget passes stay as tools) |
+| Idles (loop) | `Idle_01` (`Idle` until 2026-09-28: "rename idle to idle_01"), `Idle_02` (hand-fixed 2026-09-21: blades forward, Idle grounded, Idle_02 upright with hanging arms, left foot 5 cm forward / right 5 cm back), `Idle_03` (the user's own video-mocap idle, 2026-09-21, slowed 3×, 10.8 s loop, fingers from the capture, right foot 10 cm forward / left 10 cm back); weapon idles `Idle_TwoHanded` (the user's mannequin recording, 2026-09-23: two-hander held ahead, both hands on the shaft), `Idle_Bow`, `Idle_Staff` (`Idle_Wand` removed 2026-09-24: "enough idle animations"; the H1Wand loadout stays, the Cast_Wand clips play over Idle_Staff / Idle; **`Idle_Propped` and the "Staff (propped)" loadout removed 2026-09-25** at the user's request: export, manifest entry, build state, fit curve, the `W_H2MagicStuff_Top` prefab, the builder's row and `ProppedHandHeight`, the grip dump entry, the demo list; the actions `Idle_Propped` / `Propped_Base` and the `prop` / `hunch` / `torso_ref` retarget passes stay as tools) |
 | Impaled (hand-authored) | `Impaled_Idle` (loop: on its knees, hunched, sword through the belly), `Impaled_Rise` (one-shot: pulls it out, stands up, ends on the neutral standing pose) — **not exported since 2026-09-26** (user: "remove impale idle/rise from the export for now"): FBX + meta, build state and controller states removed, the actions and the tools stay; `Impaled_Rise`'s manifest entry carries `disabled true` (`anim_batch` skips such entries), `Impaled_Idle` never had one (`anim_author_impaled.py` writes both); drop the flag and re-export to bring them back |
 | Twitch (additive) | `Twitch_01/02/03` head + jaw |
 | Locomotion (loop, root motion) | `Walk_Fwd_01`, `Walk_Back_01`, `Run_Fwd`, `Strafe_Left_01` (mirrored right), `Strafe_Right_01` (the `_01` index added 2026-09-26: the low-rank shambling set; `Run_Fwd` was not renamed, the user listed the walks and strafes); **`Walk_Fwd_02`, `Run_Fwd_02`** (2026-09-25: the "normal" pair, an upright human walk and jog for the higher ranks such as the necromancer and mage, Kimodo without the stiff-undead prompt profile), **`Walk_Back_02`** (2026-09-26, the same for the walk back), **`Strafe_Left_02` / `Strafe_Right_02`** (2026-09-26, the same for the side-steps) |
@@ -106,7 +106,21 @@ clip `Test_RootMotion` stays in the anim file, not in Unity.
 - The **Archer's head** was skinned against a rig whose neck/head/jaw bones sat ~18 mm
   forward of the shared rig's; it now binds to the shared rig. Posed deviation is
   ≤ 6 mm on the skull and helm. Acceptable, but look at the Archer first if a neck
-  clip reads wrong.
+  clip reads wrong. **Its skull sat 11.2 mm rig (20 mm engine) FORWARD of the other
+  five (2026-09-29, user: "the archer helm on warrior is a bit misaligned, too far forward")**:
+  the Archer's skull is the Knight's skull mesh translated by (0, −0.0112, +0.0015) rig m
+  (ICP, translation only, residual 0.1 mm), so its helm, made for that skull, sat forward on
+  every other skeleton, and every other helm sat back on the Archer. Fixed in `SkeletonArcher/
+  prod.blend` (session script `archer_head_shift.py`: every Body and Helm vertex moved by that
+  vector times its head + jaw weight share, 407 body vertices, 24 of them partial through the
+  neck, the whole helm; `rig_check` OK, the skull now equals the Knight's to 0.0 mm), `SK_
+  SkeletonArcher.fbx` + `SK_SkeletonArcher_Helm.fbx` re-exported (the other modules unchanged,
+  restored from git after the export). Verified in Unity with side renders: the Archer helm on
+  the Warrior and the Knight covers the skull (the bare back of the skull stuck out before), the
+  Archer's own fit unchanged, avatar valid, 68 bones. Rule: **a module fits every skeleton only
+  if every skeleton's MESH sits on the shared rig the same way; when a borrowed piece is off on
+  all but its owner, register the owner's body against the others, not the piece.** The
+  modular showreel stage was re-rendered after this fix.
 - Rest-pose `>4 influences` exist in the sources (Body 42 verts, Warrior skirt 290);
   `export_fbx.py` cuts to 4 and re-normalises at export, so Unity never truncates.
 
@@ -370,7 +384,7 @@ triangle centroids and count near-black hits, in Unity and in the source `.blend
 they must agree. Reference (2026-09-19): bodies ≤ 0.7 %, armour Knight 7 %, Assassin
 4 %, Mage 2 %, Necromancer 22 % (dark cloth, present in the source art), others < 1 %. Runtime
 scripts live in `Demo/Scripts/` (`SkeletonShowcase`, `SkeletonModules`, `SkeletonTwitch`, `SkeletonWeapon`,
-`BowString`, `ArrowProjectile`, `DemoTurntable`, `DemoUI`, `DemoEventSystemBootstrap`), namespace `UndeadLegion.Demo`.
+`BowString`, `ArrowProjectile`, `SkeletonFootLock`, `ShowreelRecorder`, `DemoTurntable`, `DemoUI`, `DemoEventSystemBootstrap`), namespace `UndeadLegion.Demo`.
 Legacy uGUI Text on purpose (no TMP import prompt for buyers); input read through both
 backends. `tools/unity/demo_smoke.py` plays the scene headlessly and screenshots it.
 
@@ -1241,6 +1255,39 @@ generation (as the original pair was): 40 frames, 1.204 m per loop, 0.93 m/s, `l
 the boots 10–16 mm). Skate 67–129 mm per stance — every Kimodo side-step skates; the `--ik-legs --pin-foot
 auto` pass is the fix if it shows.
 
+**The `_02` set's hands turned outward (2026-09-29, from the movement showreel: "walk_fwd_02, turn hands so weapons point
+outward; run_fwd_02 the same but slightly less; walk_back_02 more than walk_fwd_02; strafe_left/right_02 as walk_fwd_02").**
+Measured (`hiltdir.py`-style: the socket's +Y in the body frame, yaw from forward toward that hand's outside): the plain
+retargets carried the human's hanging hands with the hilt axis pointing ACROSS the body, −50° on the walk and strafes, −55°
+on the run, −80..−100° on the walk back (the Idle_02 fix put it at +15°). Manifest **`wrist_twist`** on the five entries (the
+retarget's pass: the FK forearm turned about its own axis every frame, the hand riding), the angles solved by `twistscan.py`-style
+search on the built clips (the same rotation simulated on the socket axis until the hilt's mean yaw meets a target; a circular
+mean, since the run's swinging left hand wraps through the back): `Walk_Fwd_02 "L:-67,R:63"` (→ +15°), `Walk_Back_02 "L:-126,R:104"` (→ +25°),
+`Strafe_Left_02 "L:-73,R:76"` / `Strafe_Right_02 "L:-76,R:73"` (→ +25° after "turn them a bit more"; +15° with ±63/67 first;
+the left strafe is the mirror build, so its sides swap). Rebuilt with `anim_batch --force` (reproducible entries, no hand edit).
+**`Run_Fwd_02` is `hand_edited`** (the user's fix on top of the even-advance retime), so the batch refused to regenerate it and
+its manifest key did nothing: the bake tool got the same pass, **`anim_nla_bake --wrist-twist "L:-46,R:35"`** (the FK forearm
+turned about its own axis on every frame, IK arms skipped), run on the baked action (→ ~+10°, the smaller turn), then
+`--export-only --force`. Rule: **"weapons point outward" is the hilt axis's yaw in the body frame; measure it per clip and solve the twist
+on the built clip instead of guessing a round number.**
+
+**Strafe_Left_Fix re-baked (2026-09-29, "updated strafe_left_fix, bake it to both strafe_left_01 and right_01").** `anim_nla_bake
+--result Strafe_Left_01 --frames 1:45 --keep-poles --loop --loop-seam 4 --mirror-to Strafe_Right_01` (flat = stack 0.00 mm, seam
+0.0 mm, the mirror within 2.6 mm; the fix moved the landmarks ≤ 12 mm), both exported with `--export-only --force`. **The grounding
+line then read the Necromancer 103 mm under the floor on both strafes** (the other five within 3 mm) where the previous export had it
+at −0.3 mm — and it is NOT the fix. Traced: the hips path is the same in both engines (a 0.87 m dip mid-clip in the Blender clip and
+in Unity), the rest poses agree, but the ROBE differs: in `SkeletonNecromancer/prod.blend` since commit `f5ff22f` (09-27, "update
+skeleton necromancer hood and robe rig") **88 hem vertices between the floor and mid-thigh (0.02–0.50 rig m) are weighted 100 % to
+`DEF-spine` (the hips)** — in the previous robe (and in the anim file's `Ref_SkeletonNecromancer` copy, which still IS the 09-20 robe)
+they were spread over the thighs and shins. A hem point rigid on the hips 0.95 m below the pivot swings 0.4 m for a 27° hips pitch, so
+every crouching or pitched pose puts that flap through the floor: 103 mm on the `_01` strafes, 29 mm on Run_Fwd_02, 37 mm on Idle_02,
+71 mm on AOE_Cast (the "robe class of dip" of the last two days is this rig change, not the clips). Blender never showed it because
+the anim file's reference robe is the OLD skin — which also means the retarget's floor pass measures the old robe; refreshing the
+reference (`anim_file_build.py`) would make every grounding pass lift clips by that flap. Decision left to the user: keep the
+hips-weighted flap and accept the clipping (their stated preference on the deaths), or restore leg weights on those 88 vertices in
+`prod.blend` and re-export the robe module. Rule: **when one character's floor number jumps on a clip that did not change, diff that
+character's WEIGHTS against the previous commit before touching the clip.**
+
 **The recorded magic and specials set (2026-09-25, user: two mannequin-app files, `P:\magic attacks.glb`
 and `P:	aunts.glb`, split by frame ranges).** `External Anims/Kimodo/magic_ref_mocap.glb` →
 `magic_ref_arm.blend` (200 frames) and `taunts_ref_mocap.glb` → `taunts_ref_arm.blend` (666 frames) through
@@ -2067,7 +2114,7 @@ we can do with this arrow/bow meshes"** — 21 stays; a longer arrow mesh is wha
 skeleton for now")**: `Demo/Scripts/ArrowProjectile.cs` + `SkeletonWeapon.FireArrow()` on `BowRelease`: a fresh
 instance of the loadout's `W_Arrow` prefab at the held arrow's transform, renderers on, launched along the
 CHARACTER's forward (`arrowDirection CharacterForward`; `BowAim` = draw slot → bow slot is there but off) at
-`arrowSpeed` 30 m/s, the prefab's +Y (the shaft, head at +Y) turned onto the velocity (`LookRotation · Euler(90,0,0)`),
+`arrowSpeed` 15 m/s (30 until 2026-09-29, "decrease projectile speed by half": the script default and the six prefabs' serialized values), the prefab's shaft axis turned onto the velocity (`LookRotation · Euler(−90,0,0)` since 2026-09-29: the mesh has its HEAD at the origin and the nock at +Y, the grip near the nock — the first version turned +Y onto the flight and the user saw "the launched arrow flies backward", fletching first; measured in play mode: shaft +Y · forward −1.00 now, +1.00 before),
 `gravity` 0 (dead straight), destroyed after `lifetime` 4 s or under the floor; no collision, no damage
 (`fireProjectile` off disables it). Measured in play mode: the projectile appears on the release frame at the
 hand's height (1.34 m) and covers 30 m/s along the forward the character had at that moment. **Then (user:
@@ -2413,6 +2460,131 @@ feet would have locked a knee, no leg bone above 13° per frame (the toes 19° a
 over 1–31 with the heels flat (this fall goes backwards). `--pin-foot "L:1:1:31:toe,R:1:1:31:toe" --pin-ease 0:8
 --leg-reach 0.985` (no frame needed the drop): balls on their spots to 0.0 mm, knees 84–134°, no leg bone above 14°
 per frame, re-exported.
+
+### The Asset Store showreel (2026-09-28, "a 45 degree static view on a model; each skeleton cycles through its weapons, playing its attack once")
+
+`Demo/Scripts/ShowreelRecorder.cs` + the menu **Undead Legion / Record Showreel (play mode)** (`Demo/Editor/ShowreelMenu.cs`,
+which enters play mode and starts the recorder; a `ShowreelRecorder` placed in the scene is used as configured, else a
+temporary one with the defaults). It records a PNG frame sequence OFFLINE: `Time.captureDeltaTime = 1 / fps` fixes the
+simulation step, so the frames are the same whatever the machine renders at (the user's "not sure this PC can render
+at high enough settings": it just takes longer), a dedicated camera at `azimuth` 45° / `elevation` 12° / `distance` 4.3 m
+looking at 0.95 m (FOV 32) is rendered by hand into a 1920×1080 RenderTexture with 4× MSAA and read back per frame, the
+UI canvases hidden, root motion off (every attack in place), the turntable off. The sequence is a table (`plans`: one
+row per character with its loadouts in order; `attacks` / `idles`: the clip per loadout name), defaults in the script:
+Knight sword + shield → Attack_R_Slice, longsword → Attack_2H_01; Warrior axe + shield → Attack_R_Slice, battle axe →
+Attack_2H_02, mace → Attack_R_Stab; Archer bow → Shoot_01, dagger → Attack_R_Stab; Assassin two daggers →
+Attack_L_Slice, dagger → Attack_R_Stab; Mage / Necromancer staff → Cast_Staff_01, wand → Cast_Wand_01; the weapon's
+idle first (Idle_TwoHanded / Idle_Bow / Idle_Staff, else Idle), `holdBefore` 0.8 s, the attack once, `holdAfter` 0.9 s,
+`characterGap` 0.4 s. Frames go to `<repo>/Showreel/frames` (gitignored), then **`python tools/unity/showreel_encode.py`**
+encodes them with the ffmpeg bundled in the `imageio-ffmpeg` pip package (installed user-scope; no system ffmpeg):
+H.264 crf 18, yuv420p, faststart → `Showreel/showreel.mp4`. From the bridge the run is `ShowreelMenu.Start()` in play
+mode and a poll of `Done` / `FramesWritten` / `Status` (session script `showreel_run.py`-style).
+**"The video quality is low; do a small test of the highest this machine can do."** The first run was the demo's
+own quality (the PC level: MSAA off in the URP asset, a 2048 shadow map split over 4 cascades to 50 m, no AA) at 1080p
+with the figure small in frame: aliased edges, coarse texture pixels. Offline, the machine's speed caps nothing, so
+the recorder's **`maxQuality`** (default on) pushes everything the runtime API allows, on the LIVE URP asset, and
+restores it at the end: the highest quality level, forced anisotropic filtering, mipmap limit 0, LOD bias 4; the URP
+asset at 8× MSAA, HDR, render scale 1, ONE shadow cascade of 4096 over `shadowDistance` 10 m (the whole map on the
+character: sharp contact shadows); the recording camera with post-processing on for SMAA (high); the texture at 8×
+MSAA. `maxLoadouts N` limits a test run. The 4K test (3840×2160, the Knight's sword-and-shield slice, distance 3.4 /
+look 0.9 / FOV 30, ~1 frame/s to write) is crisp at 100 % (helmet dents, rust, clean edges); `showreel_encode.py
+--scale 1920:-2` (lanczos) makes a supersampled 1080p from the same frames. ⚠ Poll a long recording from the
+frames folder (`done.txt` is written at the end), not through the bridge: a 4K PNG per frame keeps the main thread
+busy and the bridge's calls time out (the first run's runner stalled that way and left play mode on).
+Then "no need for 4K, just quality maxed; also the 45° of the other side": the full showreel twice at 1080p native
+with `maxQuality`, framed as the test (distance 3.4, look 0.9, FOV 30), `azimuth` +45 (the character's right side
+nearest the camera) → `Showreel/showreel_right.mp4` and −45 → `showreel_left.mp4`, crf 16 (session script
+`showreel_both.py`-style: play, configure + `Begin()` through the bridge, poll the frames folder, stop, encode).
+**"Even higher quality, still 1080p; headless, easier on RAM" (2026-09-29; the user chose the left angle).** Two
+additions. (1) **`supersample`** on the recorder (default 2): the camera renders into a texture of 2× the output
+(3840×2160 at 4× MSAA), a bilinear `Graphics.Blit` box-filters it down to the output size (exactly 2×2 texels per
+pixel), the PNG is read from the small texture — 4 samples per pixel on top of MSAA + SMAA, and the soft-shadow
+quality of every light forced to High (`UniversalAdditionalLightData.softShadowQuality`). (2) **Headless**:
+`tools/unity/showreel_headless.py [--side left|right] [--supersample 2] [--max-loadouts N]` launches
+`Unity.exe -batchmode -projectPath skeletons -executeMethod UndeadLegion.Demo.ShowreelMenu.RecordHeadless` (no
+`-nographics`: the GPU still renders offscreen, only the editor UI is skipped — the interactive editor must be CLOSED,
+one editor per project) with the settings as `SHOWREEL_*` environment variables; `RecordHeadless` stores them in
+`SessionState`, opens the demo scene and enters play mode, an `[InitializeOnLoadMethod]` hook re-arms after the
+domain reload, starts the recorder once the showcase exists and `EditorApplication.Exit(0)`s when it is done; the
+launcher polls the frames folder, then encodes (`Showreel/headless_<side>/frames`, `showreel_<side>.mp4`, the Unity
+log in `Showreel/headless_<side>.log`). ⚠ Batch mode never reaches an end-of-frame, so the capture yields `null` there
+(`Application.isBatchMode`) instead of `WaitForEndOfFrame`, which would hang forever. Test: one loadout at 2×,
+compile + scene + 107 frames + exit in ~75 s.
+**Stages (2026-09-29, "split it into chapters with a clear transition, render each separately, we stitch later";
+"the video quality is fine"; then "change chapter to stage, modularity to modular, the angle to 30 from 45, no fade
+in/out inside a stage, we do the fades when stitching").** The recorder is a STAGE player: a stage is a list of `Step`s
+(character, armour pieces to wear / take off as `Char:Module`, weapon loadout, idle, an optional attack, caption title +
+line, seconds), it opens on a static TITLE CARD on black (`titleCardSeconds` 1.6) and hard-cuts to the first character;
+a change of character is a hard cut too (two uncaptured frames settle the new character first). The fades of the first
+build (in from the card, through black between characters, out at the end) are gone: the stitch does them. A CAPTION
+PANEL (title + one line, the demo's built-in font; 600 px wide since the second round, the 900 px box overlapped the head at 30°; the title is sized to the box from its `preferredWidth` in `ShowCaption`, one line always — uGUI's best-fit never shrank it under Wrap + Overflow, nor under Wrap + Truncate) sits top-left over the sky — a bottom panel covered the figure's feet —
+on a world-space canvas parented to the recording camera and sized to its frustum at 1 m (a screen-space canvas is not
+part of a hand-rendered camera). The camera's `azimuth` default is **−30** (the character's left side nearest; 45 for
+the first two rounds). `stage` picks the step list: **`modular`** (the user's script, title card "MODULAR": Warrior,
+Assassin, Archer, Mage, Necromancer, Knight on `Idle_03` 3 s each; then the Knight wearing the Warrior's chest, the
+Archer's helm, the Warrior's greaves and the Assassin's gloves one at a time — the character's own piece of that module
+off, the borrowed one on through `SkeletonModules` and the showcase's armour catalogue; then on that mixed Knight sword +
+shield and axe + shield on `Idle_03`, sword / dagger / two daggers on `Idle_02`, mace on `Idle_01`, longsword and battle axe
+on `Idle_TwoHanded`; then the Archer's bow on `Idle_Bow`, the Necromancer's staff on `Idle_Staff`, the Mage's wand on
+`Idle_03`) and **`attacks`** (the previous sequence: each preset's weapons with the weapon idle and one attack, captions
+"Skeleton X | weapon") and **`movement`** (2026-09-29, "the chapter with movement animations; _01 for the warrior and archer
+skeletons, _02 for the others": title card "MOVEMENT", then Warrior and Archer with the shambling `_01` set and Assassin, Mage,
+Necromancer, Knight with the upright `_02` set — walk forward, run, walk back, strafe left, strafe right, `movementSeconds` 3 each,
+looping IN PLACE with the character's usual weapon (axe + round shield, bow, two daggers, staff, staff, sword + shield); the
+caption carries the clip name and the speed-table figure, since root motion at 0.2–1.9 m/s would carry the figure out of the
+static frame within the 3 s). `SHOWREEL_STAGE` / `showreel_headless.py --stage` select it headlessly (outputs
+`Showreel/headless_<stage>_<side>/`, `showreel_<stage>_<side>.mp4`, `--side left` = −30); in the editor a session script
+sets `rec.stage` before `Begin()` (`stage_test.py`-style: play, configure, poll the frames folder for `done.txt`, stop,
+encode to `Showreel/showreel_<stage>.mp4`). ⚠ After the Archer head fix the user reported "the recorded video has the
+Archer helm issue that was fixed in the editor": measured in the recorder's own run (a `probe_stage.py`-style run stopped after
+the helm step, the helm's baked centroid in the head bone's frame) the offset equals the editor's, and in the video the Knight's
+borrowed helm sits exactly as the Archer's own (`Showreel/helm_check_archer_vs_knight.png`); the pre-fix `showreel_modularity.mp4`
+had stayed in the same folder and was deleted. Rule: **a stale render beside a fresh one is a report waiting to happen; remove
+superseded outputs when re-rendering.**
+
+**Shoot_01's feet frozen (2026-09-28, "update shoot_01, freeze the feet position").** The legs are the bow idle's
+constant controls, yet both feet drifted 1 cm over the clip, identically: the ROOT control moved (the take's own
+travel, up to 11 mm rig, left on `root` when the clip went in place; the feet are its children). `anim_nla_bake
+--action Shoot_01 --result Shoot_01 --root-hold`: the root at its frame-1 transform on every frame, both balls of
+the feet at 0.000 on every frame, the start and end still equal to Idle_Bow's frame 1 to 0.0 mm / 0.0° on every
+landmark, the BowAttach 15 / BowRelease 21 events intact on the re-imported clip. Rule: **two feet that drift by
+the same vector are the root, not the legs; hold the root.**
+**`Idle` → `Idle_01`, and the idles' feet frozen in the engine (2026-09-28, "rename idle to idle_01; there is a subtle
+feet drift for idle, idle_02, idle_03 - freeze them").** The rename: the anim file's `Idle` / `Idle_base` →
+`Idle_01` / `Idle_01_base` (`Idle_Fix` keeps its name), the manifest entry and every `Idle:1` / `blend_to Idle`
+reference in other entries (`Idle_01:1`), the export (old FBX + meta deleted, re-exported under the new name),
+`SkeletonShowcase.idleClipName` and every section's idle preference, `ShowreelRecorder`'s fallback, the tool defaults
+(`build_twitch_controller`, `demo_smoke`, `grip_sheet`, `ground_clip`, `anim_author_impaled`, `anim_fix_idles`), the
+controller and the demo scene rebuilt. `Idle_02` got a manifest entry (`hand_edited`, not reproducible from it) and
+`Idle_03` the `hand_edited` flag, so all three export through `--export-only`. **The drift**: measured in Blender the
+three idles' feet, foot controls and root are static to 0.0 mm over the whole loop; in Unity the feet wander
+1.5–2.6 mm horizontally and 1–4 mm vertically while the hips sway 40–70 mm — Humanoid's leg reconstruction (the muscle
+round trip; the export's leg de-twist keeps it small but not zero), and the imported foot IK goals carry the SAME error
+because Unity generates them from the retargeted pose (goal height varying 5–9 mm on Idle_01 / Idle_03, 0.7 on Idle_02),
+so `iKOnFeet` on the states cannot remove it. Two changes: Idle_01's per-frame `ground_fit` is replaced by a constant
+`lift 0.0036` (the fit curve's mean on top of the old default: a vertical curve baked into the Root only rides into the
+goals); and **`SkeletonFootLock`** (`Demo/Scripts/`, on every `PF_<Char>` from the prefab builder; the controller's Base
+layer has `iKPass` on): once the Base layer has settled on a looping clip whose name starts with `Idle` (no transition
+running) it captures both feet's IK goals ONCE, in the character's space, and holds them at full weight (position +
+rotation) until the next state begins, fading in over 0.15 s and out over 0.12 s; the hips keep swaying and the knees
+follow through the IK. Measured in play mode (a per-frame probe on the Knight, 360–540 frames per clip): feet and toes
+at 0.00 mm horizontally and vertically on all three idles with the lock, hips 40–70 mm as before. Rule: **a few mm of
+foot wander under a Humanoid sway is the retarget's floor, not the clip's; hold the feet in the engine, on idles only.**
+⚠ Two bridge lessons from the measuring: `EditorApplication.Step()` while paused does not advance the game through the
+bridge (identical samples) and a call every 0.25 s stalls it — sample INSIDE Unity (a throwaway MonoBehaviour under the
+gitignored `Assets/_PipelineTest/`, deleted after) and read one summary.
+**AOE_Cast_Fix_02 updated (2026-09-28, "bake it"):** a torso offset with two keys over frames 1–34 in Combine over
+the strip, flattened (0.00 mm) over the previous bakes (the staff idle's legs, root held); the IK feet stay put
+(0.0 mm / 0.0° steps), the knees close from 135° to 118° through the range, no leg bone above 3° per frame.
+Re-exported with the fit: the highest sole on the floor, the Necromancer's robe 71 mm under at its lowest frame
+(the lowered torso hangs the hem lower: the robe class of dip).
+**AOE_Cast_Fix_01 updated (2026-09-28, "bake it"):** one held key on both knee poles (`thigh_ik_target.L/R`) in Combine
+over the strip, so the same swivel offset rides every frame: flattened (0.00 mm), feet untouched (0.0 mm / 0.0°),
+knees 118–135°, no leg bone above 3° per frame; re-exported with the fit (unchanged: the Necromancer's robe 71 mm).
+**Idle_02_Fix (2026-09-29, "bake it"):** one held key on both knee poles in Combine over the strip (the same swivel
+offset on every frame of the 360-frame loop, so the seam holds: frame 361 = frame 1): flattened (0.00 mm),
+`Idle_02_base` kept, the feet and root static to 0.0 mm, knees 133–139°, no leg bone above 0.3° per frame;
+re-exported (the Knight's sole +10 mm, the Necromancer's robe 37 mm under, as before).
 
 ### Hand-authored clips and idle fixes (2026-09-21)
 

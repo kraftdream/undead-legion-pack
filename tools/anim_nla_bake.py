@@ -58,6 +58,7 @@ TORSO_DROP = float(arg("--torso-drop", "0"))       # rig m: the torso control (t
 YAW_CLIP = float(arg("--yaw-clip", "0"))          # degrees, + = left: the whole clip turned about the vertical through the root's first-frame spot - every root-level control (torso, feet, toes, knee poles, IK hands, elbow poles) and the root's path, the Root's own orientation left at identity so the export's Root stays as in every other clip (user, AOE_Cast: "animation direction the same as the feet direction in idle_02": the take faced 17 deg right)
 KNEES_IN = float(arg("--knees-in", "0"))         # rig m: the IK knees swivelled toward the body's midline so their separation shrinks by this much (each knee's pole aimed at the FK knee moved half of it inward along the hips' lateral axis; the knee can only move on its swivel circle, so the pole takes the nearest point). Runs after every other leg pass. (user, Strafe_01: "knees not that far apart, like 20 cm closer": the knees sat 276-414 mm apart with the feet 132-299)
 KEEP_POLES = "--keep-poles" in argv               # with --pin-foot: the knee poles are left as they are (no re-aim onto the FK knee plane, no repole after the leg passes) - for a clip whose poles were set by hand or by --knees-in (user, Strafe_01: the fix keys the poles)
+WRIST_TWIST = {k.split(":")[0]: float(k.split(":")[1]) for k in arg("--wrist-twist", "").split(",") if k}   # "L:-67,R:63" degrees: each FK forearm turned about its own bone axis on every frame (the hand and fingers ride) - the retarget's wrist_twist pass, for a hand-edited clip that cannot be rebuilt (user, Run_Fwd_02: "turn hands so weapons point outward")
 ARMS_DOWN = float(arg("--arms-down", "0"))         # degrees: each FK upper arm turned toward the body about the body's forward axis through its shoulder (pure adduction; the forearm and hand ride), on every frame (user, Strafe_01: "lower the arms, they stick out too much")
 LOOP_SHIFT = int(arg("--loop-shift", "0"))          # frames: the loop's phase rotated - the clip starts K frames later and the first K frames go to the end, advanced by the travel (the Root keeps its linear path); the seam moves to where the old frame K meets K+1 (user, Strafe_01: "move some frames from the start into the end, the feet snap at the end")
 LEGS_FROM = arg("--legs-from", "")                 # "Idle:1": every LEG control (feet, toes, knee poles, the FK leg chain, heel/spin/tweaks and the leg switches) taken from that action's frame on every frame; root, torso, pelvis and everything above stay the clip's, so the IK legs stand on the reference's stance under the clip's hips (user, one-handed attacks: "only torso and above bones are used, we don't touch legs and feet poses")
@@ -1160,6 +1161,25 @@ def knees_in(act, d):
         log("knees-in: %d knee-frames could not reach the wanted lateral offset on their swivel circle (worst %.0f mm short, frame %d %s): a --torso-drop bends the knees and widens the circle" % (len(KNEES_SHORT), worst[2] * 1000, worst[0], worst[1]))
 
 
+def wrist_twist(act, spec):
+    """The retarget's wrist_twist on a baked action: the FK forearm rotated about its own axis (elbow -> wrist) by a constant
+    angle on every frame, the hand and fingers riding; an IK arm is skipped (its hand sits on hand_ik, the FK forearm shows nothing)."""
+    ad.action = act
+    for sd, deg in spec.items():
+        n_ = 0; skipped = 0
+        for f in range(F0, F1 + 1):
+            scene.frame_set(f)
+            if pbs["upper_arm_parent." + sd]["IK_FK"] < 0.5:
+                skipped += 1; continue
+            fa = pbs["forearm_fk." + sd]; m = (rig.matrix_world @ fa.matrix).copy(); t = m.translation.copy()
+            axis = (m.to_3x3() @ Vector((0, 1, 0))).normalized()
+            fa.matrix = rig.matrix_world.inverted() @ (Matrix.Translation(t) @ Matrix.Rotation(math.radians(deg), 4, axis) @ Matrix.Translation(-t) @ m)
+            bpy.context.view_layer.update()
+            fa.keyframe_insert("rotation_quaternion" if fa.rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group="forearm_fk." + sd)
+            n_ += 1
+        log("wrist-twist %s %+.0f deg: %d frames turned about the forearm axis%s" % (sd, deg, n_, (", %d IK frames skipped" % skipped) if skipped else ""))
+
+
 def arms_down(act, deg):
     ad.action = act
     n_ = 0
@@ -1604,6 +1624,9 @@ if GRIP_FOLLOW:
 
 if FK_ARM:
     fk_arms(baked)
+
+if WRIST_TWIST:
+    wrist_twist(baked, WRIST_TWIST)
 
 if ARMS_DOWN:
     arms_down(baked, ARMS_DOWN)
