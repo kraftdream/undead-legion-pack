@@ -61,6 +61,7 @@ KEEP_POLES = "--keep-poles" in argv               # with --pin-foot: the knee po
 WRIST_TWIST = {k.split(":")[0]: float(k.split(":")[1]) for k in arg("--wrist-twist", "").split(",") if k}   # "L:-67,R:63" degrees: each FK forearm turned about its own bone axis on every frame (the hand and fingers ride) - the retarget's wrist_twist pass, for a hand-edited clip that cannot be rebuilt (user, Run_Fwd_02: "turn hands so weapons point outward")
 ARMS_DOWN = float(arg("--arms-down", "0"))         # degrees: each FK upper arm turned toward the body about the body's forward axis through its shoulder (pure adduction; the forearm and hand ride), on every frame (user, Strafe_01: "lower the arms, they stick out too much")
 LOOP_SHIFT = int(arg("--loop-shift", "0"))          # frames: the loop's phase rotated - the clip starts K frames later and the first K frames go to the end, advanced by the travel (the Root keeps its linear path); the seam moves to where the old frame K meets K+1 (user, Strafe_01: "move some frames from the start into the end, the feet snap at the end")
+ARMS_FROM = arg("--arms-from", "")                 # "Attack_R_Slice:1[:LR][,Attack_L_Slice:1:L]": every ARM control (shoulders, the FK and IK arm chains, tweaks, the arm switches, hands, fingers) held at that action's frame on EVERY frame of the clip - a combat idle: the clip's body (Idle_01's sway) with the first attack frame's arms; an arm that is on IK on the source frame is copied as its FK equivalent, so it rides the swaying torso instead of hanging fixed in space (user, 2026-09-29: "idle_{type}_combat: body pose from idle_01, hands placement from the first attack of that weapon type")
 LEGS_FROM = arg("--legs-from", "")                 # "Idle:1": every LEG control (feet, toes, knee poles, the FK leg chain, heel/spin/tweaks and the leg switches) taken from that action's frame on every frame; root, torso, pelvis and everything above stay the clip's, so the IK legs stand on the reference's stance under the clip's hips (user, one-handed attacks: "only torso and above bones are used, we don't touch legs and feet poses")
 IK_LEGS = "--ik-legs" in argv                     # after the bake, both legs on IK on every frame, the foot/toe controls on the DEF result and the knee pole out through the FK knee (refined): lossless (the walks' legs are FK from the retarget; a foot pin on an FK leg would switch modes and jump the knee)
 FK_ARM = arg("--fk-arm", "")                      # "L" / "R" / "LR": after the bake, that arm is put on FK on every frame, the FK chain set to the arm's current (IK) result: lossless, and upper_arm_fk / forearm_fk / hand_fk then control it (user, on Block_L_Idle whose left arm was IK throughout: "upper_arm_fk_l and its children won't change the mesh")        # "A:B:F": after the bake (and pin), frames A..B of the result are resampled F times faster (Blender's own curve evaluation at fractional frames), the frames after B shift earlier (user: "speed up by 35% from frame 21 to 34")
@@ -1233,6 +1234,60 @@ LEG_CTRLS = ["foot_ik.L", "foot_ik.R", "toe_ik.L", "toe_ik.R", "foot_fk.L", "foo
              "foot_spin_ik.L", "foot_spin_ik.R", "thigh_tweak.L", "thigh_tweak.R", "shin_tweak.L", "shin_tweak.R", "foot_tweak.L", "foot_tweak.R"]
 
 
+ARM_PREFIXES = ("shoulder.", "upper_arm_", "forearm_", "hand_", "thumb.", "f_index.", "f_middle.", "f_ring.", "f_pinky.", "palm.")
+
+
+def arms_from(act, spec):
+    """The arm controls of the source action's frame written as constants onto every frame of `act`. An IK arm on the
+    source frame is first converted to FK there (the DEF chain reproduced by the FK controls, as fk_arms does), so the
+    copied arm is a local pose that follows the clip's torso."""
+    parts = spec.split(":"); src = bpy.data.actions[parts[0]]; sf = int(parts[1]); sides = parts[2] if len(parts) > 2 else "LR"
+    ctrls = [c for c in CONTROLS if c.startswith(ARM_PREFIXES) and c[-1] in sides]
+    chain = [("upper_arm_fk", "DEF-upper_arm"), ("forearm_fk", "DEF-forearm"), ("hand_fk", "DEF-hand")]
+    # rest relation FK control -> DEF bone, on the zero pose
+    ad.action = None
+    for pb in pbs: pb.matrix_basis.identity()
+    bpy.context.view_layer.update()
+    rel = {sd: {c: (rig.matrix_world @ pbs[d + "." + sd].matrix).to_quaternion().inverted() @ (rig.matrix_world @ pbs[c + "." + sd].matrix).to_quaternion() for c, d in chain} for sd in sides}
+    ad.action = src; scene.frame_set(sf)
+    converted = []
+    for sd in sides:
+        if pbs["upper_arm_parent." + sd]["IK_FK"] >= 0.5: continue
+        target = {c: (rig.matrix_world @ pbs[d + "." + sd].matrix).copy() for c, d in chain}
+        pbs["upper_arm_parent." + sd]["IK_FK"] = 1.0; bpy.context.view_layer.update()
+        for c, d in chain:
+            pb = pbs[c + "." + sd]; q = target[c].to_quaternion() @ rel[sd][c]
+            m = pb.matrix.copy(); r = (rig.matrix_world.to_3x3().inverted() @ q.to_matrix()).to_4x4(); r.translation = m.translation
+            pb.matrix = r; bpy.context.view_layer.update()
+        worst = max((rig.matrix_world @ pbs[d + "." + sd].matrix).translation.__sub__(target[c].translation).length * 1000 for c, d in chain)
+        converted.append("%s (IK on the source frame, FK equivalent within %.1f mm)" % (sd, worst))
+    rec = read_pose()
+    ad.action = src   # undo the transient FK conversion on the source (nothing was keyed there)
+    ad.action = act
+    for f in range(F0, F1 + 1):
+        scene.frame_set(f)
+        for c in ctrls:
+            r_ = rec[c]; pb = pbs[c]
+            pb.location = r_["loc"]; pb.scale = r_["scale"]
+            if pb.rotation_mode == 'QUATERNION': pb.rotation_quaternion = r_["rot"]
+            elif pb.rotation_mode == 'AXIS_ANGLE':
+                ax_, an_ = r_["rot"].to_axis_angle(); pb.rotation_axis_angle = (an_, ax_.x, ax_.y, ax_.z)
+            else: pb.rotation_euler = r_["rot"].to_euler(pb.rotation_mode)
+            for p_ in PROPS:
+                if p_ in r_ and p_ in pb:
+                    pb[p_] = bool(r_[p_]) if isinstance(pb[p_], bool) else float(r_[p_])
+        bpy.context.view_layer.update()
+        for c in ctrls:
+            pb = pbs[c]
+            pb.keyframe_insert("location", frame=f, group=c)
+            pb.keyframe_insert("rotation_quaternion" if pb.rotation_mode == 'QUATERNION' else "rotation_axis_angle" if pb.rotation_mode == 'AXIS_ANGLE' else "rotation_euler", frame=f, group=c)
+            pb.keyframe_insert("scale", frame=f, group=c)
+            for p_ in PROPS:
+                if p_ in pb and p_ in rec[c]:
+                    pb.keyframe_insert('["%s"]' % p_, frame=f, group=c)
+    log("arms from %s frame %d (%s) held on %d controls over frames %d..%d%s" % (parts[0], sf, sides, len(ctrls), F0, F1, ("; converted to FK: " + ", ".join(converted)) if converted else ""))
+
+
 def legs_from(act, spec):
     ref_name, ref_frame = spec.split(":"); ref_frame = int(ref_frame)
     ad.action = bpy.data.actions[ref_name]; scene.frame_set(ref_frame); bpy.context.view_layer.update(); ref = read_pose()
@@ -1534,6 +1589,10 @@ for f in range(F0, F1 + 1):
         if dp > worst[0]: worst = (dp, b, f)
         if dr > worst_r[0]: worst_r = (dr, b, f)
 log("flat %s vs the stack: worst DEF position %.2f mm (%s f%d), worst rotation %.2f deg (%s f%d)" % (RESULT, worst[0], worst[1], worst[2], worst_r[0], worst_r[1], worst_r[2]))
+if ARMS_FROM:
+    for spec_ in ARMS_FROM.split(","):          # "Attack_R_Slice:1:R,Attack_L_Slice:1:L": each arm from its own attack
+        arms_from(baked, spec_)
+
 if LEGS_FROM:
     legs_from(baked, LEGS_FROM)
 

@@ -28,7 +28,7 @@ namespace UndeadLegion.Demo
             public float azimuth = -30f, elevation = 12f, distance = 4.0f, lookHeight = 1.0f, fieldOfView = 32f;
             public int width = 1920, height = 1080, supersample = 2, maxLoadouts = 0, fps = 30;
             public string outputDir = "";
-            public string stage = "attacks";
+            public string stage = "weapons";
         }
 
         static bool _pending;
@@ -79,7 +79,7 @@ namespace UndeadLegion.Demo
             cfg.supersample = int.Parse(Env("SHOWREEL_SUPERSAMPLE", "2")); cfg.maxLoadouts = int.Parse(Env("SHOWREEL_MAXLOADOUTS", "0"));
             cfg.fps = int.Parse(Env("SHOWREEL_FPS", "30"));
             cfg.outputDir = Env("SHOWREEL_OUT", "");
-            cfg.stage = Env("SHOWREEL_STAGE", "attacks");
+            cfg.stage = Env("SHOWREEL_STAGE", "weapons");
             SessionState.SetString(KeyConfig, JsonUtility.ToJson(cfg));
             SessionState.SetBool(KeyPending, true);
             var scene = Env("SHOWREEL_SCENE", DefaultScene);

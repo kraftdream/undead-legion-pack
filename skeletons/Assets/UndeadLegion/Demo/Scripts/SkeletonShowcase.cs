@@ -101,6 +101,7 @@ namespace UndeadLegion.Demo
         readonly Dictionary<int, AnimationClip> _held = new Dictionary<int, AnimationClip>();           // loops held on masked layers
         int _upperPlayFrame = -10;
         AnimationClip _lastLoco;
+        AnimationClip _lastIdle;             // the last looping non-locomotion clip played on Base
         float _pendingAt;
         int _playFrame = -10;
 
@@ -221,7 +222,7 @@ namespace UndeadLegion.Demo
             _pendingFollow = null;
             _layerCurrent.Clear();
             _held.Clear();
-            _lastLoco = null;
+            _lastLoco = null; _lastIdle = null;
             _maskedLayers.Clear();
             _clips.Clear();
             _twitches.Clear();
@@ -289,13 +290,14 @@ namespace UndeadLegion.Demo
         {
             public string title;
             public string[] idlePreference;
+            public bool returnToLastIdle;   // a class special or reaction goes back to whatever idle was playing (user, 2026-09-29: taunts, rally, cutthroat, summon dropped to Idle_01)
             public string[] members;
         }
 
         static readonly ClipSection[] Sections =
         {
             new ClipSection { title = "Idle", idlePreference = new[] { "Idle_01" },
-                members = new[] { "Idle_01", "Idle_02", "Idle_03" } },
+                members = new[] { "Idle_01", "Idle_02", "Idle_03", "Idle_1H_Combat" } },
             new ClipSection { title = "Weapon idles", idlePreference = new[] { "Idle_01" },
                 members = new[] { "Idle_TwoHanded", "Idle_Bow", "Idle_Staff" } },   // Idle_Propped removed 2026-09-25 with the "Staff (propped)" loadout
             // impaled: kneeling with the sword in the belly (loop), then pull it out and rise (one-shot,
@@ -311,9 +313,9 @@ namespace UndeadLegion.Demo
                                   "Walk_Fwd_02", "Walk_Back_02", "Run_Fwd_02", "Strafe_Left_02", "Strafe_Right_02",
                                   "Turn_Left_90", "Turn_Right_90" } },
             // per-arm set (2026-09-22): each clip lives on its arm's masked layer; Block_L_Idle is a held toggle
-            new ClipSection { title = "Right arm", idlePreference = new[] { "Idle_01" },
+            new ClipSection { title = "Right arm", idlePreference = new[] { "Idle_1H_Combat", "Idle_01" },
                 members = new[] { "Attack_R_Stab", "Attack_R_Slice" } },
-            new ClipSection { title = "Left arm (block = hold)", idlePreference = new[] { "Idle_01" },
+            new ClipSection { title = "Left arm (block = hold)", idlePreference = new[] { "Idle_1H_Combat", "Idle_01" },
                 members = new[] { "Attack_L_Stab", "Attack_L_Slice", "Block_L_Idle" } },
             new ClipSection { title = "Two-handed", idlePreference = new[] { "Idle_TwoHanded", "Idle_01" },
                 members = new[] { "Attack_2H_01", "Attack_2H_02" } },
@@ -321,9 +323,9 @@ namespace UndeadLegion.Demo
                 members = new[] { "Shoot_01" } },
             new ClipSection { title = "Magic", idlePreference = new[] { "Idle_Staff", "Idle_01" },
                 members = new[] { "Cast_Wand_01", "Cast_Wand_02", "Cast_Staff_01" } },   // Cast_Staff_02 retired 2026-09-25 (the recorded set)
-            new ClipSection { title = "Specials", idlePreference = new[] { "Idle_01" },
+            new ClipSection { title = "Specials", idlePreference = new[] { "Idle_01" }, returnToLastIdle = true,
                 members = new[] { "Taunt_01", "Taunt_02", "Taunt_03", "Rally", "Cutthroat", "Summon", "AOE_Cast" } },   // the user's recordings, 2026-09-25 (Taunt -> Taunt_01..03)
-            new ClipSection { title = "Reactions", idlePreference = new[] { "Idle_01" },
+            new ClipSection { title = "Reactions", idlePreference = new[] { "Idle_01" }, returnToLastIdle = true,
                 members = new[] { "Hit_Front", "Hit_Back", "Stagger", "Knockdown", "Get_Up", "Rise" } },
             new ClipSection { title = "Death", idlePreference = new string[0],
                 members = new[] { "Death_01", "Death_02", "Death_03", "Death_04" } },   // the four instant-fall generations the user kept (2026-09-27): drop, face-down, on the back, puppet
@@ -547,6 +549,7 @@ namespace UndeadLegion.Demo
         {
             if (_lastLoco != null && !clip.name.StartsWith("Death")) return _lastLoco;
             ClipSection s;
+            if (_sectionOf.TryGetValue(clip.name, out s) && s.returnToLastIdle && _lastIdle != null) return _lastIdle;
             if (_sectionOf.TryGetValue(clip.name, out s))
                 foreach (var name in s.idlePreference)
                 {
@@ -642,7 +645,7 @@ namespace UndeadLegion.Demo
                 _layerCurrent.Clear();
             }
             if (IsLocomotion(clip)) _lastLoco = clip;
-            else if (clip.isLooping) _lastLoco = null;          // an idle picked by hand ends the walk
+            else if (clip.isLooping) { _lastLoco = null; if (LayerFor(clip) < 0) _lastIdle = clip; }   // an idle picked by hand ends the walk (a held masked-layer loop is not an idle)
             _pendingFollow = null;
             SetDeathSuspend(IsDeath(clip));
             int hash = Animator.StringToHash(clip.name);

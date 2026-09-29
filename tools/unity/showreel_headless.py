@@ -1,6 +1,6 @@
 """Record the showreel HEADLESSLY (the interactive editor must be closed: one editor per project) and encode it.
 
-    python tools/unity/showreel_headless.py [--stage modular|movement|attacks] [--side left|right | --azimuth DEG] [--supersample 2] [--max-loadouts 0]
+    python tools/unity/showreel_headless.py [--stage modular|movement|weapons] [--side left|right | --azimuth DEG] [--supersample 2] [--max-loadouts 0]
                                             [--width 1920 --height 1080] [--out Showreel/showreel_left.mp4] [--crf 16]
                                             [--unity "C:/Program Files/Unity/Hub/Editor/6000.4.0f1/Editor/Unity.exe"]
 
@@ -14,7 +14,7 @@ import argparse, os, subprocess, sys, time
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 PROJECT = os.path.join(ROOT, "skeletons")
 ap = argparse.ArgumentParser()
-ap.add_argument("--stage", choices=["modular", "movement", "attacks"], default="modular", help="which stage to render (one per run; stitched later)")
+ap.add_argument("--stage", choices=["modular", "movement", "weapons", "attacks"], default="modular", help="which stage to render (one per run; stitched later)")
 ap.add_argument("--side", choices=["left", "right"], default="left", help="left = the camera at -30 deg (the character's left side nearest), right = +30")
 ap.add_argument("--azimuth", type=float, default=None, help="overrides --side")
 ap.add_argument("--supersample", type=int, default=2)

@@ -46,6 +46,14 @@
    "hand_edited": true
   },
   {
+   "name": "Idle_1H_Combat",
+   "glb": "idle_s42",
+   "mode": "idle",
+   "hand_edited": true,
+   "lift": 0.0036,
+   "_note": "2026-09-29, user: 'idle_{type}_combat for each weapon type: body pose from idle_01, hands placement from the first attack for that weapon type' (the crossfade from Idle_01 into an attack was too big for its 0.15 s). Built by anim_nla_bake --action Idle_01 --result Idle_1H_Combat --arms-from Attack_R_Slice:1: Idle_01's flattened clip (240 frames, the sway, legs, head) with one-handed weapon, with or without a shield: the arms of Attack_R_Slice's first frame (right hand at 0.97 m, elbow 96 deg, the left hand chest-high) held on every frame. Not reproducible from the entry alone (hand_edited); re-run that command after an Idle_01 or attack change. 2026-09-29, second round ('we only keep idle_1h_combat, the only different animation when the skeleton enters the combat state; other weapon types use their respective idles; the left arm stance is not as ready for left-hand attacks as the right'): rebuilt with --arms-from Attack_R_Slice:1:R,Attack_L_Slice:1:L (each arm from its own attack's first frame, the left the mirror stance of the right). Idle_2H_Combat / Idle_Staff_Combat / Idle_Bow_Combat removed."
+  },
+  {
    "name": "Idle_TwoHanded",
    "prompt": "A person stands relaxed with a heavy two-handed axe resting on the right shoulder, holding its handle with both hands, slowly shifting weight from foot to foot.",
    "glb": "attack_ref6_arm",

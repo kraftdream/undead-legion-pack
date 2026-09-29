@@ -1306,6 +1306,33 @@ was killed by Claude Code for low system memory after the run's retarget had sav
 and renames) and the batch was re-run on request. Rule: **a Kimodo run with the undead profile needs several seeds; score the
 travel and the knee range before looking at anything else.**
 
+**Combat idles (2026-09-29, "we are missing idle_combat animations for each weapon type: two 1-handed/shield, 2-handed, staff, bow;
+the transition from idle_01 to a right-hand attack is big and happens in a short time; body pose from idle_01, hands placement from
+the first attack of that weapon type").** Four 8 s loops, each Idle_01's flattened clip (the sway, legs, head) with the ARM controls of
+one source frame held on every frame — bake tool **`--arms-from ACTION:FRAME[:LR]`** (shoulders, the FK and IK arm chains, tweaks,
+switches, hands, fingers; an arm on IK on the source frame is converted to its FK equivalent there first, as `fk_arms` does, so the
+copied arm is a local pose that rides the swaying torso instead of a hand fixed in space): `Idle_1H_Combat` ← `Attack_R_Slice:1`
+(the melee take's ready stance: right hand 0.97 m, elbow 96°, the left hand chest-high — the shield arm), `Idle_2H_Combat` ←
+`Attack_2H_01:1` (the two-handed hold; the gated left hand was IK, converted; `grip_hands L`), `Idle_Staff_Combat` ← `Cast_Staff_01:1`
+(both hands on the staff; `grip_hands L`), `Idle_Bow_Combat` ← `Shoot_01:12` (the raise complete, the arrow nocked, not drawn —
+Shoot_01's frame 1 IS Idle_Bow's lowered pose, so the shot still starts lowered; a shot cut from frame 12 would pair with this idle).
+Manifest entries `hand_edited` with Idle_01's lift, in the demo's Idle section. Measured (hand distance, idle frame 1 → the
+attack's first frame, engine cm): 1H 54 / 41 (Idle_01) → 13 / 11 (the rest is Idle_01's 11° chest against the take's 23°: the arms are
+local); staff 29 / 16 (Idle_Staff) → 8 / 6; bow 60 / 56 (Idle_Bow → Shoot_01 frame 12) → 28 / 26, but Shoot_01 still STARTS on
+Idle_Bow's lowered pose, so from the bow combat idle the shot first drops the arms — it needs a shot cut from frame 12 to pair with;
+**two-hander: `Idle_TwoHanded` → `Attack_2H_01` is already 1 cm (the same take), the new `Idle_2H_Combat` is 14 / 12 — the existing
+two-handed idle is the better pre-attack idle there.** **Second round (same day, "we only keep idle_1h_combat, the only different animation when the skeleton enters the combat state;
+other weapon types use their respective idles; in idle_1h_combat the left arm stance is not as ready for left-hand attacks as the
+right"):** `Idle_2H_Combat`, `Idle_Staff_Combat`, `Idle_Bow_Combat` removed (actions, entries, exports, states, buttons);
+`Idle_1H_Combat` rebuilt with **`--arms-from "Attack_R_Slice:1:R,Attack_L_Slice:1:L"`** (the pass takes one spec per arm): each arm in
+its OWN attack's first-frame stance, both hands low and ready — 11 cm from the right slice's right hand, 10 cm from the left slice's
+left hand (the other arm then sits ~30 cm from that take's raised non-attacking arm: the recorded stance is asymmetric, so a
+symmetric ready idle cannot match both arms of one take). The showreel's attacks stage plays the Knight's and the Assassin's steps
+on it, and the demo's "Right arm" / "Left arm" sections return to it after an attack (`idlePreference` `Idle_1H_Combat`, then
+`Idle_01`; the user saw both characters drop to Idle_01 between attacks). The "Specials" and "Reactions" sections return to the LAST idle
+loop that played on Base (`returnToLastIdle`; taunts, rally, cutthroat, summon and AOE cast had dropped to Idle_01 too). Rule: **a combat idle is the base idle's body with
+the attack's own first-frame arms; then the engine's 0.15 s crossfade has only the attack's motion to cover.**
+
 **The recorded magic and specials set (2026-09-25, user: two mannequin-app files, `P:\magic attacks.glb`
 and `P:	aunts.glb`, split by frame ranges).** `External Anims/Kimodo/magic_ref_mocap.glb` →
 `magic_ref_arm.blend` (200 frames) and `taunts_ref_mocap.glb` → `taunts_ref_arm.blend` (666 frames) through
@@ -2544,11 +2571,17 @@ Archer's helm, the Warrior's greaves and the Assassin's gloves one at a time —
 off, the borrowed one on through `SkeletonModules` and the showcase's armour catalogue; then on that mixed Knight sword +
 shield and axe + shield on `Idle_03`, sword / dagger / two daggers on `Idle_02`, mace on `Idle_01`, longsword and battle axe
 on `Idle_TwoHanded`; then the Archer's bow on `Idle_Bow`, the Necromancer's staff on `Idle_Staff`, the Mage's wand on
-`Idle_03`) and **`attacks`** (rewritten 2026-09-29 to the user's script, replacing the per-loadout plan tables: Warrior on `Idle_TwoHanded`
-with the longsword then the battle axe, `Attack_2H_01` + `02` each; Knight on `Idle_03`: axe + round shield `Attack_R_Stab`, sword +
-heater shield `Attack_R_Slice`, then `Block_L_Idle` HELD (a step's `holdOn`: the showcase's `ToggleHeld` on its layer, so the shield
-stays up while both right attacks play full-body on Base) and both right attacks, then the mace with the block released (`holdOff`)
-and both right attacks; Assassin on `Idle_02`: one dagger with both right attacks, two daggers with both left attacks, all at
+`Idle_03`) and **`weapons`** ("weapons & utils" since 2026-09-29, the old id `attacks` still accepted; title card "WEAPONS & UTILS"; each
+class's utility one-shots before its attacks and a death after, the corpse held `deathHoldSeconds` 1.6: Warrior `Taunt_01` … `Death_01`,
+Knight `Taunt_02` + `Rally` … `Death_02`, Assassin `Cutthroat` … `Death_03` (both at normal speed, only the attacks at 1.6×),
+Necromancer `Summon` … `AOE_Cast` + `Death_04`; output `showreel_weapons.mp4`; a death keeps its root fixed and falls in the
+hips, so during a death step the camera follows the HIPS horizontally and sinks `deathCameraDrop` 0.5 m (damped, rotation unchanged) —
+following the root left the corpses at the frame's edge, the Necromancer's half out of it; rewritten 2026-09-29 to the user's script, replacing the per-loadout plan tables: Warrior on `Idle_TwoHanded`
+with the longsword then the battle axe, `Attack_2H_01` + `02` each; Knight on `Idle_1H_Combat` (third script, 2026-09-29): `Block_L_Idle`
+HELD from the start (a step's `holdOn`: the showcase's `ToggleHeld` on its layer, so the shield stays up while the right attacks
+play full-body on Base), axe + round shield `Attack_R_Slice`, sword + heater shield with both right attacks under the block, then
+the sword alone with the block released (`holdOff`) and both attacks (the mace step and the stab on the axe are gone); Assassin on
+`Idle_1H_Combat`: one dagger with both right attacks, two daggers with both left attacks, all at
 **`attackSpeed` 1.6** (the Animator's speed during the attack, the capture shortened to match); Archer on `Idle_Bow` with `Shoot_01`;
 Mage on `Idle_03` with both wand casts; Necromancer on `Idle_Staff` with both wand casts and `Cast_Staff_01`; then "skip
 attack_r_stab for the axe + round shield and the mace": the axe plays the slice, the mace only the slice. **Root motion is ON for

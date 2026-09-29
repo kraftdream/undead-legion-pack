@@ -59,5 +59,8 @@ __pycache__/
 # bone atlas sheets are regenerable (bone_atlas.py --sheets-from); the JSON and ATLAS.txt are tracked
 /Rig/atlas/sheets/
 
-# the Asset Store showreel frames + mp4 (ShowreelRecorder / showreel_encode.py): built, never shipped
-/Showreel/
+# the Asset Store showreel (ShowreelRecorder / showreel_encode.py): only the final stage videos are tracked; frames, logs and test renders stay local
+/Showreel/*
+!/Showreel/showreel_modular.mp4
+!/Showreel/showreel_movement.mp4
+!/Showreel/showreel_weapons.mp4
