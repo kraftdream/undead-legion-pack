@@ -400,6 +400,24 @@ backends. `tools/unity/demo_smoke.py` plays the scene headlessly and screenshots
 - **Materials**: `materialImportMode = None` on every FBX; `Materials/URP/` is the
   single source of truth (twelve character materials + `M_Demo_Ground`).
 
+### Production project (2026-09-29)
+
+`python tools/make_production.py --verify` writes `../undead-legion-production/` (a sibling of this repo, so the art is not
+duplicated in git; its own `.gitignore`, `Library/` kept between runs): the Unity project a buyer's package is exported from, with
+nothing that describes how the pack was made. It copies `Assets/UndeadLegion` (minus `Demo/Editor` and `ShowreelRecorder`),
+`Assets/Settings`, the input actions, `ProjectSettings` (product name "Undead Legion", the cloud project link cleared, the demo scene
+as the only build scene) and the Asset Store publishing tools; drops the editor-bridge, collaboration, multiplayer-center and
+navigation packages from the manifest; strips EVERY comment from the 13 runtime scripts (a literal-aware C# tokenizer) and adds a
+one-line summary per type; rewrites the tooltips that narrated the pipeline. **Every FBX embeds the absolute path of its source
+.blend** (Blender's DocumentUrl): overwritten in place with `Source/<name>.blend` padded to the same byte length, so the binary
+layout stays valid (111 files). A scan of every text file and FBX for process markers must come back empty, and the batch-mode open
+must compile with no errors and no missing scripts (a project's FIRST open can log two errors from Unity's own Shader Graph package
+while packages resolve; the second open is clean). Re-run it after any change in `skeletons/`; never edit the production copy. It refuses to run while the production project is open in Unity (it replaces `Assets/`).
+**The buyer documentation** is `Assets/UndeadLegion/Documentation/UndeadLegion_Documentation.pdf` (9 A4 pages: overview, setup, folders,
+characters with triangle counts, armour modules and the wear/remove API, weapons, loadouts, slots and grips, the bow events, the clip list,
+the controller's layers, the speed table, the scripts, the demo scene, own animations, technical details), printed from
+`tools/docs/UndeadLegion_Documentation.html` by `tools/make_documentation.py`; edit the HTML and re-run it when the content changes.
+
 ### Validator
 
 Run the Asset Store validator headlessly against `Assets/UndeadLegion` (category
