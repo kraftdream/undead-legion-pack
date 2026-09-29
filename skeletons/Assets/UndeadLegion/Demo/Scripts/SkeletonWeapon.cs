@@ -143,7 +143,7 @@ namespace UndeadLegion.Demo
         [Tooltip("On BowRelease, launch a copy of the held arrow as an ArrowProjectile (demo only, no collision).")]
         public bool fireProjectile = true;
         [Tooltip("Launch speed of the fired arrow, m/s.")]
-        public float arrowSpeed = 30f;
+        public float arrowSpeed = 15f;
         [Tooltip("Where the fired arrow flies: the character's forward for now (a static direction, not the bow's aim).")]
         public ArrowDirection arrowDirection = ArrowDirection.CharacterForward;
         public enum ArrowDirection { CharacterForward, BowAim }

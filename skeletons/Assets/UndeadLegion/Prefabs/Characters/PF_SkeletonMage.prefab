@@ -814,6 +814,7 @@ GameObject:
   - component: {fileID: 8747679750770194639}
   - component: {fileID: 233706933978377091}
   - component: {fileID: 1477116197612755355}
+  - component: {fileID: 5972065289504935227}
   - component: {fileID: 4625051316287288139}
   m_Layer: 0
   m_Name: PF_SkeletonMage
@@ -934,6 +935,23 @@ MonoBehaviour:
   minWeight: 0.5
   maxWeight: 1
   seed: 0
+--- !u!114 &5972065289504935227
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1505901214057705660}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dde22b65270a81942929f4bdc4d49f70, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UndeadLegion.Demo.SkeletonFootLock
+  idlePrefix: Idle
+  lockRotation: 1
+  fadeIn: 0.15
+  fadeOut: 0.12
+  enabledLock: 1
 --- !u!114 &4625051316287288139
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1062,10 +1080,12 @@ MonoBehaviour:
   - bone: RightHandPinky3
     localRotation: {x: -0.2134571, y: 0.013616531, z: 0.36632466, w: -0.90557}
   fireProjectile: 1
-  arrowSpeed: 30
+  arrowSpeed: 15
   arrowDirection: 0
   arrowHideSeconds: 1.2
   fingerFade: 0.15
+  fingerIdleLeft: 1
+  fingerIdleRight: 1
 --- !u!1 &1584995450671381389
 GameObject:
   m_ObjectHideFlags: 0

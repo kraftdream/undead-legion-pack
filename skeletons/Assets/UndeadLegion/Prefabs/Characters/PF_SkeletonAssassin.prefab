@@ -1437,6 +1437,7 @@ GameObject:
   - component: {fileID: 2929394207247959385}
   - component: {fileID: 7566156611855687146}
   - component: {fileID: 9146845616936775146}
+  - component: {fileID: 3467640010568442228}
   - component: {fileID: 7967734679377390836}
   m_Layer: 0
   m_Name: PF_SkeletonAssassin
@@ -1557,6 +1558,23 @@ MonoBehaviour:
   minWeight: 0.5
   maxWeight: 1
   seed: 0
+--- !u!114 &3467640010568442228
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2001794907257193781}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dde22b65270a81942929f4bdc4d49f70, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UndeadLegion.Demo.SkeletonFootLock
+  idlePrefix: Idle
+  lockRotation: 1
+  fadeIn: 0.15
+  fadeOut: 0.12
+  enabledLock: 1
 --- !u!114 &7967734679377390836
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1685,10 +1703,12 @@ MonoBehaviour:
   - bone: RightHandPinky3
     localRotation: {x: -0.2134571, y: 0.013616531, z: 0.36632466, w: -0.90557}
   fireProjectile: 1
-  arrowSpeed: 30
+  arrowSpeed: 15
   arrowDirection: 0
   arrowHideSeconds: 1.2
   fingerFade: 0.15
+  fingerIdleLeft: 1
+  fingerIdleRight: 1
 --- !u!1 &2015440392650792239
 GameObject:
   m_ObjectHideFlags: 0

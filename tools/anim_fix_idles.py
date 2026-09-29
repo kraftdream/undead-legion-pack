@@ -22,7 +22,7 @@ from mathutils import Vector, Quaternion, Matrix
 
 argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 SAVE = "--save" in argv
-ONLY = set(argv[argv.index("--only") + 1].split(",")) if "--only" in argv else {"Idle", "Idle_02", "Idle_03"}
+ONLY = set(argv[argv.index("--only") + 1].split(",")) if "--only" in argv else {"Idle_01", "Idle_02", "Idle_03"}
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FWD = Vector((0, -1, 0)); UP = Vector((0, 0, 1))
 OUTWARD_DEG = 12.0          # blades point forward and a little out, not exactly parallel
@@ -97,7 +97,7 @@ def sample_arms(action_name):
     return out
 
 
-IDLE_ARMS = sample_arms("Idle") if "Idle_02" in ONLY else None
+IDLE_ARMS = sample_arms("Idle_01") if "Idle_02" in ONLY else None
 
 
 def mirror_q(q):
