@@ -2610,6 +2610,17 @@ borrowed helm sits exactly as the Archer's own (`Showreel/helm_check_archer_vs_k
 had stayed in the same folder and was deleted. Rule: **a stale render beside a fresh one is a report waiting to happen; remove
 superseded outputs when re-rendering.**
 
+**The YouTube video (2026-09-29, "a full video for youtube, both unity and unreal; royalty-free music; a fantasy/RPG font").**
+`tools/unity/showreel_youtube.py` builds `Showreel/undead_legion_showreel.mp4` (3:49, 1080p30, ~80 MB) from the three stage videos: an
+intro card ("UNDEAD LEGION / Modular Skeleton Army / for Unity & Unreal Engine"), a "What's inside" card (6 classes, 48 armour modules,
+12 weapons, 40+ animations, one rig: Unity Humanoid | Unreal skeleton), a card per stage, the stages with their plain recorder title
+cards cut (the first 48 frames), an outro, every join an `xfade fadeblack` of 0.8 s. Cards are PIL renders over a blurred, darkened stage
+frame with a slow push-in: **Cinzel Decorative / Cinzel / EB Garamond** (Google Fonts, SIL OFL 1.1). Music: Kevin MacLeod's **"Five
+Armies" crossfaded into "Heroic Age"** (incompetech.com, **CC BY 4.0 — the credit must go in the video description**; FreePD, the CC0
+source first tried, has closed), faded and normalised to −14 LUFS (measured −13.4). Fonts and music are fetched into `Showreel/assets/`
+(ignored). The in-scene captions stay in the demo's built-in font; putting Cinzel in them means importing the font into the project and
+re-recording the stages.
+
 **Shoot_01's feet frozen (2026-09-28, "update shoot_01, freeze the feet position").** The legs are the bow idle's
 constant controls, yet both feet drifted 1 cm over the clip, identically: the ROOT control moved (the take's own
 travel, up to 11 mm rig, left on `root` when the clip went in place; the feet are its children). `anim_nla_bake
