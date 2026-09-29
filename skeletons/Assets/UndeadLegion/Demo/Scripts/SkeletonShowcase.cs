@@ -304,7 +304,7 @@ namespace UndeadLegion.Demo
                 members = new[] { "Impaled_Idle", "Impaled_Rise" } },   // not exported since 2026-09-26 ("for now"); the section hides itself while the clips are missing
             new ClipSection { title = "Locomotion", idlePreference = new[] { "Idle_01" },
                 // _01 = the low-rank (shambling) set, renamed 2026-09-26; _02 = the normal-looking set for the higher ranks
-                members = new[] { "Walk_Fwd_01", "Walk_Back_01", "Run_Fwd", "Strafe_Left_01", "Strafe_Right_01",
+                members = new[] { "Walk_Fwd_01", "Walk_Back_01", "Run_Fwd_01", "Strafe_Left_01", "Strafe_Right_01",
                                   // the "normal" pair (2026-09-25): an upright human walk and jog, generated without the
                                   // stiff-undead prompt profile, for the higher ranks (necromancer, mage); the same
                                   // shared clips, the buyer picks per class
