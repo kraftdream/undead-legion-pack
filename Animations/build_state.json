@@ -244,5 +244,11 @@
   "ok": true,
   "when": "2026-09-28 20:19",
   "mode": "idle"
+ },
+ "Run_Fwd_01": {
+  "sig": "run_fwd|1789889840|{\"_note\": \"2026-09-29: renamed Run_Fwd -> Run_Fwd_01 (the '_01' index like the rest of the low-rank set; export, controller, showcase, showreel renamed). 2026-09-29: a Kimodo redo was tried and REVERTED ('that's awful'): the committed clip is back, the redo's candidates (run_fwd_c1..c5 / strafe_right_c1..c3) stay as GLBs only. OLD NOTE: hand_edited (2026-09-24): the user's Run_Fwd_Fix (arms, one held key each in Combine over the strip) baked by anim_nla_bake.  2026-09-25 (user: 'looping issues'): the seam was position-exact but the hips' advance collapsed at it (the loop-closing crossfade); anim_nla_bake --even-advance 40 retimes the loop so the hips advance smoothly across the wrap (same frames, same travel, Root linear).\", \"fist\": 0.6, \"frames\": 240, \"glb\": \"run_fwd\", \"hand_edited\": true, \"head_damp\": 0.45, \"mode\": \"loco\", \"name\": \"Run_Fwd_01\", \"seed\": 9, \"smooth\": 1, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-29 14:54",
+  "mode": "loco"
  }
 }
