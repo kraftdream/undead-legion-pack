@@ -56,7 +56,7 @@ namespace UndeadLegion.Demo
         [Tooltip("Blend time between clips, in seconds.")]
         [Range(0f, 0.5f)] public float crossFade = 0.15f;
         [Tooltip("Clip returned to when a one-shot finishes and its section declares no idle.")]
-        public string idleClipName = "Idle";
+        public string idleClipName = "Idle_01";
         [Tooltip("Seconds a finished death clip holds its last pose before the idle returns.")]
         public float deathHold = 2f;
         [Tooltip("With root motion on, bring the character back to the spawn point once it is this far away (metres). 0 = never: the position is only reset by the Recenter button or by turning root motion off.")]
@@ -294,15 +294,15 @@ namespace UndeadLegion.Demo
 
         static readonly ClipSection[] Sections =
         {
-            new ClipSection { title = "Idle", idlePreference = new[] { "Idle" },
-                members = new[] { "Idle", "Idle_02", "Idle_03" } },
-            new ClipSection { title = "Weapon idles", idlePreference = new[] { "Idle" },
+            new ClipSection { title = "Idle", idlePreference = new[] { "Idle_01" },
+                members = new[] { "Idle_01", "Idle_02", "Idle_03" } },
+            new ClipSection { title = "Weapon idles", idlePreference = new[] { "Idle_01" },
                 members = new[] { "Idle_TwoHanded", "Idle_Bow", "Idle_Staff" } },   // Idle_Propped removed 2026-09-25 with the "Staff (propped)" loadout
             // impaled: kneeling with the sword in the belly (loop), then pull it out and rise (one-shot,
             // ends on the neutral standing pose so the crossfade lands on whichever idle follows)
-            new ClipSection { title = "Impaled", idlePreference = new[] { "Idle" },
+            new ClipSection { title = "Impaled", idlePreference = new[] { "Idle_01" },
                 members = new[] { "Impaled_Idle", "Impaled_Rise" } },   // not exported since 2026-09-26 ("for now"); the section hides itself while the clips are missing
-            new ClipSection { title = "Locomotion", idlePreference = new[] { "Idle" },
+            new ClipSection { title = "Locomotion", idlePreference = new[] { "Idle_01" },
                 // _01 = the low-rank (shambling) set, renamed 2026-09-26; _02 = the normal-looking set for the higher ranks
                 members = new[] { "Walk_Fwd_01", "Walk_Back_01", "Run_Fwd", "Strafe_Left_01", "Strafe_Right_01",
                                   // the "normal" pair (2026-09-25): an upright human walk and jog, generated without the
@@ -311,19 +311,19 @@ namespace UndeadLegion.Demo
                                   "Walk_Fwd_02", "Walk_Back_02", "Run_Fwd_02", "Strafe_Left_02", "Strafe_Right_02",
                                   "Turn_Left_90", "Turn_Right_90" } },
             // per-arm set (2026-09-22): each clip lives on its arm's masked layer; Block_L_Idle is a held toggle
-            new ClipSection { title = "Right arm", idlePreference = new[] { "Idle" },
+            new ClipSection { title = "Right arm", idlePreference = new[] { "Idle_01" },
                 members = new[] { "Attack_R_Stab", "Attack_R_Slice" } },
-            new ClipSection { title = "Left arm (block = hold)", idlePreference = new[] { "Idle" },
+            new ClipSection { title = "Left arm (block = hold)", idlePreference = new[] { "Idle_01" },
                 members = new[] { "Attack_L_Stab", "Attack_L_Slice", "Block_L_Idle" } },
-            new ClipSection { title = "Two-handed", idlePreference = new[] { "Idle_TwoHanded", "Idle" },
+            new ClipSection { title = "Two-handed", idlePreference = new[] { "Idle_TwoHanded", "Idle_01" },
                 members = new[] { "Attack_2H_01", "Attack_2H_02" } },
-            new ClipSection { title = "Bow", idlePreference = new[] { "Idle_Bow", "Idle" },
+            new ClipSection { title = "Bow", idlePreference = new[] { "Idle_Bow", "Idle_01" },
                 members = new[] { "Shoot_01" } },
-            new ClipSection { title = "Magic", idlePreference = new[] { "Idle_Staff", "Idle" },
+            new ClipSection { title = "Magic", idlePreference = new[] { "Idle_Staff", "Idle_01" },
                 members = new[] { "Cast_Wand_01", "Cast_Wand_02", "Cast_Staff_01" } },   // Cast_Staff_02 retired 2026-09-25 (the recorded set)
-            new ClipSection { title = "Specials", idlePreference = new[] { "Idle" },
+            new ClipSection { title = "Specials", idlePreference = new[] { "Idle_01" },
                 members = new[] { "Taunt_01", "Taunt_02", "Taunt_03", "Rally", "Cutthroat", "Summon", "AOE_Cast" } },   // the user's recordings, 2026-09-25 (Taunt -> Taunt_01..03)
-            new ClipSection { title = "Reactions", idlePreference = new[] { "Idle" },
+            new ClipSection { title = "Reactions", idlePreference = new[] { "Idle_01" },
                 members = new[] { "Hit_Front", "Hit_Back", "Stagger", "Knockdown", "Get_Up", "Rise" } },
             new ClipSection { title = "Death", idlePreference = new string[0],
                 members = new[] { "Death_01", "Death_02", "Death_03", "Death_04" } },   // the four instant-fall generations the user kept (2026-09-27): drop, face-down, on the back, puppet

@@ -246,7 +246,7 @@ log("base: hips %s, chest tilt %.0f deg, L ankle %s (knee z %.3f), R ankle %s (k
     tuple(round(v, 3) for v in BASE_LEG["L"]["ankle"]), BASE_LEG["L"]["knee"].z, tuple(round(v, 3) for v in BASE_LEG["R"]["ankle"]), BASE_LEG["R"]["knee"].z))
 
 # Idle's frame-1 pose: the rise ends on it (arms FK, legs IK at rest)
-IDLE = bpy.data.actions["Idle"]
+IDLE = bpy.data.actions["Idle_01"]
 set_action(IDLE); scene.frame_set(int(round(IDLE.frame_range[0]))); update()
 IDLE_VALS = snapshot(CTRLS)
 IDLE_HAND = {s: wmat("DEF-hand." + s) @ HANDIK_FROM_HAND[s] for s in "LR"}

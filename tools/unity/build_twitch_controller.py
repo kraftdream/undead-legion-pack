@@ -32,7 +32,7 @@ System.Func<string, AnimationClip> load = (name) => {
     if (a is AnimationClip && !a.name.StartsWith("__preview")) return (AnimationClip)a;
   return null;
 };
-var idle = load("Idle"); if (idle == null) return "no Idle clip";
+var idle = load("Idle_01"); if (idle == null) return "no Idle clip";
 // every Skeleton@*.fbx except the twitches becomes a base-layer state named after its clip
 // (Idle is the default; the browser plays states by clip name)
 var idleClips = new System.Collections.Generic.List<AnimationClip>();
@@ -40,7 +40,7 @@ foreach (var guid in AssetDatabase.FindAssets("Skeleton@ t:Model", new string[]{
   var p = AssetDatabase.GUIDToAssetPath(guid); var fn = System.IO.Path.GetFileNameWithoutExtension(p);
   if (!fn.StartsWith("Skeleton@")) continue;
   var nm = fn.Substring("Skeleton@".Length);
-  if (nm == "Idle" || nm.StartsWith("Twitch_") || nm == "Grip" || nm.StartsWith("Hand_Idle_")) continue;   // Grip: finger pose data, not a state; Hand_Idle_L/R: the finger layers' loops
+  if (nm == "Idle_01" || nm.StartsWith("Twitch_") || nm == "Grip" || nm.StartsWith("Hand_Idle_")) continue;   // Grip: finger pose data, not a state; Hand_Idle_L/R: the finger layers' loops
   var cl = load(nm); if (cl != null) idleClips.Add(cl);
 }
 idleClips.Sort((x, y) => string.CompareOrdinal(x.name, y.name));
@@ -58,14 +58,14 @@ var baseSm = ctrl.layers[0].stateMachine;
 // NO Foot IK: measured 2026-09-19, Foot IK put the goals ~13 mm BELOW the FK feet (Idle raw
 // penetration -5 mm -> -18 mm). Grounding is a per-clip lift measured in Unity instead
 // (tools/unity/ground_clip.py -> export_fbx --lift) plus the prefab's clearance.
-var idleState = baseSm.AddState("Idle"); idleState.motion = idle; baseSm.defaultState = idleState;
+var idleState = baseSm.AddState("Idle_01"); idleState.motion = idle; baseSm.defaultState = idleState;
 // manifest `grip_hands: L` (2026-09-27): the clip's LEFT hand rides the weapon without holding an item (a two-hander's
 // second hand), so its state carries a SkeletonGripState that makes SkeletonWeapon fade that hand's empty-hand finger
 // layer out while the state is active (the clip's baked Grip fist shows instead of the relaxed sway)
 var gripL = new System.Collections.Generic.HashSet<string>(new string[]{ %GRIPL% });
 int nGrip = 0;
 var baseStates = new System.Collections.Generic.Dictionary<string, UnityEditor.Animations.AnimatorState>();
-baseStates["Idle"] = idleState;
+baseStates["Idle_01"] = idleState;
 foreach (var cl in idleClips) {
   var vs = baseSm.AddState(cl.name); vs.motion = cl; baseStates[cl.name] = vs;
   if (gripL.Contains(cl.name)) { var gb = vs.AddStateMachineBehaviour<UndeadLegion.Demo.SkeletonGripState>(); gb.hand = UndeadLegion.Demo.SkeletonWeapon.Hand.Left; nGrip++; }
@@ -130,6 +130,7 @@ ctrl.AddLayer("Twitch");
 ctrl.AddLayer("TwitchLoop_01"); ctrl.AddLayer("TwitchLoop_02"); ctrl.AddLayer("TwitchLoop_03");
 ctrl.AddLayer("LeftFingers"); ctrl.AddLayer("RightFingers");   // 8, 9: Override, weight 0; SkeletonWeapon sets 1 on an EMPTY hand
 var layers = ctrl.layers;
+layers[0].iKPass = true;   // OnAnimatorIK on Base: SkeletonFootLock holds the feet on looping idles (2026-09-28)
 for (int i = 8; i < 10; i++) { layers[i].blendingMode = UnityEditor.Animations.AnimatorLayerBlendingMode.Override; layers[i].defaultWeight = 0f; }
 layers[8].avatarMask = maskFL; layers[9].avatarMask = maskFR;
 for (int i = 5; i < 8; i++) { layers[i].blendingMode = UnityEditor.Animations.AnimatorLayerBlendingMode.Additive; layers[i].defaultWeight = 0f; }

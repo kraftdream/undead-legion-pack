@@ -343,6 +343,7 @@ namespace UndeadLegion.DemoEditor
             }
 
             if (go.GetComponent<SkeletonTwitch>() == null) go.AddComponent<SkeletonTwitch>();
+            if (go.GetComponent<SkeletonFootLock>() == null) go.AddComponent<SkeletonFootLock>();   // the feet held on looping idles (2026-09-28)
             var weapon = go.GetComponent<SkeletonWeapon>();
             if (weapon == null) weapon = go.AddComponent<SkeletonWeapon>();
             weapon.loadouts = Loadouts();

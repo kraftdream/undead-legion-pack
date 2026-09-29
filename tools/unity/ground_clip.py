@@ -49,7 +49,7 @@ return sb.ToString();
 '''
 
 if __name__ == "__main__":
-    clips = sys.argv[1:] or ["Idle"]
+    clips = sys.argv[1:] or ["Idle_01"]
     code = CODE.replace("%CLIPS%", ", ".join('"%s"' % c for c in clips)).replace("%MODELS%", ", ".join('"%s"' % m for m in MODELS))
     c = Client()
     try:

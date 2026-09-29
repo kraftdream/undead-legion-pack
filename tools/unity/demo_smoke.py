@@ -26,7 +26,7 @@ var tw = an != null ? an.GetComponent<UndeadLegion.Demo.SkeletonTwitch>() : null
 int visible = 0, total = 0; if (an != null) foreach (var r in an.GetComponentsInChildren<SkinnedMeshRenderer>(true)) { total++; if (r.enabled) visible++; }
 sb.Append("frame=" + Time.frameCount + " t=" + Time.time.ToString("F1") + " | " + sc.characterNameLabel.text + " | chars=" + sc.characterListContent.childCount
   + " clipRows=" + sc.clipListContent.childCount + " modules=" + sc.moduleListContent.childCount + " | " + sc.clipInfoLabel.text
-  + " | state=" + (an != null ? (st.IsName("Idle") ? "Idle" : "other") : "none") + " nt=" + st.normalizedTime.ToString("F2")
+  + " | state=" + (an != null ? (st.IsName("Idle_01") ? "Idle_01" : "other") : "none") + " nt=" + st.normalizedTime.ToString("F2")
   + " rootMotion=" + (an != null && an.applyRootMotion) + " twitch=" + (tw != null && tw.enabled) + " renderers " + visible + "/" + total
   + " pos=" + (an != null ? an.transform.position.ToString("F2") : "-") + " cam=" + Camera.main.transform.position.ToString("F1"));
 return sb.ToString();

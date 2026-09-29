@@ -52,7 +52,7 @@ return "rows (top to bottom):\n" + sb.ToString();
 
 if __name__ == "__main__":
     out = os.path.abspath(sys.argv[1]).replace("\\", "/"); os.makedirs(os.path.dirname(out), exist_ok=True)
-    clip = sys.argv[2] if len(sys.argv) > 2 else "Idle"
+    clip = sys.argv[2] if len(sys.argv) > 2 else "Idle_01"
     char = sys.argv[3] if len(sys.argv) > 3 else "SkeletonKnight"
     t = sys.argv[4] if len(sys.argv) > 4 else "0.3"
     c = Client()
