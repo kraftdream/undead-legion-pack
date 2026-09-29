@@ -6,7 +6,7 @@ namespace UndeadLegion.Demo
     /// A fired arrow (2026-09-27): a copy of the arrow weapon prefab, launched by
     /// <see cref="SkeletonWeapon.BowRelease"/> along a fixed direction (the character's forward for now),
     /// flying straight at <see cref="speed"/> with an optional <see cref="gravity"/> drop, the shaft (the
-    /// weapon prefab's +Y, head at +Y) kept along its velocity, destroyed after <see cref="lifetime"/> seconds
+    /// weapon prefab's Y, head at the origin, nock at +Y) kept head-first along its velocity, destroyed after <see cref="lifetime"/> seconds
     /// or when it goes under the floor (y &lt; 0). Demo-side only: no collision, no damage.
     /// </summary>
     public class ArrowProjectile : MonoBehaviour
@@ -32,8 +32,10 @@ namespace UndeadLegion.Demo
         void Orient()
         {
             if (_velocity.sqrMagnitude < 1e-8f) return;
-            // the prefab's shaft runs along its +Y: turn +Y onto the velocity (LookRotation gives +Z, then Y -> Z)
-            transform.rotation = Quaternion.LookRotation(_velocity.normalized, Vector3.up) * Quaternion.Euler(90f, 0f, 0f);
+            // the prefab's shaft runs along its Y with the HEAD at the origin and the nock at +Y (the hand's grip sits near
+            // the nock), so -Y is the flight direction: LookRotation gives +Z, Euler(-90) turns local +Y onto -Z, i.e. -Y
+            // onto the velocity (2026-09-29, user: "the launched arrow flies backward" - +Y led with the fletching first)
+            transform.rotation = Quaternion.LookRotation(_velocity.normalized, Vector3.up) * Quaternion.Euler(-90f, 0f, 0f);
         }
 
         void Update()

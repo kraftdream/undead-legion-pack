@@ -238,6 +238,7 @@ GameObject:
   - component: {fileID: 6714175255879322362}
   - component: {fileID: 5776272095529606099}
   - component: {fileID: 6755794827417421442}
+  - component: {fileID: 1242943512105221073}
   - component: {fileID: 6832051760754785145}
   m_Layer: 0
   m_Name: PF_SkeletonNecromancer
@@ -358,6 +359,23 @@ MonoBehaviour:
   minWeight: 0.5
   maxWeight: 1
   seed: 0
+--- !u!114 &1242943512105221073
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 861636961225574776}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dde22b65270a81942929f4bdc4d49f70, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UndeadLegion.Demo.SkeletonFootLock
+  idlePrefix: Idle
+  lockRotation: 1
+  fadeIn: 0.15
+  fadeOut: 0.12
+  enabledLock: 1
 --- !u!114 &6832051760754785145
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -486,10 +504,12 @@ MonoBehaviour:
   - bone: RightHandPinky3
     localRotation: {x: -0.2134571, y: 0.013616531, z: 0.36632466, w: -0.90557}
   fireProjectile: 1
-  arrowSpeed: 30
+  arrowSpeed: 15
   arrowDirection: 0
   arrowHideSeconds: 1.2
   fingerFade: 0.15
+  fingerIdleLeft: 1
+  fingerIdleRight: 1
 --- !u!1 &896559856669021934
 GameObject:
   m_ObjectHideFlags: 0
