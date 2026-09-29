@@ -44,7 +44,7 @@ every one verified on all six models with `verify_clip.py` + `ground_clip.py`; p
 | Idles (loop) | `Idle_01` (`Idle` until 2026-09-28: "rename idle to idle_01"), `Idle_02` (hand-fixed 2026-09-21: blades forward, Idle grounded, Idle_02 upright with hanging arms, left foot 5 cm forward / right 5 cm back), `Idle_03` (the user's own video-mocap idle, 2026-09-21, slowed 3×, 10.8 s loop, fingers from the capture, right foot 10 cm forward / left 10 cm back); weapon idles `Idle_TwoHanded` (the user's mannequin recording, 2026-09-23: two-hander held ahead, both hands on the shaft), `Idle_Bow`, `Idle_Staff` (`Idle_Wand` removed 2026-09-24: "enough idle animations"; the H1Wand loadout stays, the Cast_Wand clips play over Idle_Staff / Idle; **`Idle_Propped` and the "Staff (propped)" loadout removed 2026-09-25** at the user's request: export, manifest entry, build state, fit curve, the `W_H2MagicStuff_Top` prefab, the builder's row and `ProppedHandHeight`, the grip dump entry, the demo list; the actions `Idle_Propped` / `Propped_Base` and the `prop` / `hunch` / `torso_ref` retarget passes stay as tools) |
 | Impaled (hand-authored) | `Impaled_Idle` (loop: on its knees, hunched, sword through the belly), `Impaled_Rise` (one-shot: pulls it out, stands up, ends on the neutral standing pose) — **not exported since 2026-09-26** (user: "remove impale idle/rise from the export for now"): FBX + meta, build state and controller states removed, the actions and the tools stay; `Impaled_Rise`'s manifest entry carries `disabled true` (`anim_batch` skips such entries), `Impaled_Idle` never had one (`anim_author_impaled.py` writes both); drop the flag and re-export to bring them back |
 | Twitch (additive) | `Twitch_01/02/03` head + jaw |
-| Locomotion (loop, root motion) | `Walk_Fwd_01`, `Walk_Back_01`, `Run_Fwd`, `Strafe_Left_01` (mirrored right), `Strafe_Right_01` (the `_01` index added 2026-09-26: the low-rank shambling set; `Run_Fwd` was not renamed, the user listed the walks and strafes); **`Walk_Fwd_02`, `Run_Fwd_02`** (2026-09-25: the "normal" pair, an upright human walk and jog for the higher ranks such as the necromancer and mage, Kimodo without the stiff-undead prompt profile), **`Walk_Back_02`** (2026-09-26, the same for the walk back), **`Strafe_Left_02` / `Strafe_Right_02`** (2026-09-26, the same for the side-steps) |
+| Locomotion (loop, root motion) | `Walk_Fwd_01`, `Walk_Back_01`, `Run_Fwd_01` (renamed from `Run_Fwd` 2026-09-29; a Kimodo redo the same day was reverted), `Strafe_Left_01` (mirrored right), `Strafe_Right_01` (the `_01` index added 2026-09-26: the low-rank shambling set; a small-step redo of both strafes on 2026-09-29 was reverted); **`Walk_Fwd_02`, `Run_Fwd_02`** (2026-09-25: the "normal" pair, an upright human walk and jog for the higher ranks such as the necromancer and mage, Kimodo without the stiff-undead prompt profile), **`Walk_Back_02`** (2026-09-26, the same for the walk back), **`Strafe_Left_02` / `Strafe_Right_02`** (2026-09-26, the same for the side-steps) |
 | Per arm (2026-09-22/23, replaces the one-handed set) | `Attack_R_Stab`, `Attack_R_Slice` (redone 2026-09-26, experimental, from the user's `melee in place.glb`: frames 60–104 / 1–50, plain transfers at the take's own tempo, both feet frozen, in place; the `attack_ref5` builds are the `_base` actions), `Attack_L_Stab`, `Attack_L_Slice` (the same mirrored), `Block_L_Idle` (loop: shield held up on the left arm, a HELD action in the demo). Each lives on its arm's masked layer (`LeftArm` / `RightArm`) and as a full-body state on Base; the Animator carries the transitions |
 | Two-handed | `Attack_2H_01` (downward chop with a step), `Attack_2H_02` (raise and horizontal sweep) — the user's mannequin recording (2026-09-23), legs planted, left hand on the handle through the two-handed GATE (slides 0.03..0.11 rig m below the right hand) |
 | Bow | `Idle_Bow` hand-edited 2026-09-27 (knees 3 cm narrower than the retarget's build by the pole swivel, at the retarget's height; `Idle_Bow_base` is that build); `Shoot_01` (redone 2026-09-25 from the user's mannequin recording `aoe cast shoot.glb`: raise, draw at the cheek, release, lower, 1.9 s; the shot goes where the recorded feet point, `heading feet`; the video-mocap build of 2026-09-22 and `Shoot_02` retired; 2026-09-27: the user's `Shoot_01_Fix` baked, `hand_edited`, and animation events `BowAttach` 15 / `BowRelease` 21 on the clip — the recurve bow is a skinned model now and its string follows the draw hand between them, and a fired arrow flies along the character's forward on the release, §8 "The recurve bow bends"; imported in place; legs from `Idle_Bow`'s stance under the take's hips) |
@@ -59,7 +59,7 @@ identical because the avatar is shared). Ship these numbers with the pack:
 |---|---|---|---|
 | `Walk_Fwd_01` | 1.400 s | +0.724 m | 0.52 m/s |
 | `Walk_Back_01` | 1.967 s | −0.662 m | 0.34 m/s (redone 2026-09-24; upper body from Idle_03) |
-| `Run_Fwd` | 0.967 s | +1.107 m | 1.14 m/s |
+| `Run_Fwd_01` | 0.967 s | +1.107 m | 1.14 m/s (`Run_Fwd` until 2026-09-29) |
 | `Walk_Fwd_02` | 1.133 s | +1.455 m | 1.28 m/s (the upright "normal" walk, 2026-09-25) |
 | `Run_Fwd_02` | 0.833 s | +1.562 m | 1.87 m/s (the "normal" jog) |
 | `Walk_Back_02` | 1.467 s | −1.132 m | 0.77 m/s (the "normal" walk back, 2026-09-26) |
@@ -1287,6 +1287,24 @@ reference (`anim_file_build.py`) would make every grounding pass lift clips by t
 hips-weighted flap and accept the clipping (their stated preference on the deaths), or restore leg weights on those 88 vertices in
 `prod.blend` and re-export the robe module. Rule: **when one character's floor number jumps on a clip that did not change, diff that
 character's WEIGHTS against the previous commit before touching the clip.**
+
+**Run_Fwd redone and renamed `Run_Fwd_01`; the `_01` strafes redone — REVERTED the same hour (user: "that's awful, just revert the strafe animations and run_fwd, the rename we keep"): the committed clips are back under the new run name, the candidates stay as GLBs, the paragraph is the record of what the generator gave (2026-09-29, "redo run_fwd with kimodo, rename it to
+run_fwd_01 after it's done; also redo the strafe_01, use a similar travel distance in the prompt").** Candidates with the skeleton
+profile, retargeted as temporary actions and scored (`locoeval.py`-style: loop length, root travel, knee range, stance skate, largest
+leg-bone step, chest and head pitch, hilt yaw): of five runs (`run_fwd_c1..c5`, GLBs kept) **only c2 (seed 52) ran** — 1.556 m per
+loop, knees 93–162°, chest 18–28°, a hunched stiff jog; c1 and c4 shuffled at 0.4–0.6 m/s with the knees near straight and c3 and
+c5 stood still (Kimodo with the stiff-undead profile drops the run in 4 of 5 seeds: generate several). Built as `Run_Fwd_01` at
+`time_scale 1.3` (1.43 m/s; 1.80 as generated, a human jog; the knob), `lift 0.005`; the old `Run_Fwd` (seed 9, the even-advance
+retime) removed from the anim file, manifest, build state and export, `Run_Fwd_Fix` kept; the showcase, the showreel's movement
+set and the controller renamed / rebuilt, the demo scene rebuilt. Strafes: three small-step prompts (`strafe_right_c1..c3`); **c2
+(seed 44, "tiny shuffling steps, barely moving")** travels 0.390 m per loop at `time_scale 1.3` (0.24 m/s, the finished old clip did
+0.293 after two 30 % stride cuts of a 0.60 m generation), knees 119–149°, steps ≤ 8°; c1 travelled 0.94 m with a 670 mm stance skate,
+c3 0.48 m on a weak cycle. Both `_01` strafes are FRESH plain retargets of it (the left the mirror), `lift 0.001`: none of the earlier
+passes (stride, knees-in, torso raise, arms-down, loop-shift, the user's Strafe_Left_Fix) carry over; the head bows 34–47° and the
+chest 33–42° as generated. The Necromancer's robe reads 77 / 102 mm under on these (the hips-weighted hem, above). ⚠ The first build
+was killed by Claude Code for low system memory after the run's retarget had saved; the file was intact (a save writes a temp file
+and renames) and the batch was re-run on request. Rule: **a Kimodo run with the undead profile needs several seeds; score the
+travel and the knee range before looking at anything else.**
 
 **The recorded magic and specials set (2026-09-25, user: two mannequin-app files, `P:\magic attacks.glb`
 and `P:	aunts.glb`, split by frame ranges).** `External Anims/Kimodo/magic_ref_mocap.glb` →
@@ -2526,10 +2544,27 @@ Archer's helm, the Warrior's greaves and the Assassin's gloves one at a time —
 off, the borrowed one on through `SkeletonModules` and the showcase's armour catalogue; then on that mixed Knight sword +
 shield and axe + shield on `Idle_03`, sword / dagger / two daggers on `Idle_02`, mace on `Idle_01`, longsword and battle axe
 on `Idle_TwoHanded`; then the Archer's bow on `Idle_Bow`, the Necromancer's staff on `Idle_Staff`, the Mage's wand on
-`Idle_03`) and **`attacks`** (the previous sequence: each preset's weapons with the weapon idle and one attack, captions
-"Skeleton X | weapon") and **`movement`** (2026-09-29, "the chapter with movement animations; _01 for the warrior and archer
-skeletons, _02 for the others": title card "MOVEMENT", then Warrior and Archer with the shambling `_01` set and Assassin, Mage,
-Necromancer, Knight with the upright `_02` set — walk forward, run, walk back, strafe left, strafe right, `movementSeconds` 3 each,
+`Idle_03`) and **`attacks`** (rewritten 2026-09-29 to the user's script, replacing the per-loadout plan tables: Warrior on `Idle_TwoHanded`
+with the longsword then the battle axe, `Attack_2H_01` + `02` each; Knight on `Idle_03`: axe + round shield `Attack_R_Stab`, sword +
+heater shield `Attack_R_Slice`, then `Block_L_Idle` HELD (a step's `holdOn`: the showcase's `ToggleHeld` on its layer, so the shield
+stays up while both right attacks play full-body on Base) and both right attacks, then the mace with the block released (`holdOff`)
+and both right attacks; Assassin on `Idle_02`: one dagger with both right attacks, two daggers with both left attacks, all at
+**`attackSpeed` 1.6** (the Animator's speed during the attack, the capture shortened to match); Archer on `Idle_Bow` with `Shoot_01`;
+Mage on `Idle_03` with both wand casts; Necromancer on `Idle_Staff` with both wand casts and `Cast_Staff_01`; then "skip
+attack_r_stab for the axe + round shield and the mace": the axe plays the slice, the mace only the slice. **Root motion is ON for
+this stage** (`attacksRootMotion`; the user: "this requires camera follow and a recenter after each attack, seamless, no camera
+lerp during it"): `FollowCamera` runs before every captured frame — the camera's POSITION closes on the character's root + its
+original offset at `followDamping` 4/s (the lag is what shows the travel), its rotation never changes; `RecenterSeamless` after each
+attack's settle puts the character back on the spawn point facing forward and applies the SAME rigid transform (the translation
+and the yaw, since the recorded attacks leave the body a few degrees turned) to the camera and the follow offset in the same
+frame, so the rendered picture is identical across the recenter; a new character resets the camera to its home transform (a hard
+cut anyway), so the yaw corrections never accumulate across characters. The showcase's `resetFacing` is a no-op, so the recorder
+owns the recenter A step carries a LIST
+of attacks (`holdAfter` between them, the caption line naming the running clip), and a loadout change on the same character keeps
+the running idle instead of restarting it; captions "Skeleton X | weapon") and **`movement`** (2026-09-29, "the chapter with movement animations; _01 for the warrior and archer
+skeletons, _02 for the others", then "only use warrior for the low-rank animations and mage for the high-rank": title card
+"MOVEMENT", then the Warrior with the shambling `_01` set and the Mage with the upright `_02` set (the six-character first cut ran
+92 s; two characters, 10 clips, ~33 s) — walk forward, run, walk back, strafe left, strafe right, `movementSeconds` 3 each,
 looping IN PLACE with the character's usual weapon (axe + round shield, bow, two daggers, staff, staff, sword + shield); the
 caption carries the clip name and the speed-table figure, since root motion at 0.2–1.9 m/s would carry the figure out of the
 static frame within the 3 s). `SHOWREEL_STAGE` / `showreel_headless.py --stage` select it headlessly (outputs

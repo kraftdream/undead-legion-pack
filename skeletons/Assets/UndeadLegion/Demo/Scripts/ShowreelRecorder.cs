@@ -29,29 +29,16 @@ namespace UndeadLegion.Demo
     public class ShowreelRecorder : MonoBehaviour
     {
         [System.Serializable]
-        public class Plan
-        {
-            [Tooltip("Substring of the character prefab's name (Knight, Archer, ...).")]
-            public string character;
-            [Tooltip("Loadout display names, in order (see SkeletonWeapon.loadouts).")]
-            public List<string> loadouts = new List<string>();
-        }
-
-        [System.Serializable]
-        public class ClipFor
-        {
-            public string loadout;
-            public string clip;
-        }
-
-        /// <summary>One beat of a stage.</summary>
-        [System.Serializable]
         public class Step
         {
             public string character;                    // prefab name substring; a change of character is a hard cut
             public string loadout;                      // weapon loadout display name; "" = hands empty
             public string idle = "Idle_01";             // the looping clip on Base
             public string attack;                       // optional one-shot played after `seconds` of the idle
+            public List<string> attacks = new List<string>();  // several one-shots in a row (holdAfter between them); wins over `attack`
+            public float attackSpeed = 1f;              // Animator.speed while the attacks play (user, Assassin: "60 % faster")
+            public string holdOn;                       // a looping masked-layer clip to hold before the attacks (Block_L_Idle: the shield stays up)
+            public string holdOff;                      // ... and one to release
             public float seconds = 3f;                  // hold on the idle before the attack / the next step
             public string title;                        // caption title
             public string text;                         // caption line
@@ -81,19 +68,17 @@ namespace UndeadLegion.Demo
         public float titleCardSeconds = 1.6f;
         [Tooltip("Movement stage: seconds per locomotion clip.")]
         public float movementSeconds = 3f;
+        [Header("Root motion (attacks stage)")]
+        [Tooltip("Attacks stage: root motion ON, the camera follows the character with damping and the character is recentred after every attack - the camera moved by the same offset in the same frame, so the recenter is invisible (user, 2026-09-29).")]
+        public bool attacksRootMotion = true;
+        [Tooltip("Follow damping, 1/s: the camera's position closes on (character + its original offset) at this rate; the lag is what shows the travel.")]
+        public float followDamping = 4f;
         public bool captions = true;
 
         [Header("Timing of the attacks stage (seconds)")]
         public float holdBefore = 0.8f;
         public float holdAfter = 0.9f;
         public float characterGap = 0.4f;
-
-        [Header("Attacks stage sequence")]
-        public List<Plan> plans = new List<Plan>();
-        [Tooltip("Attack clip per loadout name.")]
-        public List<ClipFor> attacks = new List<ClipFor>();
-        [Tooltip("Idle clip per loadout name (others use Idle_01).")]
-        public List<ClipFor> idles = new List<ClipFor>();
 
         [Header("Quality")]
         [Tooltip("Offline, so everything can be maxed: the highest quality level, forced anisotropic filtering, full-resolution textures, the URP asset at 8x MSAA with a single 4096 shadow cascade over `shadowDistance`, HDR, soft shadows high, and SMAA (high) on the recording camera. Restored when the recording ends.")]
@@ -116,63 +101,16 @@ namespace UndeadLegion.Demo
         Texture2D _tex;
         SkeletonShowcase _showcase;
         Animator _animator; SkeletonWeapon _weapon; SkeletonModules _modules;
-        string _currentCharacter;
+        string _currentCharacter, _currentIdle;
+        bool _rootMotion; Vector3 _camHomePos, _camOffset; Quaternion _camHomeRot;
         readonly List<Canvas> _hidden = new List<Canvas>();
         string _dir;
         // the caption canvas
         GameObject _canvasGo; Image _fade; Image _panel; Text _title; Text _text; Text _card;
 
-        public static readonly object[][] DefaultPlans =
-        {
-            new object[] { "Knight", "Sword + shield", "Longsword (2H)" },
-            new object[] { "Warrior", "Axe + round shield", "Battle axe (2H)", "Mace" },
-            new object[] { "Archer", "Recurve bow", "Dagger" },
-            new object[] { "Assassin", "Two daggers", "Dagger" },
-            new object[] { "Mage", "Staff", "Wand" },
-            new object[] { "Necromancer", "Staff", "Wand" },
-        };
-        public static readonly string[][] DefaultAttacks =
-        {
-            new[] { "Sword + shield", "Attack_R_Slice" }, new[] { "Sword", "Attack_R_Stab" },
-            new[] { "Axe + round shield", "Attack_R_Slice" }, new[] { "Mace", "Attack_R_Stab" },
-            new[] { "Dagger", "Attack_R_Stab" }, new[] { "Two daggers", "Attack_L_Slice" },
-            new[] { "Longsword (2H)", "Attack_2H_01" }, new[] { "Battle axe (2H)", "Attack_2H_02" },
-            new[] { "Recurve bow", "Shoot_01" }, new[] { "Staff", "Cast_Staff_01" }, new[] { "Wand", "Cast_Wand_01" },
-        };
-        public static readonly string[][] DefaultIdles =
-        {
-            new[] { "Longsword (2H)", "Idle_TwoHanded" }, new[] { "Battle axe (2H)", "Idle_TwoHanded" },
-            new[] { "Recurve bow", "Idle_Bow" }, new[] { "Staff", "Idle_Staff" },
-        };
-
-        public void FillDefaults()
-        {
-            plans.Clear(); attacks.Clear(); idles.Clear();
-            foreach (var row in DefaultPlans)
-            {
-                var p = new Plan { character = (string)row[0] };
-                for (int i = 1; i < row.Length; i++) p.loadouts.Add((string)row[i]);
-                plans.Add(p);
-            }
-            foreach (var a in DefaultAttacks) attacks.Add(new ClipFor { loadout = a[0], clip = a[1] });
-            foreach (var a in DefaultIdles) idles.Add(new ClipFor { loadout = a[0], clip = a[1] });
-        }
-
-        void Start()
-        {
-            if (autoStart) Begin();
-        }
-
         public void Begin()
         {
-            if (plans.Count == 0) FillDefaults();
             StartCoroutine(Record());
-        }
-
-        string Lookup(List<ClipFor> table, string loadout, string fallback)
-        {
-            foreach (var c in table) if (c.loadout == loadout) return c.clip;
-            return fallback;
         }
 
         static AnimationClip FindClip(Animator an, string name)
@@ -227,16 +165,16 @@ namespace UndeadLegion.Demo
 
         /// <summary>"Attacks": each preset's weapons in turn, the weapon's idle, one attack.</summary>
         /// <summary>"Movement": every character with its locomotion set, each clip looping in place for `movementSeconds`.
-        /// The user's split (2026-09-29): the `_01` shambling set for the Warrior and the Archer, the `_02` upright set for the
-        /// other four. The caption carries the clip name and the shipped speed-table figure.</summary>
+        /// The user's split (2026-09-29): the `_01` shambling set on the Warrior, the `_02` upright set on the Mage (one character
+        /// per set; the first cut showed all six). The caption carries the clip name and the shipped speed-table figure.</summary>
         public List<Step> BuildMovement()
         {
             var steps = new List<Step>();
             steps.Add(new Step { titleCard = true, title = "MOVEMENT", text = "two locomotion sets  |  root motion on every clip  |  measured speed table shipped", seconds = titleCardSeconds });
-            string[][] set01 = { new[] { "Walk_Fwd_01", "0.52" }, new[] { "Run_Fwd", "1.14" }, new[] { "Walk_Back_01", "0.34" }, new[] { "Strafe_Left_01", "0.20" }, new[] { "Strafe_Right_01", "0.20" } };
+            string[][] set01 = { new[] { "Walk_Fwd_01", "0.52" }, new[] { "Run_Fwd_01", "1.14" }, new[] { "Walk_Back_01", "0.34" }, new[] { "Strafe_Left_01", "0.20" }, new[] { "Strafe_Right_01", "0.20" } };
             string[][] set02 = { new[] { "Walk_Fwd_02", "1.28" }, new[] { "Run_Fwd_02", "1.87" }, new[] { "Walk_Back_02", "0.77" }, new[] { "Strafe_Left_02", "0.93" }, new[] { "Strafe_Right_02", "0.93" } };
-            string[][] chars = { new[] { "Warrior", "Axe + round shield", "01" }, new[] { "Archer", "Recurve bow", "01" }, new[] { "Assassin", "Two daggers", "02" },
-                                 new[] { "Mage", "Staff", "02" }, new[] { "Necromancer", "Staff", "02" }, new[] { "Knight", "Sword + shield", "02" } };
+            // 2026-09-29, second cut: one character per set (the six-character version ran 92 s) - the Warrior for the low-rank _01 set, the Mage for the high-rank _02 set
+            string[][] chars = { new[] { "Warrior", "Axe + round shield", "01" }, new[] { "Mage", "Staff", "02" } };
             foreach (var ch in chars)
             {
                 var set = ch[2] == "01" ? set01 : set02;
@@ -247,17 +185,35 @@ namespace UndeadLegion.Demo
             return steps;
         }
 
+        static Step A(string character, string loadout, string idle, string title, string text, params string[] attacks)
+        {
+            var st = new Step { character = character, loadout = loadout, idle = idle, seconds = 0.8f, title = title, text = text };
+            st.attacks.AddRange(attacks);
+            return st;
+        }
+
+        /// <summary>"Combat", the user's script (2026-09-29): Warrior on Idle_TwoHanded - longsword then battle axe, both two-handed
+        /// attacks each; Knight on Idle_03 - axe + round shield (right stab), sword + heater shield (right slice), then the left block
+        /// HELD with both right attacks, then the mace with the block released and both right attacks; Assassin on Idle_02 - one dagger
+        /// (both right attacks), two daggers (both left attacks), all at 1.6x; Archer on Idle_Bow - the shot; Mage on Idle_03 - the two
+        /// wand casts; Necromancer on Idle_Staff - the two wand casts and the staff cast.</summary>
         public List<Step> BuildAttacks()
         {
             var steps = new List<Step>();
-            steps.Add(new Step { titleCard = true, title = "COMBAT", text = "every weapon with its idle and attack  |  in place, root motion optional", seconds = titleCardSeconds });
-            foreach (var plan in plans)
-                foreach (var lo in plan.loadouts)
-                {
-                    var st = S(plan.character, lo, Lookup(idles, lo, "Idle_01"), holdBefore, "Skeleton " + plan.character + "  |  " + lo, Lookup(attacks, lo, ""));
-                    st.attack = Lookup(attacks, lo, "");
-                    steps.Add(st);
-                }
+            steps.Add(new Step { titleCard = true, title = "COMBAT", text = "every weapon with its idle and attacks  |  in place, root motion optional", seconds = titleCardSeconds });
+            steps.Add(A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Two-handed idle; the second hand rides the handle", "Attack_2H_01", "Attack_2H_02"));
+            steps.Add(A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "The same two-handed grip and attacks on every long weapon", "Attack_2H_01", "Attack_2H_02"));
+            steps.Add(A("Knight", "Axe + round shield", "Idle_03", "Skeleton Knight  |  Axe + round shield", "One-handed attacks per arm", "Attack_R_Slice"));   // the stab skipped on the axe (user)
+            steps.Add(A("Knight", "Sword + shield", "Idle_03", "Skeleton Knight  |  Sword + heater shield", "Any one-handed weapon, any shield", "Attack_R_Slice"));
+            var blk = A("Knight", "Sword + shield", "Idle_03", "Skeleton Knight  |  Sword + heater shield", "Left-arm block HELD on its own layer; the right arm attacks under it", "Attack_R_Stab", "Attack_R_Slice");
+            blk.holdOn = "Block_L_Idle"; steps.Add(blk);
+            var mace = A("Knight", "Mace", "Idle_03", "Skeleton Knight  |  Mace", "Block released", "Attack_R_Slice");   // the stab skipped on the mace (user)
+            mace.holdOff = "Block_L_Idle"; steps.Add(mace);
+            var d1 = A("Assassin", "Dagger", "Idle_02", "Skeleton Assassin  |  Dagger", "Right-arm attacks at 1.6x speed", "Attack_R_Stab", "Attack_R_Slice"); d1.attackSpeed = 1.6f; steps.Add(d1);
+            var d2 = A("Assassin", "Two daggers", "Idle_02", "Skeleton Assassin  |  Two daggers", "Left-arm attacks at 1.6x speed", "Attack_L_Stab", "Attack_L_Slice"); d2.attackSpeed = 1.6f; steps.Add(d2);
+            steps.Add(A("Archer", "Recurve bow", "Idle_Bow", "Skeleton Archer  |  Recurve bow", "The string follows the draw hand; an arrow is fired on release", "Shoot_01"));
+            steps.Add(A("Mage", "Wand", "Idle_03", "Skeleton Mage  |  Wand", "Two wand casts", "Cast_Wand_01", "Cast_Wand_02"));
+            steps.Add(A("Necromancer", "Staff", "Idle_Staff", "Skeleton Necromancer  |  Staff", "The wand casts on the staff, then the two-handed staff cast", "Cast_Wand_01", "Cast_Wand_02", "Cast_Staff_01"));
             return steps;
         }
 
@@ -275,7 +231,8 @@ namespace UndeadLegion.Demo
             Directory.CreateDirectory(_dir);
 
             foreach (var cv in FindObjectsByType<Canvas>(FindObjectsSortMode.None)) if (cv.enabled) { cv.enabled = false; _hidden.Add(cv); }
-            if (_showcase.rootMotionToggle != null) _showcase.rootMotionToggle.isOn = false;
+            _rootMotion = stage == "attacks" && attacksRootMotion;
+            if (_showcase.rootMotionToggle != null) _showcase.rootMotionToggle.isOn = _rootMotion;
             if (_showcase.turntableToggle != null) _showcase.turntableToggle.isOn = false;
 
             SetupCamera();
@@ -306,6 +263,7 @@ namespace UndeadLegion.Demo
                     yield return null;
                     _animator = FindFirstObjectByType<Animator>(); _weapon = FindFirstObjectByType<SkeletonWeapon>(); _modules = FindFirstObjectByType<SkeletonModules>();
                     _currentCharacter = step.character;
+                    _cam.transform.position = _camHomePos; _cam.transform.rotation = _camHomeRot; _camOffset = _camHomePos - Spawn();
                 }
                 SetStatus(step.character + " / " + (string.IsNullOrEmpty(step.loadout) ? "-" : step.loadout) + " / " + step.idle);
                 // armour
@@ -313,7 +271,7 @@ namespace UndeadLegion.Demo
                 foreach (var w in step.wear) PutOn(w);
                 // the idle, then the weapon (the grip closes on the crossfade)
                 var idle = FindClip(_animator, step.idle) ?? FindClip(_animator, "Idle_01");
-                if (idle != null) _showcase.Play(idle);
+                if (idle != null && (newCharacter || idle.name != _currentIdle)) { _showcase.Play(idle); _currentIdle = idle.name; }   // a loadout change keeps the running idle
                 if (_weapon != null)
                 {
                     if (string.IsNullOrEmpty(step.loadout)) _weapon.Clear();
@@ -324,21 +282,27 @@ namespace UndeadLegion.Demo
                         if (li >= 0) _weapon.Equip(li); else Debug.LogWarning("Showreel: no loadout '" + step.loadout + "'");
                     }
                 }
+                if (!string.IsNullOrEmpty(step.holdOff)) { var h = FindClip(_animator, step.holdOff); if (h != null && _showcase.IsHolding) _showcase.ToggleHeld(h, _showcase.LayerFor(h)); }
+                if (!string.IsNullOrEmpty(step.holdOn)) { var h = FindClip(_animator, step.holdOn); if (h != null && !_showcase.IsHolding) _showcase.ToggleHeld(h, _showcase.LayerFor(h)); }
                 HideCard(); ShowCaption(step.title, step.text);
                 if (newCharacter) { yield return null; yield return null; SetFade(0f); }   // two uncaptured frames to settle the new character, then the hard cut
                 yield return Capture(Mathf.RoundToInt(step.seconds * fps));
-                if (!string.IsNullOrEmpty(step.attack))
+                var attackNames = step.attacks.Count > 0 ? step.attacks : (string.IsNullOrEmpty(step.attack) ? new List<string>() : new List<string> { step.attack });
+                foreach (var an_ in attackNames)
                 {
-                    var attack = FindClip(_animator, step.attack);
-                    if (attack != null)
-                    {
-                        _showcase.Play(attack);
-                        if (Application.isBatchMode) Debug.Log("Showreel: attack " + attack.name + " playing");
-                        yield return Capture(Mathf.RoundToInt((attack.length + _showcase.crossFade) * fps) + 2);
-                        yield return Capture(Mathf.RoundToInt(holdAfter * fps));
-                    }
-                    else Debug.LogWarning("Showreel: no attack clip '" + step.attack + "'");
+                    var attack = FindClip(_animator, an_);
+                    if (attack == null) { Debug.LogWarning("Showreel: no attack clip '" + an_ + "'"); continue; }
+                    float sp = step.attackSpeed > 0f ? step.attackSpeed : 1f;
+                    ShowCaption(step.title, step.text + "  |  " + attack.name + (sp != 1f ? string.Format("  ({0:0.0}x)", sp) : ""));
+                    _animator.speed = sp;
+                    _showcase.Play(attack);
+                    if (Application.isBatchMode) Debug.Log("Showreel: attack " + attack.name + " playing at " + sp + "x");
+                    yield return Capture(Mathf.RoundToInt((attack.length / sp + _showcase.crossFade) * fps) + 2);
+                    _animator.speed = 1f;
+                    yield return Capture(Mathf.RoundToInt(holdAfter * fps));
+                    if (_rootMotion) RecenterSeamless();
                 }
+                if (attackNames.Count > 0) ShowCaption(step.title, step.text);
                 doneSteps++;
                 if (maxLoadouts > 0 && doneSteps >= maxLoadouts) break;
             }
@@ -397,6 +361,7 @@ namespace UndeadLegion.Demo
             var offset = Quaternion.AngleAxis(-elevation, Vector3.Cross(Vector3.up, dirFromFront)) * dirFromFront;
             camGo.transform.position = look + offset.normalized * distance;
             camGo.transform.LookAt(look);
+            _camHomePos = camGo.transform.position; _camHomeRot = camGo.transform.rotation; _camOffset = _camHomePos - pivot;
             int ss = Mathf.Max(1, supersample);
             _rt = new RenderTexture(width * ss, height * ss, 24, RenderTextureFormat.ARGB32); _rt.antiAliasing = maxQuality ? (ss > 1 ? 4 : 8) : 4;
             _out = ss > 1 ? new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32) : _rt;   // a bilinear blit from 2x averages exactly 2x2 texels (a box filter)
@@ -405,12 +370,40 @@ namespace UndeadLegion.Demo
             _cam.targetTexture = _rt;
         }
 
+        Vector3 Spawn() { return _showcase.spawnPoint != null ? _showcase.spawnPoint.position : Vector3.zero; }
+
+        /// <summary>Root motion: the camera's position closes on the character's root + its original offset (damped, so the
+        /// travel of an attack shows as the character moving in frame and the camera catching up); its rotation never changes.</summary>
+        void FollowCamera()
+        {
+            if (!_rootMotion || _animator == null) return;
+            var target = _animator.transform.position + _camOffset;
+            float k = 1f - Mathf.Exp(-followDamping / fps);
+            _cam.transform.position = Vector3.Lerp(_cam.transform.position, target, k);
+        }
+
+        /// <summary>After an attack: the character back at the spawn point facing forward, and the camera (and its follow
+        /// offset) moved by the same rigid transform in the same frame - the rendered picture does not change, so no lerp
+        /// is visible. The yaw is included because the recorded attacks leave the body a few degrees turned.</summary>
+        void RecenterSeamless()
+        {
+            if (_animator == null) return;
+            var root = _animator.transform; var spawn = Spawn();
+            var oldPos = root.position; float yaw = root.eulerAngles.y;
+            var fix = Quaternion.AngleAxis(-yaw, Vector3.up);
+            root.position = spawn; root.rotation = Quaternion.identity;
+            _cam.transform.position = spawn + fix * (_cam.transform.position - oldPos);
+            _cam.transform.rotation = fix * _cam.transform.rotation;
+            _camOffset = fix * _camOffset;
+        }
+
         IEnumerator Capture(int frames)
         {
             for (int i = 0; i < frames; i++)
             {
                 if (Application.isBatchMode) yield return null;   // batch mode never reaches an end-of-frame; the camera is rendered by hand anyway
                 else yield return new WaitForEndOfFrame();
+                FollowCamera();
                 _cam.Render();
                 if (_out != _rt) Graphics.Blit(_rt, _out);
                 var prev = RenderTexture.active; RenderTexture.active = _out;
