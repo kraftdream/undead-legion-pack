@@ -14,7 +14,7 @@ namespace UndeadLegion.Extended
     public class ExtendedShowcase : MonoBehaviour
     {
         public SkeletonShowcase showcase;
-        public float hitImpulse = 45f;
+        public float hitImpulse = 90f;
         public float deathImpulse = 120f;
 
         GameObject _char;
@@ -40,7 +40,24 @@ namespace UndeadLegion.Extended
             if (showcase != null) { showcase.CharacterSpawned -= OnSpawned; showcase.ClipPlaying -= OnClip; }
         }
 
-        void Start() { BuildUI(); }
+        RectTransform _panel;
+
+        void Start() { BuildUI(); StartCoroutine(FitUnderAnimations()); }
+
+        // the panel sits under the browser's ANIMATIONS list, which is shortened to end just above it (measured after layout,
+        // in world space, so it fits any screen aspect)
+        System.Collections.IEnumerator FitUnderAnimations()
+        {
+            yield return null;
+            var list = GameObject.Find("AnimationPanel"); if (list == null || _panel == null) yield break;
+            var lrt = (RectTransform)list.transform;
+            Canvas.ForceUpdateCanvases(); LayoutRebuilder.ForceRebuildLayoutImmediate(_panel);
+            var pc = new Vector3[4]; _panel.GetWorldCorners(pc);
+            var lc = new Vector3[4]; lrt.GetWorldCorners(lc);
+            float gap = 10f * lrt.lossyScale.y;
+            float height = (lc[1].y - pc[1].y - gap) / lrt.lossyScale.y;   // list top down to the panel's top
+            if (height > 120f) lrt.sizeDelta = new Vector2(lrt.sizeDelta.x, height);
+        }
 
         void OnSpawned(GameObject go)
         {
@@ -158,7 +175,8 @@ namespace UndeadLegion.Extended
             var go = new GameObject("PhysicsPanel", typeof(RectTransform), typeof(Image), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
             var rt = (RectTransform)go.transform; rt.SetParent(canvasGo.transform, false);
             rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(1f, 0f);
-            rt.anchoredPosition = new Vector2(-312f, 78f); rt.sizeDelta = new Vector2(240f, 0f);   // beside the animation list, above the footer
+            rt.anchoredPosition = new Vector2(-20f, 78f); rt.sizeDelta = new Vector2(280f, 0f);   // under the animation list (same right edge and width), above the footer
+            _panel = rt;
             go.GetComponent<Image>().color = new Color(0.10f, 0.11f, 0.13f, 0.92f);
             var v = go.GetComponent<VerticalLayoutGroup>(); v.padding = new RectOffset(8, 8, 8, 8); v.spacing = 4;
             v.childControlHeight = true; v.childControlWidth = true; v.childForceExpandHeight = false;
