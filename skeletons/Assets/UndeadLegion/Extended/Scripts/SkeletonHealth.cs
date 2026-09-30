@@ -33,8 +33,8 @@ namespace UndeadLegion.Extended
         public float ragdollAfter = 0.6f;
         [Tooltip("Seconds after death before the body dissolves (0 = never).")]
         public float dissolveAfter = 4f;
-        [Tooltip("Additive reaction clip played on the Animator's Hit layer on every hit that does not kill (empty = none).")]
-        public string hitClip = "Hit_01";
+        [Tooltip("Additive reaction clips played on the Animator's Hit layer on every hit that does not kill, one picked at random (empty = none).")]
+        public string[] hitClips = { "Hit_01", "Hit_02" };
         [Tooltip("Remove the GameObject once dissolved.")]
         public bool destroyWhenDissolved = true;
 
@@ -97,8 +97,9 @@ namespace UndeadLegion.Extended
 
         void PlayHitClip()
         {
-            if (string.IsNullOrEmpty(hitClip) || _animator == null || !_animator.isActiveAndEnabled) return;
-            int layer = _animator.GetLayerIndex("Hit"); int hash = Animator.StringToHash(hitClip);
+            if (hitClips == null || hitClips.Length == 0 || _animator == null || !_animator.isActiveAndEnabled) return;
+            string clip = hitClips[Random.Range(0, hitClips.Length)]; if (string.IsNullOrEmpty(clip)) return;
+            int layer = _animator.GetLayerIndex("Hit"); int hash = Animator.StringToHash(clip);
             if (layer >= 0 && _animator.HasState(layer, hash)) _animator.CrossFadeInFixedTime(hash, 0.05f, layer, 0f);
         }
 
