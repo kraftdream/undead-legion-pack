@@ -103,6 +103,7 @@ namespace UndeadLegion.Demo
         // the per-arm attack set). A clip plays on the first of them that has a state for it. A LOOPING
         // clip on a masked layer is a HELD action (Block_L_Idle): its button toggles it, it stays until released
         static readonly string[] MaskedLayerNames = { "UpperBody", "LeftArm", "RightArm" };
+        const string OverlayLayerName = "Hit";      // additive reactions played over the running clip
         readonly List<int> _maskedLayers = new List<int>();
         readonly Dictionary<int, AnimationClip> _layerCurrent = new Dictionary<int, AnimationClip>();   // one-shots running on masked layers
         readonly Dictionary<int, AnimationClip> _held = new Dictionary<int, AnimationClip>();           // loops held on masked layers
@@ -642,6 +643,15 @@ namespace UndeadLegion.Demo
         public void Play(AnimationClip clip, bool resetFacing = true)
         {
             if (_animator == null || clip == null) return;
+            // an additive overlay (Hit_01): added over whatever plays, which keeps running
+            int overlay = _animator.GetLayerIndex(OverlayLayerName);
+            if (overlay >= 0 && _animator.HasState(overlay, Animator.StringToHash(clip.name)))
+            {
+                _animator.CrossFadeInFixedTime(Animator.StringToHash(clip.name), 0.05f, overlay, 0f);
+                if (clipInfoLabel != null)
+                    clipInfoLabel.text = string.Format("{0}   |   {1:0.00}s   |   additive over {2}", clip.name, clip.length, _current != null ? _current.name : "-");
+                return;
+            }
             if (ClipPlaying != null) ClipPlaying(clip);
             if (!_seqPlaying) { _seq = null; _pendingIsSequence = false; }
             int masked = LayerFor(clip);

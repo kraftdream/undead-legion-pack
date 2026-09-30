@@ -50,6 +50,8 @@ HAND_WEIGHT = arg("--hand-weight", "")            # "R:0.015:4:6": that IK hand 
 ROOT_HOLD = "--root-hold" in argv                 # the root control held at its first-frame transform on every frame: a clip whose take travelled (drift root) loses the step, the torso and the legs-from feet stay put (user, Cast_Staff_01: "use the legs pose from idle_staff, so no step forward")
 TORSO_SHIFT = [float(v) for v in arg("--torso-shift", "").split(",")] if arg("--torso-shift", "") else None   # "X,Y" rig m, world/armature space: the torso control moved horizontally on every frame (the IK feet stay, the knees adjust, the poles re-aimed unless --keep-poles) - a lean's centre of gravity put back over the feet (user, AOE_Cast_Hold: "the center of gravity seems off, adjust the torso")
 START_BLEND = arg("--start-blend", "")           # "Idle_Bow:1:8": the FIRST N frames crossfade from that action's frame into the clip (frame 1 = the reference exactly), the mirror of --end-blend, so a one-shot starts on the pose the demo crossfades from (user, Shoot_01: "a noticeable snap between idle and shoot, both start and end")
+AMPLITUDE = float(arg("--amplitude", "1"))        # K: every control's pose scaled toward the clip's FIRST frame by K (rotations slerped, locations and scales lerped), after every other pass; an additive overlay (Hit_01: "too much movement") keeps its shape at a fraction of the size, frame 1 and a closed end unchanged
+AMPLITUDE_HEAD = float(arg("--amplitude-head", str(AMPLITUDE)))   # the same for the neck and head controls alone (Hit_01: the head recoil read as a broken neck at the body's factor)
 END_BLEND = arg("--end-blend", "")               # "Idle:1:8": after the retime, the last N frames crossfade every control to that action's frame (locations, rotations, scales, the switches on the last frame), so a one-shot ends EXACTLY on the pose the demo crossfades to next; the IK legs keep their knee poles on the FK plane through it (user, Impaled_Rise: "lower the torso on the fully standing pose, use it to fix the floating feet at the end")
 EVEN_ADVANCE = int(arg("--even-advance", "0"))      # K: a locomotion loop is RETIMED so the hips' advance per frame along the travel follows a circularly smoothed (K passes of [1,2,1], wrapping at the seam) version of its own profile; same frame count, same travel, the Root kept linear. Removes the speed dip that a loop-closing crossfade leaves at the seam (the hips advanced 55 mm per frame and then 17 at Run_Fwd_02's wrap; Walk_Back lurched 14 mm and stalled to 0 on its last frames), which plays as a hitch every cycle under root motion (user: "walk_back, run_fwd and run_fwd_02 have looping issues")
 FOOT_CLEAR = arg("--foot-clear", "")              # Z rig m: no model's BOOT goes below Z on any frame - per frame and foot, the lowest vertex of all six characters' Boot_<side> meshes is measured and an IK foot (and its toe) is raised by the deficit, the lift running-maxed over +-1 frame and smoothed (wrapping with --loop), the knee pole kept on the FK plane. For a swinging foot that pitches toe-down while barely lifting (the strafes: the boot's toe dragged 14 mm through the floor, and a constant export lift fitted to that dip floated the whole stance 25 mm; user: "both strafe animations in unity have model float above ground")
@@ -1745,6 +1747,28 @@ if START_BLEND:
 
 if END_BLEND:
     end_blend(baked, END_BLEND)
+
+if abs(AMPLITUDE - 1.0) > 1e-6 or abs(AMPLITUDE_HEAD - 1.0) > 1e-6:
+    ad.action = baked; scene.frame_set(F0); ref_ = read_pose(); frames_ = {}
+    for f in range(F0, F1 + 1):
+        scene.frame_set(f); frames_[f] = read_pose()
+    for f in range(F0, F1 + 1):
+        scene.frame_set(f)
+        for c in CONTROLS:
+            pb = pbs[c]; a = ref_[c]; b = frames_[f][c]
+            k_ = AMPLITUDE_HEAD if c in ("neck", "head") else AMPLITUDE
+            qa = a["rot"]; qb = b["rot"]
+            if qa.dot(qb) < 0: qb = -qb
+            q = qa.slerp(qb, k_)
+            if pb.rotation_mode == 'QUATERNION': pb.rotation_quaternion = q
+            elif pb.rotation_mode == 'AXIS_ANGLE':
+                ax_, an_ = q.to_axis_angle(); pb.rotation_axis_angle = (an_, ax_.x, ax_.y, ax_.z)
+            else: pb.rotation_euler = q.to_euler(pb.rotation_mode)
+            pb.location = a["loc"].lerp(b["loc"], k_); pb.scale = a["scale"].lerp(b["scale"], k_)
+            pb.keyframe_insert("location", frame=f, group=c)
+            pb.keyframe_insert("rotation_quaternion" if pb.rotation_mode == 'QUATERNION' else "rotation_axis_angle" if pb.rotation_mode == 'AXIS_ANGLE' else "rotation_euler", frame=f, group=c)
+            pb.keyframe_insert("scale", frame=f, group=c)
+    log("amplitude %.2f (neck and head %.2f): every control scaled toward frame %d" % (AMPLITUDE, AMPLITUDE_HEAD, F0))
 
 if MIRROR_TO:
     # the mirror is built from the FINISHED result (every pass above), re-read here

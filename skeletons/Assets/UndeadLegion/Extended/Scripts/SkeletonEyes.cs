@@ -8,8 +8,8 @@ namespace UndeadLegion.Extended
     {
         [ColorUsage(false, true)] public Color color = new Color(0.3f, 2.4f, 1.6f);
         [Tooltip("Eye position from the head bone, in the character's frame (x right, y up, z forward), metres.")]
-        public Vector3 offset = new Vector3(0.036f, 0.029f, 0.062f);
-        public float size = 0.017f;
+        public Vector3 offset = new Vector3(0.030f, 0.023f, 0.075f);
+        public float size = 0.018f;
         [Tooltip("Adds a faint point light in front of the face (costs a light per skeleton; off for crowds).")]
         public bool addLight = false;
 
