@@ -83,6 +83,10 @@ def unity_flags(c):
     loop = "1" if (mode in ("idle", "loco") or c.get("loops")) else "0"          # `loops true`: a looping clip built in another mode (AOE_Cast_Hold: action mode + a --loop-seam bake)
     inplace = "0" if (mode == "loco" or c.get("drift") == "root") else "1"
     extra = []
+    if mode == "loco":
+        extra += ["--bake-rot", "1"]          # straight loops: the body's turn per step stays in the pose, the heading never drifts (Run_Fwd_01 drifted 5.8 cm/s off a 3 deg heading)
+    if c.get("root_yaw_offset") is not None:
+        extra += ["--rot-offset", str(c["root_yaw_offset"])]   # Root Transform Rotation Offset: a loop whose body faces a little off its path drifts sideways in Unity (Run_Fwd_01)
     if c.get("additive"):
         extra += ["--additive", "1"]          # an additive overlay (Hit_01): frame 0 is its reference pose, played on an additive layer
     if c.get("events"):

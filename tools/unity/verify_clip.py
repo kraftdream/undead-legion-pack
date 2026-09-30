@@ -17,7 +17,7 @@ MODELS = ["SkeletonKnight", "SkeletonArcher", "SkeletonAssassin", "SkeletonMage"
 
 CODE = r'''
 var sb = new System.Text.StringBuilder();
-string clipPath = "%CLIP%"; string avatarPath = "%AVATAR%"; bool loop = %LOOP%; bool additive = %ADDITIVE%; bool inPlace = %INPLACE%;
+string clipPath = "%CLIP%"; string avatarPath = "%AVATAR%"; bool loop = %LOOP%; bool additive = %ADDITIVE%; bool inPlace = %INPLACE%; bool bakeRot = %BAKEROT%;
 var avImp = AssetImporter.GetAtPath(avatarPath) as ModelImporter;
 Avatar srcAvatar = null;
 foreach (var a in AssetDatabase.LoadAllAssetsAtPath(avatarPath)) if (a is Avatar) srcAvatar = (Avatar)a;
@@ -31,7 +31,7 @@ imp.globalScale = 1f; imp.useFileScale = true; imp.importAnimation = true;
 imp.materialImportMode = ModelImporterMaterialImportMode.None; imp.bakeAxisConversion = false;
 imp.importBlendShapes = false; imp.importCameras = false; imp.importLights = false;
 var clips = imp.defaultClipAnimations;
-foreach (var c in clips) { c.loopTime = loop; c.loopPose = false; c.hasAdditiveReferencePose = additive; c.additiveReferencePoseFrame = 0f; c.lockRootRotation = inPlace; c.lockRootHeightY = true; c.lockRootPositionXZ = inPlace; c.keepOriginalOrientation = true; c.keepOriginalPositionY = true; c.keepOriginalPositionXZ = true; }
+foreach (var c in clips) { c.loopTime = loop; c.loopPose = false; c.hasAdditiveReferencePose = additive; c.additiveReferencePoseFrame = 0f; c.lockRootRotation = inPlace || bakeRot; c.lockRootHeightY = true; c.lockRootPositionXZ = inPlace; c.keepOriginalOrientation = true; c.keepOriginalPositionY = true; c.keepOriginalPositionXZ = true; c.rotationOffset = %ROTOFF%f; }
 string evs = "%EVENTS%";
 if (evs.Length > 0) foreach (var c in clips) {
   var list = new System.Collections.Generic.List<AnimationEvent>();
@@ -87,7 +87,9 @@ if __name__ == "__main__":
     additive = "true" if ("--additive" in args and args[args.index("--additive") + 1] == "1") else "false"
     inplace = "true" if ("--in-place" in args and args[args.index("--in-place") + 1] == "1") else "false"
     events = args[args.index("--events") + 1] if "--events" in args else ""          # "BowAttach:15,BowRelease:21" (1-based frames)
-    code = CODE.replace("%CLIP%", clip).replace("%AVATAR%", avatar).replace("%LOOP%", loop).replace("%ADDITIVE%", additive).replace("%INPLACE%", inplace).replace("%EVENTS%", events) \
+    bakerot = "true" if ("--bake-rot" in args and args[args.index("--bake-rot") + 1] == "1") else "false"   # root ROTATION baked into the pose, XZ still root motion
+    rotoff = args[args.index("--rot-offset") + 1] if "--rot-offset" in args else "0"      # Root Transform Rotation Offset (deg): cancels a loop's travel measured against the body's mean facing
+    code = CODE.replace("%CLIP%", clip).replace("%AVATAR%", avatar).replace("%LOOP%", loop).replace("%ADDITIVE%", additive).replace("%INPLACE%", inplace).replace("%EVENTS%", events).replace("%ROTOFF%", rotoff).replace("%BAKEROT%", bakerot) \
                .replace("%MODELS%", ", ".join('"%s"' % m for m in MODELS))
     c = Client()
     try:

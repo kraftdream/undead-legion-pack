@@ -550,6 +550,37 @@ Idle_03: chest 14°, head 16°, arms 23–28°, legs 0; back to the base pose af
 Stagger_02` (the script takes `--hit / --walk / --out` now) + the frame-40 feet freeze: 43 frames, 67 cm back, no leg bone above 13° per
 frame. `SkeletonHealth.hitClips` (was `hitClip`) picks one at random per non-lethal hit (12 hits: 6 / 6). Both in the browsers' Reactions
 section; the pack has 48 clips.
+**Arena locomotion on root motion (2026-09-30, "not sure root motion is used in the arena; when they run they sway instead of stepping,
+the rotation plays separate from the transform").** It was not: the agent moved the transform at a set speed (`updatePosition` /
+`updateRotation` on) and `OnAnimatorMove` applied root motion only during one-shots, so the loco clips' root motion — the travel AND the
+body's turn with each step — was thrown away. Measured in a battle (world yaw per frame): the old transform's yaw stayed at 351.7° while
+the hips swung 306–4° under it (the "sway"); now the hips stay within ~8° of the transform. `SkeletonNavController`: `updatePosition` and
+`updateRotation` OFF; `Update` steers the transform toward `desiredVelocity` (`turnSpeed`) and feeds that velocity, in the character's
+frame, to `MoveX` / `MoveZ`; `OnAnimatorMove` always applies the root motion (position through `agent.nextPosition`, so the body stays on
+the NavMesh and the agent follows it; rotation `deltaRotation`); moving = path pending or remaining distance above the stopping distance.
+Foot skate (the slowest horizontal speed per 20-frame window of a moving foot): battle 0.175 → 0.145 m/s, which is the clips' own floor
+(alone with root motion: Walk_Fwd_01 0.008, Walk_Fwd_02 0.10, Run_Fwd_01 0.16, Run_Fwd_02 0.26 m/s — the Kimodo runs skid at push-off).
+Battle unchanged otherwise (8v8 to 5–7 survivors in ~25 s, no errors). ⚠ Edit-mode `Animator.Update` does not apply root motion even with
+`applyRootMotion` on: add `deltaPosition` / `deltaRotation` to the transform by hand when measuring a clip there.
+**"Run_Fwd_01 drifts slightly to the left while running" (2026-09-30).** In Blender the loop closes exactly (hips, chest and both feet at
+the same x on the first and last frame, the root travelling straight along its axis), and in Unity the humanoid `RootT` / `RootQ` curves
+also start and end equal; but Unity measures the loop's travel against the body's MEAN facing, and this run's body faces 0.7° off its path,
+so the straight travel read as `averageSpeed.x` −0.013 m/s (= 1.072 × sin 0.7°) — a slow drift to the character's left. The fix is the
+clip's **Root Transform Rotation Offset**: manifest **`root_yaw_offset`** (degrees) → `anim_batch` → `verify_clip --rot-offset` →
+`ModelImporterClipAnimation.rotationOffset`. −0.7 → `averageSpeed.x` +0.0006 m/s (+0.7 doubled the drift: the sign is found by reimporting).
+Not changed (not asked): `Walk_Fwd_01` averages −0.069 m/s sideways (the body ~8° off its path), `Walk_Fwd_02` +0.076, `Strafe_Left_01` /
+`Walk_Back_01` small; the same key fixes each. ⚠ In edit mode `Animator.Update` with `applyRootMotion` ON applies the root motion itself:
+measure either by reading the transform after `Update` or by adding the deltas with it OFF (on a prefab without an `OnAnimatorMove` the
+deltas are then zero) — never both.
+**Then "still drifts while running": the offset was the wrong fix.** Measured in PLAY MODE in the browser (root motion on, leash off):
+the run's transform turned ~3° within its first second (the clip's root ROTATION applied as root motion) and travelled 5.8 cm/s sideways,
+0.35 m in 6 s; the walk's heading swung −4..+12°. The average the offset corrected was not the problem. **Every `loco` clip now imports
+with its root rotation baked into the pose** (`verify_clip --bake-rot 1`, passed by `anim_batch` for mode `loco`; `lockRootRotation` on,
+XZ still root motion), the rotation offset key removed from Run_Fwd_01 (the `root_yaw_offset` key stays available). Play mode: the run
+2 cm sideways over 7 m, heading 0.0°; the walk ±4 cm about its line, no build-up. All ten loops reimported: travel per loop unchanged
+(the speed table holds), yaw 0, Unity's sideways average ≤ 1 % of the forward speed. The body's turn per step stays in the pose, so the
+arena's root-motion locomotion keeps it while the heading follows the steering alone. Rule: **a straight locomotion loop bakes its root
+rotation; only turn clips should drive the heading.**
 **Extended browser layout (2026-09-30, "move the new UI panel under the animations panel, make that one shorter; the physics hit is
 weak, 2x"):** the PHYSICS panel is anchored bottom-right at the ANIMATIONS panel's right edge and width (−20 / 280 px, 78 px above the
 bottom), and `ExtendedShowcase.FitUnderAnimations` shortens the browser's `AnimationPanel` at runtime to end 10 px above it (measured

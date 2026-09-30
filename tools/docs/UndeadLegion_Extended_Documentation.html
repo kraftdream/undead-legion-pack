@@ -166,7 +166,7 @@ parameters (metres per second in the character's frame) and plays one of two 2D 
   <tr><td><b>Heavy</b></td><td><code>Locomotion_Heavy</code></td><td>the shambling <code>_01</code> set</td><td class="n">0.52 / 1.14 m/s</td></tr>
   <tr><td><b>Upright</b></td><td><code>Locomotion_Upright</code></td><td>the upright <code>_02</code> set</td><td class="n">1.28 / 1.87 m/s</td></tr>
 </table>
-<p>The blend-tree positions are the clips' measured speeds, so the feet do not slide at any agent speed. The agent's speed is set from the
+<p>The agent plans the path and steers; the clips' own <b>root motion</b> moves and turns the body (the agent follows it and keeps it on the NavMesh), so the feet plant and the body turns with each step as authored. The blend-tree positions are the clips' measured speeds, so the wanted speed picks the matching clip. The agent's speed is set from the
 gait (walk or <code>run</code>). When the skeleton stops, it plays the idle that suits its weapon (<code>Idle_1H_Combat</code>,
 <code>Idle_TwoHanded</code>, <code>Idle_Bow</code>, <code>Idle_Staff</code>); while it moves, the same weapon pose plays on the UpperBody layer so a
 two-hander or a bow is still held properly.</p>
