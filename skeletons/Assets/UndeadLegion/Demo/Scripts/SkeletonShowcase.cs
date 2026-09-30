@@ -70,6 +70,13 @@ namespace UndeadLegion.Demo
         static readonly Color SelectedColor = new Color(0.55f, 0.72f, 0.30f, 1f);
 
         GameObject _instance;
+
+        /// <summary>Raised after a character is spawned (before its first clip plays).</summary>
+        public event System.Action<GameObject> CharacterSpawned;
+        /// <summary>Raised when a clip is about to play on the Base layer.</summary>
+        public event System.Action<AnimationClip> ClipPlaying;
+        /// <summary>The character currently shown.</summary>
+        public GameObject CurrentInstance { get { return _instance; } }
         Animator _animator;
         SkeletonModules _modules;
         SkeletonTwitch _twitch;
@@ -128,7 +135,7 @@ namespace UndeadLegion.Demo
 
         void Update()
         {
-            if (_animator == null) return;
+            if (_animator == null || !_animator.isActiveAndEnabled) return;     // e.g. a ragdoll has the body: no automatic follow-ups
             if (_handIdleButtons.Count > 0 && (Time.frameCount & 7) == 0) RefreshHandIdleButtons();
 
             if (_pendingFollow != null)
@@ -249,6 +256,7 @@ namespace UndeadLegion.Demo
             // firing (SkeletonTwitch, for games) stays off here so the two do not stack
             if (_twitch != null) _twitch.enabled = false;
             _weapon = _instance.GetComponentInChildren<SkeletonWeapon>();
+            if (CharacterSpawned != null) CharacterSpawned(_instance);
             BuildModuleList();
             BuildWeaponList();
             FrameCamera();
@@ -326,7 +334,7 @@ namespace UndeadLegion.Demo
             new ClipSection { title = "Specials", idlePreference = new[] { "Idle_01" }, returnToLastIdle = true,
                 members = new[] { "Taunt_01", "Taunt_02", "Taunt_03", "Rally", "Cutthroat", "Summon", "AOE_Cast" } },   // the user's recordings, 2026-09-25 (Taunt -> Taunt_01..03)
             new ClipSection { title = "Reactions", idlePreference = new[] { "Idle_01" }, returnToLastIdle = true,
-                members = new[] { "Hit_Front", "Hit_Back", "Stagger", "Knockdown", "Get_Up", "Rise" } },
+                members = new[] { "Hit_01", "Stagger_01", "Hit_Front", "Hit_Back", "Stagger", "Knockdown", "Get_Up", "Rise" } },
             new ClipSection { title = "Death", idlePreference = new string[0],
                 members = new[] { "Death_01", "Death_02", "Death_03", "Death_04" } },   // the four instant-fall generations the user kept (2026-09-27): drop, face-down, on the back, puppet
             new ClipSection { title = "Other", idlePreference = new string[0], members = new string[0] },
@@ -357,6 +365,15 @@ namespace UndeadLegion.Demo
         bool _pendingIsSequence;
         readonly List<Button> _seqButtons = new List<Button>();
         readonly List<AnimationClip> _seqClips = new List<AnimationClip>();   // the steps: not in the list (no button), reachable by name
+
+        /// <summary>Plays a clip of the current character by name (the idle when the name is empty); false if it has none.</summary>
+        public bool PlayByName(string name)
+        {
+            var c = FindClip(string.IsNullOrEmpty(name) ? idleClipName : name);
+            if (c == null) return false;
+            Play(c);
+            return true;
+        }
 
         AnimationClip FindClip(string name)
         {
@@ -534,6 +551,9 @@ namespace UndeadLegion.Demo
         public int LayerFor(AnimationClip clip)
         {
             if (clip == null || _animator == null) return -1;
+            // an idle is a Base loop; a controller may also carry it on a masked layer (the weapon pose held while
+            // walking), which must not turn it into a held action: the cast -> idle return then looped endlessly
+            if (clip.name.StartsWith("Idle")) return -1;
             int hash = Animator.StringToHash(clip.name);
             foreach (var li in _maskedLayers) if (_animator.HasState(li, hash)) return li;
             return -1;
@@ -622,6 +642,7 @@ namespace UndeadLegion.Demo
         public void Play(AnimationClip clip, bool resetFacing = true)
         {
             if (_animator == null || clip == null) return;
+            if (ClipPlaying != null) ClipPlaying(clip);
             if (!_seqPlaying) { _seq = null; _pendingIsSequence = false; }
             int masked = LayerFor(clip);
             if (masked >= 0 && clip.isLooping)          // a held action (Block_L_Idle): toggle it on its layer

@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Undead Legion - Extended Edition - Documentation</title>
+<style>
+  @font-face { font-family: "Cinzel Decorative"; src: url("fonts/CinzelDecorative-Bold.ttf"); font-weight: 700; }
+  @font-face { font-family: "Cinzel"; src: url("fonts/Cinzel.ttf"); font-weight: 400 900; }
+  @font-face { font-family: "EB Garamond"; src: url("fonts/EBGaramond.ttf"); font-weight: 400 800; }
+  @page { size: A4; margin: 18mm 17mm 18mm 17mm; }
+  :root { --ink: #1d1b18; --dim: #5b564d; --gold: #8a6a2c; --rule: #d8cdb6; --tint: #f6f1e6; }
+  html, body { background: #fff; color: var(--ink); }
+  body { font-family: "EB Garamond", Georgia, serif; font-size: 11.2pt; line-height: 1.42; margin: 0; }
+  h1, h2, h3 { font-family: "Cinzel", Georgia, serif; color: var(--ink); font-weight: 700; }
+  h2 { font-size: 16pt; margin: 22pt 0 6pt; padding-bottom: 3pt; border-bottom: 1.2pt solid var(--rule); break-after: avoid; }
+  h3 { font-size: 11.5pt; margin: 14pt 0 4pt; color: var(--gold); break-after: avoid; }
+  p { margin: 0 0 7pt; }
+  code, .mono { font-family: Consolas, "Courier New", monospace; font-size: 9.2pt; }
+  pre { font-family: Consolas, "Courier New", monospace; font-size: 8.8pt; background: var(--tint); border-left: 3pt solid var(--gold); padding: 7pt 9pt; margin: 4pt 0 9pt; white-space: pre-wrap; break-inside: avoid; }
+  table { width: 100%; border-collapse: collapse; margin: 4pt 0 10pt; font-size: 10pt; break-inside: auto; }
+  th { font-family: "Cinzel", Georgia, serif; font-size: 8.8pt; text-align: left; color: var(--gold); border-bottom: 1pt solid var(--rule); padding: 3pt 5pt; }
+  td { border-bottom: 0.5pt solid #ece5d6; padding: 3pt 5pt; vertical-align: top; }
+  tr { break-inside: avoid; }
+  td.n, th.n { text-align: right; white-space: nowrap; }
+  ul { margin: 2pt 0 8pt 16pt; padding: 0; } li { margin: 0 0 2pt; }
+  .note { background: var(--tint); padding: 6pt 9pt; margin: 6pt 0 10pt; font-size: 10.2pt; break-inside: avoid; }
+  .cover { height: 250mm; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; break-after: page; }
+  .cover .t { font-family: "Cinzel Decorative", "Cinzel", serif; font-size: 40pt; color: var(--gold); line-height: 1.1; }
+  .cover .s { font-family: "Cinzel", serif; font-size: 17pt; margin-top: 8pt; }
+  .cover .e { font-family: "Cinzel", serif; font-size: 11pt; margin-top: 26pt; color: var(--dim); letter-spacing: 1pt; }
+  .cover .r { width: 60mm; border-top: 1.2pt solid var(--gold); margin: 14pt auto 0; }
+  .toc { columns: 2; column-gap: 12mm; font-size: 10.6pt; } .toc div { margin: 0 0 3pt; }
+  .page { break-before: page; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="t">Undead Legion</div>
+  <div class="s">Extended Edition</div>
+  <div class="r"></div>
+  <div class="e">PHYSICS &nbsp;·&nbsp; NAVIGATION &nbsp;·&nbsp; COMBAT AI &nbsp;·&nbsp; ARMIES</div>
+  <div class="e" style="margin-top:6pt">Unity 6 (6000.4) &nbsp;·&nbsp; Universal Render Pipeline &nbsp;·&nbsp; AI Navigation</div>
+</div>
+
+<h2 style="margin-top:0">Contents</h2>
+<div class="toc">
+  <div>1. Overview</div><div>2. Requirements and setup</div><div>3. Folder structure</div><div>4. The extended prefabs</div>
+  <div>5. Ragdolls</div><div>6. Hit reactions</div><div>7. Health, damage and death</div><div>8. Cloth</div>
+  <div>9. Rise and dissolve effects, glowing eyes</div><div>10. NavMesh movement</div><div>11. Combat AI</div><div>12. Army spawner</div>
+  <div>13. The arena demo</div><div>14. The extended animation browser</div><div>15. Performance</div><div>16. Support</div>
+</div>
+
+<h2>1. Overview</h2>
+<p>The Extended Edition contains the complete Undead Legion pack (characters, armour modules, weapons, animations and the browser demo,
+described in <code>UndeadLegion/Documentation/UndeadLegion_Documentation.pdf</code>) and adds the systems that turn the skeletons into
+a playable army. Everything new lives in <code>UndeadLegion/Extended</code>; the base assets are used as they are.</p>
+<ul>
+  <li><b>Full-body ragdolls</b>: 11 rigidbodies with joints on every character, used as hitboxes while animated, with an impulse on death
+      and a blend back to the animation for revives and get-ups.</li>
+  <li><b>Hit reactions</b>: physical flinches layered over any clip, so a struck skeleton recoils while it keeps walking or attacking.</li>
+  <li><b>Cloth</b>: robes, skirts and pants simulate, pinned at the waist and colliding with the legs.</li>
+  <li><b>Rise and dissolve effects</b>: skeletons rise out of the ground and turn to dust, with a glowing edge. <b>Glowing eyes</b> in any colour.</li>
+  <li><b>NavMesh movement</b>: an agent drives directional locomotion blend trees built from the pack's measured walk, run, back and strafe clips.</li>
+  <li><b>Combat AI</b>: finds the nearest enemy, closes in and attacks with the moves that suit the equipped weapon: melee, arrows, spells and an area cast.</li>
+  <li><b>Army spawner</b>: formations of varied skeletons with mixed armour, suitable loadouts, tints and team colours.</li>
+  <li>An <b>arena demo</b>: two armies, a battle, and a skeleton you can take over; and the <b>animation browser</b> with the extended characters, cloth, hits, ragdolls and the effects.</li>
+</ul>
+
+<h2>2. Requirements and setup</h2>
+<ul>
+  <li>Unity 6 (6000.4 or newer), <b>Universal Render Pipeline</b> 17.4.</li>
+  <li>The <b>AI Navigation</b> package (<code>com.unity.ai.navigation</code>, 2.x) for the NavMesh. It is listed in the project manifest; if you import
+      the package into another project, install it from the Package Manager.</li>
+</ul>
+<p>Open <code>UndeadLegion/Extended/Scenes/UndeadLegion_Extended_Demo.unity</code> and press Play. To use the extended skeletons in your own
+scene, bake a NavMesh there (add a <i>NavMesh Surface</i> to your level and press <i>Bake</i>), then drag a prefab from
+<code>UndeadLegion/Extended/Prefabs</code> onto it, or add an <code>ArmySpawner</code>.</p>
+<div class="note">The extended prefabs are prefab variants of the base characters: changes to a base prefab (its armour set, its hand slots)
+carry over to its extended variant.</div>
+
+<h2>3. Folder structure</h2>
+<table>
+  <tr><th>Folder</th><th>Contents</th></tr>
+  <tr><td><code>Extended/Prefabs</code></td><td><code>PFX_Skeleton&lt;Class&gt;</code>: the six characters with physics, navigation, AI and effects</td></tr>
+  <tr><td><code>Extended/Animations</code></td><td><code>AC_Skeleton_Extended</code>: the base controller plus locomotion blend trees and upper-body weapon idles</td></tr>
+  <tr><td><code>Extended/Scripts</code></td><td>the runtime components (section 4 onwards), namespace <code>UndeadLegion.Extended</code></td></tr>
+  <tr><td><code>Extended/Shaders</code></td><td><code>UndeadLegion/Lit Dissolve</code>: URP Lit with a height cut, noise and a glowing edge</td></tr>
+  <tr><td><code>Extended/Materials</code></td><td>the arena's stone material and post-processing profile</td></tr>
+  <tr><td><code>Extended/Scenes</code></td><td>the arena demo and the extended animation browser, each with its baked NavMesh</td></tr>
+  <tr><td><code>Extended/Documentation</code></td><td>this document</td></tr>
+</table>
+
+<h2>4. The extended prefabs</h2>
+<p>Each <code>PFX_Skeleton&lt;Class&gt;</code> is the base character with <code>AC_Skeleton_Extended</code> and these components added:</p>
+<table>
+  <tr><th>Component</th><th>Role</th></tr>
+  <tr><td><code>SkeletonRagdoll</code></td><td>11 bodies (hips, chest, head, upper and lower arms and legs) with joints; kinematic hitboxes while animated</td></tr>
+  <tr><td><code>SkeletonHitReaction</code></td><td>physical flinches over the animation</td></tr>
+  <tr><td><code>SkeletonHealth</code></td><td>health, team, damage events, the death mode</td></tr>
+  <tr><td><code>SkeletonCloth</code></td><td>cloth on robes, skirts and pants</td></tr>
+  <tr><td><code>SkeletonDissolve</code></td><td>rise and dissolve effects</td></tr>
+  <tr><td><code>SkeletonEyes</code></td><td>glowing eyes</td></tr>
+  <tr><td><code>NavMeshAgent</code> + <code>SkeletonNavController</code></td><td>movement on the NavMesh (radius 0.32 m, height 1.8 m)</td></tr>
+  <tr><td><code>SkeletonAI</code></td><td>the combat behaviour; disable it to drive the skeleton yourself</td></tr>
+</table>
+<p>The base components stay: <code>SkeletonModules</code> (armour), <code>SkeletonWeapon</code> (loadouts), <code>SkeletonTwitch</code> and
+<code>SkeletonFootLock</code>. Every component is independent: remove the ones you do not need (for example the AI in a player character,
+or the cloth in a large crowd).</p>
+
+<h2>5. Ragdolls</h2>
+<p>While the character animates, the ragdoll bodies are kinematic and follow the bones, so their colliders work as <b>hitboxes</b>
+(a raycast or a trigger tells you which body part was struck). <code>Activate(impulse, point)</code> hands the body to physics: the Animator
+and the root capsule switch off, every body keeps the velocity it had in the animation, the impulse is applied to the body nearest the point,
+and held weapons drop with their own physics (<code>dropWeapons</code>). <code>BlendToAnimation()</code> moves the character under the fallen
+hips and blends the pose back to the Animator over <code>blendTime</code> seconds, for revives and get-ups. The bodies are generated by
+<code>Build()</code> from the humanoid bones; <code>totalMass</code> (35 kg) is spread by the usual ragdoll proportions.</p>
+<pre>var ragdoll = skeleton.GetComponent&lt;SkeletonRagdoll&gt;();
+ragdoll.Activate(hitDirection * 80f, hitPoint);     // fall with a push
+ragdoll.BlendToAnimation();                         // stand back up on the animation</pre>
+
+<h2>6. Hit reactions</h2>
+<p><code>SkeletonHitReaction.Hit(point, impulse)</code> kicks damped angular springs on the struck bone and, with <code>falloff</code>, on its
+parents up to the hips (spine, chest, neck, head, shoulders and arms react). The springs are applied after the Animator every frame, so a
+hit reads on top of whatever plays and settles back by itself. <code>stiffness</code> sets how fast a bone returns, <code>damping</code> how much
+it wobbles, <code>strength</code> how far it moves per unit of impulse, <code>maxAngle</code> the largest offset. <code>SkeletonHealth</code> calls it on
+every hit, so you rarely need to call it directly.</p>
+
+<h2>7. Health, damage and death</h2>
+<pre>skeleton.GetComponent&lt;SkeletonHealth&gt;().TakeDamage(25f, hitPoint, hitDirection * 60f, attacker);</pre>
+<table>
+  <tr><th>Setting</th><th>Effect</th></tr>
+  <tr><td><code>maxHealth</code>, <code>health</code></td><td>hit points</td></tr>
+  <tr><td><code>team</code></td><td>skeletons of the same team never target each other</td></tr>
+  <tr><td><code>deathMode</code></td><td><b>Ragdoll</b> (fall with the killing blow's impulse), <b>DeathClip</b> (one of the four death animations),
+      <b>DeathClipThenRagdoll</b> (the clip starts, the ragdoll takes over after <code>ragdollAfter</code> seconds)</td></tr>
+  <tr><td><code>dissolveAfter</code></td><td>seconds after death before the corpse turns to dust (0 = stays); <code>destroyWhenDissolved</code> removes it</td></tr>
+  <tr><td><code>onDamaged</code>, <code>onDied</code></td><td>UnityEvents for your game logic (score, sounds, loot)</td></tr>
+</table>
+<p><code>Die()</code> kills at once, <code>Revive()</code> restores full health and blends a ragdoll back to the animation.
+<code>SkeletonHealth.All</code> lists every living and dead skeleton in the scene.</p>
+
+<h2>8. Cloth</h2>
+<p><code>SkeletonCloth</code> adds Unity Cloth to the worn armour pieces named in its <code>rules</code> (Skirt, Robe and Pants by default). Each
+cloth is pinned at the waist and frees gradually towards the hem: <code>pinnedBand</code> metres below the waist stay fixed, the hem may move up
+to <code>maxDistance</code> from its skinned position. The legs' ragdoll capsules are the colliders, so a robe swings around the legs instead of
+through them. The Knight's set is plate (<code>rigidSets</code>): its pieces never simulate, also when another skeleton wears them. Call <code>Refresh()</code> after changing the worn armour, and <code>SetSimulate(false)</code> to switch cloth off. Beyond
+<code>cullDistance</code> from the main camera the cloth stops simulating.</p>
+
+<h2>9. Rise and dissolve effects, glowing eyes</h2>
+<p><code>SkeletonDissolve.DissolveIn()</code> raises a skeleton out of the ground; <code>DissolveOut(destroyAfter)</code> turns it to dust from the top
+down. For the duration of an effect each renderer (body, armour, held and dropped weapons) uses a copy of its material on the
+<code>UndeadLegion/Lit Dissolve</code> shader, a URP Lit shader with a cut height, noise and a glowing band; the original materials come back
+when a rise ends, and per-renderer colours (tints) are kept. Set <code>duration</code>, <code>edgeColor</code> (HDR), <code>edgeWidth</code> and
+<code>noiseScale</code> to taste; <code>dissolveInOnEnable</code> plays the rise whenever the object is enabled (useful with object pools).</p>
+<p><code>SkeletonEyes</code> places two small glowing spheres in the eye sockets and follows the head. The colour is HDR: values above 1 glow
+with Bloom (the arena uses URP's Bloom post effect). <code>SetColor()</code> changes it at runtime; <code>addLight</code> adds a faint light at the
+face, off by default because every light costs in a crowd.</p>
+
+<h2>10. NavMesh movement</h2>
+<p><code>SkeletonNavController</code> reads the <code>NavMeshAgent</code>'s velocity into the controller's <code>MoveX</code> / <code>MoveZ</code>
+parameters (metres per second in the character's frame) and plays one of two 2D directional blend trees on the Base layer:</p>
+<table>
+  <tr><th>Gait</th><th>State</th><th>Clips (walk / run / back / strafe)</th><th class="n">Walk / run speed</th></tr>
+  <tr><td><b>Heavy</b></td><td><code>Locomotion_Heavy</code></td><td>the shambling <code>_01</code> set</td><td class="n">0.52 / 1.14 m/s</td></tr>
+  <tr><td><b>Upright</b></td><td><code>Locomotion_Upright</code></td><td>the upright <code>_02</code> set</td><td class="n">1.28 / 1.87 m/s</td></tr>
+</table>
+<p>The blend-tree positions are the clips' measured speeds, so the feet do not slide at any agent speed. The agent's speed is set from the
+gait (walk or <code>run</code>). When the skeleton stops, it plays the idle that suits its weapon (<code>Idle_1H_Combat</code>,
+<code>Idle_TwoHanded</code>, <code>Idle_Bow</code>, <code>Idle_Staff</code>); while it moves, the same weapon pose plays on the UpperBody layer so a
+two-hander or a bow is still held properly.</p>
+<pre>var nav = skeleton.GetComponent&lt;SkeletonNavController&gt;();
+nav.MoveTo(destination, running: true);
+nav.FaceTowards(enemy.position);
+nav.PlayAction("Taunt_01");                 // a one-shot; a step in the clip moves the agent
+nav.OnLoadoutChanged();                     // after equipping another weapon</pre>
+
+<h2>11. Combat AI</h2>
+<p><code>SkeletonAI</code> picks the nearest living enemy within <code>sightRange</code> (or your <code>target</code>), walks to it (runs when more than 4 m away; archers keep walking),
+stops at the range of its attacks, turns to face it and attacks, waiting <code>attackCooldown</code> seconds between attacks. Damage lands at
+the moment in the clip where the blow connects. The style is read from the equipped loadout unless you set it:</p>
+<table>
+  <tr><th>Style</th><th>Attacks</th><th class="n">Range</th></tr>
+  <tr><td>OneHanded</td><td><code>Attack_R_Slice</code>, <code>Attack_R_Stab</code></td><td class="n">1.7–1.8 m</td></tr>
+  <tr><td>DualDaggers</td><td>both right and both left attacks, alternating</td><td class="n">1.5–1.6 m</td></tr>
+  <tr><td>TwoHanded</td><td><code>Attack_2H_01</code>, <code>Attack_2H_02</code></td><td class="n">2.1–2.2 m</td></tr>
+  <tr><td>Bow</td><td><code>Shoot_01</code>: the arrow flies and hits after its flight time</td><td class="n">16 m</td></tr>
+  <tr><td>Wand</td><td><code>Cast_Wand_01/02</code>: a homing bolt (<code>MagicBolt</code>)</td><td class="n">11 m</td></tr>
+  <tr><td>Staff</td><td><code>Cast_Staff_01</code> bolt, and <code>AOE_Cast</code> hitting every enemy within 3 m of the target (8 s cooldown)</td><td class="n">9–12 m</td></tr>
+  <tr><td>Unarmed</td><td>light slices with both arms</td><td class="n">1.4 m</td></tr>
+</table>
+<p><code>damageScale</code> and <code>attackSpeed</code> tune difficulty; <code>wanderRadius</code> lets idle skeletons roam around their start point;
+<code>magicColor</code> colours the spells. Disable the component to take control of a skeleton (the arena demo does this when you select one).</p>
+
+<h2>12. Army spawner</h2>
+<p><code>ArmySpawner</code> places <code>count</code> skeletons in a formation of <code>columns</code> × rows, <code>spacing</code> metres apart, snapped
+to the NavMesh and facing the spawner's forward. Each one gets:</p>
+<ul>
+  <li>a random character from <code>characters</code>;</li>
+  <li>a mixed armour set from <code>armourCatalogue</code>: each slot keeps the class's own piece or borrows another class's
+      (<code>mixChance</code>), or stays empty (<code>bareChance</code>); a robe replaces chest, skirt and pants;</li>
+  <li>a loadout that suits its class (<code>randomLoadout</code>), a subtle colour variation (<code>tintStrength</code>), the team's
+      <code>eyeColor</code> and <code>team</code>;</li>
+  <li>the upright gait for casters and the heavy gait for the rest (<code>gaitByClass</code>);</li>
+  <li>a rise from the ground with a random delay (<code>riseFromGround</code>, <code>riseStagger</code>), the AI switching on when it has risen.</li>
+</ul>
+<p><code>Spawn()</code> and <code>Clear()</code> are also in the component's context menu; <code>spawned</code> lists the skeletons it created.</p>
+
+<h2>13. The arena demo</h2>
+<p>Two armies face each other on a small arena with pillars and walls. The panel raises 8 or 16 skeletons per side, starts and stops the battle,
+clears the field, and switches cloth, the death mode and the dissolving of corpses.</p>
+<table>
+  <tr><th>Input</th><th>Action</th></tr>
+  <tr><td>Left click</td><td>select a skeleton: its AI stops and it follows your orders</td></tr>
+  <tr><td>Right click</td><td>move the selected skeleton (hold Shift to run), or send it at an enemy</td></tr>
+  <tr><td>Ctrl + left click</td><td>strike any skeleton (hit reaction; pushes a ragdoll)</td></tr>
+  <tr><td>Alt + left click</td><td>kill a skeleton with a heavy blow</td></tr>
+  <tr><td>WASD / arrows, middle drag</td><td>pan the camera</td></tr>
+  <tr><td>Right drag, Q / E</td><td>rotate the camera</td></tr>
+  <tr><td>Mouse wheel</td><td>zoom</td></tr>
+</table>
+
+<h2>14. The extended animation browser</h2>
+<p><code>UndeadLegion/Extended/Scenes/UndeadLegion_Extended_Showcase.unity</code> is the base pack's animation browser with the extended
+characters and a <b>PHYSICS</b> panel: cloth on or off, a physical hit, a ragdoll death, revive, rise from the ground and turn to dust.
+Click the skeleton to hit it where you click; Shift + click kills it into a ragdoll pushed from that point, and clicks on the fallen body
+push it around. Picking any clip, or Revive, stands a fallen skeleton back up. The browser shows one character at a time, so the
+component <code>ExtendedShowcase</code> removes its navigation and AI when it spawns; the <code>Hit_01</code> and <code>Stagger_01</code>
+clips are in the Reactions section, and armour pieces put on from the modules panel get cloth.</p>
+
+<h2>15. Performance</h2>
+<ul>
+  <li>Ragdoll bodies are kinematic until death, so a living skeleton costs only its colliders.</li>
+  <li>Cloth is the most expensive feature: keep <code>cullDistance</code> modest, or remove <code>SkeletonCloth</code> from background crowds.</li>
+  <li>The rise and dissolve material copies are shared per source material and only used during an effect.</li>
+  <li>Eyes are two unlit spheres; their optional light is off by default.</li>
+  <li>For large crowds, set the agents' obstacle avoidance quality lower and consider disabling <code>SkeletonTwitch</code> and the hit reactions far from the camera.</li>
+</ul>
+
+<h2>16. Support</h2>
+<p>For questions or issues, email <b><a href="mailto:vadymudod@hotmail.com" style="color:inherit">vadymudod@hotmail.com</a></b>. Please include
+your Unity version, the edition (Extended) and a short description or screenshot of the problem.</p>
+
+</body>
+</html>

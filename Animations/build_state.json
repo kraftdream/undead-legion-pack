@@ -256,5 +256,17 @@
   "ok": true,
   "when": "2026-09-29 16:31",
   "mode": "idle"
+ },
+ "Hit_01": {
+  "sig": "hit_c3|1790747668|{\"_note\": \"2026-09-30, user: 'add hit_01, stagger_01 animations if not already present'. Kimodo with the skeleton profile, three candidates (hit_c1..c3, GLBs kept): c1 folds forward like a gut blow, c2 a small hunch that ends straighter than it started; c3 (seed 33) snaps the head and shoulders back and to the side and recovers to its starting pose with both feet planted - the classic hit read. Plain action-mode transfer, in place (reaction displacement lives in the pose, CLAUDE.md root-motion rules).\", \"fist\": 0.3, \"frames\": 60, \"glb\": \"hit_c3\", \"ground_fit\": true, \"layer\": \"full\", \"lift\": 0.004, \"mode\": \"action\", \"name\": \"Hit_01\", \"plant_feet\": 0.001, \"seed\": 33, \"smooth\": 1, \"time_scale\": 1.0, \"unwind_ref\": \"body\", \"unwind_yaw\": true}",
+  "ok": true,
+  "when": "2026-09-30 09:04",
+  "mode": "action"
+ },
+ "Stagger_01": {
+  "sig": "stagger_c1|1790747807|{\"_note\": \"2026-09-30, user: 'add hit_01, stagger_01 animations'. Kimodo with the skeleton profile, three candidates (stagger_c1..c3, GLBs kept): c1 (seed 14) is the only one that reels BACK first (hips 12.5 cm back with a step), then folds over and recovers; c2 stands still for its first second before the hit, c3 reels forward (reads as a hit from behind). Action mode: the take's net drift removed, in place.\", \"fist\": 0.3, \"frames\": 90, \"glb\": \"stagger_c1\", \"ground_fit\": true, \"layer\": \"full\", \"lift\": 0.004, \"mode\": \"action\", \"name\": \"Stagger_01\", \"plant_feet\": 0.001, \"seed\": 14, \"smooth\": 1, \"time_scale\": 1.0, \"unwind_ref\": \"body\", \"unwind_yaw\": true}",
+  "ok": true,
+  "when": "2026-09-30 09:05",
+  "mode": "action"
  }
 }
