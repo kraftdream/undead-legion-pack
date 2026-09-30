@@ -58,8 +58,8 @@ the same skeleton, so any armour piece can be worn by any skeleton and every ani
   <li><b>6 skeleton classes</b>: Knight, Warrior, Archer, Assassin, Mage, Necromancer, each a ready prefab.</li>
   <li><b>48 armour modules</b> as separate prefabs: helms, chests, gloves, greaves, boots, skirts, robes and pants.</li>
   <li><b>12 weapon prefabs</b> with adjustable grip points, including a skinned recurve bow whose string follows the draw hand.</li>
-  <li><b>46 animation clips</b> plus grip pose data: idles, two locomotion sets with root motion, one- and two-handed attacks, a held block, a bow shot,
-      spell casts, class specials, a hit and a stagger reaction, four deaths, additive twitches and empty-hand finger idles.</li>
+  <li><b>48 animation clips</b> plus grip pose data: idles, two locomotion sets with root motion, one- and two-handed attacks, a held block, a bow shot,
+      spell casts, class specials, two hit and two stagger reactions, four deaths, additive twitches and empty-hand finger idles.</li>
   <li>A <b>Humanoid avatar</b> on every character, so the clips also retarget to other humanoids and other humanoid clips play on the skeletons.</li>
   <li>A <b>demo scene</b> to browse every character, module, weapon and clip.</li>
 </ul>
@@ -182,7 +182,7 @@ Clips marked <i>root motion</i> move the character with <i>Apply Root Motion</i>
   <tr><td>Bow</td><td>Shoot_01 (raise, draw, release, lower)</td><td>one-shot, events</td></tr>
   <tr><td>Magic</td><td>Cast_Wand_01, Cast_Wand_02, Cast_Staff_01</td><td>one-shot</td></tr>
   <tr><td>Specials</td><td>Taunt_01, Taunt_02, Taunt_03, Rally, Cutthroat, Summon, AOE_Cast</td><td>one-shot</td></tr>
-  <tr><td>Reactions</td><td>Hit_01 (additive: a head-and-shoulders recoil added over whatever plays, on the Hit layer), Stagger_01 (the hit while stepping back one walk cycle; 66 cm of root motion)</td><td>additive overlay / one-shot, in place</td></tr>
+  <tr><td>Reactions</td><td>Hit_01 (additive: a head-and-shoulders recoil) and Hit_02 (additive: a gut blow, the chest folds), both added over whatever plays on the Hit layer; Stagger_01 / Stagger_02 (Hit_01 / Hit_02 while stepping back one walk cycle; 66 cm of root motion)</td><td>additive overlay / one-shot, in place</td></tr>
   <tr><td>Deaths</td><td>Death_01 (drop), Death_02 (face-down), Death_03 (on the back), Death_04 (limp)</td><td>one-shot, ends lying</td></tr>
   <tr><td>Twitches</td><td>Twitch_01, Twitch_02, Twitch_03 (head and jaw)</td><td>additive</td></tr>
   <tr><td>Finger idles</td><td>Hand_Idle_L, Hand_Idle_R (relaxed empty hand)</td><td>loop, finger-only</td></tr>
@@ -201,7 +201,7 @@ arm and upper-body layers over the legs of a walk or run (section 8).</p>
   <tr><td>Twitch</td><td>additive</td><td>One twitch on a trigger (<code>Twitch</code>, <code>TwitchIndex</code>), used by <code>SkeletonTwitch</code>.</td></tr>
   <tr><td>TwitchLoop_01..03</td><td>additive, weight 0</td><td>A looping twitch each; raise the layer weight to keep one running.</td></tr>
   <tr><td>LeftFingers / RightFingers</td><td>override, finger masks</td><td>The relaxed finger idles; <code>SkeletonWeapon</code> sets their weight (1 for an empty hand, 0 while holding).</td></tr>
-  <tr><td>Hit</td><td>additive, mask <code>AM_UpperBody</code></td><td>Hit reactions added over whatever Base plays, the legs untouched: <code>animator.CrossFadeInFixedTime("Hit_01", 0.05f, animator.GetLayerIndex("Hit"), 0f)</code>. Lower the layer weight for a lighter hit.</td></tr>
+  <tr><td>Hit</td><td>additive, mask <code>AM_UpperBody</code></td><td>Hit reactions added over whatever Base plays, the legs untouched: <code>animator.CrossFadeInFixedTime("Hit_01", 0.05f, animator.GetLayerIndex("Hit"), 0f)</code> (or <code>Hit_02</code>). Lower the layer weight for a lighter hit.</td></tr>
 </table>
 <p>Every layer other than Base has an <code>Empty</code> default state. To play an arm attack while walking, cross-fade the attack on its arm
 layer and let Base keep the walk:</p>
@@ -260,7 +260,7 @@ on another Humanoid character, assign that character's avatar to the Animator an
   <tr><td>Characters</td><td>16.7k–18.9k triangles fully dressed (table in section 4)</td></tr>
   <tr><td>Textures</td><td>1024×1024 colour, normal, metallic/smoothness (R = metallic, A = smoothness)</td></tr>
   <tr><td>Materials</td><td>URP/Lit; armour double-sided</td></tr>
-  <tr><td>Animations</td><td>46 clips + grip pose data, 30 fps, Humanoid</td></tr>
+  <tr><td>Animations</td><td>48 clips + grip pose data, 30 fps, Humanoid</td></tr>
 </table>
 
 <h2>14. Support</h2>

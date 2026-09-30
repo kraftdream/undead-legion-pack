@@ -8,7 +8,7 @@ The full Undead Legion skeleton pack plus ragdolls, hit reactions, cloth, rise a
 
 Raise an undead army, then send it to battle.
 
-Undead Legion Extended contains everything in Undead Legion - Modular Skeleton Army (six skeleton classes on one shared rig, 48 swappable armour pieces, 12 weapons and 46 Humanoid animations) and adds the systems that make the skeletons playable: physics, movement, combat and whole armies. Owners of Undead Legion can upgrade at a discount.
+Undead Legion Extended contains everything in Undead Legion - Modular Skeleton Army (six skeleton classes on one shared rig, 48 swappable armour pieces, 12 weapons and 48 Humanoid animations) and adds the systems that make the skeletons playable: physics, movement, combat and whole armies. Owners of Undead Legion can upgrade at a discount.
 
 **Full-body ragdolls**
 Every skeleton carries an 11-body ragdoll. While it animates, the bodies are hitboxes that tell you which part was struck. On death it falls with the impact of the killing blow and drops its weapons, and it can blend back to the animation for revives and get-ups.
@@ -43,7 +43,7 @@ Everything from the base pack is included unchanged: the character browser demo,
 
 **Everything in Undead Legion - Modular Skeleton Army**
 - 6 characters on one 68-bone Humanoid rig, 16,728 - 18,870 triangles fully dressed
-- 48 armour modules, 12 weapons (a rigged recurve bow), 46 animations at 30 fps
+- 48 armour modules, 12 weapons (a rigged recurve bow), 48 animations at 30 fps
 - URP/Lit materials, 1024x1024 character maps
 - See that listing for the full breakdown
 

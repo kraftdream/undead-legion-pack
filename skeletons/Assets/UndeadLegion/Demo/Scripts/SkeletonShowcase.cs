@@ -335,7 +335,7 @@ namespace UndeadLegion.Demo
             new ClipSection { title = "Specials", idlePreference = new[] { "Idle_01" }, returnToLastIdle = true,
                 members = new[] { "Taunt_01", "Taunt_02", "Taunt_03", "Rally", "Cutthroat", "Summon", "AOE_Cast" } },   // the user's recordings, 2026-09-25 (Taunt -> Taunt_01..03)
             new ClipSection { title = "Reactions", idlePreference = new[] { "Idle_01" }, returnToLastIdle = true,
-                members = new[] { "Hit_01", "Stagger_01", "Hit_Front", "Hit_Back", "Stagger", "Knockdown", "Get_Up", "Rise" } },
+                members = new[] { "Hit_01", "Hit_02", "Stagger_01", "Stagger_02", "Hit_Front", "Hit_Back", "Stagger", "Knockdown", "Get_Up", "Rise" } },
             new ClipSection { title = "Death", idlePreference = new string[0],
                 members = new[] { "Death_01", "Death_02", "Death_03", "Death_04" } },   // the four instant-fall generations the user kept (2026-09-27): drop, face-down, on the back, puppet
             new ClipSection { title = "Other", idlePreference = new string[0], members = new string[0] },

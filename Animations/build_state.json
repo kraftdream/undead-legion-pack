@@ -268,5 +268,17 @@
   "ok": true,
   "when": "2026-09-30 18:01",
   "mode": "action"
+ },
+ "Hit_02": {
+  "sig": "hit_c1|1790768141|{\"_note\": \"2026-09-30, user: 'add hit 02 with stagger 02'. The hit_c1 candidate (folds forward like a gut blow), the second hit next to Hit_01's head recoil, built with Hit_01's recipe: anim_nla_bake --legs-from Hit_02_base:1 --root-hold --end-blend Hit_02_base:1:20, --amplitude 0.5 --amplitude-head 0.5, --amplitude 1 --amplitude-head 0.5 (the head at a quarter), then --speed-segment 46:60:3.5, 15:45:1.5, 1:15:3.5 (60 -> 30 frames). ADDITIVE: frame 0 the reference, played on the Hit layer. Hit_02_base is the full-body retarget.\", \"additive\": true, \"fist\": 0.3, \"frames\": 60, \"glb\": \"hit_c1\", \"hand_edited\": true, \"layer\": \"additive\", \"lift\": 0.004, \"mode\": \"action\", \"name\": \"Hit_02\", \"plant_feet\": 0.001, \"seed\": 11, \"smooth\": 1, \"time_scale\": 1.0, \"unwind_ref\": \"body\", \"unwind_yaw\": true}",
+  "ok": true,
+  "when": "2026-09-30 19:58",
+  "mode": "action"
+ },
+ "Stagger_02": {
+  "sig": "hit_c1|1790768141|{\"_note\": \"2026-09-30, user: 'add hit 02 with stagger 02'. Built like Stagger_01, not from a retarget (hand_edited; glb names the hit's source only): session script stagger_compose.py --hit Hit_02 --out Stagger_02 (one full cycle of Walk_Back_01 resampled 1.4x -> 43 frames, Hit_02's motion added on top over frames 1..30), then anim_nla_bake --pin-foot L:40:40:43,R:40:40:43 --pin-ease 0:0 --keep-poles --leg-reach 0.985 (both feet frozen from frame 40). Stagger_02_base is the composed clip before the freeze.\", \"drift\": \"root\", \"fist\": 0.3, \"frames\": 60, \"glb\": \"hit_c1\", \"ground_fit\": true, \"hand_edited\": true, \"layer\": \"full\", \"lift\": 0.004, \"mode\": \"action\", \"name\": \"Stagger_02\", \"plant_feet\": 0.001, \"seed\": 11, \"smooth\": 1, \"time_scale\": 1.0}",
+  "ok": true,
+  "when": "2026-09-30 19:59",
+  "mode": "action"
  }
 }

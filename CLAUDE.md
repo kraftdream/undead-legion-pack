@@ -475,7 +475,7 @@ toggle, hit, ragdoll death, revive, rise, dust) beside the animation list, click
 ragdoll death; on spawn it removes the character's AI, nav controller and agent (DestroyImmediate in dependency order: a deferred destroy
 of the agent fails while the controller requires it). Hooks added to `SkeletonShowcase`: `CharacterSpawned`, `ClipPlaying` (any clip
 stands a ragdoll back up), `CurrentInstance`, `PlayByName`, and `Update` pauses while the Animator is disabled (a ragdoll must not be
-revived by the one-shot fallback). `Hit_01` / `Stagger_01` are base-pack clips (46 clips now) in the Reactions section. Verified in play
+revived by the one-shot fallback). `Hit_01` / `Stagger_01` are base-pack clips (46 clips then, 48 with Hit_02 / Stagger_02) in the Reactions section. Verified in play
 mode: both clips play and return to the idle, cloth toggles, the ragdoll stays down until revived, all six characters switch, no console
 messages; both production editions rebuilt (0 markers, clean compile). Not done: the arena AI does not play the new reaction clips (its
 hits are the physical springs).
@@ -543,6 +543,13 @@ crossfade carries the joins to and from the idle.
 Then "feet should freeze after frame 40": both feet held at their frame-40 spots over 40–43 (`--pin-foot L:40:40:43,R:40:40:43
 --pin-ease 0:0 --keep-poles`; both were on the floor there, after it the left slid 3 cm and the right began the next lift), knees 125–134°,
 the composed clip kept as `Stagger_01_composed`.
+**Hit_02 + Stagger_02 (2026-09-30, "add hit 02 with stagger 02").** `Hit_02` = the `hit_c1` candidate (a gut blow: the chest folds
+forward), retargeted like Hit_01 and given its exact recipe (legs from frame 1, root held, end blend 20, amplitude 0.5 then the head at a
+quarter, the three speed segments → 30 frames); additive, on the `Hit` layer (the builder now has two overlay states). Added motion over
+Idle_03: chest 14°, head 16°, arms 23–28°, legs 0; back to the base pose after it. `Stagger_02` = `stagger_compose.py --hit Hit_02 --out
+Stagger_02` (the script takes `--hit / --walk / --out` now) + the frame-40 feet freeze: 43 frames, 67 cm back, no leg bone above 13° per
+frame. `SkeletonHealth.hitClips` (was `hitClip`) picks one at random per non-lethal hit (12 hits: 6 / 6). Both in the browsers' Reactions
+section; the pack has 48 clips.
 **Extended browser layout (2026-09-30, "move the new UI panel under the animations panel, make that one shorter; the physics hit is
 weak, 2x"):** the PHYSICS panel is anchored bottom-right at the ANIMATIONS panel's right edge and width (−20 / 280 px, 78 px above the
 bottom), and `ExtendedShowcase.FitUnderAnimations` shortens the browser's `AnimationPanel` at runtime to end 10 px above it (measured
