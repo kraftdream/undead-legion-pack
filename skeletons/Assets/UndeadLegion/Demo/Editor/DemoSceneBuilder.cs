@@ -31,7 +31,11 @@ namespace UndeadLegion.DemoEditor
         static readonly Color Accent = new Color(0.55f, 0.72f, 0.30f);
 
         [MenuItem("Undead Legion/3. Rebuild Demo Scene")]
-        public static string Build()
+        public static string Build() { return Build(ScenePath, CharacterPrefabBuilder.PrefabPath, null, true); }
+
+        /// <summary>The browser scene with any character prefabs (by character name) and header title. With save false
+        /// the scene stays open unsaved, for a caller that adds more before saving it at scenePath.</summary>
+        public static string Build(string scenePath, System.Func<string, string> prefabPath, string headerTitle, bool save)
         {
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -92,7 +96,7 @@ namespace UndeadLegion.DemoEditor
             Stretch(header, new Vector2(0f, 1f), new Vector2(1f, 1f));
             header.sizeDelta = new Vector2(0f, 58f);
             header.anchoredPosition = Vector2.zero;
-            var title = Label(header, "Title", "UNDEAD LEGION   Modular Skeleton Army     Animation Browser     |     drag to orbit, wheel to zoom", 18, HeaderText, TextAnchor.MiddleLeft);
+            var title = Label(header, "Title", headerTitle ?? "UNDEAD LEGION   Modular Skeleton Army     Animation Browser     |     drag to orbit, wheel to zoom", 18, HeaderText, TextAnchor.MiddleLeft);
             Stretch(title, Vector2.zero, Vector2.one);
             title.offsetMin = new Vector2(24f, 0f);
             title.offsetMax = new Vector2(-24f, 0f);
@@ -171,7 +175,7 @@ namespace UndeadLegion.DemoEditor
             showcase.characters = new List<SkeletonShowcase.Entry>();
             foreach (var c in UndeadLegionImportSetup.Characters)
             {
-                var pf = AssetDatabase.LoadAssetAtPath<GameObject>(CharacterPrefabBuilder.PrefabPath(c));
+                var pf = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath(c));
                 if (pf == null) continue;
                 var e = new SkeletonShowcase.Entry();
                 e.prefab = pf;
@@ -196,10 +200,11 @@ namespace UndeadLegion.DemoEditor
             }
 
             EditorSceneManager.MarkSceneDirty(scene);
-            EditorSceneManager.SaveScene(scene, ScenePath);
+            if (!save) return scenePath;
+            EditorSceneManager.SaveScene(scene, scenePath);
             AssetDatabase.SaveAssets();
-            Debug.Log("[UndeadLegion] demo scene rebuilt: " + ScenePath + " with " + showcase.characters.Count + " characters");
-            return ScenePath;
+            Debug.Log("[UndeadLegion] demo scene rebuilt: " + scenePath + " with " + showcase.characters.Count + " characters");
+            return scenePath;
         }
 
         [MenuItem("Undead Legion/Rebuild All (1-3)")]

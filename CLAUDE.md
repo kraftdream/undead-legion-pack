@@ -50,6 +50,7 @@ every one verified on all six models with `verify_clip.py` + `ground_clip.py`; p
 | Bow | `Idle_Bow` hand-edited 2026-09-27 (knees 3 cm narrower than the retarget's build by the pole swivel, at the retarget's height; `Idle_Bow_base` is that build); `Shoot_01` (redone 2026-09-25 from the user's mannequin recording `aoe cast shoot.glb`: raise, draw at the cheek, release, lower, 1.9 s; the shot goes where the recorded feet point, `heading feet`; the video-mocap build of 2026-09-22 and `Shoot_02` retired; 2026-09-27: the user's `Shoot_01_Fix` baked, `hand_edited`, and animation events `BowAttach` 15 / `BowRelease` 21 on the clip — the recurve bow is a skinned model now and its string follows the draw hand between them, and a fired arrow flies along the character's forward on the release, §8 "The recurve bow bends"; imported in place; legs from `Idle_Bow`'s stance under the take's hips) |
 | Magic | `Cast_Wand_01/02`, `Cast_Staff_01` (both hands on the staff; redone 2026-09-27 from the user's `cast staff.glb`, frames 88–155, in place, both feet frozen) — the user's mannequin recording `magic attacks.glb` (2026-09-25); `Cast_Staff_02` retired |
 | Specials | `Summon` (necromancer, both hands overhead), `AOE_Cast` (mage; redone 2026-09-27 from the user's `aoe cast.glb`: a left-hand gesture, then the staff raised overhead and lowered, 4.8 s, on `Idle_Staff`'s legs, in place; a hold/release split was tried and reverted), `Taunt_01/02/03` (warrior), `Cutthroat` (assassin), `Rally` (knight, sword raised) — all from the user's recording `taunts.glb` (2026-09-25); the Kimodo `Taunt` retired |
+| Reactions | `Hit_01` (head and shoulders snap back, recovers, feet planted; `hit_c3`, seed 33), `Stagger_01` (reels back a step, folds over, recovers; `stagger_c1`, seed 14) — 2026-09-30, Kimodo with the skeleton profile, three candidates each (GLBs kept), picked on contact sheets + `reacteval`-style numbers (hips travel, chest pitch, knee range, feet travel); plain action-mode transfers, in place, ground fit (boots ≤ 9 mm under; the Necromancer robe 12.7 cm under in the stagger's fold, the hips-weighted hem). In the demo's Reactions section |
 | Death | `Death_01` (drops straight down), `Death_02` (face-down), `Death_03` (flat on the back), `Death_04` (limp, like a puppet) — the four instant-fall Kimodo generations the user kept on 2026-09-27 from seven candidates, the full 100-frame generations on the rig with no floor pass and no lift (§8 "Death candidates"); the user gives each one's start frame; the old struck-on-the-back / kneel-and-crumple deaths are gone |
 
 **Measured speed table** (Unity, Humanoid, root motion on, Knight; the other five are
@@ -71,7 +72,7 @@ identical because the avatar is shared). Ship these numbers with the pack:
 Measured on all six models: Idle travel 0, Head 5.2° / Hips 2.5° of motion; Twitch_03
 over Idle adds Head 5.7° / Jaw 4.7° peaks with Hips at 0.00°. Every clip's lowest baked
 vertex is ≥ 0 on every model except `Death_02` (Necromancer robe −5.6 cm during the
-kneel, §8 "Grounding"). Not yet authored: turns, hits/staggers, knockdown/get-up
+kneel, §8 "Grounding"). Not yet authored: turns, knockdown/get-up
 (the showcase already lists those sections and skips missing clips). The pipeline test
 clip `Test_RootMotion` stays in the anim file, not in Unity.
 
@@ -417,6 +418,86 @@ while packages resolve; the second open is clean). Re-run it after any change in
 characters with triangle counts, armour modules and the wear/remove API, weapons, loadouts, slots and grips, the bow events, the clip list,
 the controller's layers, the speed table, the scripts, the demo scene, own animations, technical details), printed from
 `tools/docs/UndeadLegion_Documentation.html` by `tools/make_documentation.py`; edit the HTML and re-run it when the content changes.
+
+### Extended edition (2026-09-29)
+
+User: "an extended project version that current users can upgrade to, or new buy directly: cloth physics for armour with cloth, full-body
+ragdoll, simple NavMesh navigation / controls, other ideas"; extras chosen: army spawner, hit reactions, spawn & death VFX, simple combat AI;
+packaging: a SEPARATE listing (the full base + extras, upgrade discount from the base; `_store/unity_listing_extended.md`). Everything lives
+in `Assets/UndeadLegion/Extended/` (runtime namespace `UndeadLegion.Extended`, editor `UndeadLegion.ExtendedEditor`); the base assets are
+used as they are, three small additions to `SkeletonWeapon` (`HeldItems`, `ForgetHeldItems`, `ReequipCurrent`, for dropping weapons into
+the ragdoll). **Generated, never hand-edited**: menu *Undead Legion / Extended / Build All (1-3)* (`Extended/Editor/ExtendedBuilder.cs`):
+(1) `AC_Skeleton_Extended` = a copy of `AC_Skeleton` + params `MoveX` / `MoveZ` + two 2D freeform-directional blend trees on Base,
+`Locomotion_Heavy` (the `_01` clips at their measured speeds 0.52 / 1.14 / −0.34 / ±0.20) and `Locomotion_Upright` (`_02`: 1.28 / 1.87 /
+−0.77 / ±0.93), + the weapon idles as UpperBody states (with `SkeletonGripState`); (2) `Extended/Prefabs/PFX_Skeleton<Char>` = prefab
+VARIANTS of the base `PF_` with the extended controller and `SkeletonRagdoll` (built: 11 bodies, CharacterJoints), `SkeletonHitReaction`,
+`SkeletonHealth`, `SkeletonCloth`, `SkeletonDissolve` (shader referenced), `SkeletonEyes`, `NavMeshAgent` (r 0.32, h 1.8) +
+`SkeletonNavController`, `SkeletonAI`; (3) the arena scene `Extended/Scenes/UndeadLegion_Extended_Demo.unity`: ground (Plane ×10),
+6 pillars + 2 walls marked **NotWalkable** by `NavMeshModifier` (their tops became walkable islands, a skeleton stood on one), a
+`NavMeshSurface` with **`buildHeightMesh`** (without it every agent stood 8.3 cm above the floor, the navmesh's voxel height), baked and
+saved as an asset, URP camera with post (Bloom, ACES, vignette) + `RtsCamera`, two `ArmySpawner`s (teams 0 / 1, teal / red eyes),
+`ExtendedDemo` (runtime uGUI panel: raise 8v8 / 16v16, battle, clear, cloth / death mode / dissolve toggles; left click select = possess,
+right click move / attack, Ctrl+click strike, Alt+click kill). The dissolve shader `Extended/Shaders/UndeadLegionDissolve.shader` wraps
+URP Lit's passes (ForwardLit, DepthOnly, DepthNormals cut by height + noise with an HDR edge; the ShadowCaster is not cut, so the effect turns
+the renderer's shadows off while it runs).
+
+Measured and fixed in play-mode probes (a throwaway `ExtProbe` MonoBehaviour under `_PipelineTest/` that logs a timeline and renders frames
+itself, the Python side only polls a `done.txt` — the bridge stalls on long play tests): 8v8 battle to 3–4 survivors in ~35 s, no errors;
+**dropped weapons** were orphans that outlived the corpse (now in `SkeletonRagdoll.Dropped`, dissolved with it and destroyed in its
+`OnDestroy`); **eyes** sat on the forehead — the socket centres measured by raycasting the baked body mesh (all six skulls: x ±0.036–0.043,
+y +0.023, surface z 0.066–0.071 from the Head bone) → offset (0.036, 0.029, 0.062), size 0.017; the eye point light at 5 cm from the skull
+saturated the whole face (inverse square), so `addLight` is off by default and sits 30 cm ahead when on; the **hit-reaction springs**
+flipped sign on a 0.33 s frame (semi-implicit Euler at ω·dt ≈ 3) and are sub-stepped at 1/120 s; the **area-cast and bolt lights** flooded
+nearby skeletons (now 0.5 / 0.8 intensity, colour normalised from the HDR value, the flash faded over 0.45 s). All three death modes, the
+demo's raycast strike / kill path and `Revive` (back on the animation, root on the ground, weapons re-equipped) verified.
+
+**Shipping**: `make_production.py --edition extended` → `../undead-legion-extended-production` (adds `Extended/` minus its Editor folder,
+keeps `com.unity.ai.navigation`, both demo scenes as build scenes with the arena first, product name "Undead Legion Extended"); the base
+edition excludes `Extended/` and drops the navigation package. Both verified: 0 markers, clean compile on the second open. Buyer doc
+`Extended/Documentation/UndeadLegion_Extended_Documentation.pdf` (7 pages, from `tools/docs/UndeadLegion_Extended_Documentation.html`,
+`make_documentation.py extended`). Not done: the Asset Store validator on either edition, an extended showreel.
+
+**Second round (2026-09-30, user: "briefly visible for one frame before it disappears and spawns; attacks with a step forward
+(wand_cast, the two-handed attacks) play their step but the skeletons stay in one place; update the regular demo scene with cloth
+on/off, rigidbody death, hit reactions, and the hit_01 / stagger_01 animations").** (1) The flash: the dissolve material's
+`_DissolveHeight` defaults to 100 (all visible) and `SkeletonDissolve.Run` waited one frame for the bounds before setting it, so the
+renderer showed whole on the frame the rise enabled it; the cut is now set (−1000 for a rise, +1000 for a death) in the same frame as the
+swap. The eyes were created in `Start`, after the spawner had collected the renderers to hide, so they floated during the rise delay:
+`SkeletonEyes` builds them in `Awake` and the spawner calls `SetColor`. Probed: 32 skeletons over two raises, every body hidden on its
+first visible frame, 0 flashes. (2) The step: the agent drives the transform and the Animator's root motion was off, so a clip's step
+played in place; `SkeletonNavController.OnAnimatorMove` moves the agent by the clip's `deltaPosition` (`NavMeshAgent.Move`, stays on the
+mesh) and turns by `deltaRotation` while a one-shot is busy, and ignores root motion while the agent walks. Measured: Attack_2H_01/02
+carry the skeleton 27 / 38 cm at the swing, the wand casts 8–15 cm. (3) The regular browser: the base `Demo` scene ships in the base
+edition, which has no `Extended/` folder, so the extended features live in a SECOND browser scene,
+`Extended/Scenes/UndeadLegion_Extended_Showcase.unity` (menu *Extended / 4*, built by `DemoSceneBuilder.Build(path, prefabPath,
+title, save)` with the `PFX_` prefabs, a small baked NavMesh so the agents spawn quietly, and `ExtendedShowcase`): a PHYSICS panel (cloth
+toggle, hit, ragdoll death, revive, rise, dust) beside the animation list, click the skeleton to hit it where clicked, Shift + click for a
+ragdoll death; on spawn it removes the character's AI, nav controller and agent (DestroyImmediate in dependency order: a deferred destroy
+of the agent fails while the controller requires it). Hooks added to `SkeletonShowcase`: `CharacterSpawned`, `ClipPlaying` (any clip
+stands a ragdoll back up), `CurrentInstance`, `PlayByName`, and `Update` pauses while the Animator is disabled (a ragdoll must not be
+revived by the one-shot fallback). `Hit_01` / `Stagger_01` are base-pack clips (46 clips now) in the Reactions section. Verified in play
+mode: both clips play and return to the idle, cloth toggles, the ragdoll stays down until revived, all six characters switch, no console
+messages; both production editions rebuilt (0 markers, clean compile). Not done: the arena AI does not play the new reaction clips (its
+hits are the physical springs).
+**"With the Necromancer, after Cast_Wand_01 it keeps switching Idle_Staff -> Cast_Wand -> repeat endlessly" (2026-09-30, the extended
+browser).** The extended controller carries the weapon idles on UpperBody too (the pose held while the agent walks), and the browser's
+`LayerFor` treats any LOOPING clip with a masked-layer state as a HELD action (the block rule): the return-to-idle after the cast toggled
+Idle_Staff on UpperBody instead of playing it on Base, Base stayed on the finished cast, and the same fallback fired again next frame.
+`LayerFor` now never routes an `Idle*` clip to a masked layer. Probed in both browsers on the Necromancer: Cast_Wand_01/02,
+Cast_Staff_01, Attack_2H_01, Shoot_01, Attack_R_Slice, Taunt_01 each settle on ONE idle (3 Base states in 9 s). Rule: **a state added
+to a masked layer for gameplay is not a browser action; the browser's layer routing must know which clips are loops of the body.**
+**"Wand skeletons in the arena only slightly rotate instead of stepping forward, then snap back to their target" (2026-09-30).**
+Measured on the clip (Knight, root motion on): Cast_Wand_01 steps the right foot 35 cm forward while the ROOT moves 18 cm forward and
+turns −44° (Unity's root rotation follows the body, which goes side-on to cast) and comes back to 0° by the end. The AI's attack
+coroutine turned the skeleton toward its target every frame of the wind-up (180°/s), cancelling most of the clip's turn (the "slight
+rotate") and bending the step, and the between-attack re-aim at 540°/s then snapped away what it had added. Now nothing steers during an
+attack (it starts only within 12° of the target; bolts home anyway) and the re-aim runs at 200°/s. Probed in an all-wand battle: steps
+0.2–0.45 m forward (Cast_Wand_01) / 0.07–0.14 m (Cast_Wand_02), the body turns −45° and back to within a few degrees, re-aims after the
+clip 0–19° over ~0.1 s. Rule: **a clip that carries root motion owns the transform while it plays; aim before it, never during.**
+**"The Knight has no cloth armour, remove cloth from his pieces" (2026-09-30).** The cloth rules match by module NAME, so the Knight's
+plate `Skirt` was simulated like the fabric ones. `SkeletonCloth.rigidSets` (default `SkeletonKnight`) lists armour SETS whose pieces never
+get cloth, by the piece's source (`ArmorPiece.character`), so a borrowed Knight skirt stays rigid on any skeleton. Probed in the extended
+browser: Knight 0 cloths; Archer / Warrior skirt, Assassin skirt + pants, Mage / Necromancer robe unchanged.
 
 ### Validator
 

@@ -2,7 +2,7 @@
 
 ## Summary
 
-Six skeleton warriors on one shared humanoid rig. 48 swappable armour pieces fit any skeleton, plus 12 weapons and 44 Humanoid animations with root motion. URP-ready.
+Six skeleton warriors on one shared humanoid rig. 48 swappable armour pieces fit any skeleton, plus 12 weapons and 46 Humanoid animations with root motion. URP-ready.
 
 ## Description
 
@@ -19,11 +19,12 @@ Knight, Warrior, Archer, Assassin, Mage and Necromancer, each a dressed, animate
 **Weapons**
 12 weapons: sword, axe, mace, dagger, wand, heater shield, round shield, longsword, battle axe, staff, recurve bow and arrow. They attach to adjustable hand slots and come in 11 ready loadouts, from sword and shield to two daggers. The fingers close around a held weapon and relax on an empty hand. The recurve bow is rigged: its string follows the draw hand and the limbs bend with the pull, and the shot fires an arrow on release.
 
-**44 animations**
+**46 animations**
 - Idles: three general idles, a one-handed combat stance, and two-handed, bow and staff idles
 - Locomotion: two complete sets with root motion. A heavy, shambling set for rank-and-file skeletons and an upright set for captains and casters, each with walk forward, walk back, run and strafes
 - Combat: right and left arm stabs and slices, a held shield block, two two-handed attacks, a bow shot, wand and staff casts
 - Specials: three taunts, rally, cutthroat, summon and an area cast
+- Hit and stagger reactions
 - Four deaths
 - Additive head and jaw twitches and relaxed finger idles, so a crowd never stands perfectly still
 
@@ -59,8 +60,8 @@ Full documentation (PDF) is included.
 
 **Animation**
 - Animated: Yes
-- 44 animations, 30 fps, Humanoid
-- Animation types: root motion (locomotion) and in-place (idles, attacks, casts, specials, deaths)
+- 46 animations, 30 fps, Humanoid
+- Animation types: root motion (locomotion) and in-place (idles, attacks, casts, specials, reactions, deaths)
 - Additive twitch clips and finger-only idle clips
 - Animation events on the bow shot
 

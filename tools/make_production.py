@@ -1,6 +1,11 @@
 """Build the clean, shippable Unity project from the development project.
 
-    python tools/make_production.py [--dest ../undead-legion-production] [--verify]
+    python tools/make_production.py [--edition base|extended] [--dest DIR] [--verify]
+
+Two editions, two listings: `base` (../undead-legion-production) is the pack without Assets/UndeadLegion/Extended;
+`extended` (../undead-legion-extended-production) adds the Extended folder (ragdolls, hit reactions, cloth, dissolve
+VFX, NavMesh control, combat AI, army spawner, the arena demo) and keeps the AI Navigation package it needs. The
+Extended editor builder is left out like the base builders; both demo scenes are build scenes in the extended copy.
 
 The development project (skeletons/) carries the pipeline: editor builders that read the repo's tools and manifests, a
 showreel recorder, a scratch folder, the editor bridge package, and code comments that record how each piece was
@@ -30,7 +35,14 @@ EXCLUDE = ["Assets/UndeadLegion/Demo/Editor", "Assets/UndeadLegion/Demo/Editor.m
 COPY = ["Assets/UndeadLegion", "Assets/UndeadLegion.meta", "Assets/Settings", "Assets/Settings.meta",
         "Assets/InputSystem_Actions.inputactions", "Assets/InputSystem_Actions.inputactions.meta", "ProjectSettings",
         "Packages/com.unity.asset-store-tools"]
-DROP_PACKAGES = ["com.coplaydev.unity-mcp", "com.unity.collab-proxy", "com.unity.multiplayer.center", "com.unity.ai.navigation"]
+EXCLUDE_BASE = ["Assets/UndeadLegion/Extended", "Assets/UndeadLegion/Extended.meta"]
+EXCLUDE_EXTENDED = ["Assets/UndeadLegion/Extended/Editor", "Assets/UndeadLegion/Extended/Editor.meta"]
+DROP_PACKAGES = ["com.coplaydev.unity-mcp", "com.unity.collab-proxy", "com.unity.multiplayer.center"]
+NAVIGATION = "com.unity.ai.navigation"          # the extended edition's NavMesh; dropped from the base
+SCENES = {"base": ["Assets/UndeadLegion/Demo/Scenes/UndeadLegion_Demo.unity"],
+          "extended": ["Assets/UndeadLegion/Extended/Scenes/UndeadLegion_Extended_Demo.unity", "Assets/UndeadLegion/Extended/Scenes/UndeadLegion_Extended_Showcase.unity",
+                       "Assets/UndeadLegion/Demo/Scenes/UndeadLegion_Demo.unity"]}
+PRODUCT = {"base": "Undead Legion", "extended": "Undead Legion Extended"}
 # anything that points back at how the pack was made
 MARKERS = re.compile(r"claude|anthropic|kimodo|\bmcp\b|coplay|scratchpad|\buser\b|\bthe user's\b|2026-|CLAUDE\.md|clips\.json|build_state|"
                      r"tools/|skeleton_anim|\.blend\b|creatures pack|bridge|vadym|OneDrive|session|prefab builder|blender|rig m\b|retarget|mocap|recording", re.I)
@@ -50,6 +62,26 @@ SUMMARIES = {
     "SkeletonShowcase": "The demo browser: character selection, armour modules, animation sections, layered playback and root motion options.",
     "SkeletonTwitch": "Plays short additive head and jaw twitches at random intervals for crowds of skeletons.",
     "SkeletonWeapon": "Equips weapon loadouts into the hand slots, closes the fingers on held items and drives the empty-hand finger idles.",
+    "SkeletonRagdoll": "A full-body ragdoll on the humanoid bones: kinematic hitboxes while animated, physics on death, and a blend back to animation.",
+    "Part": "One ragdoll body: the bone, its rigidbody and its collider.",
+    "SkeletonHitReaction": "Physical hit reactions layered over any animation: damped springs on the spine, head and arms kicked by each hit's torque.",
+    "SkeletonHealth": "Health, team and death handling: ragdoll or death clip, then an optional dissolve; events for damage and death.",
+    "DamageInfo": "One hit: the amount, the world point, the impulse and the attacker.",
+    "SkeletonDissolve": "Rise-from-the-ground and turn-to-dust effects: a glowing cut height sweeps through every renderer of the skeleton.",
+    "SkeletonCloth": "Adds cloth simulation to robes, skirts and pants, pinned at the waist and colliding with the legs; culled by distance.",
+    "ModuleRule": "Which armour module gets cloth, and how far below the waist the cloth starts to move.",
+    "SkeletonNavController": "Drives a skeleton with a NavMeshAgent: locomotion blend trees fed from the agent's velocity, weapon idles and one-shot actions.",
+    "SkeletonAI": "Simple combat AI: finds the nearest enemy, closes in, and attacks with the moves that suit the equipped weapon.",
+    "Move": "One attack: the clip, when the hit lands, its range, damage and impulse.",
+    "MagicBolt": "A glowing homing projectile for wand and staff attacks; damages its target on arrival.",
+    "SkeletonEyes": "Glowing eyes in the skull's sockets, in any HDR colour (bloom makes them glow).",
+    "ArmySpawner": "Spawns a formation of varied skeletons: random class, mixed armour, a suitable loadout, a tint, team eyes and a rise from the ground.",
+    "ExtendedInput": "Mouse and keyboard reads that work with either input backend.",
+    "RtsCamera": "A top-down battle camera: pan, rotate and zoom.",
+    "ExtendedDemo": "The arena demo: raise two armies, start the battle, select and command a skeleton, strike or kill any skeleton.",
+    "Slot": "A renderer and its original materials for the duration of an effect.",
+    "Spring": "One bone's reaction spring.",
+    "ExtendedShowcase": "Adds the extended systems to the animation browser: cloth, hits, ragdoll death, revive, rise and dust, and hits by clicking the character.",
 }
 
 
@@ -141,9 +173,11 @@ def scrub_fbx(path):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--dest", default=os.path.join(os.path.dirname(ROOT), "undead-legion-production"))
+    ap.add_argument("--edition", choices=["base", "extended"], default="base")
+    ap.add_argument("--dest", default=None)
     ap.add_argument("--verify", action="store_true")
-    a = ap.parse_args(); dest = os.path.abspath(a.dest)
+    a = ap.parse_args()
+    dest = os.path.abspath(a.dest or os.path.join(os.path.dirname(ROOT), "undead-legion-production" if a.edition == "base" else "undead-legion-extended-production"))
     if os.path.abspath(dest).startswith(os.path.abspath(ROOT) + os.sep): sys.exit("the production project must live outside this repository")
     os.makedirs(dest, exist_ok=True)
     lock = os.path.join(dest, "Temp", "UnityLockfile")
@@ -153,7 +187,7 @@ def main():
     for sub in ("Assets", "ProjectSettings", "Packages"):
         p = os.path.join(dest, sub)
         if os.path.exists(p): shutil.rmtree(p)
-    excl = {os.path.normcase(os.path.join(SRC, e)) for e in EXCLUDE}
+    excl = {os.path.normcase(os.path.join(SRC, e)) for e in EXCLUDE + (EXCLUDE_BASE if a.edition == "base" else EXCLUDE_EXTENDED)}
     ign = lambda d, names: [x for x in names if os.path.normcase(os.path.join(d, x)) in excl]
     for rel in COPY:
         s, d = os.path.join(SRC, rel), os.path.join(dest, rel)
@@ -162,18 +196,20 @@ def main():
         elif os.path.exists(s): shutil.copy2(s, d)
     # the manifest
     man = json.load(open(os.path.join(SRC, "Packages", "manifest.json")))
-    for p in DROP_PACKAGES: man["dependencies"].pop(p, None)
+    for p in DROP_PACKAGES + ([NAVIGATION] if a.edition == "base" else []): man["dependencies"].pop(p, None)
     json.dump(man, open(os.path.join(dest, "Packages", "manifest.json"), "w"), indent=2)
     # project settings
     ps = os.path.join(dest, "ProjectSettings", "ProjectSettings.asset"); t = open(ps, encoding="utf-8").read()
-    t = re.sub(r"(?m)^(  productName: ).*$", r"\1Undead Legion", t); t = re.sub(r"(?m)^(  cloudProjectId: ).*$", r"\1", t)
+    t = re.sub(r"(?m)^(  productName: ).*$", lambda m: m.group(1) + PRODUCT[a.edition], t); t = re.sub(r"(?m)^(  cloudProjectId: ).*$", r"\1", t)
     t = re.sub(r"(?m)^(  projectName: ).*$", r"\1", t)
     open(ps, "w", encoding="utf-8").write(t)
-    scene = "Assets/UndeadLegion/Demo/Scenes/UndeadLegion_Demo.unity"
-    guid = re.search(r"guid: (\w+)", open(os.path.join(SRC, scene + ".meta")).read()).group(1)
+    entries = ""
+    for scene in SCENES[a.edition]:
+        guid = re.search(r"guid: (\w+)", open(os.path.join(SRC, scene + ".meta")).read()).group(1)
+        entries += "  - enabled: 1\n    path: " + scene + "\n    guid: " + guid + "\n"
     open(os.path.join(dest, "ProjectSettings", "EditorBuildSettings.asset"), "w").write(
         "%YAML 1.1\n%TAG !u! tag:unity3d.com,2011:\n--- !u!1045 &1\nEditorBuildSettings:\n  m_ObjectHideFlags: 0\n  serializedVersion: 2\n"
-        "  m_Scenes:\n  - enabled: 1\n    path: " + scene + "\n    guid: " + guid + "\n  m_configObjects: {}\n")
+        "  m_Scenes:\n" + entries + "  m_configObjects: {}\n")
     for junk in ("VersionControlSettings.asset",):
         p = os.path.join(dest, "ProjectSettings", junk)
         if os.path.exists(p): os.remove(p)
@@ -194,7 +230,7 @@ def main():
     gi = os.path.join(dest, ".gitignore")
     if not os.path.exists(gi):
         open(gi, "w").write("/Library/\n/Temp/\n/Obj/\n/Logs/\n/UserSettings/\n/Build/\n/Builds/\n*.csproj\n*.sln\n.vs/\n.idea/\n")
-    print("production project: %s\n  %d scripts cleaned, %d FBX scanned, %d embedded source paths blanked" % (dest, nscripts, nf, nfix), flush=True)
+    print("production project (%s): %s\n  %d scripts cleaned, %d FBX scanned, %d embedded source paths blanked" % (a.edition, dest, nscripts, nf, nfix), flush=True)
     # the leftover scan: every text file in the copy
     left = []
     for dp, dn, fn in os.walk(dest):

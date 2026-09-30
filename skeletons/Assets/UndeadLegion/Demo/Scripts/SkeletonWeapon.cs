@@ -319,6 +319,15 @@ namespace UndeadLegion.Demo
             ApplyFingerLayers();
         }
 
+        /// <summary>The weapon instances currently held (for physics or effects that act on them).</summary>
+        public IEnumerable<GameObject> HeldItems() { return _spawned.ToArray(); }
+
+        /// <summary>Stops tracking the held instances without destroying them (they have been detached, e.g. dropped by a ragdoll).</summary>
+        public void ForgetHeldItems() { _spawned.Clear(); _holdLeft = _holdRight = false; ApplyFingerLayers(); }
+
+        /// <summary>Equips the current loadout again (after its instances were dropped).</summary>
+        public void ReequipCurrent() { int c = _current; if (c >= 0) Equip(c); }
+
         public void Clear()
         {
             foreach (var go in _spawned)
