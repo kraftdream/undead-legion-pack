@@ -4,8 +4,9 @@ using UnityEngine.AI;
 namespace UndeadLegion.Extended
 {
     /// <summary>
-    /// Moves a skeleton with a NavMeshAgent and animates it to match. The agent's velocity, in the character's frame, drives
-    /// a 2D locomotion blend tree whose clips sit at their measured speeds, so the feet keep pace with the ground. Two gaits:
+    /// Moves a skeleton along NavMesh paths with ROOT MOTION: the agent plans the path and gives the wanted velocity, which (in
+    /// the character's frame) drives a 2D locomotion blend tree whose clips sit at their measured speeds; the clips' own root
+    /// motion then moves and turns the body, the agent kept on it and the body kept on the mesh, so the feet plant. Two gaits:
     /// Heavy (the shambling _01 set) and Upright (the _02 set). While moving, the weapon's idle pose holds the upper body;
     /// when the agent stops, the full weapon idle takes over. Also the entry point for one-shot actions (attacks, casts).
     /// </summary>
@@ -52,7 +53,8 @@ namespace UndeadLegion.Extended
             _animator = GetComponent<Animator>();
             _weapon = GetComponent<UndeadLegion.Demo.SkeletonWeapon>();
             _footLock = GetComponent<UndeadLegion.Demo.SkeletonFootLock>();
-            _agent.updateRotation = true;
+            _agent.updatePosition = false;     // root motion moves the body (OnAnimatorMove); the agent follows it
+            _agent.updateRotation = false;     // the body turns toward the path here, and with the clips' own turn per step
             _agent.angularSpeed = turnSpeed;
             _agent.acceleration = 6f;
             _agent.stoppingDistance = 0.1f;
@@ -126,14 +128,15 @@ namespace UndeadLegion.Extended
             return len / Mathf.Max(0.01f, speed);
         }
 
-        // The agent moves the skeleton while it walks; during a one-shot the clip's own root motion (a lunge, a step into a
-        // cast) moves it instead, through the agent so it stays on the NavMesh.
+        // Root motion drives the body at all times (walks, runs, a lunge or a step into a cast); the position goes through the
+        // agent so it stays on the NavMesh, and the agent follows the body.
         void OnAnimatorMove()
         {
-            if (_animator == null || !_busy) return;
+            if (_animator == null) return;
             Vector3 d = _animator.deltaPosition; d.y = 0f;
-            if (_agent != null && _agent.enabled && _agent.isOnNavMesh) _agent.Move(d);
-            else transform.position += d;
+            Vector3 next = transform.position + d;
+            if (_agent != null && _agent.enabled && _agent.isOnNavMesh) { _agent.nextPosition = next; transform.position = _agent.nextPosition; }
+            else transform.position = next;
             transform.rotation = _animator.deltaRotation * transform.rotation;
         }
 
@@ -150,9 +153,12 @@ namespace UndeadLegion.Extended
             if (_busy && Time.time >= _busyUntil) { _busy = false; _animator.speed = 1f; _basePlaying = ""; }
             if (_busy) { _animator.SetFloat(MoveX, 0f); _animator.SetFloat(MoveZ, 0f); return; }
 
-            Vector3 v = _agent.enabled ? _agent.velocity : Vector3.zero;
+            bool live = _agent.enabled && _agent.isOnNavMesh;
+            bool moving = live && !_agent.isStopped && (_agent.pathPending || (_agent.hasPath && _agent.remainingDistance > _agent.stoppingDistance));
+            Vector3 v = moving ? _agent.desiredVelocity : Vector3.zero; v.y = 0f;
+            if (v.sqrMagnitude > 1e-4f)                                   // steer: turn toward the path, the clip's own turn rides on top
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(v), turnSpeed * Time.deltaTime);
             Vector3 local = transform.InverseTransformDirection(v);
-            bool moving = v.sqrMagnitude > 0.0025f || (_agent.enabled && _agent.hasPath && _agent.remainingDistance > _agent.stoppingDistance + 0.05f);
             _animator.SetFloat(MoveX, local.x, parameterDamping, Time.deltaTime);
             _animator.SetFloat(MoveZ, local.z, parameterDamping, Time.deltaTime);
 
