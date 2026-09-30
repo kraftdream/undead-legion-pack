@@ -33,6 +33,8 @@ namespace UndeadLegion.Extended
         public float ragdollAfter = 0.6f;
         [Tooltip("Seconds after death before the body dissolves (0 = never).")]
         public float dissolveAfter = 4f;
+        [Tooltip("Additive reaction clip played on the Animator's Hit layer on every hit that does not kill (empty = none).")]
+        public string hitClip = "Hit_01";
         [Tooltip("Remove the GameObject once dissolved.")]
         public bool destroyWhenDissolved = true;
 
@@ -66,6 +68,7 @@ namespace UndeadLegion.Extended
             health = Mathf.Max(0f, health - info.amount);
             _lastHit = info;
             if (_hit != null) _hit.Hit(info.point, info.impulse);
+            if (health > 0f) PlayHitClip();
             onDamaged.Invoke(info);
             if (health <= 0f) Die();
         }
@@ -90,6 +93,13 @@ namespace UndeadLegion.Extended
             else if (_ragdoll != null) _ragdoll.Activate(_lastHit.impulse * 1.5f, _lastHit.point);
             onDied.Invoke();
             if (dissolveAfter > 0f) Invoke("DissolveNow", dissolveAfter);
+        }
+
+        void PlayHitClip()
+        {
+            if (string.IsNullOrEmpty(hitClip) || _animator == null || !_animator.isActiveAndEnabled) return;
+            int layer = _animator.GetLayerIndex("Hit"); int hash = Animator.StringToHash(hitClip);
+            if (layer >= 0 && _animator.HasState(layer, hash)) _animator.CrossFadeInFixedTime(hash, 0.05f, layer, 0f);
         }
 
         void RagdollNow() { if (_ragdoll != null) _ragdoll.Activate(_lastHit.impulse, _lastHit.point); }

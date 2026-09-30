@@ -33,6 +33,8 @@ System.Func<string, AnimationClip> load = (name) => {
   return null;
 };
 var idle = load("Idle_01"); if (idle == null) return "no Idle clip";
+// manifest `layer: additive` (2026-09-30, Hit_01): an overlay played on the additive Hit layer over whatever runs, never a Base state
+var additiveSet = new System.Collections.Generic.HashSet<string>(new string[]{ %ADDITIVE% });
 // every Skeleton@*.fbx except the twitches becomes a base-layer state named after its clip
 // (Idle is the default; the browser plays states by clip name)
 var idleClips = new System.Collections.Generic.List<AnimationClip>();
@@ -40,7 +42,7 @@ foreach (var guid in AssetDatabase.FindAssets("Skeleton@ t:Model", new string[]{
   var p = AssetDatabase.GUIDToAssetPath(guid); var fn = System.IO.Path.GetFileNameWithoutExtension(p);
   if (!fn.StartsWith("Skeleton@")) continue;
   var nm = fn.Substring("Skeleton@".Length);
-  if (nm == "Idle_01" || nm.StartsWith("Twitch_") || nm == "Grip" || nm.StartsWith("Hand_Idle_")) continue;   // Grip: finger pose data, not a state; Hand_Idle_L/R: the finger layers' loops
+  if (nm == "Idle_01" || nm.StartsWith("Twitch_") || nm == "Grip" || nm.StartsWith("Hand_Idle_") || additiveSet.Contains(nm)) continue;   // additive overlays (Hit_01) live on the Hit layer only   // Grip: finger pose data, not a state; Hand_Idle_L/R: the finger layers' loops
   var cl = load(nm); if (cl != null) idleClips.Add(cl);
 }
 idleClips.Sort((x, y) => string.CompareOrdinal(x.name, y.name));
@@ -129,6 +131,7 @@ ctrl.AddLayer("UpperBody"); ctrl.AddLayer("LeftArm"); ctrl.AddLayer("RightArm");
 ctrl.AddLayer("Twitch");
 ctrl.AddLayer("TwitchLoop_01"); ctrl.AddLayer("TwitchLoop_02"); ctrl.AddLayer("TwitchLoop_03");
 ctrl.AddLayer("LeftFingers"); ctrl.AddLayer("RightFingers");   // 8, 9: Override, weight 0; SkeletonWeapon sets 1 on an EMPTY hand
+ctrl.AddLayer("Hit");   // 10: Additive, weight 1, upper-body mask: hit reactions added over whatever plays (the legs stay with Base)
 var layers = ctrl.layers;
 layers[0].iKPass = true;   // OnAnimatorIK on Base: SkeletonFootLock holds the feet on looping idles (2026-09-28)
 for (int i = 8; i < 10; i++) { layers[i].blendingMode = UnityEditor.Animations.AnimatorLayerBlendingMode.Override; layers[i].defaultWeight = 0f; }
@@ -138,6 +141,7 @@ for (int i = 1; i < 4; i++) { layers[i].blendingMode = UnityEditor.Animations.An
 layers[1].avatarMask = mask; layers[2].avatarMask = maskL; layers[3].avatarMask = maskR;
 layers[4].blendingMode = UnityEditor.Animations.AnimatorLayerBlendingMode.Additive;
 layers[4].defaultWeight = 1f;
+layers[10].blendingMode = UnityEditor.Animations.AnimatorLayerBlendingMode.Additive; layers[10].defaultWeight = 1f; layers[10].avatarMask = mask;
 ctrl.layers = layers;
 // masked layers: Empty (default) + the clips the manifest tags for them. A one-shot returns to Empty
 // at exit time; a LOOPING clip (Block_L_Idle) has no exit: it holds until the demo plays Empty
@@ -183,6 +187,16 @@ foreach (var hs in new string[]{ "L", "R" }) {
   var hsm = ctrl.layers[hs == "L" ? 8 : 9].stateMachine; var hst = hsm.AddState("Hand_Idle_" + hs); hst.motion = hclip; hsm.defaultState = hst; nHand++;
 }
 sb.AppendLine("finger layers: " + nHand + " (override, weight 0 until a hand is empty)");
+{
+  var hsm2 = ctrl.layers[10].stateMachine; var hEmpty = hsm2.AddState("Empty"); hsm2.defaultState = hEmpty; int nAdd = 0;
+  foreach (var an2 in additiveSet) {
+    var acl = load(an2); if (acl == null) { sb.AppendLine("missing additive clip " + an2); continue; }
+    var ast = hsm2.AddState(an2); ast.motion = acl;
+    var aback = ast.AddTransition(hEmpty); aback.hasExitTime = true; aback.exitTime = 1f; aback.duration = 0.1f; aback.hasFixedDuration = true;
+    nAdd++;
+  }
+  sb.AppendLine("hit layer: additive, upper-body mask, Empty + " + nAdd + " overlay states");
+}
 EditorUtility.SetDirty(ctrl); AssetDatabase.SaveAssets();
 sb.AppendLine("controller " + path + ": layers=" + ctrl.layers.Length + " twitch states=" + n + " twitch layer mode=" + ctrl.layers[4].blendingMode);
 
@@ -285,7 +299,7 @@ if __name__ == "__main__":
     grip_l = [c["name"] for c in clips if c.get("grip_hands") == "L"]
     nexts = ["%s:%s:%s" % (c["name"], c["next"], c.get("next_at", 1)) for c in clips if c.get("next")]
     print("left hand on the weapon (grip_hands L):", ", ".join(grip_l))
-    code = CODE.replace("%UPPER%", ", ".join('"%s"' % u for u in tagged("upper"))).replace("%LEFT%", ", ".join('"%s"' % u for u in tagged("left"))).replace("%RIGHT%", ", ".join('"%s"' % u for u in tagged("right"))).replace("%GRIPL%", ", ".join('"%s"' % u for u in grip_l)).replace("%NEXT%", ", ".join('"%s"' % u for u in nexts))
+    code = CODE.replace("%UPPER%", ", ".join('"%s"' % u for u in tagged("upper"))).replace("%LEFT%", ", ".join('"%s"' % u for u in tagged("left"))).replace("%RIGHT%", ", ".join('"%s"' % u for u in tagged("right"))).replace("%GRIPL%", ", ".join('"%s"' % u for u in grip_l)).replace("%NEXT%", ", ".join('"%s"' % u for u in nexts)).replace("%ADDITIVE%", ", ".join('"%s"' % u for u in tagged("additive")))
     c = Client()
     try:
         c.call("refresh_unity", {"mode": "force", "scope": "all", "compile": "request", "wait_for_ready": True}, timeout=600)

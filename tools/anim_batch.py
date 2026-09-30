@@ -83,6 +83,8 @@ def unity_flags(c):
     loop = "1" if (mode in ("idle", "loco") or c.get("loops")) else "0"          # `loops true`: a looping clip built in another mode (AOE_Cast_Hold: action mode + a --loop-seam bake)
     inplace = "0" if (mode == "loco" or c.get("drift") == "root") else "1"
     extra = []
+    if c.get("additive"):
+        extra += ["--additive", "1"]          # an additive overlay (Hit_01): frame 0 is its reference pose, played on an additive layer
     if c.get("events"):
         extra += ["--events", ",".join("%s:%s" % (k, v) for k, v in c["events"].items())]   # animation events on the clip (1-based frames)
     return ["--loop", loop, "--in-place", inplace] + extra

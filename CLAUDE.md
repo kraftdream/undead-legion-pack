@@ -498,6 +498,25 @@ clip 0–19° over ~0.1 s. Rule: **a clip that carries root motion owns the tran
 plate `Skirt` was simulated like the fabric ones. `SkeletonCloth.rigidSets` (default `SkeletonKnight`) lists armour SETS whose pieces never
 get cloth, by the piece's source (`ArmorPiece.character`), so a borrowed Knight skirt stays rigid on any skeleton. Probed in the extended
 browser: Knight 0 cloths; Archer / Warrior skirt, Assassin skirt + pants, Mage / Necromancer robe unchanged.
+**"Eyes are too deep on every skeleton, only slightly visible on the Knight and Archer" (2026-09-30).** The one shared offset
+(0.036, 0.029, 0.062) came from a centroid that mixed the socket with the skull's side. Fine depth maps (5 mm grid, z from the Head bone)
+show two socket types: Knight / Archer with the floor at 64 mm, the other four with a flat floor at 77 mm, both centred at x 30 / y 23 mm;
+the old eyes sat ON the first floor and BEHIND the second. The extended prefab builder now measures each character's socket floor
+(`MeasureEyes`: the deepest body-mesh hit in a 5 mm disc round the centre, on the bind pose) and writes the offset into that
+`PFX_` prefab with the sphere's back on the floor: Knight / Archer (0.030, 0.023, 0.071), the others (0.030, 0.023, 0.086); size 0.018.
+Rendered from the front and from 40° above on all six: the eyes fill the sockets, under the brow from above.
+**Hit_01 made ADDITIVE (2026-09-30, "hit_01 has too much movement; an animation blended into whatever the skeleton is doing
+instead of overriding it, working with any idle").** Blender: `anim_nla_bake --action Hit_01 --result Hit_01 --legs-from Hit_01_base:1
+--root-hold --end-blend Hit_01_base:1:20` (legs and root still, the last 20 frames back to frame 1, so the clip starts and ends on its own
+reference pose), then the new **`--amplitude K`** (every control slerped toward the clip's first frame by K, after all other passes)
+**`--amplitude-head K`** (the same for `neck` / `head` alone): 0.5 overall, the head at a quarter (at 0.5 the recoil read as a broken
+neck). Manifest `layer: additive`, `additive: true` (`anim_batch` → `verify_clip --additive 1`: frame 0 is the additive reference),
+`hand_edited`, no ground fit. Controller: layer 10 **`Hit`** (Additive, weight 1, `AM_UpperBody`, Empty + the additive clips, back to
+Empty at exit time), additive clips are NOT Base states. `SkeletonShowcase` plays a clip that has a state on `Hit` there, over the running
+clip (the Base clip and the button highlight stay; an overlay does not stand a ragdoll up); `SkeletonHealth.hitClip` plays it on every
+non-lethal hit in the extended edition, with the physical flinch. Measured on two Knights stepped in lockstep (Idle_03 / Walk_Fwd_01 /
+Idle_Bow alone vs + Hit_01): the base clip stays on Base, hips and feet 0.0° / 0.0 mm, added chest 8°, head 20°, arms 21–31°, 0.00° 2.3 s
+after the hit. The full-body retarget is `Hit_01_base`.
 
 ### Validator
 

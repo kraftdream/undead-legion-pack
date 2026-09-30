@@ -134,6 +134,7 @@ every hit, so you rarely need to call it directly.</p>
   <tr><td><code>team</code></td><td>skeletons of the same team never target each other</td></tr>
   <tr><td><code>deathMode</code></td><td><b>Ragdoll</b> (fall with the killing blow's impulse), <b>DeathClip</b> (one of the four death animations),
       <b>DeathClipThenRagdoll</b> (the clip starts, the ragdoll takes over after <code>ragdollAfter</code> seconds)</td></tr>
+  <tr><td><code>hitClip</code></td><td>an additive reaction (<code>Hit_01</code>) played on the Animator's Hit layer on every hit that does not kill, over whatever the skeleton is doing, together with the physical flinch</td></tr>
   <tr><td><code>dissolveAfter</code></td><td>seconds after death before the corpse turns to dust (0 = stays); <code>destroyWhenDissolved</code> removes it</td></tr>
   <tr><td><code>onDamaged</code>, <code>onDied</code></td><td>UnityEvents for your game logic (score, sounds, loot)</td></tr>
 </table>
