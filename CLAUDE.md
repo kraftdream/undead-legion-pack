@@ -540,6 +540,11 @@ the one-step build kept as `Stagger_01_onestep`. Scan: no flips, the largest ste
 (the hit's fast recoil over the walk's first step; thigh and knee agree). Unity: root motion 0.662 m straight back, yaw 0; boots ≤ 6 mm
 under after the fit, the Necromancer's robe 77 mm under (the hips-weighted hem). The clip starts and ends on walk poses; the Animator's
 crossfade carries the joins to and from the idle.
+**Extended browser layout (2026-09-30, "move the new UI panel under the animations panel, make that one shorter; the physics hit is
+weak, 2x"):** the PHYSICS panel is anchored bottom-right at the ANIMATIONS panel's right edge and width (−20 / 280 px, 78 px above the
+bottom), and `ExtendedShowcase.FitUnderAnimations` shortens the browser's `AnimationPanel` at runtime to end 10 px above it (measured
+from world corners after layout, so any aspect works; the list scrolls). `hitImpulse` 45 → 90 (the physical hit and the push on a
+ragdoll); the browser scene rebuilt so its serialized value follows.
 
 ### Validator
 
