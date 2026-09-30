@@ -50,7 +50,7 @@ every one verified on all six models with `verify_clip.py` + `ground_clip.py`; p
 | Bow | `Idle_Bow` hand-edited 2026-09-27 (knees 3 cm narrower than the retarget's build by the pole swivel, at the retarget's height; `Idle_Bow_base` is that build); `Shoot_01` (redone 2026-09-25 from the user's mannequin recording `aoe cast shoot.glb`: raise, draw at the cheek, release, lower, 1.9 s; the shot goes where the recorded feet point, `heading feet`; the video-mocap build of 2026-09-22 and `Shoot_02` retired; 2026-09-27: the user's `Shoot_01_Fix` baked, `hand_edited`, and animation events `BowAttach` 15 / `BowRelease` 21 on the clip — the recurve bow is a skinned model now and its string follows the draw hand between them, and a fired arrow flies along the character's forward on the release, §8 "The recurve bow bends"; imported in place; legs from `Idle_Bow`'s stance under the take's hips) |
 | Magic | `Cast_Wand_01/02`, `Cast_Staff_01` (both hands on the staff; redone 2026-09-27 from the user's `cast staff.glb`, frames 88–155, in place, both feet frozen) — the user's mannequin recording `magic attacks.glb` (2026-09-25); `Cast_Staff_02` retired |
 | Specials | `Summon` (necromancer, both hands overhead), `AOE_Cast` (mage; redone 2026-09-27 from the user's `aoe cast.glb`: a left-hand gesture, then the staff raised overhead and lowered, 4.8 s, on `Idle_Staff`'s legs, in place; a hold/release split was tried and reverted), `Taunt_01/02/03` (warrior), `Cutthroat` (assassin), `Rally` (knight, sword raised) — all from the user's recording `taunts.glb` (2026-09-25); the Kimodo `Taunt` retired |
-| Reactions | `Hit_01` (head and shoulders snap back, recovers, feet planted; `hit_c3`, seed 33), `Stagger_01` (reels back a step, folds over, recovers; `stagger_c1`, seed 14) — 2026-09-30, Kimodo with the skeleton profile, three candidates each (GLBs kept), picked on contact sheets + `reacteval`-style numbers (hips travel, chest pitch, knee range, feet travel); plain action-mode transfers, in place, ground fit (boots ≤ 9 mm under; the Necromancer robe 12.7 cm under in the stagger's fold, the hips-weighted hem). In the demo's Reactions section |
+| Reactions | `Hit_01` (head and shoulders snap back, recovers, feet planted; `hit_c3`, seed 33), `Stagger_01` (one step back with the right foot, the left planted, recovers upright; `stagger_e1`, seed 81, no profile, since 2026-09-30 — the first build `stagger_c1` folded over) — 2026-09-30, Kimodo with the skeleton profile, three candidates each (GLBs kept), picked on contact sheets + `reacteval`-style numbers (hips travel, chest pitch, knee range, feet travel); plain action-mode transfers, in place, ground fit (boots ≤ 9 mm under; the Necromancer robe 12.7 cm under in the stagger's fold, the hips-weighted hem). In the demo's Reactions section |
 | Death | `Death_01` (drops straight down), `Death_02` (face-down), `Death_03` (flat on the back), `Death_04` (limp, like a puppet) — the four instant-fall Kimodo generations the user kept on 2026-09-27 from seven candidates, the full 100-frame generations on the rig with no floor pass and no lift (§8 "Death candidates"); the user gives each one's start frame; the old struck-on-the-back / kneel-and-crumple deaths are gone |
 
 **Measured speed table** (Unity, Humanoid, root motion on, Knight; the other five are
@@ -517,6 +517,21 @@ clip (the Base clip and the button highlight stay; an overlay does not stand a r
 non-lethal hit in the extended edition, with the physical flinch. Measured on two Knights stepped in lockstep (Idle_03 / Walk_Fwd_01 /
 Idle_Bow alone vs + Hit_01): the base clip stays on Base, hips and feet 0.0° / 0.0 mm, added chest 8°, head 20°, arms 21–31°, 0.00° 2.3 s
 after the hit. The full-body retarget is `Hit_01_base`.
+Then (same day) "first 15 frames like 5, 15–45 50 % faster, 46–60 shortened by 10 frames": three `--speed-segment` passes, run from
+the END so the user's frame numbers stay valid (46:60:3.5 → 5 frames, 15:45:1.5 → 21, 1:15:3.5 → 5): 60 → 30 frames (0.97 s), the ends
+unchanged, the same added motion (chest 8°, head 20°, arms 22–31°) and 0.00° once it has played.
+**Stagger_01 reworked (2026-09-30, "one step back during the stagger; too much body-parts movement").** Six new Kimodo candidates:
+WITH the stiff-undead profile (`stagger_d1..d3`) every one folded forward deeply after the hit (the profile's hunch is what made the old
+one double over too); WITHOUT it (`no_profile`, `stagger_e1..e3`) `e1` (seed 81) steps back once with the right foot and stands upright
+again, chest 15 / head 34 / arms 42–72° against the old clip's 57 / 78 / 68–106 (scored with a `staggereval`-style script: lift-offs per
+foot, each foot's net travel, the chest / head / arm rotation away from frame 1 relative to the hips). Retargeted with `drift root`, it
+also DRAGGED the left foot 17 cm back with 1 cm of lift, so it was baked to one step: `anim_nla_bake --action Stagger_01_base --result
+Stagger_01 --ik-legs --stride 0.55 --pin-foot L:1:1:75 --leg-reach 0.95`, then both knee pole targets held at their frame-1 values
+(`--stride 0.65 --leg-reach 0.985` locked the held knee at 177° and flipped it; the per-frame re-aim from the dragged leg's FK knee turned
+the left shin 69° at frame 46 and the right 28° at frame 4). Result: the left foot on its spot to 0.0 mm, the right steps ~23 cm back,
+every leg bone ≤ 5.6° per frame, knees ≤ 20 mm per frame, root motion 15 cm back + 9 cm sideways (the step goes back-right), boots within
+9 mm of the floor after the fit; `hand_edited`, `Stagger_01_base` is the retarget. Rule: **a leg held for a whole clip keeps ONE knee
+direction; re-aiming its pole from a source leg that moved flips it.**
 
 ### Validator
 
