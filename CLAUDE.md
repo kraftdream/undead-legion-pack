@@ -76,6 +76,16 @@ kneel, §8 "Grounding"). Not yet authored: turns, knockdown/get-up
 (the showcase already lists those sections and skips missing clips). The pipeline test
 clip `Test_RootMotion` stays in the anim file, not in Unity.
 
+### Unreal development project (2026-09-29)
+
+`skeletons_ue/` (UE 5.8, Blueprint-only) is the Unreal twin of `skeletons/`, rebuilt by scripts from the same
+sources: `tools/export_fbx.py` / `export_weapons.py --unreal` write `Export_UE/` in centimetres, `tools/ue/` imports and
+builds everything (shared skeleton `SKEL_UndeadLegion`, 48 leader-pose armour modules, weapon Blueprints on hand-slot
+sockets carried over from `unity_grips.json`, `ABP_UndeadSkeleton` with the Unity layer stack, `BP_UndeadSkeleton` +
+six `BP_<Character>`, the UMG animation browser map `Demo/Maps/UndeadLegion_Demo`). Everything, including the traps,
+is in `tools/ue/README.md`; read it before touching the Unreal side. Synced with the base pack at `3a1e74d` (2026-10-01): the reactions
+(Hit_01/02 additive overlays, Stagger_01/02), the re-tuned grips and the red glowing eyes; the Extended edition is not ported.
+
 ### Known gaps
 
 - `SkeletonMage`, `SkeletonNecromancer` and `SkeletonAssassin` have **no `armor_metallic.png`**;
