@@ -95,6 +95,12 @@ def export_local_mesh(src, name, log=print):
 import sys
 argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 ONLY = set(argv[argv.index("--only") + 1].split(",")) if "--only" in argv else None   # e.g. the Arrow, still exported from weapons.blend
+# --unreal (2026-09-29): the same meshes for UE 5.8 in Export_UE/Weapons, in CENTIMETRES (x100 on the data,
+# scale_length 0.01 during the write; see tools/export_fbx.py), no baked space transform
+UNREAL = "--unreal" in argv
+if UNREAL:
+    OUT, SCALE = os.path.join(ROOT, "Export_UE", "Weapons"), SCALE * 100.0
+    bpy.context.scene.unit_settings.system = 'METRIC'; bpy.context.scene.unit_settings.scale_length = 0.01
 for name, (grip, roll) in (GRIP.items() if __name__ == "__main__" else ()):
     if ONLY is not None and name not in ONLY:
         continue
@@ -131,7 +137,7 @@ for name, (grip, roll) in (GRIP.items() if __name__ == "__main__" else ()):
     path = os.path.join(OUT, "SM_%s.fbx" % name)
     bpy.ops.export_scene.fbx(filepath=path, use_selection=True, object_types={'MESH'} if rig_ob is None else {'ARMATURE', 'MESH'},
                              apply_unit_scale=True, global_scale=1.0, apply_scale_options='FBX_SCALE_ALL',
-                             axis_forward='-Z', axis_up='Y', bake_space_transform=rig_ob is None,
+                             axis_forward='-Z', axis_up='Y', bake_space_transform=rig_ob is None and not UNREAL,
                              use_mesh_modifiers=rig_ob is None, mesh_smooth_type='OFF', path_mode='AUTO',
                              embed_textures=False, use_custom_props=False, bake_anim=False,
                              add_leaf_bones=False, use_armature_deform_only=False, armature_nodetype='NULL')
