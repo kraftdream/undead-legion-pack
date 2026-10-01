@@ -237,7 +237,7 @@ casters. With <i>Apply Root Motion</i> off every clip plays in place, which suit
   <tr><td>ArrowProjectile</td><td>spawned arrow</td><td>A straight flight that removes itself after its lifetime.</td></tr>
   <tr><td>SkeletonGripState</td><td>Animator states</td><td>Closes the second hand on a two-handed weapon during the state.</td></tr>
   <tr><td>SkeletonFootLock</td><td>character</td><td>Holds the feet still on their IK goals while a looping idle plays (needs IK Pass on the Base layer, already set).</td></tr>
-  <tr><td>SkeletonEyes</td><td>character</td><td>Two small glowing spheres in the eye sockets, seated on each skull's own socket and following the head. The colour is HDR (values above 1 glow with Bloom); <code>SetColor()</code> and <code>SetVisible()</code> at runtime; <code>addLight</code> adds a faint light at the face (off by default).</td></tr>
+  <tr><td>SkeletonEyes</td><td>character</td><td>Two small glowing spheres in the eye sockets, seated on each skull's own socket and following the head; red by default. The colour is HDR (values above 1 glow with Bloom); <code>SetColor()</code> and <code>SetVisible()</code> at runtime; <code>addLight</code> adds a faint light at the face (off by default).</td></tr>
   <tr><td>SkeletonTwitch</td><td>character</td><td>Random additive head and jaw twitches, for a crowd that never quite stands still.</td></tr>
   <tr><td>SkeletonShowcase, DemoUI, DemoTurntable, DemoEventSystemBootstrap</td><td>demo scene</td><td>The demo browser, its interface and camera.</td></tr>
 </table>
@@ -245,7 +245,7 @@ casters. With <i>Apply Root Motion</i> off every clip plays in place, which suit
 <h2>11. The demo scene</h2>
 <p><code>UndeadLegion_Demo</code> lists the characters (top left), the armour modules of the current character and the sets to borrow from
 (left) and the animations by section (right). Click a clip to play it; the arm attacks go on their arm layer when a locomotion loop is
-running, and the block button holds the block until clicked again. The twitch and finger-idle entries are toggles. The footer switches
+running, and the block button holds the block until clicked again. The twitch and finger-idle entries are toggles. The scene's global Volume (<code>Demo_Volume</code>) adds Bloom above an HDR value of 1, so only the eyes glow. The footer switches
 the glowing eyes, root motion and the turntable and recenters the character. Drag to orbit the camera, scroll to zoom.</p>
 
 <h2>12. Using your own animations</h2>

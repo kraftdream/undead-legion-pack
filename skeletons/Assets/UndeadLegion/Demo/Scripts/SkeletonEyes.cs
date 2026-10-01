@@ -6,7 +6,7 @@ namespace UndeadLegion.Demo
     [DisallowMultipleComponent]
     public class SkeletonEyes : MonoBehaviour
     {
-        [ColorUsage(false, true)] public Color color = new Color(0.3f, 2.4f, 1.6f);
+        [ColorUsage(false, true)] public Color color = new Color(5f, 0.2f, 0.1f);   // red, HDR: glows under Bloom
         [Tooltip("Eye position from the head bone, in the character's frame (x right, y up, z forward), metres.")]
         public Vector3 offset = new Vector3(0.030f, 0.023f, 0.075f);
         public float size = 0.018f;

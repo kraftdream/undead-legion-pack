@@ -47,6 +47,7 @@ namespace UndeadLegion.Demo
             public List<string> wear = new List<string>();     // "Warrior:Chest" - borrow that character's piece (its own piece of the same module goes off)
             public List<string> remove = new List<string>();   // "Chest" - take the current character's own piece off
             public bool titleCard;                      // a stage title on black instead of a scene beat
+            public bool rootMotion;                     // root motion on for this step (camera follow + seamless recenter after each one-shot)
         }
 
         [Header("Output")]
@@ -176,7 +177,7 @@ namespace UndeadLegion.Demo
         public List<Step> BuildMovement()
         {
             var steps = new List<Step>();
-            steps.Add(new Step { titleCard = true, title = "MOVEMENT", text = "two locomotion sets  |  root motion on every clip  |  measured speed table shipped", seconds = titleCardSeconds });
+            steps.Add(new Step { titleCard = true, title = "MOVEMENT", text = "two locomotion sets  |  hit reactions and staggers  |  measured speed table shipped", seconds = titleCardSeconds });
             string[][] set01 = { new[] { "Walk_Fwd_01", "0.52" }, new[] { "Run_Fwd_01", "1.14" }, new[] { "Walk_Back_01", "0.34" }, new[] { "Strafe_Left_01", "0.20" }, new[] { "Strafe_Right_01", "0.20" } };
             string[][] set02 = { new[] { "Walk_Fwd_02", "1.28" }, new[] { "Run_Fwd_02", "1.87" }, new[] { "Walk_Back_02", "0.77" }, new[] { "Strafe_Left_02", "0.93" }, new[] { "Strafe_Right_02", "0.93" } };
             // 2026-09-29, second cut: one character per set (the six-character version ran 92 s) - the Warrior for the low-rank _01 set, the Mage for the high-rank _02 set
@@ -188,6 +189,11 @@ namespace UndeadLegion.Demo
                 foreach (var clip in set)
                     steps.Add(S(ch[0], ch[1], clip[0], movementSeconds, "Skeleton " + ch[0] + "  |  " + clip[0], line + "  |  root motion " + clip[1] + " m/s, played in place here"));
             }
+            // 2026-10-01 ("include hit/staggers at the end of the movement stage"): the Warrior again, the two additive hits over its
+            // combat idle, then the two staggers with root motion on (the camera follows the step back, recentred after each)
+            steps.Add(A("Warrior", "Axe + round shield", "Idle_1H_Combat", "Skeleton Warrior  |  Hit reactions", "Additive: blended over whatever the skeleton is playing", "Hit_01", "Hit_02"));
+            var stg = A("Warrior", "Axe + round shield", "Idle_1H_Combat", "Skeleton Warrior  |  Staggers", "A hit with one step back, on root motion", "Stagger_01", "Stagger_02");
+            stg.rootMotion = true; steps.Add(stg);
             return steps;
         }
 
@@ -308,6 +314,12 @@ namespace UndeadLegion.Demo
                 if (!string.IsNullOrEmpty(step.holdOff)) { var h = FindClip(_animator, step.holdOff); if (h != null && _showcase.IsHolding) _showcase.ToggleHeld(h, _showcase.LayerFor(h)); }
                 if (!string.IsNullOrEmpty(step.holdOn)) { var h = FindClip(_animator, step.holdOn); if (h != null && !_showcase.IsHolding) _showcase.ToggleHeld(h, _showcase.LayerFor(h)); }
                 _followHips = step.followHips;
+                if (!weaponsStage && step.rootMotion != _rootMotion)        // a per-step switch (the movement stage's staggers)
+                {
+                    _rootMotion = step.rootMotion;
+                    if (_showcase.rootMotionToggle != null) _showcase.rootMotionToggle.isOn = _rootMotion;
+                    _camOffset = _cam.transform.position - Spawn();
+                }
                 HideCard(); ShowCaption(step.title, step.text);
                 if (newCharacter) { yield return null; yield return null; SetFade(0f); }   // two uncaptured frames to settle the new character, then the hard cut
                 yield return Capture(Mathf.RoundToInt(step.seconds * fps));
@@ -387,7 +399,7 @@ namespace UndeadLegion.Demo
             camGo.transform.LookAt(look);
             _camHomePos = camGo.transform.position; _camHomeRot = camGo.transform.rotation; _camOffset = _camHomePos - pivot;
             int ss = Mathf.Max(1, supersample);
-            _rt = new RenderTexture(width * ss, height * ss, 24, RenderTextureFormat.ARGB32); _rt.antiAliasing = maxQuality ? (ss > 1 ? 4 : 8) : 4;
+            _rt = new RenderTexture(width * ss, height * ss, 24, RenderTextureFormat.DefaultHDR);   // HDR: an 8-bit target clamps the eyes to 1 before Bloom (halo 0.01 vs 0.21, measured) _rt.antiAliasing = maxQuality ? (ss > 1 ? 4 : 8) : 4;
             _out = ss > 1 ? new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32) : _rt;   // a bilinear blit from 2x averages exactly 2x2 texels (a box filter)
             if (ss > 1) _out.filterMode = FilterMode.Bilinear;
             _tex = new Texture2D(width, height, TextureFormat.RGB24, false);

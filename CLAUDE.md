@@ -469,6 +469,17 @@ animations").** The split is: animation, art and the glowing eyes are BASE; phys
   **Eyes** toggle (`SkeletonShowcase.eyesToggle`, applied on every spawn; the info label ends 850 px from the right to fit it), so the
   extended browser has it too. Verified in play mode in the base demo: 2 eyes on the spawned character, parented to the head, toggle off
   → 0, on → 2, no console messages. Base manual (scripts table, footer), extended manual, both listings updated; both productions rebuilt.
+  **Red glowing eyes (2026-10-01, "make eyes color + glow red; re-record all showreel stages").** `SkeletonEyes.color` default
+  (5, 0.2, 0.1) HDR (the base prefabs rebuilt with it; the arena's `ArmySpawner` still sets its team colours, teal / red), and every
+  browser scene built by `DemoSceneBuilder` gets a global Volume with the shared `Demo/Scenes/Demo_Volume.asset` (Bloom only: threshold
+  1, intensity 2.5, scatter 0.75; created once, reused) and post-processing on its camera — the lit scene stays under the threshold, only
+  the eyes bloom. ⚠ **The showreel's eyes did not glow at first: the recorder rendered into an ARGB32 (8-bit) texture, and URP renders an
+  LDR target in LDR, so the eyes were clamped to 1 before Bloom** (measured with an HDR red sphere on black: halo 0.012 at 30 px on
+  ARGB32 against 0.21 on `DefaultHDR`); the recorder's render target is `DefaultHDR` now (the 2× box-filter blit and the PNG read stay
+  8-bit). The live demo renders to the screen through URP's HDR buffer and was never affected. All three stages re-recorded headless
+  (left side), the YouTube cut rebuilt. Rule: **anything rendered by hand for capture must target an HDR texture, or HDR effects vanish.**
+  Same session: the user re-tuned `W_H1RoundShield`'s Grip; `Animations/unity_grips.json` re-dumped (it also picked up the grip changes
+  of the past days: heater shield, longsword, battle axe, staff, and the removed `_Top` staff).
 
 **Second round (2026-09-30, user: "briefly visible for one frame before it disappears and spawns; attacks with a step forward
 (wand_cast, the two-handed attacks) play their step but the skeletons stay in one place; update the regular demo scene with cloth
@@ -2814,7 +2825,7 @@ skeletons, _02 for the others", then "only use warrior for the low-rank animatio
 92 s; two characters, 10 clips, ~33 s) — walk forward, run, walk back, strafe left, strafe right, `movementSeconds` 3 each,
 looping IN PLACE with the character's usual weapon (axe + round shield, bow, two daggers, staff, staff, sword + shield); the
 caption carries the clip name and the speed-table figure, since root motion at 0.2–1.9 m/s would carry the figure out of the
-static frame within the 3 s). `SHOWREEL_STAGE` / `showreel_headless.py --stage` select it headlessly (outputs
+static frame within the 3 s; since 2026-10-01 it ends on the Warrior's reactions, "include hit/staggers at the end of movement stage": `Hit_01` + `Hit_02` additive over `Idle_1H_Combat`, then `Stagger_01` + `Stagger_02` with root motion ON for that step only — a step's `rootMotion` flag switches the browser toggle and re-bases the follow offset, the camera follows the step back and `RecenterSeamless` puts the character back after each; 1274 frames, 42.5 s; the YouTube cut rebuilt from it, 3:59). `SHOWREEL_STAGE` / `showreel_headless.py --stage` select it headlessly (outputs
 `Showreel/headless_<stage>_<side>/`, `showreel_<stage>_<side>.mp4`, `--side left` = −30); in the editor a session script
 sets `rec.stage` before `Begin()` (`stage_test.py`-style: play, configure, poll the frames folder for `done.txt`, stop,
 encode to `Showreel/showreel_<stage>.mp4`). ⚠ After the Archer head fix the user reported "the recorded video has the
