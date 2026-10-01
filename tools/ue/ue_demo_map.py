@@ -15,8 +15,9 @@ EAS = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
 LES = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
 MAPS = PKG + "/Demo/Maps"
 SPACING = 160.0
-HALF = 90.0
-BLOOM = (2.5, 1.0)         # intensity, threshold (Unity: 2.5 / 1)                # capsule half height: a Character stands on its capsule's bottom
+HALF = 90.0                # capsule half height: a Character stands on its capsule's bottom
+EXPOSURE = 1.0             # manual exposure compensation, EV (picked on renders against the Unity frame)
+BLOOM = (8.0, 0.5)         # intensity, threshold (Unity 2.5 / 1; UE needs more for the same halo, compared on renders)
 
 
 def ground_material():
@@ -29,7 +30,7 @@ def ground_material():
     MEL.set_material_instance_parent(mi, unreal.load_asset(PKG + "/Materials/M_UndeadLegion_Master"))
     MEL.set_material_instance_texture_parameter_value(mi, "BaseColor", unreal.load_asset("/Engine/EngineResources/WhiteSquareTexture"))
     MEL.set_material_instance_texture_parameter_value(mi, "Normal", unreal.load_asset("/Engine/EngineMaterials/FlatNormal"))
-    MEL.set_material_instance_vector_parameter_value(mi, "Tint", unreal.LinearColor(0.16, 0.16, 0.17, 1))
+    MEL.set_material_instance_vector_parameter_value(mi, "Tint", unreal.LinearColor(0.030, 0.030, 0.037, 1))
     MEL.set_material_instance_static_switch_parameter_value(mi, "UseMSMap", False)
     MEL.set_material_instance_scalar_parameter_value(mi, "Roughness", 0.85)
     MEL.update_material_instance(mi)
@@ -78,7 +79,11 @@ def stage(size=60):
     pp.set_actor_label("BloomVolume")
     pp.set_editor_property("unbound", True)
     st = pp.get_editor_property("settings")
-    for k, v in (("bloom_method", unreal.BloomMethod.BM_SOG), ("bloom_intensity", BLOOM[0]), ("bloom_threshold", BLOOM[1])):
+    # FIXED exposure like Unity's camera (auto exposure brightened the dark floor and dimmed the eyes' glow relative to
+    # the scene); EXPOSURE is the compensation in EV with the physical-camera exposure off
+    for k, v in (("bloom_method", unreal.BloomMethod.BM_SOG), ("bloom_intensity", BLOOM[0]), ("bloom_threshold", BLOOM[1]),
+                 ("auto_exposure_method", unreal.AutoExposureMethod.AEM_MANUAL), ("auto_exposure_bias", EXPOSURE),
+                 ("auto_exposure_apply_physical_camera_exposure", False)):
         st.set_editor_property("override_" + k, True)
         st.set_editor_property(k, v)
     pp.set_editor_property("settings", st)

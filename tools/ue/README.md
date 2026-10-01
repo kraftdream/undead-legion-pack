@@ -143,6 +143,19 @@ separate Unity product and is not ported):
   parentheses included — a failed `write_graph_dsl` leaves the function EMPTY (the clip list had 0 buttons): never put a comment
   after code on a line.
 
+## Showreel in Unreal (2026-10-01, a first test: the modular stage's opening beat)
+
+`ue_showreel.py build Warrior Idle_03 3` → map `Demo/Maps/UndeadLegion_Showreel` (the stage on a 2 km floor, the class BP with no
+weapon and the idle as `StartClip`, a CineCamera with Unity's framing: azimuth −30, elevation 12, 4.0 m, look 1.0 m, vertical FOV
+32 = 35.31 mm on a 36 × 20.25 filmback) + `Demo/Showreel/LS_Modular_Test` (one camera cut); `ue_showreel.py render [samples]
+[A:B]` queues Movie Render Queue (PIE executor, fixed 30 fps, 8 temporal samples, 60 warm-up frames) → `Showreel/unreal/
+modular_test/frame_NNNNN.png`; `showreel_encode_ue.py` overlays the Unity recorder's caption panel and writes the MP4. Traps:
+⚠ a map with no PlayerStart spawns the player pawn on the character and depenetration pushes it out of frame (the creatures
+pack's trap again); ⚠ the editor's Python caches imported modules between runs — `ue_showreel` reloads `ue_demo_map`, or a fix to it
+silently does not apply; ⚠ auto exposure brightened the dark floor and swallowed the eyes' glow: the stage volume uses MANUAL
+exposure (`EXPOSURE` +1 EV) with Bloom 8 / threshold 0.5, picked against the Unity frame; ⚠ Unity's ground colour (0.19, 0.19,
+0.21) is sRGB: 0.030 / 0.037 linear in the UE material.
+
 ## Not done yet
 
 The recurve bow's string pull (Unity `BowString`) and the fired arrow (`ArrowProjectile`) — the notifies exist on
