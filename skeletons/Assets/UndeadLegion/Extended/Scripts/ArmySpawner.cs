@@ -85,7 +85,7 @@ namespace UndeadLegion.Extended
             if (weapon != null && randomLoadout) EquipFor(weapon, cls);
             if (tintStrength > 0f) Tint(go);
             var health = go.GetComponent<SkeletonHealth>(); if (health != null) health.team = team;
-            var eyes = go.GetComponent<SkeletonEyes>(); if (eyes == null) eyes = go.AddComponent<SkeletonEyes>(); eyes.SetColor(eyeColor);
+            var eyes = go.GetComponent<UndeadLegion.Demo.SkeletonEyes>(); if (eyes == null) eyes = go.AddComponent<UndeadLegion.Demo.SkeletonEyes>(); eyes.SetColor(eyeColor);
             var nav = go.GetComponent<SkeletonNavController>();
             if (nav != null)
             {
@@ -107,15 +107,15 @@ namespace UndeadLegion.Extended
         IEnumerator Rise(GameObject go, float delay)
         {
             var d = go.GetComponent<SkeletonDissolve>();
-            var ai = go.GetComponent<SkeletonAI>(); bool aiOn = ai != null && ai.enabled;
-            if (ai != null) ai.enabled = false;
+            // the AI waits until the skeleton has risen; whether it is enabled at all (a battle started meanwhile) is left alone
+            var ai = go.GetComponent<SkeletonAI>(); if (ai != null) ai.Suspended = true;
             var rends = go.GetComponentsInChildren<Renderer>();
             foreach (var r in rends) r.enabled = false;
             yield return new WaitForSeconds(delay);
             if (go == null) yield break;
             foreach (var r in rends) if (r != null) r.enabled = true;
             if (d != null) { d.DissolveIn(); yield return new WaitForSeconds(d.duration); }
-            if (ai != null && go != null) ai.enabled = aiOn;
+            if (ai != null && go != null) ai.Suspended = false;
         }
 
         void DressRandom(SkeletonModules modules, string cls)

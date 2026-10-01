@@ -815,6 +815,7 @@ GameObject:
   - component: {fileID: 233706933978377091}
   - component: {fileID: 1477116197612755355}
   - component: {fileID: 5972065289504935227}
+  - component: {fileID: 7142675040741886513}
   - component: {fileID: 4625051316287288139}
   m_Layer: 0
   m_Name: PF_SkeletonMage
@@ -952,6 +953,22 @@ MonoBehaviour:
   fadeIn: 0.15
   fadeOut: 0.12
   enabledLock: 1
+--- !u!114 &7142675040741886513
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1505901214057705660}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ac11ba68aafb78488e9c36c3fd4924f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UndeadLegion.Demo.SkeletonEyes
+  color: {r: 0.3, g: 2.4, b: 1.6, a: 1}
+  offset: {x: 0.03, y: 0.023, z: 0.085589856}
+  size: 0.018
+  addLight: 0
 --- !u!114 &4625051316287288139
 MonoBehaviour:
   m_ObjectHideFlags: 0

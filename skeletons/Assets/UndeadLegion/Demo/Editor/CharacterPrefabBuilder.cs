@@ -94,6 +94,30 @@ namespace UndeadLegion.DemoEditor
             Debug.Log("[UndeadLegion] grip sampled on " + go.name + ": " + weapon.gripLeft.Count + " left + " + weapon.gripRight.Count + " right finger bones");
         }
 
+        // The eye sockets differ per skull (the Knight / Archer socket floor sits 13 mm deeper than the other four), so each
+        // character's eyes are seated on its own socket: the floor is the deepest body-mesh point in a 5 mm disc round the socket
+        // centre (x 30 mm, y 23 mm from the Head bone), measured on the bind pose; the sphere's back rests on it.
+        static Vector3 MeasureEyes(GameObject go, Vector3 fallback, float size)
+        {
+            var an = go.GetComponent<Animator>(); var head = an != null ? an.GetBoneTransform(HumanBodyBones.Head) : null;
+            SkinnedMeshRenderer body = null; foreach (var r in go.GetComponentsInChildren<SkinnedMeshRenderer>()) if (r.name.EndsWith("Body")) body = r;
+            if (head == null || body == null) return fallback;
+            var mesh = new Mesh(); body.BakeMesh(mesh, true);
+            var cgo = new GameObject("eye_probe"); cgo.transform.SetPositionAndRotation(body.transform.position, body.transform.rotation);
+            var mc = cgo.AddComponent<MeshCollider>(); mc.sharedMesh = mesh;
+            Vector3 fwd = go.transform.forward, right = go.transform.right, up = go.transform.up;
+            float floor = float.MaxValue;
+            for (int i = -2; i <= 2; i++) for (int j = -2; j <= 2; j++)
+            {
+                if (i * i + j * j > 5) continue;
+                Vector3 o = head.position + right * (0.030f + i * 0.0025f) + up * (0.023f + j * 0.0025f) + fwd * 0.4f; RaycastHit h;
+                if (mc.Raycast(new Ray(o, -fwd), out h, 1f)) floor = Mathf.Min(floor, Vector3.Dot(h.point - head.position, fwd));
+            }
+            Object.DestroyImmediate(cgo); Object.DestroyImmediate(mesh);
+            if (floor == float.MaxValue) return fallback;
+            return new Vector3(0.030f, 0.023f, floor + size * 0.5f);
+        }
+
         static System.Collections.Generic.List<SkeletonWeapon.Loadout> Loadouts()
         {
             var list = new System.Collections.Generic.List<SkeletonWeapon.Loadout>();
@@ -344,6 +368,8 @@ namespace UndeadLegion.DemoEditor
 
             if (go.GetComponent<SkeletonTwitch>() == null) go.AddComponent<SkeletonTwitch>();
             if (go.GetComponent<SkeletonFootLock>() == null) go.AddComponent<SkeletonFootLock>();   // the feet held on looping idles (2026-09-28)
+            var eyes = go.GetComponent<SkeletonEyes>(); if (eyes == null) eyes = go.AddComponent<SkeletonEyes>();
+            eyes.offset = MeasureEyes(go, eyes.offset, eyes.size);   // seated on this skull's own socket floor
             var weapon = go.GetComponent<SkeletonWeapon>();
             if (weapon == null) weapon = go.AddComponent<SkeletonWeapon>();
             weapon.loadouts = Loadouts();

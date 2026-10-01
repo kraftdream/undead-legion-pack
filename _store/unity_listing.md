@@ -33,9 +33,10 @@ Knight, Warrior, Archer, Assassin, Mage and Necromancer, each a dressed, animate
 - A layered Animator controller: attack or cast with the arms while the legs keep walking, hold a shield block over any motion
 - Root motion on locomotion, with a measured speed table in the documentation for matching in-place movement
 - Clean, tested loops
+- Glowing eyes in any colour, seated in each skull's sockets
 
 **Demo scene**
-Browse every character, armour piece, weapon and animation in an interactive demo, with root motion and turntable options.
+Browse every character, armour piece, weapon and animation in an interactive demo, with eyes, root motion and turntable options.
 
 Full documentation (PDF) is included.
 

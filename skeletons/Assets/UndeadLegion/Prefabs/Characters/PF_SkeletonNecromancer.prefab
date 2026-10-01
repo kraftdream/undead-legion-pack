@@ -239,6 +239,7 @@ GameObject:
   - component: {fileID: 5776272095529606099}
   - component: {fileID: 6755794827417421442}
   - component: {fileID: 1242943512105221073}
+  - component: {fileID: 5722666207360726749}
   - component: {fileID: 6832051760754785145}
   m_Layer: 0
   m_Name: PF_SkeletonNecromancer
@@ -376,6 +377,22 @@ MonoBehaviour:
   fadeIn: 0.15
   fadeOut: 0.12
   enabledLock: 1
+--- !u!114 &5722666207360726749
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 861636961225574776}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ac11ba68aafb78488e9c36c3fd4924f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UndeadLegion.Demo.SkeletonEyes
+  color: {r: 0.3, g: 2.4, b: 1.6, a: 1}
+  offset: {x: 0.03, y: 0.023, z: 0.085589856}
+  size: 0.018
+  addLight: 0
 --- !u!114 &6832051760754785145
 MonoBehaviour:
   m_ObjectHideFlags: 0

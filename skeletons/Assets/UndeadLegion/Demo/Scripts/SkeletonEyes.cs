@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UndeadLegion.Extended
+namespace UndeadLegion.Demo
 {
     /// <summary>Two small glowing lights in the eye sockets, following the head. The colour is HDR, so bloom makes them glow.</summary>
     [DisallowMultipleComponent]
@@ -48,6 +48,15 @@ namespace UndeadLegion.Extended
             go.transform.localScale = Vector3.one * size / Mathf.Max(0.0001f, head.lossyScale.x);
             var r = go.GetComponent<MeshRenderer>(); r.sharedMaterial = _mat; r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; r.receiveShadows = false;
             return go.transform;
+        }
+
+        public bool Visible { get { return _left == null || _left.gameObject.activeSelf; } }
+
+        /// <summary>Shows or hides the eyes (and their light).</summary>
+        public void SetVisible(bool on)
+        {
+            foreach (var t in new[] { _left, _right }) if (t != null) t.gameObject.SetActive(on);
+            var l = GetComponentInChildren<Light>(true); if (l != null && l.name == "EyeLight") l.gameObject.SetActive(on);
         }
 
         public void SetColor(Color hdr)
