@@ -3,6 +3,8 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 using UndeadLegion.Demo;
 
@@ -72,6 +74,10 @@ namespace UndeadLegion.DemoEditor
             cam.nearClipPlane = 0.1f;
             cam.farClipPlane = 300f;
             camGo.AddComponent<AudioListener>();
+            // post-processing for one thing: Bloom on HDR values above the threshold, i.e. the glowing eyes (the lit scene stays below it)
+            var camData = camGo.GetComponent<UniversalAdditionalCameraData>(); if (camData == null) camData = camGo.AddComponent<UniversalAdditionalCameraData>();
+            camData.renderPostProcessing = true;
+            var volGo = new GameObject("Global Volume"); var vol = volGo.AddComponent<Volume>(); vol.isGlobal = true; vol.sharedProfile = DemoVolumeProfile();
             var turntable = camGo.AddComponent<DemoTurntable>();
             turntable.target = spawn.transform;
 
@@ -255,6 +261,21 @@ namespace UndeadLegion.DemoEditor
             rt.pivot = new Vector2(0f, 1f);
             rt.anchoredPosition = pos;
             rt.sizeDelta = size;
+        }
+
+        const string VolumePath = "Assets/UndeadLegion/Demo/Scenes/Demo_Volume.asset";
+
+        /// <summary>The browsers' shared post-processing profile (created once, reused by every browser scene).</summary>
+        static VolumeProfile DemoVolumeProfile()
+        {
+            var profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(VolumePath);
+            if (profile != null) return profile;
+            profile = ScriptableObject.CreateInstance<VolumeProfile>();
+            AssetDatabase.CreateAsset(profile, VolumePath);
+            var bloom = profile.Add<Bloom>(true); bloom.threshold.Override(1.0f); bloom.intensity.Override(2.5f); bloom.scatter.Override(0.75f);
+            foreach (var c in profile.components) AssetDatabase.AddObjectToAsset(c, profile);
+            AssetDatabase.SaveAssets();
+            return profile;
         }
 
         static void RightMid(RectTransform rt, float x)
