@@ -113,8 +113,7 @@ namespace UndeadLegion.ExtendedEditor
                 go.AddComponent<UndeadLegion.Extended.SkeletonHealth>();
                 go.AddComponent<UndeadLegion.Extended.SkeletonCloth>();
                 var dis = go.AddComponent<UndeadLegion.Extended.SkeletonDissolve>(); dis.dissolveShader = shader;
-                var eyes = go.AddComponent<UndeadLegion.Extended.SkeletonEyes>();
-                eyes.offset = MeasureEyes(go, eyes.offset, eyes.size);
+                var eyes = go.GetComponent<UndeadLegion.Demo.SkeletonEyes>();   // from the base PF_ (measured per skull there)
                 var agent = go.AddComponent<NavMeshAgent>();
                 agent.radius = 0.32f; agent.height = 1.8f; agent.speed = 0.52f; agent.angularSpeed = 360f; agent.acceleration = 6f;
                 agent.stoppingDistance = 0.1f; agent.obstacleAvoidanceType = ObstacleAvoidanceType.MedQualityObstacleAvoidance;
@@ -127,30 +126,6 @@ namespace UndeadLegion.ExtendedEditor
             }
             AssetDatabase.SaveAssets();
             return sb.ToString();
-        }
-
-        // The eye sockets differ per skull (the Knight / Archer socket floor sits 13 mm deeper than the other four), so each
-        // character's eyes are seated on its own socket: the floor is the deepest body-mesh point in a 5 mm disc round the socket
-        // centre (x 30 mm, y 23 mm from the Head bone), measured on the bind pose; the sphere's back rests on it.
-        static Vector3 MeasureEyes(GameObject go, Vector3 fallback, float size)
-        {
-            var an = go.GetComponent<Animator>(); var head = an != null ? an.GetBoneTransform(HumanBodyBones.Head) : null;
-            SkinnedMeshRenderer body = null; foreach (var r in go.GetComponentsInChildren<SkinnedMeshRenderer>()) if (r.name.EndsWith("Body")) body = r;
-            if (head == null || body == null) return fallback;
-            var mesh = new Mesh(); body.BakeMesh(mesh, true);
-            var cgo = new GameObject("eye_probe"); cgo.transform.SetPositionAndRotation(body.transform.position, body.transform.rotation);
-            var mc = cgo.AddComponent<MeshCollider>(); mc.sharedMesh = mesh;
-            Vector3 fwd = go.transform.forward, right = go.transform.right, up = go.transform.up;
-            float floor = float.MaxValue;
-            for (int i = -2; i <= 2; i++) for (int j = -2; j <= 2; j++)
-            {
-                if (i * i + j * j > 5) continue;
-                Vector3 o = head.position + right * (0.030f + i * 0.0025f) + up * (0.023f + j * 0.0025f) + fwd * 0.4f; RaycastHit h;
-                if (mc.Raycast(new Ray(o, -fwd), out h, 1f)) floor = Mathf.Min(floor, Vector3.Dot(h.point - head.position, fwd));
-            }
-            Object.DestroyImmediate(cgo); Object.DestroyImmediate(mesh);
-            if (floor == float.MaxValue) return fallback;
-            return new Vector3(0.030f, 0.023f, floor + size * 0.5f);
         }
 
         [MenuItem("Undead Legion/Extended/3. Build Extended Demo Scene")]

@@ -144,10 +144,12 @@ namespace UndeadLegion.DemoEditor
             var info = Label(footer, "ClipInfo", "", 15, HeaderText, TextAnchor.MiddleLeft);
             Stretch(info, Vector2.zero, Vector2.one);
             info.offsetMin = new Vector2(24f, 0f);
-            info.offsetMax = new Vector2(-700f, 0f);
+            info.offsetMax = new Vector2(-850f, 0f);
 
             var rootToggle = Toggle(footer, "RootMotionToggle", "Root Motion", true);
             RightMid(rootToggle.Item1, -540f);
+            var eyesToggle = Toggle(footer, "EyesToggle", "Eyes", true);
+            RightMid(eyesToggle.Item1, -690f);
             var turnToggle = Toggle(footer, "TurntableToggle", "Turntable", true);
             RightMid(turnToggle.Item1, -390f);
             var recenter = TextButton(footer, "RecenterButton", "Recenter", Accent);
@@ -168,6 +170,7 @@ namespace UndeadLegion.DemoEditor
             showcase.clipInfoLabel = info.GetComponent<Text>();
             showcase.rootMotionToggle = rootToggle.Item2;
             showcase.turntableToggle = turnToggle.Item2;
+            showcase.eyesToggle = eyesToggle.Item2;
             showcase.recenterButton = recenter;
             showcase.allModulesButton = allBtn;
             showcase.noModulesButton = noneBtn;

@@ -47,6 +47,7 @@ namespace UndeadLegion.Demo
         public Text clipInfoLabel;
         public Toggle rootMotionToggle;
         public Toggle turntableToggle;
+        public Toggle eyesToggle;
         public Button recenterButton;
         public Button allModulesButton;
         public Button noModulesButton;
@@ -123,6 +124,7 @@ namespace UndeadLegion.Demo
                 rootMotionToggle.onValueChanged.AddListener(OnRootMotionChanged);
                 OnRootMotionChanged(rootMotionToggle.isOn);
             }
+            if (eyesToggle != null) eyesToggle.onValueChanged.AddListener(v => ApplyEyes());
             if (turntableToggle != null && turntable != null)
             {
                 turntableToggle.onValueChanged.AddListener(v => turntable.autoRotate = v);
@@ -257,6 +259,7 @@ namespace UndeadLegion.Demo
             // firing (SkeletonTwitch, for games) stays off here so the two do not stack
             if (_twitch != null) _twitch.enabled = false;
             _weapon = _instance.GetComponentInChildren<SkeletonWeapon>();
+            ApplyEyes();
             if (CharacterSpawned != null) CharacterSpawned(_instance);
             BuildModuleList();
             BuildWeaponList();
@@ -937,6 +940,13 @@ namespace UndeadLegion.Demo
             if (content == null) return;
             for (int i = content.childCount - 1; i >= 0; i--)
                 Destroy(content.GetChild(i).gameObject);
+        }
+
+        void ApplyEyes()
+        {
+            if (_instance == null) return;
+            var eyes = _instance.GetComponentInChildren<SkeletonEyes>();
+            if (eyes != null) eyes.SetVisible(eyesToggle == null || eyesToggle.isOn);
         }
     }
 }

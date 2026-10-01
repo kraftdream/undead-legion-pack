@@ -20,7 +20,7 @@ Physical flinches layered over any animation: a struck skeleton recoils through 
 Robes, skirts and pants simulate as cloth, pinned at the waist and colliding with the legs, with distance culling for crowds.
 
 **Rise and dissolve effects**
-Skeletons rise out of the ground and turn to dust with a glowing edge, on a URP Lit dissolve shader that keeps each material's look. Glowing eyes in any colour, with bloom.
+Skeletons rise out of the ground and turn to dust with a glowing edge, on a URP Lit dissolve shader that keeps each material's look. The glowing eyes bloom in the arena.
 
 **NavMesh movement**
 A NavMeshAgent drives directional locomotion blend trees built from the pack's measured walk, run, back and strafe clips, so the feet match the ground at any speed. A heavy, shambling gait for the rank and file and an upright gait for casters. Weapon idles keep a two-hander, a bow or a staff properly held while moving.
@@ -54,7 +54,7 @@ Everything from the base pack is included unchanged: the character browser demo,
 - Dissolve: URP Lit-based shader with height cut, noise and HDR edge; forward, depth and depth-normals passes
 - Navigation: AI Navigation package (NavMeshAgent), two 2D directional locomotion blend trees at measured clip speeds
 - Animator controller extended with locomotion blend trees and upper-body weapon idles
-- 14 runtime scripts (C#, source included): ragdoll, hit reactions, health, cloth, dissolve, eyes, navigation, combat AI, projectiles, army spawner, battle camera and the demo
+- 13 runtime scripts (C#, source included): ragdoll, hit reactions, health, cloth, dissolve, navigation, combat AI, projectiles, army spawner, battle camera and the demo
 - Arena demo scene with a baked NavMesh and URP post-processing (bloom)
 - Extended animation browser scene with a physics panel
 

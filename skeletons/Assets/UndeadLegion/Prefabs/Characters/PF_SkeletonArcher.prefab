@@ -385,8 +385,8 @@ SkinnedMeshRenderer:
   m_BlendShapeWeights: []
   m_RootBone: {fileID: 1226969601522002545}
   m_AABB:
-    m_Center: {x: 0, y: 0.82297355, z: -0.000017814338}
-    m_Extent: {x: 0.49684656, y: 0.8936339, z: 0.18093735}
+    m_Center: {x: 0, y: 0.8216236, z: -0.000017814338}
+    m_Extent: {x: 0.49684656, y: 0.892284, z: 0.18093735}
   m_DirtyAABB: 0
 --- !u!114 &4445394512847687975
 MonoBehaviour:
@@ -754,8 +754,8 @@ SkinnedMeshRenderer:
   m_BlendShapeWeights: []
   m_RootBone: {fileID: 1226969601522002545}
   m_AABB:
-    m_Center: {x: 0, y: 0.82297355, z: -0.000017814338}
-    m_Extent: {x: 0.49684656, y: 0.8936339, z: 0.18093735}
+    m_Center: {x: 0, y: 0.8216236, z: -0.000017814338}
+    m_Extent: {x: 0.49684656, y: 0.892284, z: 0.18093735}
   m_DirtyAABB: 0
 --- !u!114 &4715768867757870052
 MonoBehaviour:
@@ -1184,8 +1184,8 @@ SkinnedMeshRenderer:
   m_BlendShapeWeights: []
   m_RootBone: {fileID: 1226969601522002545}
   m_AABB:
-    m_Center: {x: 0, y: 0.82297355, z: -0.000017814338}
-    m_Extent: {x: 0.49684656, y: 0.8936339, z: 0.18093735}
+    m_Center: {x: 0, y: 0.8216236, z: -0.000017814338}
+    m_Extent: {x: 0.49684656, y: 0.892284, z: 0.18093735}
   m_DirtyAABB: 0
 --- !u!114 &8736679446007792963
 MonoBehaviour:
@@ -2131,8 +2131,8 @@ SkinnedMeshRenderer:
   m_BlendShapeWeights: []
   m_RootBone: {fileID: 1226969601522002545}
   m_AABB:
-    m_Center: {x: 0, y: 0.82297355, z: -0.000017814338}
-    m_Extent: {x: 0.49684656, y: 0.8936339, z: 0.18093735}
+    m_Center: {x: 0, y: 0.8216236, z: -0.000017814338}
+    m_Extent: {x: 0.49684656, y: 0.892284, z: 0.18093735}
   m_DirtyAABB: 0
 --- !u!114 &3266315487695596053
 MonoBehaviour:
@@ -2688,8 +2688,8 @@ SkinnedMeshRenderer:
   m_BlendShapeWeights: []
   m_RootBone: {fileID: 1226969601522002545}
   m_AABB:
-    m_Center: {x: 0, y: 0.82297355, z: -0.000017814338}
-    m_Extent: {x: 0.49684656, y: 0.8936339, z: 0.18093735}
+    m_Center: {x: 0, y: 0.8216236, z: -0.000017814338}
+    m_Extent: {x: 0.49684656, y: 0.892284, z: 0.18093735}
   m_DirtyAABB: 0
 --- !u!114 &56503701287310535
 MonoBehaviour:
@@ -2864,8 +2864,8 @@ SkinnedMeshRenderer:
   m_BlendShapeWeights: []
   m_RootBone: {fileID: 1226969601522002545}
   m_AABB:
-    m_Center: {x: 0, y: 0.82297355, z: -0.000017814338}
-    m_Extent: {x: 0.49684656, y: 0.8936339, z: 0.18093735}
+    m_Center: {x: 0, y: 0.8216236, z: -0.000017814338}
+    m_Extent: {x: 0.49684656, y: 0.892284, z: 0.18093735}
   m_DirtyAABB: 0
 --- !u!114 &2706933852862960166
 MonoBehaviour:
@@ -3102,8 +3102,8 @@ SkinnedMeshRenderer:
   m_BlendShapeWeights: []
   m_RootBone: {fileID: 1226969601522002545}
   m_AABB:
-    m_Center: {x: 0, y: 0.82297355, z: -0.000017814338}
-    m_Extent: {x: 0.49684656, y: 0.8936339, z: 0.18093735}
+    m_Center: {x: 0, y: 0.8216236, z: -0.000017814338}
+    m_Extent: {x: 0.49684656, y: 0.892284, z: 0.18093735}
   m_DirtyAABB: 0
 --- !u!1 &7525552730463747835
 GameObject:
@@ -3119,6 +3119,7 @@ GameObject:
   - component: {fileID: 7195640350524259692}
   - component: {fileID: 5493751927174639294}
   - component: {fileID: 1616097966835592894}
+  - component: {fileID: 1297520659597316990}
   - component: {fileID: 7854117143119444984}
   m_Layer: 0
   m_Name: PF_SkeletonArcher
@@ -3254,6 +3255,22 @@ MonoBehaviour:
   fadeIn: 0.15
   fadeOut: 0.12
   enabledLock: 1
+--- !u!114 &1297520659597316990
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7525552730463747835}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ac11ba68aafb78488e9c36c3fd4924f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UndeadLegion.Demo.SkeletonEyes
+  color: {r: 0.3, g: 2.4, b: 1.6, a: 1}
+  offset: {x: 0.03, y: 0.023, z: 0.07145235}
+  size: 0.018
+  addLight: 0
 --- !u!114 &7854117143119444984
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3801,8 +3818,8 @@ SkinnedMeshRenderer:
   m_BlendShapeWeights: []
   m_RootBone: {fileID: 1226969601522002545}
   m_AABB:
-    m_Center: {x: 0, y: 0.82297355, z: -0.000017814338}
-    m_Extent: {x: 0.49684656, y: 0.8936339, z: 0.18093735}
+    m_Center: {x: 0, y: 0.8216236, z: -0.000017814338}
+    m_Extent: {x: 0.49684656, y: 0.892284, z: 0.18093735}
   m_DirtyAABB: 0
 --- !u!114 &5007451430930506611
 MonoBehaviour:

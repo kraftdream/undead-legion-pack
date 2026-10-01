@@ -457,6 +457,19 @@ edition excludes `Extended/` and drops the navigation package. Both verified: 0 
 `Extended/Documentation/UndeadLegion_Extended_Documentation.pdf` (7 pages, from `tools/docs/UndeadLegion_Extended_Documentation.html`,
 `make_documentation.py extended`). Not done: the Asset Store validator on either edition, an extended showreel.
 
+**What the base edition includes (user decision, 2026-10-01: "the base version should also include eyes and hit/stagger
+animations").** The split is: animation, art and the glowing eyes are BASE; physics, navigation, AI and armies are EXTENDED.
+- **Hit / stagger clips: base, already in place.** `Hit_01`, `Hit_02` (additive, on `AC_Skeleton`'s `Hit` layer) and `Stagger_01`,
+  `Stagger_02` (Base states) are base-pack clips in `Animations/`, listed in the base browser's Reactions section; the base production
+  copy ships them. Only the GAMEPLAY use (`SkeletonHealth.hitClips` playing one per non-lethal hit) is extended.
+- **Eyes: base since 2026-10-01** ("yes, move the eyes to base"). `SkeletonEyes` moved to `Demo/Scripts/` (namespace `UndeadLegion.Demo`,
+  `git mv` with its `.meta`, so the GUID and every reference held), `SetVisible()` added; `MeasureEyes` moved from `ExtendedBuilder` to
+  `CharacterPrefabBuilder`, which puts the eyes on every `PF_<Char>` (Knight / Archer z 0.071, the other four 0.086, as before); the `PFX_`
+  variants inherit them (`ExtendedBuilder` no longer adds its own; `ArmySpawner` sets the team colour). The base browser's footer has an
+  **Eyes** toggle (`SkeletonShowcase.eyesToggle`, applied on every spawn; the info label ends 850 px from the right to fit it), so the
+  extended browser has it too. Verified in play mode in the base demo: 2 eyes on the spawned character, parented to the head, toggle off
+  → 0, on → 2, no console messages. Base manual (scripts table, footer), extended manual, both listings updated; both productions rebuilt.
+
 **Second round (2026-09-30, user: "briefly visible for one frame before it disappears and spawns; attacks with a step forward
 (wand_cast, the two-handed attacks) play their step but the skeletons stay in one place; update the regular demo scene with cloth
 on/off, rigidbody death, hit reactions, and the hit_01 / stagger_01 animations").** (1) The flash: the dissolve material's
@@ -581,6 +594,20 @@ XZ still root motion), the rotation offset key removed from Run_Fwd_01 (the `roo
 (the speed table holds), yaw 0, Unity's sideways average ≤ 1 % of the forward speed. The body's turn per step stays in the pose, so the
 arena's root-motion locomotion keeps it while the heading follows the steering alone. Rule: **a straight locomotion loop bakes its root
 rotation; only turn clips should drive the heading.**
+**"In the demo they start walking to their target too early" (2026-09-30).** Measured (battle started 0.3 s after a raise): 15 of 16
+skeletons walked while still hidden or dissolving in, and 5 s later 0 of 16 had their AI on — `ArmySpawner.Rise` disabled the AI for the
+rise and then restored the state it had at SPAWN (off, the demo raises with `enableAI` off), overriding the battle's switch-on. Now the
+rise only sets `SkeletonAI.Suspended` (the AI waits: no targeting, no moving, no attacks, a running path stopped) and clears it when the
+rise ends; whether the AI is enabled is left to its owner. Re-measured: 0 walked while rising, 16 of 16 AI on, 8 moving at 5 s.
+Then the user clarified: "while reaching the target they start walking too early, they should run for longer (closer to the target)".
+The AI ran only while more than 4 m away (a fixed number), so a melee skeleton walked its last ~2.3 m. Now it runs until **`walkWithin`**
+(0.8 m) beyond its attack's reach, re-decided every think (0.25 s). Measured in a battle (distance to the target at the run → walk switch):
+melee median 3.93 → 2.42 m, casters just outside their 9–12 m reach; they stop at ~1.5 m as before.
+**"Make melee skeletons attack range 1.1 m instead of 1.5 m" (2026-10-01).** The stop distance came from the moves' own `range`
+(1.4–2.2 m, the min of the style) through `dist > range·0.9` / goal at `range·0.7`. Now **`SkeletonAI.meleeRange`** (1.1 m, centre to
+centre) is the engage distance of every style without a ranged move; the chase runs while `dist > range` toward a goal at 0.85 of it.
+The moves' `range` still gates whether a swing connects (`range + 0.4`), so blows land. Measured in a battle: melee attacks start at
+a median 1.10 m (0.76–1.11), 16 → 7 alive after 25 s, no errors.
 **Extended browser layout (2026-09-30, "move the new UI panel under the animations panel, make that one shorter; the physics hit is
 weak, 2x"):** the PHYSICS panel is anchored bottom-right at the ANIMATIONS panel's right edge and width (−20 / 280 px, 78 px above the
 bottom), and `ExtendedShowcase.FitUnderAnimations` shortens the browser's `AnimationPanel` at runtime to end 10 px above it (measured

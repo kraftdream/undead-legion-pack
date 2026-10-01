@@ -27,6 +27,10 @@ namespace UndeadLegion.Extended
         public float attackSpeed = 1f;
         [Tooltip("Metres to wander around the start point while no enemy is in sight (0 = stand).")]
         public float wanderRadius = 0f;
+        [Tooltip("Metres beyond the attack's reach at which a running skeleton slows to a walk for the last steps.")]
+        public float walkWithin = 0.8f;
+        [Tooltip("Distance (metres, centre to centre) at which a melee skeleton stops and attacks.")]
+        public float meleeRange = 1.1f;
         [Tooltip("An explicit target; otherwise the nearest enemy is chosen.")]
         public SkeletonHealth target;
         [ColorUsage(false, true)] public Color magicColor = new Color(0.4f, 2.2f, 1.1f);
@@ -58,6 +62,9 @@ namespace UndeadLegion.Extended
 
         public bool InCombat { get { return target != null; } }
 
+        /// <summary>While true (e.g. rising from the ground) the AI waits: no targeting, no moving, no attacks.</summary>
+        public bool Suspended { get; set; }
+
         void Awake()
         {
             _nav = GetComponent<SkeletonNavController>();
@@ -88,9 +95,9 @@ namespace UndeadLegion.Extended
 
         float PreferredRange()
         {
-            var moves = CurrentMoves(); float r = float.MaxValue;
-            foreach (var m in moves) if (!m.area) r = Mathf.Min(r, m.range);
-            return r;
+            var moves = CurrentMoves(); float r = float.MaxValue; bool melee = true;
+            foreach (var m in moves) if (!m.area) { r = Mathf.Min(r, m.range); if (m.ranged) melee = false; }
+            return melee ? meleeRange : r;
         }
 
         SkeletonHealth FindTarget()
@@ -108,6 +115,7 @@ namespace UndeadLegion.Extended
         void Update()
         {
             if (_health.IsDead || _attack != null || _nav.IsBusy) return;
+            if (Suspended) { if (_nav.IsMoving) _nav.Stop(); return; }
             if (Time.time >= _nextThink)
             {
                 _nextThink = Time.time + 0.25f + Random.value * 0.1f;
@@ -117,10 +125,10 @@ namespace UndeadLegion.Extended
 
             Vector3 to = target.transform.position - transform.position; to.y = 0f;
             float dist = to.magnitude, range = PreferredRange();
-            if (dist > range * 0.9f)
+            if (dist > range)
             {
-                Vector3 goal = target.transform.position - to.normalized * range * 0.7f;
-                _nav.MoveTo(goal, dist > 4f && CurrentStyle() != Style.Bow);
+                Vector3 goal = target.transform.position - to.normalized * range * 0.85f;
+                _nav.MoveTo(goal, dist > range + walkWithin && CurrentStyle() != Style.Bow);   // run until just outside the reach
                 return;
             }
             _nav.Stop();

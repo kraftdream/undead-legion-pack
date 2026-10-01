@@ -100,7 +100,6 @@ carry over to its extended variant.</div>
   <tr><td><code>SkeletonHealth</code></td><td>health, team, damage events, the death mode</td></tr>
   <tr><td><code>SkeletonCloth</code></td><td>cloth on robes, skirts and pants</td></tr>
   <tr><td><code>SkeletonDissolve</code></td><td>rise and dissolve effects</td></tr>
-  <tr><td><code>SkeletonEyes</code></td><td>glowing eyes</td></tr>
   <tr><td><code>NavMeshAgent</code> + <code>SkeletonNavController</code></td><td>movement on the NavMesh (radius 0.32 m, height 1.8 m)</td></tr>
   <tr><td><code>SkeletonAI</code></td><td>the combat behaviour; disable it to drive the skeleton yourself</td></tr>
 </table>
@@ -154,7 +153,7 @@ down. For the duration of an effect each renderer (body, armour, held and droppe
 <code>UndeadLegion/Lit Dissolve</code> shader, a URP Lit shader with a cut height, noise and a glowing band; the original materials come back
 when a rise ends, and per-renderer colours (tints) are kept. Set <code>duration</code>, <code>edgeColor</code> (HDR), <code>edgeWidth</code> and
 <code>noiseScale</code> to taste; <code>dissolveInOnEnable</code> plays the rise whenever the object is enabled (useful with object pools).</p>
-<p><code>SkeletonEyes</code> places two small glowing spheres in the eye sockets and follows the head. The colour is HDR: values above 1 glow
+<p><code>SkeletonEyes</code> (a base-pack script, on every character prefab) places two small glowing spheres in the eye sockets and follows the head. The colour is HDR: values above 1 glow
 with Bloom (the arena uses URP's Bloom post effect). <code>SetColor()</code> changes it at runtime; <code>addLight</code> adds a faint light at the
 face, off by default because every light costs in a crowd.</p>
 
@@ -177,8 +176,8 @@ nav.PlayAction("Taunt_01");                 // a one-shot; a step in the clip mo
 nav.OnLoadoutChanged();                     // after equipping another weapon</pre>
 
 <h2>11. Combat AI</h2>
-<p><code>SkeletonAI</code> picks the nearest living enemy within <code>sightRange</code> (or your <code>target</code>), walks to it (runs when more than 4 m away; archers keep walking),
-stops at the range of its attacks, turns to face it and attacks, waiting <code>attackCooldown</code> seconds between attacks. Damage lands at
+<p><code>SkeletonAI</code> picks the nearest living enemy within <code>sightRange</code> (or your <code>target</code>), runs toward it and slows to a walk <code>walkWithin</code> metres (0.8) outside its attack's reach (archers keep walking),
+stops at the range of its attacks (melee: <code>meleeRange</code>, 1.1 m centre to centre), turns to face it and attacks, waiting <code>attackCooldown</code> seconds between attacks. Damage lands at
 the moment in the clip where the blow connects. The style is read from the equipped loadout unless you set it:</p>
 <table>
   <tr><th>Style</th><th>Attacks</th><th class="n">Range</th></tr>

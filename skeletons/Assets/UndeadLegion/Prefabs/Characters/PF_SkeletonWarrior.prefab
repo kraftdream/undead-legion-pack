@@ -414,6 +414,7 @@ GameObject:
   - component: {fileID: 6919667510316033393}
   - component: {fileID: 5445846948764776407}
   - component: {fileID: 6219443037627923035}
+  - component: {fileID: 615499856203255160}
   - component: {fileID: 7972385655524446069}
   m_Layer: 0
   m_Name: PF_SkeletonWarrior
@@ -551,6 +552,22 @@ MonoBehaviour:
   fadeIn: 0.15
   fadeOut: 0.12
   enabledLock: 1
+--- !u!114 &615499856203255160
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 973501018718765678}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ac11ba68aafb78488e9c36c3fd4924f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UndeadLegion.Demo.SkeletonEyes
+  color: {r: 0.3, g: 2.4, b: 1.6, a: 1}
+  offset: {x: 0.03, y: 0.023, z: 0.085589856}
+  size: 0.018
+  addLight: 0
 --- !u!114 &7972385655524446069
 MonoBehaviour:
   m_ObjectHideFlags: 0
