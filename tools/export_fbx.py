@@ -54,6 +54,14 @@ MAX_INFLUENCES = 4
 # Measured raw penetration 2026-09-19, all six models, three idles: worst -10.9 mm.
 CLIP_LIFT = 0.015
 UNITY = os.path.join(ROOT, "skeletons", "Assets", "UndeadLegion")
+# Unreal target (`--unreal`, 2026-09-29): the same files for UE 5.8, written to Export_UE/ in CENTIMETRES
+# (SCALE x 100 on the data, scale_length 0.01 during the write -> UnitScaleFactor 1: a metres file imports at
+# the right size but Unreal puts the unit conversion on Root as scale 100, and root motion runs 100x - measured
+# in the creatures pack, tools/ue/README.md). `Armature` with ONE child (`Root`) is stripped by UE's importer,
+# so the skeleton is rooted at Root and Root keeps the travel. No Unity-only fixes: no leg de-twist (UE plays
+# the bones verbatim), no `Body` decoy node, no baked space transform.
+UNREAL_OUT = os.path.join(ROOT, "Export_UE")
+UNREAL = False
 
 _SPINE = {"spine": "Hips", "spine.001": "Spine", "spine.002": "Spine1", "spine.003": "Spine2",
           "spine.004": "Neck", "spine.005": "Neck1", "spine.006": "Head"}
@@ -369,6 +377,10 @@ def fbx(path, objs, bake_anim, bake_space_transform, frame_range=None):
         ob.select_set(True)
     bpy.context.view_layer.objects.active = objs[0]
     os.makedirs(os.path.dirname(path), exist_ok=True)
+    sc = bpy.context.scene
+    keep_units = (sc.unit_settings.system, sc.unit_settings.scale_length)
+    if UNREAL:
+        sc.unit_settings.system = 'METRIC'; sc.unit_settings.scale_length = 0.01   # data in cm -> UnitScaleFactor 1
     kw = dict(
         filepath=path, use_selection=True, object_types={'ARMATURE', 'MESH', 'EMPTY'},
         apply_unit_scale=True, global_scale=1.0, apply_scale_options='FBX_SCALE_ALL',
@@ -381,7 +393,10 @@ def fbx(path, objs, bake_anim, bake_space_transform, frame_range=None):
         kw.update(bake_anim_use_all_bones=True, bake_anim_use_nla_strips=False,
                   bake_anim_use_all_actions=False, bake_anim_force_startend_keying=True,
                   bake_anim_step=1.0, bake_anim_simplify_factor=0.0)
-    bpy.ops.export_scene.fbx(**kw)
+    try:
+        bpy.ops.export_scene.fbx(**kw)
+    finally:
+        sc.unit_settings.system, sc.unit_settings.scale_length = keep_units
     log("wrote", os.path.relpath(path, ROOT), "%d KB" % (os.path.getsize(path) // 1024))
 
 
@@ -399,8 +414,11 @@ def export_model(out_dir, bst, legacy=False):
     mesh, imported Generic in Unity and re-bound to any character's bones by name: the modular route, 2026-09-27).
     `legacy=True` writes the old single file with every mesh."""
     character = os.path.basename(os.path.dirname(bpy.data.filepath))
+    if UNREAL:
+        out_dir = out_dir or os.path.join(UNREAL_OUT, "Characters", character)
+        armor_dir = os.path.join(UNREAL_OUT, "Armor", character)
     out_dir = out_dir or os.path.join(UNITY, "Models", character)
-    armor_dir = os.path.join(UNITY, "Models", "Armor", character) if out_dir == os.path.join(UNITY, "Models", character) else os.path.join(out_dir, "Armor")
+    armor_dir = armor_dir if UNREAL else (os.path.join(UNITY, "Models", "Armor", character) if out_dir == os.path.join(UNITY, "Models", character) else os.path.join(out_dir, "Armor"))
     src, meta = source_rig()
     for pb in src.pose.bones:
         pb.matrix_basis.identity()
@@ -428,7 +446,7 @@ def export_model(out_dir, bst, legacy=False):
 
 
 def export_clip(clip, out_dir, bst, lift=0.0, lift_curve=None):
-    out_dir = out_dir or os.path.join(UNITY, "Animations")
+    out_dir = out_dir or os.path.join(UNREAL_OUT if UNREAL else UNITY, "Animations")
     scene = bpy.context.scene
     assert abs(scene.render.fps / scene.render.fps_base - FPS) < 1e-6, \
         "scene fps is %s, clips must be authored at %d" % (scene.render.fps, FPS)
@@ -472,10 +490,12 @@ def export_clip(clip, out_dir, bst, lift=0.0, lift_curve=None):
     baked = rig.animation_data.action
     assert baked is not None and not any(pb.constraints for pb in rig.pose.bones)
     baked.name = clip
-    detwist_legs(rig, f0, f1)
+    if not UNREAL:
+        detwist_legs(rig, f0, f1)   # a Unity Humanoid fix; Unreal plays the bones verbatim
     n = scale_rig(rig, baked)
     strip_bone_translation(baked)
     root_fc = [fc for fc in fcurves(baked) if fc.data_path == 'pose.bones["Root"].location']
+    lift *= LIFT_UNIT
     if lift:
         # whole-character lift, in ENGINE metres: Unity's humanoid retarget reconstructs the
         # legs approximately and a pinned foot lands a few mm to 2 cm under the floor,
@@ -495,23 +515,34 @@ def export_clip(clip, out_dir, bst, lift=0.0, lift_curve=None):
             if fc.array_index == 1:
                 for kp in fc.keyframe_points:
                     i = max(0, min(len(curve) - 1, int(round(kp.co.x - f0))))
-                    kp.co.y += curve[i]; kp.handle_left.y += curve[i]; kp.handle_right.y += curve[i]
+                    d = curve[i] * LIFT_UNIT
+                    kp.co.y += d; kp.handle_left.y += d; kp.handle_right.y += d
         log("lift curve %s: %d frames, %+.4f..%+.4f m" % (os.path.basename(lift_curve), len(curve), min(curve), max(curve)))
     travel = [fc.evaluate(f1) - fc.evaluate(f0) for fc in sorted(root_fc, key=lambda f: f.array_index)]
     log("baked %d location curves scaled x%.1f; Root travel over the clip (Blender XYZ, m): %s"
         % (n, SCALE, [round(t, 4) for t in travel]))
 
-    body = bpy.data.objects.new("Body", None)          # node-path decoy, see module docstring
-    bpy.context.scene.collection.objects.link(body)
+    objs = [rig]
+    if not UNREAL:
+        body = bpy.data.objects.new("Body", None)          # node-path decoy, see module docstring
+        bpy.context.scene.collection.objects.link(body)
+        objs.append(body)
     scene.name = clip                                   # the FBX take name comes from the scene
     park_on_rest(rig, f0 - 1)
-    fbx(os.path.join(out_dir, "%s@%s.fbx" % (CLIP_PREFIX, clip)), [rig, body], True, bst)
+    fbx(os.path.join(out_dir, "%s@%s.fbx" % (CLIP_PREFIX, clip)), objs, True, bst)
+
+
+LIFT_UNIT = 1.0   # lifts are given in engine metres; x100 for the Unreal (cm) target
 
 
 def main():
+    global UNREAL, SCALE, LIFT_UNIT
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     out_dir = argv[argv.index("--out") + 1] if "--out" in argv else None
-    bst = bool(int(argv[argv.index("--bst") + 1])) if "--bst" in argv else True
+    UNREAL = "--unreal" in argv
+    if UNREAL:
+        SCALE, LIFT_UNIT = SCALE * 100.0, 100.0
+    bst = bool(int(argv[argv.index("--bst") + 1])) if "--bst" in argv else not UNREAL
     if "--clip" in argv:
         lift = float(argv[argv.index("--lift") + 1]) if "--lift" in argv else CLIP_LIFT
         lift_curve = argv[argv.index("--lift-curve") + 1] if "--lift-curve" in argv else None
