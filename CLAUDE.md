@@ -86,6 +86,10 @@ sockets carried over from `unity_grips.json`, `ABP_UndeadSkeleton` with the Unit
 six `BP_<Character>`, the UMG animation browser map `Demo/Maps/UndeadLegion_Demo`). Everything, including the traps,
 is in `tools/ue/README.md`; read it before touching the Unreal side. Synced with the base pack at `3a1e74d` (2026-10-01): the reactions
 (Hit_01/02 additive overlays, Stagger_01/02), the re-tuned grips and the red glowing eyes; the Extended edition is not ported.
+**The full showreel rendered by Unreal (2026-10-02)**: `python tools/ue/showreel_unreal_all.py` (the Unity recorder's three stages
+ported shot by shot, `BP_ShowreelDirector`, 64-sample Movie Render Queue, ~4 h on this machine) → `Showreel/unreal/
+undead_legion_showreel_unreal.mp4` (3:59, the same cards and music as the Unity cut) + `youtube_description.txt`; details in
+`tools/ue/README.md` "The full showreel".
 
 ### Known gaps
 
@@ -1922,6 +1926,16 @@ materials; Workbench's culling flag is viewport-only and renders identically):
 - Rule: a face is a hole in Unity only if it is wound against its neighbours or is a
   single-layer surface seen from behind. Blender's default viewport shows neither;
   check with the Face Orientation overlay or a culled render, not with normals.
+
+### Video mocap through GVHMR (2026-10-02)
+
+`python tools/video_mocap.py VIDEO NAME [--fast]`: GVHMR (the `westnt/gvhmr-pr` fork, CPU, in WSL Ubuntu at `D:/GVHMR`,
+SMPL-X body models from the user's MPI downloads; ~1.4 min per second of video) → `tools/gvhmr_export.py` (GVHMR venv:
+`hmr4d_results.pt` → SMPL `.npz` in Blender's frame, floor at 0, 30 fps) → `tools/smpl_to_armature.py` (identity-rest
+bones; the FK reproduces the body model to 0.00 mm) → `External Anims/Video/NAME_arm.blend` (untracked), retargeted with
+`--rename smpl`. First test (the user's `slowmo 1 attack.mp4`, black side bars cropped first, 3x `time_scale` from the
+hand speed): arm bones within 1–3 deg of the capture, no per-clip passes; the clip was discarded at the user's request.
+SMPL-X is MPI's non-commercial licence: check it before shipping clips made this way.
 
 ### The clip factory (2026-09-19/20)
 

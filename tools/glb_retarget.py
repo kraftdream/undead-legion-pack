@@ -106,6 +106,13 @@ RENAME_TABLES = {
             "clavicle_r": "RightShoulder", "upperarm_r": "RightArm", "lowerarm_r": "RightForeArm", "hand_r": "RightHand", "middle_01_r": "RightHandMiddleEnd",
             "thigh_l": "LeftLeg", "calf_l": "LeftShin", "foot_l": "LeftFoot", "ball_l": "LeftToeBase",
             "thigh_r": "RightLeg", "calf_r": "RightShin", "foot_r": "RightFoot", "ball_r": "RightToeBase"},
+    # an SMPL-X body from video mocap (tools/gvhmr_export.py + smpl_to_armature.py): flat T-pose rest, identity
+    # bone frames; the hands' direction child is the static middle-finger knuckle (GVHMR recovers no fingers)
+    "smpl": {"pelvis": "Hips", "spine1": "Spine1", "spine2": "Spine2", "spine3": "Chest", "neck": "Neck1", "head": "Head",
+             "left_collar": "LeftShoulder", "left_shoulder": "LeftArm", "left_elbow": "LeftForeArm", "left_wrist": "LeftHand", "left_middle1": "LeftHandMiddleEnd",
+             "right_collar": "RightShoulder", "right_shoulder": "RightArm", "right_elbow": "RightForeArm", "right_wrist": "RightHand", "right_middle1": "RightHandMiddleEnd",
+             "left_hip": "LeftLeg", "left_knee": "LeftShin", "left_ankle": "LeftFoot", "left_foot": "LeftToeBase",
+             "right_hip": "RightLeg", "right_knee": "RightShin", "right_ankle": "RightFoot", "right_foot": "RightToeBase"},
 }
 SHOULDERS = arg("--shoulders", "copy")          # copy: the clavicles follow the source; keep: they hold the blend-from pose (or rest) — a capture whose clavicle swings 90 deg back in a wind-up (the mannequin app)
 ARM_IK = arg("--arm-ik", "")                    # "R" / "L" / "LR": that arm is solved by the rig's own IK from the capture's HAND position (relative to the hips, scaled), the elbow on a pole that swings with the arm (out, back, a little down), the hand's roll from the IK forearm and its finger direction from the capture. Nothing of the capture's bone rolls reaches the rig

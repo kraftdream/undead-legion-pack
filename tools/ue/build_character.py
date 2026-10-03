@@ -234,15 +234,33 @@ FUNCS = {
   (Animation|Montage|MontagePlay :self anim :MontageToPlay m :InPlayRate 1.0 :bStopAllMontages false)
   (return (Animation|GetPlayLength :self Clip)))
 """),
+    "NextStartAction": ([], """
+(fn NextStartAction ()
+  ; plays StartActions[StartActionIndex] full body, then schedules itself after that clip + StartActionGap
+  (bind i (%(V)sGetStartActionIndex))
+  (if (Utilities|Array|IsValidIndex :TargetArray (%(V)sGetStartActions) :IndexToTest i)
+    (bind len (CallFunction|PlayAction :Clip (Utilities|Array|Get(acopy) (%(V)sGetStartActions) i) :Slot "DefaultSlot"
+                :BlendIn 0.15 :BlendOut 0.25 :Rate 1.0))
+    (Development|PrintString :InString (Utilities|String|Append "StartAction " (Utilities|String|ToString(Integer) i))
+       :bPrintToScreen false :bPrintToLog true)
+    (%(V)sSetStartActionIndex (+ i 1))
+    (Utilities|Time|SetTimerbyFunctionName :Object self :FunctionName "NextStartAction"
+       :Time (+ len (%(V)sGetStartActionGap)) :bLooping false)))
+"""),
 }
 ORDER = ["ShowEyes", "TintEyes", "ApplyEyes", "AddModuleComponent", "ApplyDefaultModules", "WearModule", "RemoveModule", "IsModuleWorn", "SetDefaultModulesWorn",
          "UpdateHands", "SpawnWeapon", "EquipLoadout", "PlayLoop", "PlayAction", "StopActions", "SetHeldBlock", "SetTwitch",
-         "SetRootMotion", "SetClipHold", "SetFingersSuspended", "SetFingerIdle", "GetFingerIdle", "GetLoadout", "PauseActions", "PlayOverlay"]
+         "SetRootMotion", "SetClipHold", "SetFingersSuspended", "SetFingerIdle", "GetFingerIdle", "GetLoadout", "PauseActions", "PlayOverlay", "NextStartAction"]
 
 EVENTS = """
 (event EventBeginPlay
   (CallFunction|EquipLoadout :Index (%(V)sGetStartLoadout))
-  (CallFunction|PlayLoop :Clip (%(V)sGetStartClip)))
+  (CallFunction|PlayLoop :Clip (%(V)sGetStartClip))
+  (CallFunction|SetClipHold :Left (%(V)sGetStartHoldLeft) :Right false)
+  (%(V)sSetStartActionIndex 0)
+  (if (> (Utilities|Array|Length :TargetArray (%(V)sGetStartActions)) 0)
+    (Utilities|Time|SetTimerbyFunctionName :Object self :FunctionName "NextStartAction"
+       :Time (%(V)sGetStartActionDelay) :bLooping false)))
 
 (event EventEndPlay (EndPlayReason)
   (for a (%(V)sGetWeaponActors)

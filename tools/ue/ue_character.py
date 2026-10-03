@@ -58,6 +58,13 @@ def _vars(bp):
         ("ClipHoldLeft", L.get_basic_type_by_name("bool"), False),
         ("ClipHoldRight", L.get_basic_type_by_name("bool"), False),
         ("FingersSuspended", L.get_basic_type_by_name("bool"), False),
+        # showreel / cinematic helper: one-shots played by themselves after BeginPlay (StartActionDelay, then each
+        # after the previous one plus StartActionGap); StartHoldLeft = the start idle holds the left hand (grip_hands L)
+        ("StartActions", arr(L.get_object_reference_type(unreal.AnimSequenceBase)), True),
+        ("StartActionDelay", L.get_basic_type_by_name("real"), True),
+        ("StartActionGap", L.get_basic_type_by_name("real"), True),
+        ("StartActionIndex", L.get_basic_type_by_name("int"), False),
+        ("StartHoldLeft", L.get_basic_type_by_name("bool"), True),
         ("LoopMontage", L.get_object_reference_type(unreal.AnimMontage), False),
         ("ActionMontage", L.get_object_reference_type(unreal.AnimMontage), False),
         ("HasWeaponLeft", L.get_basic_type_by_name("bool"), False),
@@ -101,6 +108,8 @@ def base():
     cdo.set_editor_property("CurrentLoadout", -1)
     cdo.set_editor_property("StartLoadout", -1)
     cdo.set_editor_property("StartClip", unreal.load_asset(PKG + "/Animations/A_Idle_01"))
+    cdo.set_editor_property("StartActionDelay", 0.8)    # the Unity recorder's holdBefore / holdAfter
+    cdo.set_editor_property("StartActionGap", 0.9)
     cdo.set_editor_property("FingerIdleLeft", True)
     cdo.set_editor_property("FingerIdleRight", True)
     cdo.set_editor_property("DisplayName", "Undead Skeleton")
@@ -131,7 +140,7 @@ def children():
         cdo.set_editor_property("StartLoadout", names.index(START_LOADOUT[c]))
         # inherit the eyes from BP_UndeadSkeleton: a child compiled before a parent variable existed stores the
         # zero value as its own (black eyes, 2026-10-01); reset to the parent's default
-        for k in ("EyeColor", "EyesVisible"):
+        for k in ("EyeColor", "EyesVisible", "StartActionDelay", "StartActionGap"):
             cdo.reset_editor_property(k)
         L.compile_blueprint(bp)
         EAL.save_loaded_asset(bp, False)

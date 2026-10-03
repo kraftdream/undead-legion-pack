@@ -156,9 +156,43 @@ silently does not apply; ⚠ auto exposure brightened the dark floor and swallow
 exposure (`EXPOSURE` +1 EV) with Bloom 8 / threshold 0.5, picked against the Unity frame; ⚠ Unity's ground colour (0.19, 0.19,
 0.21) is sRGB: 0.030 / 0.037 linear in the UE material.
 
+### The full showreel (2026-10-02, "all 3 stages, intro and description, same content as the Unity video, best quality")
+
+    python tools/ue/showreel_unreal_all.py [--samples 64] [--only weapons_03] [--no-encode]   (editor running; ~4 h at 64)
+
+1. **`showreel_plan.py`** ports `ShowreelRecorder.BuildModular / BuildMovement / BuildAttacks` and its step loop into
+   `Showreel/unreal/plan.json`: per stage a title card + SHOTS (a shot = one character's run of steps; a change of character is
+   a hard cut, as in Unity), each with the director commands at output frames and the caption segments. Same frame accounting as
+   the recorder: a step holds `seconds`, each attack `round((length / speed + 0.15) * 30) + 2` frames then the settle (0.9 s, a
+   death's 1.6 s), root motion recentres after each attack; the return-to-idle rules of `SkeletonShowcase` decide the loop under a
+   one-shot; Shoot_01 gets BowAttach 15 / BowRelease 21 + the arrow's 1.2 s hide. Clip lengths: `Showreel/unreal/clip_lengths.json`.
+2. **`BP_ShowreelDirector`** (`ue_build.py showreel_director`, graphs by `build_showreel_director.py`) plays a shot's commands on
+   the character (`RunCommand` kinds 0–14: loop, action at a rate, equip, wear / remove a module, held block, overlay, root motion,
+   seamless recenter, follow the hips, clip hold, pause the corpse, bow string, fire, show arrow), moves the camera like Unity's
+   `FollowCamera` (damped position, never rotation) and, while a bow is equipped, poses it (`UpdateBow`: Unity's `BowString` —
+   the draw hand in the Brace bone's frame, whose DRAW axis is −Y in Unreal; the Nock on the hand inside the corridor, the limbs
+   bent by local roll, upper −10/−14°, lower +10/+14° at 50 cm, return at 8 m/s). `T` starts at −(warm-up + 2) / 30 so a command
+   at frame f fires on output frame f.
+3. **`ue_build.py showreel_bow`**: `BP_Weapon_H2Recurvebow` gets a PoseableMeshComponent `BowPose` (the skinned bow, the Mesh
+   hidden: a SkeletalMeshComponent's bones cannot be set from a Blueprint); `BP_ArrowProjectile` (SM_Arrow with its HEAD — the mesh
+   origin, shaft along +Z — turned onto +X by pitch 90, ProjectileMovement 1500 cm/s, no gravity, 4 s life) is spawned at the held
+   arrow's mesh origin facing the character's forward, the held arrow hidden 1.2 s. Demo-only for now (see below).
+4. **`ue_showreel.py shot <stage> <i>`** builds the map for one shot (character with the shot's first loadout / idle, the
+   director, the camera, `LS_<Stage>_<NN>`); **`render 64 all <stage>_<NN>`** renders it with the best settings this machine
+   offers on the project's renderer (no Lumen / VSM, as Unity): 64 SPATIAL samples (no motion blur), cinematic scalability, LOD 0,
+   no texture streaming, 4096 shadow maps, SSR / AO / tonemapper / bloom at max, anisotropy 16 (`CVARS`). Radeon 780M: ~2.2 s per
+   frame. The orchestrator skips a shot whose folder holds every frame and a `.final` marker, and restarts the editor on a failure.
+5. **`showreel_stage_ue.py`**: the recorder's 48-frame title card + every shot with the caption panel per segment →
+   `Showreel/unreal/showreel_<stage>.mp4`; then **`tools/unity/showreel_youtube.py --src Showreel/unreal --engine "Rendered in
+   Unreal Engine 5.8"`** builds `Showreel/unreal/undead_legion_showreel_unreal.mp4` with the same cards, fonts and music as the Unity
+   video; `Showreel/unreal/youtube_description.txt` carries its chapter times.
+
+⚠ Python's `subprocess` "bash" on this machine is WSL's (no /bin/bash): the orchestrator calls Git Bash by path. ⚠ A Claude Code
+background task is capped at 2 h: the 4-hour render runs as a detached process (log `Showreel/unreal/final_run.log`).
+
 ## Not done yet
 
-The recurve bow's string pull (Unity `BowString`) and the fired arrow (`ArrowProjectile`) — the notifies exist on
-Shoot_01 but `AN_BowAttach` / `AN_BowRelease` have no Received_Notify graph yet; the in-place locomotion blend space;
+The recurve bow's string pull and the fired arrow in the DEMO (the showreel director does both; the notifies exist on Shoot_01
+but `AN_BowAttach` / `AN_BowRelease` have no Received_Notify graph yet); the in-place locomotion blend space;
 the Unity "Specials return to the last idle" is implemented, the Cast_Staff_01 → Idle_Staff hand-off at frame 54 is a
 plain return; Unreal-side grounding measurement per clip; a Fab production copy.
