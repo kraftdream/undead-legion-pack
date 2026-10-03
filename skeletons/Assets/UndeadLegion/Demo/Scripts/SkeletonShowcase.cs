@@ -326,9 +326,9 @@ namespace UndeadLegion.Demo
                                   "Turn_Left_90", "Turn_Right_90" } },
             // per-arm set (2026-09-22): each clip lives on its arm's masked layer; Block_L_Idle is a held toggle
             new ClipSection { title = "Right arm", idlePreference = new[] { "Idle_1H_Combat", "Idle_01" },
-                members = new[] { "Attack_R_Stab", "Attack_R_Slice" } },
+                members = new[] { "Attack_R_Stab", "Attack_R_Swing_01", "Attack_R_Swing_02" } },
             new ClipSection { title = "Left arm (block = hold)", idlePreference = new[] { "Idle_1H_Combat", "Idle_01" },
-                members = new[] { "Attack_L_Stab", "Attack_L_Slice", "Block_L_Idle" } },
+                members = new[] { "Attack_L_Stab", "Attack_L_Swing_01", "Attack_L_Swing_02", "Block_L_Idle" } },
             new ClipSection { title = "Two-handed", idlePreference = new[] { "Idle_TwoHanded", "Idle_01" },
                 members = new[] { "Attack_2H_01", "Attack_2H_02" } },
             new ClipSection { title = "Bow", idlePreference = new[] { "Idle_Bow", "Idle_01" },

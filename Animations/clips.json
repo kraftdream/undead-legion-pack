@@ -494,25 +494,182 @@
    "hand_edited": true
   },
   {
-   "name": "Attack_R_Slice",
+   "name": "Attack_R_Swing_01",
    "layer": "right",
-   "glb": "melee_ref_arm",
+   "glb": "onehand_extras_arm",
    "src_ext": "blend",
    "rename": "ue5",
    "mode": "action",
    "time_scale": 1.0,
    "smooth": 1,
    "fist": 0.9,
-   "heading": "auto",
-   "src_begin": 1,
-   "src_end": 50,
+   "heading": "first",
    "plant_feet": 0.001,
    "unwind_yaw": true,
    "unwind_ref": "body",
    "lift": 0.004,
    "ground_fit": true,
-   "_note": "2026-09-26 (experimental, user: 'new recording melee in place.glb; replace slice with frames 1-40 and stab with 48-83, feet frozen in place'): the mannequin app (104 frames = 83 x1.25: the user's 24 fps numbers), the right hand attacks (2.1 / 1.4 m/s, the left calm), the pelvis in place, so a plain transfer with the legs planted and NO root drift; both feet then frozen at their frame-1 transforms for the whole clip by anim_nla_bake --pin-foot L,R (hand_edited). No time_scale (the take's own tempo; the ref5 builds ran at 0.38-0.45) and no blade pass. Previous (attack_ref5 take): {\"layer\": \"right\", \"glb\": \"attack_ref5_arm\", \"mode\": \"action\", \"rename\": \"ue5\", \"time_scale\": 0.4525, \"smooth\": 1, \"fist\": 0.9, \"heading\": \"auto\", \"src_begin\": 101, \"src_end\": 176, \"src_ext\": \"blend\", \"plant_feet\": 0.001, \"drift\": \"root\", \"lift\": 0.004, \"ground_fit\": true, \"unwind_yaw\": true, \"unwind_ref\": \"body\", \"hand_edited\": true}.  2026-09-26 (user: 'for one-handed attacks only torso and above are used, we don't touch legs and feet'): anim_nla_bake --legs-from Idle_01:1 - every leg control from Idle's frame 1 on every frame, the clip's hips over the idle's stance (the user's updated Attack_R_Slice_Fix - right arm, torso - baked first).",
-   "hand_edited": true
+   "drift": "root",
+   "src_begin": 0,
+   "src_end": 71,
+   "_note": "2026-10-02 (user: 'replace the slice animation with swing: frames 0-57; swing_02 frames 64-122; P:/1 handed extras.glb'): the mannequin app, 153 frames at 30 fps = the user's 122 x1.25 (24 fps numbers again: at face value swing_02 ends mid-air with the hand at 1.73 m) -> source 0-71 / 80-152, each rest to rest. The right hand swings (5.6 / 6.5 m/s peaks), the performer lunges ~0.4 m and back, so a plain transfer with the feet planted and the step as root motion (drift root). Replaces Attack_R/L_Slice. 2026-10-02 second round (user: 'the transition from the end of attack to idle is too snappy; no feel of weight; swing_01: during the wind-up the weapon should face back, during the attack the attack direction (it strikes with the palm); after the attack the model direction slightly changes'): heading first (the take stood 28 deg off the idle's facing), bake_rot (root rotation in the pose), start/end blends to Idle_1H_Combat:1 (6 / 16 frames), speed segments for weight (Swing_01: the top of the wind-up 0.7x, the strike 1.25x, the recovery 1.15x; Swing_02: the wind-up 0.8x, the top 0.7x), and on Swing_01 the new --hilt-path (back-down behind the head in the wind-up, trailing up-back into the downswing, then the edge orientation at the strike: knuckles leading, the hilt 45 deg off the forearm, the roll on the forearm).",
+   "bake_rot": true,
+   "bake": [
+    [
+     "--hilt-path",
+     "R=1:rec,8:rec,20:-0.8/0/-0.6/0.7,25:-0.3/0/1/0.7,29:edge/0.9/45,34:edge/0.9/45,46:rec"
+    ],
+    [
+     "--speed-segment",
+     "40:72:1.15"
+    ],
+    [
+     "--speed-segment",
+     "23:31:1.25"
+    ],
+    [
+     "--speed-segment",
+     "17:23:0.7"
+    ],
+    [
+     "--start-blend",
+     "Idle_1H_Combat:1:6",
+     "--end-blend",
+     "Idle_1H_Combat:1:16"
+    ]
+   ]
+  },
+  {
+   "name": "Attack_R_Swing_02",
+   "layer": "right",
+   "glb": "onehand_extras_arm",
+   "src_ext": "blend",
+   "rename": "ue5",
+   "mode": "action",
+   "time_scale": 1.0,
+   "smooth": 1,
+   "fist": 0.9,
+   "heading": "first",
+   "plant_feet": 0.001,
+   "unwind_yaw": true,
+   "unwind_ref": "body",
+   "lift": 0.004,
+   "ground_fit": true,
+   "drift": "root",
+   "src_begin": 80,
+   "src_end": 152,
+   "_note": "2026-10-02 (user: 'replace the slice animation with swing: frames 0-57; swing_02 frames 64-122; P:/1 handed extras.glb'): the mannequin app, 153 frames at 30 fps = the user's 122 x1.25 (24 fps numbers again: at face value swing_02 ends mid-air with the hand at 1.73 m) -> source 0-71 / 80-152, each rest to rest. The right hand swings (5.6 / 6.5 m/s peaks), the performer lunges ~0.4 m and back, so a plain transfer with the feet planted and the step as root motion (drift root). Replaces Attack_R/L_Slice. 2026-10-02 second round (user: 'the transition from the end of attack to idle is too snappy; no feel of weight; swing_01: during the wind-up the weapon should face back, during the attack the attack direction (it strikes with the palm); after the attack the model direction slightly changes'): heading first (the take stood 28 deg off the idle's facing), bake_rot (root rotation in the pose), start/end blends to Idle_1H_Combat:1 (6 / 16 frames), speed segments for weight (Swing_01: the top of the wind-up 0.7x, the strike 1.25x, the recovery 1.15x; Swing_02: the wind-up 0.8x, the top 0.7x), and on Swing_01 the new --hilt-path (back-down behind the head in the wind-up, trailing up-back into the downswing, then the edge orientation at the strike: knuckles leading, the hilt 45 deg off the forearm, the roll on the forearm). Third round (user: 'fix the swing_02 weapon trailing'): --hilt-path in the pre-retime frames - the weapon hangs back-down on the far side of the coming swing at the bottom of the wind-up, still lags into the upswing, the edge orientation at impact (knuckles leading, 45 deg off the forearm), then the recorded follow-through.",
+   "bake_rot": true,
+   "bake": [
+    [
+     "--hilt-path",
+     "R=1:rec,8:rec,21:trail/0.5/31,27:trail/0.6/31,32:edge/0.9/45,34:edge/0.9/45,46:rec"
+    ],
+    [
+     "--speed-segment",
+     "36:44:0.7"
+    ],
+    [
+     "--speed-segment",
+     "15:25:0.8"
+    ],
+    [
+     "--start-blend",
+     "Idle_1H_Combat:1:6",
+     "--end-blend",
+     "Idle_1H_Combat:1:16"
+    ]
+   ]
+  },
+  {
+   "name": "Attack_L_Swing_01",
+   "layer": "left",
+   "glb": "onehand_extras_arm",
+   "src_ext": "blend",
+   "rename": "ue5",
+   "mode": "action",
+   "time_scale": 1.0,
+   "smooth": 1,
+   "fist": 0.9,
+   "heading": "first",
+   "plant_feet": 0.001,
+   "unwind_yaw": true,
+   "unwind_ref": "body",
+   "lift": 0.004,
+   "ground_fit": true,
+   "drift": "root",
+   "src_begin": 0,
+   "src_end": 71,
+   "mirror": true,
+   "_note": "2026-10-02 (user: 'replace the slice animation with swing: frames 0-57; swing_02 frames 64-122; P:/1 handed extras.glb'): the mannequin app, 153 frames at 30 fps = the user's 122 x1.25 (24 fps numbers again: at face value swing_02 ends mid-air with the hand at 1.73 m) -> source 0-71 / 80-152, each rest to rest. The right hand swings (5.6 / 6.5 m/s peaks), the performer lunges ~0.4 m and back, so a plain transfer with the feet planted and the step as root motion (drift root). Replaces Attack_R/L_Slice. 2026-10-02 second round (user: 'the transition from the end of attack to idle is too snappy; no feel of weight; swing_01: during the wind-up the weapon should face back, during the attack the attack direction (it strikes with the palm); after the attack the model direction slightly changes'): heading first (the take stood 28 deg off the idle's facing), bake_rot (root rotation in the pose), start/end blends to Idle_1H_Combat:1 (6 / 16 frames), speed segments for weight (Swing_01: the top of the wind-up 0.7x, the strike 1.25x, the recovery 1.15x; Swing_02: the wind-up 0.8x, the top 0.7x), and on Swing_01 the new --hilt-path (back-down behind the head in the wind-up, trailing up-back into the downswing, then the edge orientation at the strike: knuckles leading, the hilt 45 deg off the forearm, the roll on the forearm).",
+   "bake_rot": true,
+   "bake": [
+    [
+     "--hilt-path",
+     "L=1:rec,8:rec,20:-0.8/0/-0.6/0.7,25:-0.3/0/1/0.7,29:edge/0.9/45,34:edge/0.9/45,46:rec"
+    ],
+    [
+     "--speed-segment",
+     "40:72:1.15"
+    ],
+    [
+     "--speed-segment",
+     "23:31:1.25"
+    ],
+    [
+     "--speed-segment",
+     "17:23:0.7"
+    ],
+    [
+     "--start-blend",
+     "Idle_1H_Combat:1:6",
+     "--end-blend",
+     "Idle_1H_Combat:1:16"
+    ]
+   ]
+  },
+  {
+   "name": "Attack_L_Swing_02",
+   "layer": "left",
+   "glb": "onehand_extras_arm",
+   "src_ext": "blend",
+   "rename": "ue5",
+   "mode": "action",
+   "time_scale": 1.0,
+   "smooth": 1,
+   "fist": 0.9,
+   "heading": "first",
+   "plant_feet": 0.001,
+   "unwind_yaw": true,
+   "unwind_ref": "body",
+   "lift": 0.004,
+   "ground_fit": true,
+   "drift": "root",
+   "src_begin": 80,
+   "src_end": 152,
+   "mirror": true,
+   "_note": "2026-10-02 (user: 'replace the slice animation with swing: frames 0-57; swing_02 frames 64-122; P:/1 handed extras.glb'): the mannequin app, 153 frames at 30 fps = the user's 122 x1.25 (24 fps numbers again: at face value swing_02 ends mid-air with the hand at 1.73 m) -> source 0-71 / 80-152, each rest to rest. The right hand swings (5.6 / 6.5 m/s peaks), the performer lunges ~0.4 m and back, so a plain transfer with the feet planted and the step as root motion (drift root). Replaces Attack_R/L_Slice. 2026-10-02 second round (user: 'the transition from the end of attack to idle is too snappy; no feel of weight; swing_01: during the wind-up the weapon should face back, during the attack the attack direction (it strikes with the palm); after the attack the model direction slightly changes'): heading first (the take stood 28 deg off the idle's facing), bake_rot (root rotation in the pose), start/end blends to Idle_1H_Combat:1 (6 / 16 frames), speed segments for weight (Swing_01: the top of the wind-up 0.7x, the strike 1.25x, the recovery 1.15x; Swing_02: the wind-up 0.8x, the top 0.7x), and on Swing_01 the new --hilt-path (back-down behind the head in the wind-up, trailing up-back into the downswing, then the edge orientation at the strike: knuckles leading, the hilt 45 deg off the forearm, the roll on the forearm). Third round (user: 'fix the swing_02 weapon trailing'): --hilt-path in the pre-retime frames - the weapon hangs back-down on the far side of the coming swing at the bottom of the wind-up, still lags into the upswing, the edge orientation at impact (knuckles leading, 45 deg off the forearm), then the recorded follow-through.",
+   "bake_rot": true,
+   "bake": [
+    [
+     "--hilt-path",
+     "L=1:rec,8:rec,21:trail/0.5/31,27:trail/0.6/31,32:edge/0.9/45,34:edge/0.9/45,46:rec"
+    ],
+    [
+     "--speed-segment",
+     "36:44:0.7"
+    ],
+    [
+     "--speed-segment",
+     "15:25:0.8"
+    ],
+    [
+     "--start-blend",
+     "Idle_1H_Combat:1:6",
+     "--end-blend",
+     "Idle_1H_Combat:1:16"
+    ]
+   ]
   },
   {
    "name": "Attack_L_Stab",
@@ -534,28 +691,6 @@
    "ground_fit": true,
    "mirror": true,
    "_note": "2026-09-26 (experimental, user: 'new recording melee in place.glb; replace slice with frames 1-40 and stab with 48-83, feet frozen in place'): the mannequin app (104 frames = 83 x1.25: the user's 24 fps numbers), the right hand attacks (2.1 / 1.4 m/s, the left calm), the pelvis in place, so a plain transfer with the legs planted and NO root drift; both feet then frozen at their frame-1 transforms for the whole clip by anim_nla_bake --pin-foot L,R and this clip written as the X-mirror of the finished right one (hand_edited). No time_scale (the take's own tempo; the ref5 builds ran at 0.38-0.45) and no blade pass. Previous (attack_ref5 take): {\"layer\": \"left\", \"glb\": \"attack_ref5_arm\", \"mode\": \"action\", \"rename\": \"ue5\", \"time_scale\": 0.3846, \"smooth\": 1, \"fist\": 0.9, \"heading\": \"auto\", \"src_begin\": 18, \"src_end\": 80, \"src_ext\": \"blend\", \"mirror\": true, \"plant_feet\": 0.001, \"drift\": \"root\", \"unwind_yaw\": true, \"blade_along_arm\": \"L\", \"lift\": 0.004, \"ground_fit\": true, \"hand_edited\": true}.  2026-09-26 (user: 'for one-handed attacks only torso and above are used, we don't touch legs and feet'): anim_nla_bake --legs-from Idle_01:1 - every leg control from Idle's frame 1 on every frame, the clip's hips over the idle's stance; the L clip the mirror.",
-   "hand_edited": true
-  },
-  {
-   "name": "Attack_L_Slice",
-   "layer": "left",
-   "glb": "melee_ref_arm",
-   "src_ext": "blend",
-   "rename": "ue5",
-   "mode": "action",
-   "time_scale": 1.0,
-   "smooth": 1,
-   "fist": 0.9,
-   "heading": "auto",
-   "src_begin": 1,
-   "src_end": 50,
-   "plant_feet": 0.001,
-   "unwind_yaw": true,
-   "unwind_ref": "body",
-   "lift": 0.004,
-   "ground_fit": true,
-   "mirror": true,
-   "_note": "2026-09-26 (experimental, user: 'new recording melee in place.glb; replace slice with frames 1-40 and stab with 48-83, feet frozen in place'): the mannequin app (104 frames = 83 x1.25: the user's 24 fps numbers), the right hand attacks (2.1 / 1.4 m/s, the left calm), the pelvis in place, so a plain transfer with the legs planted and NO root drift; both feet then frozen at their frame-1 transforms for the whole clip by anim_nla_bake --pin-foot L,R and this clip written as the X-mirror of the finished right one (hand_edited). No time_scale (the take's own tempo; the ref5 builds ran at 0.38-0.45) and no blade pass. Previous (attack_ref5 take): {\"layer\": \"left\", \"glb\": \"attack_ref5_arm\", \"mode\": \"action\", \"rename\": \"ue5\", \"time_scale\": 0.4525, \"smooth\": 1, \"fist\": 0.9, \"heading\": \"auto\", \"src_begin\": 101, \"src_end\": 176, \"src_ext\": \"blend\", \"mirror\": true, \"plant_feet\": 0.001, \"drift\": \"root\", \"lift\": 0.004, \"ground_fit\": true, \"unwind_yaw\": true, \"unwind_ref\": \"body\", \"hand_edited\": true}.  2026-09-26 (user: 'for one-handed attacks only torso and above are used, we don't touch legs and feet'): anim_nla_bake --legs-from Idle_01:1 - every leg control from Idle's frame 1 on every frame, the clip's hips over the idle's stance; the L clip the mirror.",
    "hand_edited": true
   },
   {

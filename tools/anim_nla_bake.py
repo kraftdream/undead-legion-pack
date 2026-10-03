@@ -29,6 +29,8 @@ FRAMES = arg("--frames", "")
 SOURCE = arg("--action", "")
 HAND_GRIP = arg("--hand-grip", "")                # "L" / "R" / "LR": after the bake, that hand's finger controls take the `Grip` action's fist on every frame (the pose the engine puts on a hand that holds an item; an empty hand on a two-hander's shaft gets none)                      # flatten THIS action instead of the rig's current stack (a plain clip with no fix on top: the tool otherwise reads whatever action happens to be active)
 SPEED_SEGMENT = arg("--speed-segment", "")
+HILT_WRIST = [float(x) for x in arg("--hilt-wrist", "40,140").split(",")]   # the hilt-path keeps the hilt this many degrees off the forearm line (min,max): a wrist bends ~40-50 deg either way from the fist's ~85
+HILT_PATH = arg("--hilt-path", "")                 # "R=1:rec,20:-0.8/0/-0.6,25:-0.3/0/1,30:arm/0.8,46:rec": where the hand's hilt axis (socket +Y) points, by frame - keys "frame:spec", spec = rec (the clip's own hilt), arm[/w] (along the forearm, elbow -> wrist), or f/l/u[/w] (a direction in the character frame: forward, left, up); the target between keys is slerped, the weight lerped, and the FK hand turned by the least rotation from its hilt to the target (2026-10-02, the swing: "weapon should face back during the wind-up and face the attack direction during the strike")
 ARM_POLE_FK = arg("--arm-pole-fk", "")           # "L" / "R" / "LR": on the frames where that arm is on IK, re-aim the elbow pole at the FK chain's elbow (the FK controls carry the capture's arm on every frame even while the switch is at IK), so an IK stretch inside an FK clip keeps the capture's elbow plane (a gate pull put the elbow on the rest pole: 82 mm jump at the switch)
 TORSO_YAW = float(arg("--torso-yaw", "0"))       # degrees: counter-rotate the upper body against its OWN yaw excursion - at the frame where the chest has turned furthest from its first-frame heading the correction is this many degrees the other way, scaled by the excursion on every other frame (0 at the ends), spread over spine_fk.001 / .002 / chest; an IK left hand (the gate) and its pole ride along with the right hand so the two-handed grip holds (user: "attack direction is a bit to the left, add torso rotation like 50-60 degrees so the attack ends more forward")
 SHAFT_CLAMP = [float(v) for v in arg("--shaft-clamp", "").split(",")] if arg("--shaft-clamp", "") else None   # "MIN,MAX" rig m: the seated hand's distance along the shaft is clamped to this range (- = below the other hand, toward the pommel / the staff's foot), so a hand the performer holds past the prop's end stays on it (user, Cast_Staff_01: "the left hand doesn't follow the staff handle from 14 to 43")
@@ -1164,6 +1166,118 @@ def knees_in(act, d):
         log("knees-in: %d knee-frames could not reach the wanted lateral offset on their swivel circle (worst %.0f mm short, frame %d %s): a --torso-drop bends the knees and widens the circle" % (len(KNEES_SHORT), worst[2] * 1000, worst[0], worst[1]))
 
 
+def hilt_path(act, spec):
+    """Turn each FK arm's hand so the weapon socket follows a keyed path (see --hilt-path). Key specs: rec (the clip's own),
+    arm[/w] (hilt along the forearm), f/l/u[/w] (hilt toward a character-frame direction), edge[/w[/deg]] (a full orientation: the
+    hilt perpendicular to the hand's motion, deg (45) off the forearm line, the knuckle side - socket +X - leading the motion, so
+    the weapon's edge strikes instead of the palm). Between keys the socket rotation is slerped; the change is split into a
+    twist about the forearm (pronation, on forearm_fk) and the rest on the wrist (hand_fk)."""
+    ad.action = act
+    M = rig.matrix_world
+    for part in spec.split(";"):
+        sd, keys_ = part.split("=")
+        keys = sorted((int(k.split(":", 1)[0]), k.split(":", 1)[1]) for k in keys_.split(","))
+        # the hand's path (its velocity drives the edge keys), read before any change
+        hp = {}; ua = {}
+        for f in range(F0, F1 + 1):
+            scene.frame_set(f); hp[f] = (M @ pbs["DEF-hand." + sd].matrix).translation.copy()
+            ua[f] = (M @ pbs["DEF-upper_arm." + sd].matrix).to_3x3().normalized()
+        def vel_at(f):
+            a, b = hp.get(f - 1, hp[f]), hp.get(f + 1, hp[f]); v = b - a
+            return v.normalized() if v.length > 1e-6 else Vector((0, 0, -1))
+        KEYF = [0]
+        def vel(f):
+            # an edge key's motion direction is the hand's at the KEY frame, carried with the upper arm: after the strike the
+            # hand reverses at the bottom of the swing, and a per-frame velocity would flip the target 180 deg in one frame
+            k = KEYF[0]; return (ua[f] @ ua[k].inverted() @ vel_at(k)).normalized()
+        def target(s_, R, hilt, fa, f):
+            p = s_.split("/")
+            if p[0] == "rec": return R, 0.0
+            if p[0] == "trail":
+                # the weapon lagging the swing: square to the forearm (the fist's own angle, no wrist bend) and pointing AGAINST
+                # the motion of frame p[2] (the strike it winds up for), carried with the upper arm - reached by forearm roll
+                w = float(p[1]) if len(p) > 1 else 1.0
+                kf = int(p[2]) if len(p) > 2 else KEYF[0]
+                v = (ua[f] @ ua[kf].inverted() @ vel_at(kf)).normalized()
+                y = -(v - v.dot(fa) * fa)
+                if y.length < 1e-4: return R, 0.0
+                return hilt.rotation_difference(y.normalized()) @ R, w
+            if p[0] in ("arm", "edge"):
+                w = float(p[1]) if len(p) > 1 else 1.0
+                if p[0] == "arm":
+                    return hilt.rotation_difference(fa) @ R, w
+                ang = math.radians(float(p[2])) if len(p) > 2 else math.radians(45.0)   # the hilt's angle off the forearm line (a wrist bends ~40 deg)
+                v = vel(f); y0 = fa - fa.dot(v) * v
+                if y0.length < 1e-4: return R, 0.0
+                y0.normalize()
+                h = hilt - hilt.dot(v) * v; u = h - h.dot(y0) * y0          # bend toward the clip's own hilt side, in the plane across the motion
+                u = u.normalized() if u.length > 1e-4 else v.cross(y0).normalized()
+                y = (y0 * math.cos(ang) + u * math.sin(ang)).normalized()
+                x = (v - v.dot(y) * y).normalized(); z = x.cross(y)
+                return Matrix((x, y, z)).transposed().to_quaternion(), w
+            d = (M.to_3x3() @ Vector((float(p[1]), -float(p[0]), float(p[2])))).normalized()   # forward = -Y, left = +X, up = +Z
+            return hilt.rotation_difference(d) @ R, float(p[3]) if len(p) > 3 else 1.0
+        # every key's target is computed ONCE, at its own frame, and carried with the upper arm in between: a target re-derived
+        # per frame (from the forearm and the motion) has no stable side where the forearm lines up with the motion
+        uq = {f: ua[f].to_quaternion() for f in ua}
+        ktar = []
+        for kf_, ks_ in keys:
+            scene.frame_set(kf_)
+            wr_ = (M @ pbs["DEF-hand." + sd].matrix).translation; el_ = (M @ pbs["DEF-forearm." + sd].matrix).translation
+            fa_ = (wr_ - el_).normalized(); sk_ = M @ pbs["DEF-weapon." + sd].matrix
+            R_ = sk_.to_3x3().normalized().to_quaternion(); h_ = (sk_.to_3x3() @ Vector((0, 1, 0))).normalized()
+            KEYF[0] = kf_; T_, w_ = target(ks_, R_, h_, fa_, kf_)
+            ktar.append((None if ks_.split("/")[0] == "rec" else uq[kf_].inverted() @ T_, w_))
+        dev = []; tw = []; n_ = 0
+        for f in range(F0, F1 + 1):
+            if f < keys[0][0] or f > keys[-1][0]: continue
+            scene.frame_set(f)
+            if pbs["upper_arm_parent." + sd]["IK_FK"] < 0.5: continue
+            i = max(k for k in range(len(keys)) if keys[k][0] <= f); j = min(i + 1, len(keys) - 1)
+            wrist = (M @ pbs["DEF-hand." + sd].matrix).translation; el = (M @ pbs["DEF-forearm." + sd].matrix).translation
+            fa = (wrist - el).normalized()
+            sock = M @ pbs["DEF-weapon." + sd].matrix; R = sock.to_3x3().normalized().to_quaternion(); hilt = (sock.to_3x3() @ Vector((0, 1, 0))).normalized()
+            Ta = R if ktar[i][0] is None else uq[f] @ ktar[i][0]; wa = ktar[i][1]
+            Tb = R if ktar[j][0] is None else uq[f] @ ktar[j][0]; wb = ktar[j][1]
+            Ra = R.slerp(Ta, wa); Rb = R.slerp(Tb, wb)
+            t = 0.0 if j == i else (f - keys[i][0]) / float(keys[j][0] - keys[i][0]); t = t * t * (3 - 2 * t)
+            if Ra.dot(Rb) < 0: Rb = -Rb
+            want = Ra.slerp(Rb, t)
+            def ok_(qq):
+                a_ = math.degrees((qq @ Vector((0, 1, 0))).angle(fa)); return HILT_WRIST[0] <= a_ <= HILT_WRIST[1]
+            if not ok_(want) and ok_(R):
+                # a wrist cannot bend the weapon onto (or back past) the forearm line: pull the change back toward the clip's own
+                # hand until it fits (continuous in the target; pushing the hilt out radially flips side near the forearm line)
+                lo, hi = 0.0, 1.0
+                Rw = want if R.dot(want) >= 0 else -want
+                for _ in range(20):
+                    mid = 0.5 * (lo + hi)
+                    if ok_(R.slerp(Rw, mid)): lo = mid
+                    else: hi = mid
+                want = R.slerp(Rw, lo)
+            q = want @ R.inverted()
+            if q.w < 0: q = -q                                              # the shortest way round (a long one flips Humanoid's twist)
+            # twist about the forearm (pronation) on the forearm, the rest on the wrist
+            pv = Vector((q.x, q.y, q.z)); proj = fa * pv.dot(fa)
+            qt = Quaternion((q.w, proj.x, proj.y, proj.z));
+            qt = qt.normalized() if qt.magnitude > 1e-8 else Quaternion()
+            if qt.w < 0: qt = -qt
+            fb = pbs["forearm_fk." + sd]; m = (M @ fb.matrix).copy(); ep = m.translation.copy()
+            fb.matrix = M.inverted() @ (Matrix.Translation(ep) @ qt.to_matrix().to_4x4() @ Matrix.Translation(-ep) @ m)
+            bpy.context.view_layer.update()
+            sock = M @ pbs["DEF-weapon." + sd].matrix; R2 = sock.to_3x3().normalized().to_quaternion()
+            qs = want @ R2.inverted()
+            if qs.w < 0: qs = -qs
+            hb = pbs["hand_fk." + sd]; m = (M @ hb.matrix).copy(); hpp = m.translation.copy()
+            hb.matrix = M.inverted() @ (Matrix.Translation(hpp) @ qs.to_matrix().to_4x4() @ Matrix.Translation(-hpp) @ m)
+            bpy.context.view_layer.update()
+            for pb_ in (fb, hb):
+                pb_.keyframe_insert("rotation_quaternion" if pb_.rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group=pb_.name)
+            sock2 = M @ pbs["DEF-weapon." + sd].matrix; h2 = (sock2.to_3x3() @ Vector((0, 1, 0))).normalized()
+            dev.append(math.degrees(h2.angle(fa))); tw.append(math.degrees(qt.angle) if qt.angle <= math.pi else 360 - math.degrees(qt.angle)); n_ += 1
+        log("hilt-path %s: %d frames; hilt-to-forearm %.0f..%.0f deg (the clip's own ~80-90), forearm twist added up to %.0f deg" % (sd, n_, min(dev) if dev else 0, max(dev) if dev else 0, max(tw) if tw else 0))
+
+
 def wrist_twist(act, spec):
     """The retarget's wrist_twist on a baked action: the FK forearm rotated about its own axis (elbow -> wrist) by a constant
     angle on every frame, the hand and fingers riding; an IK arm is skipped (its hand sits on hand_ik, the FK forearm shows nothing)."""
@@ -1688,6 +1802,9 @@ if FK_ARM:
 
 if WRIST_TWIST:
     wrist_twist(baked, WRIST_TWIST)
+
+if HILT_PATH:
+    hilt_path(baked, HILT_PATH)
 
 if ARMS_DOWN:
     arms_down(baked, ARMS_DOWN)
