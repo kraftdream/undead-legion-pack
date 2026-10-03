@@ -73,9 +73,30 @@ with torch.no_grad():
         mins.append(o.vertices[:, :, 1].min(1).values.numpy()); J0s.append(o.joints[:, 0].numpy()); Jall.append(o.joints[:, :22].numpy())
     vmin = np.concatenate(mins); J0_posed = np.concatenate(J0s); J_posed = np.concatenate(Jall).astype(np.float64)
 
+# --anchor-foot L|R[:frame]: that foot stood still in the recording, so any travel of it is the solver's drift.
+# The whole body is shifted every frame so that foot (the mean of its ankle and ball joints) stays where it is
+# on the reference frame (1-based, default 1), in all three axes (user, swing_1: "left foot is static, use it
+# to fix the drift"). The rotations are untouched; the floor is measured after the shift.
+ANCHOR = arg("--anchor-foot", "")
+if ANCHOR:
+    side, _, ref = ANCHOR.partition(":")
+    ref = int(ref or 1) - 1
+    ja, jb = (7, 10) if side.upper() == "L" else (8, 11)
+    foot = 0.5 * (J_posed[:, ja] + J_posed[:, jb])
+    off = foot - foot[ref]
+    print("[gvhmr_export] anchor %s foot on frame %d: it travelled up to %.3f m horizontally, %.3f m vertically; removed"
+          % (side.upper(), ref + 1, np.linalg.norm(off[:, [0, 2]], axis=1).max(), np.abs(off[:, 1]).max()))
+    J_posed -= off[:, None, :]
+    J0_posed = J0_posed - off
+    vmin = vmin - off[:, 1]
+
 # the floor: the clip's low percentile of per-frame lowest vertices (a jump does not lift it, one bad frame does not sink it)
 floor = float(np.percentile(vmin, 5))
 rest_floor = float(v_rest[:, 1].min())
+if ANCHOR:
+    # the anchored foot is the one on the ground: its ankle sits at the rest ankle's height above the rest floor
+    # (the percentile follows the other foot, which the solver's depth error sinks ~10 cm during a lunge)
+    floor = float(0.5 * (J_posed[ref, ja, 1] + J_posed[ref, jb, 1]) - 0.5 * (J_rest[ja, 1] + J_rest[jb, 1]) + rest_floor)
 print("[gvhmr_export] floor %.3f (per-frame lowest %.3f..%.3f), rest feet %.3f" % (floor, vmin.min(), vmin.max(), rest_floor))
 
 # rest joints (22 body + 2 knuckles), feet on the floor

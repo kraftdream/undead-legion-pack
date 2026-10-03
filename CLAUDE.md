@@ -1936,6 +1936,29 @@ bones; the FK reproduces the body model to 0.00 mm) → `External Anims/Video/NA
 `--rename smpl`. First test (the user's `slowmo 1 attack.mp4`, black side bars cropped first, 3x `time_scale` from the
 hand speed): arm bones within 1–3 deg of the capture, no per-clip passes; the clip was discarded at the user's request.
 SMPL-X is MPI's non-commercial licence: check it before shipping clips made this way.
+**Second round (2026-10-03): the user's two one-handed swing videos.** Three findings, all in the tools now:
+(1) **the retarget bent every FK leg** (`glb_retarget.pose`): the FK leg controls hang under `spine_fk` (thigh_fk <
+MCH-thigh_parent < ORG-spine < tweak_spine < spine_fk), so the final re-apply of `spine_fk` after the chain swung both legs,
+already set, as one rigid piece — 20–44 deg on `swing_1` with the knee angles exact (the plant then folded the stance; feet
+0.57 apart against the source's 0.32), and likely the 4–15 deg leg errors of the earlier captures. The legs are set again after
+that re-apply: 0–3 deg. Every clip with FK legs from a capture (action / loco / death) was built with the bug; none rebuilt.
+(2) **GVHMR drifts a planted foot** (1.1 m on swing_1, 0.29 m on swing_2): `gvhmr_export.py --anchor-foot L|R[:frame]` shifts
+the whole body per frame so that foot (ankle + ball mean) stays at its reference spot, and takes the floor from it.
+(3) **the idle's knees point 11–14 deg further out than a capture's**, so the start/end blends swung them:
+`anim_nla_bake --knee-swivel-to ACTION:FRAME` turns the IK knees about the hip→ankle axis so the knee direction equals the
+reference's on the first AND last frame, the offset lerped between; run it before the blends, then blend with `--keep-poles`.
+Recipe used (in place, `drift remove`): retarget (`--mode action --time-scale 0.3333 --plant-feet 0.001 --heading first
+--unwind-yaw --unwind-ref body`) → [blends] → `--ik-legs --pin-foot ... --leg-reach 0.95 --knee-swivel-to Idle_1H_Combat:1`
+→ [blends `--keep-poles`]. `Attack_R_Swing_01` is the swing_1 video build (right foot static, left held 45–63 at 63); the
+swing_2 build is **`Attack_R_Swing_07`** (99 frames; right ball held, the foot keeps its 33 deg tilt; left held 1–10, 44–70
+@52, 85–99); `Attack_R_Swing_02` is the committed mannequin clip again (user: "save the new one as 07"), the old mannequin
+clips kept as `Attack_R_Swing_01/02_mannequin`. Not exported, manifest not updated, the L mirrors not rebuilt.
+**Hands: GVHMR never observes them** (17 COCO keypoints; its wrist moves ~14 deg over a whole swing). **SAM 3D Body** is
+installed for that: weights in `D:/Sam` (gated `facebook/sam-3d-body-dinov3`: `model.ckpt`, `model_config.yaml`,
+`assets/mhr_model.pt`), code `D:/Sam/sam-3d-body` (GitHub, with a local CPU patch: 7 hard-coded `.cuda()` calls), venv
+`D:/Sam/.venv` (`D:/Sam/setup_local.sh`), no Detectron2: `tools/sam3d_hands.py` feeds it GVHMR's per-frame box and camera.
+11.6 s per frame on this CPU; hand and finger keypoints land on the hands. Not done: the step that turns its hand keypoints
+into the SMPL wrist rotations.
 
 ### The clip factory (2026-09-19/20)
 
