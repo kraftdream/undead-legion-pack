@@ -28,7 +28,7 @@ from ue_materials import textures, materials, weapons
 from ue_anims import clips, montages, measure_clips
 from ue_weapons import sockets, weapon_blueprints
 from ue_character import base as character, children as character_children
-from ue_demo_ui import demo_vars, demo_data, demo_actors
+from ue_demo_ui import demo_vars, demo_data, demo_actors, showreel_director, showreel_bow
 from ue_eyes import eyes
 
 # ------------------------------------------------------------------------------------------ models
@@ -109,7 +109,7 @@ def measure():
 
 STEPS = {"models": models, "textures": textures, "weapons": weapons, "materials": materials, "clips": clips, "montages": montages, "measure": measure, "measure_clips": measure_clips, "sockets": sockets, "weapon_blueprints": weapon_blueprints,
          "character": character, "character_children": character_children,
-         "demo_vars": demo_vars, "demo_data": demo_data, "demo_actors": demo_actors, "eyes": eyes}
+         "demo_vars": demo_vars, "demo_data": demo_data, "demo_actors": demo_actors, "eyes": eyes, "showreel_director": showreel_director, "showreel_bow": showreel_bow}
 
 if __name__ == "__main__":
     args = sys.argv[1:] or ["all"]

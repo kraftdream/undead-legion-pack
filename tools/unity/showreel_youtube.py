@@ -2,6 +2,7 @@
 (their own plain title cards cut), an outro, fades between every segment, and music.
 
     python tools/unity/showreel_youtube.py [--out Showreel/undead_legion_showreel.mp4] [--crf 16]
+    python tools/unity/showreel_youtube.py --src Showreel/unreal --out Showreel/unreal/undead_legion_showreel_unreal.mp4                                            --engine "Rendered in Unreal Engine 5.8"      (the Unreal renders, tools/ue/showreel_unreal_all.py)
 
 Inputs: Showreel/showreel_{modular,movement,weapons}.mp4 (ShowreelRecorder stages, each opening on a 48-frame title card).
 Assets are fetched into Showreel/assets/ on first run (ignored by git):
@@ -89,12 +90,17 @@ def rule(d, cx, y, half, color=GOLD):
     d.polygon([(cx, y - 7), (cx + 7, y), (cx, y + 7), (cx - 7, y)], outline=color, fill=None)
 
 
+ENGINE = ""                        # --engine: a small line under the intro (e.g. "Rendered in Unreal Engine 5.8")
+
+
 def card_intro(bg):
     im = background(bg, 5, 0.55); d = ImageDraw.Draw(im); cx = W // 2
     text(d, (cx, 400), "UNDEAD LEGION", font("CinzelDecorative-Bold.ttf", 150), GOLD_HI)
     rule(d, cx, 500, 420)
     text(d, (cx, 575), "Modular Skeleton Army", font("Cinzel.ttf", 64, b"Regular"), BONE)
     text(d, (cx, 700), "for  Unity  &  Unreal Engine", font("Cinzel.ttf", 46, b"Bold"), GOLD)
+    if ENGINE:
+        text(d, (cx, 790), ENGINE, font("EBGaramond.ttf", 38, b"Regular"), DIM)
     return im
 
 
@@ -159,10 +165,16 @@ def stage_clip(video, name):
 
 
 def main():
+    global WK, ENGINE
     ap = argparse.ArgumentParser(); ap.add_argument("--out", default=os.path.join(SR, "undead_legion_showreel.mp4")); ap.add_argument("--crf", type=int, default=16)
+    ap.add_argument("--src", default=SR, help="folder with showreel_{modular,movement,weapons}.mp4 (Showreel/unreal for the Unreal renders)")
+    ap.add_argument("--engine", default="", help="a line under the intro title")
     a = ap.parse_args()
+    ENGINE = a.engine
+    if os.path.abspath(a.src) != os.path.abspath(SR):
+        WK = os.path.join(AS, "work_" + os.path.basename(os.path.normpath(a.src)))
     fetch()
-    mod, mov, wpn = (os.path.join(SR, "showreel_%s.mp4" % s) for s in ("modular", "movement", "weapons"))
+    mod, mov, wpn = (os.path.join(a.src, "showreel_%s.mp4" % s) for s in ("modular", "movement", "weapons"))
     for v in (mod, mov, wpn):
         if not os.path.exists(v): sys.exit("missing " + v)
     print("stills ...", flush=True)

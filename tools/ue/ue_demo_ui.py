@@ -45,6 +45,7 @@ def _t(kind, cls=None):
             # "float" silently maps to an INT pin type; the Blueprint float type is "real" (double)
             "float": L.get_basic_type_by_name("real"), "string": L.get_basic_type_by_name("string"),
             "transform": L.get_struct_type(unreal.Transform.static_struct()),
+            "vector": L.get_struct_type(unreal.Vector.static_struct()),
             "obj": L.get_object_reference_type(cls) if cls else None, "class": L.get_class_reference_type(cls) if cls else None}[kind]
 
 
@@ -196,3 +197,88 @@ def demo_actors():
     L.compile_blueprint(show)
     EAL.save_loaded_asset(show, False)
     log("demo actors: BP_OrbitPawn, BP_DemoGameMode, BP_DemoShowcase")
+
+
+def showreel_director():
+    """BP_ShowreelDirector (Demo/Blueprints): plays a timeline of commands on one character and drives the recording camera
+    (Unity: ShowreelRecorder's step loop, FollowCamera and RecenterSeamless). Graphs: build_showreel_director.py."""
+    D = PKG + "/Demo/Blueprints"
+    char = L.generated_class(unreal.load_asset(PKG + "/Blueprints/BP_UndeadSkeleton"))
+    bp = _bp(D + "/BP_ShowreelDirector", unreal.Actor)
+    _add(bp, [
+        ("Character", "obj", char, False, True), ("Cam", "obj", unreal.Actor, False, True),
+        ("CmdTime", "float", None, True, True), ("CmdKind", "int", None, True, True),
+        ("CmdClip", "obj", unreal.AnimSequenceBase, True, True), ("CmdMesh", "obj", unreal.SkeletalMesh, True, True),
+        ("CmdInt", "int", None, True, True), ("CmdReal", "float", None, True, True),
+        ("Cursor", "int", None, False, False), ("T", "float", None, False, False), ("StartTime", "float", None, False, True),
+        ("RootMotion", "bool", None, False, True), ("FollowHips", "bool", None, False, False),
+        ("CamOffset", "vector", None, False, False), ("SpawnLocation", "vector", None, False, True), ("SpawnYaw", "float", None, False, True),
+        ("FollowDamping", "float", None, False, True), ("DeathDrop", "float", None, False, True),
+    ])
+    L.compile_blueprint(bp)
+    cdo = unreal.get_default_object(L.generated_class(bp))
+    for k, v in (("FollowDamping", 4.0), ("DeathDrop", 50.0), ("SpawnYaw", 180.0)):
+        cdo.set_editor_property(k, v)
+    tick = cdo.get_editor_property("primary_actor_tick")
+    tick.set_editor_property("tick_group", unreal.TickingGroup.TG_POST_UPDATE_WORK)   # after the character moved and animated
+    cdo.set_editor_property("primary_actor_tick", tick)
+    L.compile_blueprint(bp)
+    EAL.save_loaded_asset(bp, False)
+    log("BP_ShowreelDirector variables")
+    showreel_bow()
+
+
+def showreel_bow():
+    """The recurve bow's string and the fired arrow for the showreel (Unity: BowString, SkeletonWeapon.FireArrow,
+    ArrowProjectile). BP_Weapon_H2Recurvebow gets a PoseableMeshComponent `BowPose` (the same skinned bow, the Mesh hidden),
+    whose Nock / Limb_* bones the director poses every frame from the draw hand (UpdateBow); BP_ArrowProjectile is the shot:
+    SM_Arrow with its head (the mesh origin, the shaft along +Z) turned onto the actor's +X, a ProjectileMovement at Unity's
+    15 m/s, no gravity, 4 s life."""
+    import ue_weapons
+    D = PKG + "/Demo/Blueprints"
+    # the projectile
+    path = D + "/BP_ArrowProjectile"
+    if not EAL.does_asset_exist(path):
+        f = unreal.BlueprintFactory()
+        f.set_editor_property("parent_class", unreal.Actor)
+        pbp = unreal.AssetToolsHelpers.get_asset_tools().create_asset("BP_ArrowProjectile", D, unreal.Blueprint, f)
+        root_h, _ = ue_weapons._add_component(pbp, unreal.SceneComponent, "Root")
+        _, m = ue_weapons._add_component(pbp, unreal.StaticMeshComponent, "Mesh", root_h)
+        m.set_editor_property("static_mesh", unreal.load_asset(PKG + "/Weapons/SM_Arrow"))
+        m.set_editor_property("relative_rotation", unreal.Rotator(roll=0.0, pitch=90.0, yaw=0.0))   # mesh +Z -> actor -X: head along +X
+        m.set_collision_profile_name("NoCollision")
+        _, pm = ue_weapons._add_component(pbp, unreal.ProjectileMovementComponent, "Projectile")
+        for k, v in (("initial_speed", 1500.0), ("max_speed", 1500.0), ("projectile_gravity_scale", 0.0)):
+            pm.set_editor_property(k, v)
+        L.compile_blueprint(pbp)
+        unreal.get_default_object(L.generated_class(pbp)).set_editor_property("initial_life_span", 4.0)
+        L.compile_blueprint(pbp)
+        EAL.save_loaded_asset(pbp, False)
+    # the poseable bow
+    bow = unreal.load_asset(PKG + "/Weapons/Blueprints/BP_Weapon_H2Recurvebow")
+    lib = unreal.SubobjectDataBlueprintFunctionLibrary
+    mesh = ue_weapons._component_object(bow, "Mesh")
+    try:
+        pose = ue_weapons._component_object(bow, "BowPose")
+    except KeyError:
+        slot = [h for h in ue_weapons._subsys().k2_gather_subobject_data_for_blueprint(bow)
+                if str(lib.get_variable_name(lib.get_data(h))) == "Slot"][0]
+        _, pose = ue_weapons._add_component(bow, unreal.PoseableMeshComponent, "BowPose", slot)
+    pose.set_editor_property("skinned_asset", unreal.load_asset(PKG + "/Weapons/SK_H2Recurvebow"))   # a PoseableMesh has no skeletal_mesh_asset
+    for k in ("relative_location", "relative_rotation", "relative_scale3d"):
+        pose.set_editor_property(k, mesh.get_editor_property(k))
+    pose.set_collision_profile_name("NoCollision")
+    mesh.set_editor_property("visible", False)
+    L.compile_blueprint(bow)
+    EAL.save_loaded_asset(bow, False)
+    dbp = unreal.load_asset(D + "/BP_ShowreelDirector")
+    _add(dbp, [("BowMesh", "obj", unreal.PoseableMeshComponent, False, False), ("HeldArrow", "obj", unreal.Actor, False, False),
+               ("BowAttached", "bool", None, False, False), ("Draw", "float", None, False, False),
+               ("Apex", "vector", None, False, False), ("HasBow", "bool", None, False, False),
+               ("ArrowClass", "class", unreal.Actor, False, True)])
+    L.compile_blueprint(dbp)
+    unreal.get_default_object(L.generated_class(dbp)).set_editor_property(
+        "ArrowClass", L.generated_class(unreal.load_asset(path)))
+    L.compile_blueprint(dbp)
+    EAL.save_loaded_asset(dbp, False)
+    log("bow string + arrow projectile for the showreel")
