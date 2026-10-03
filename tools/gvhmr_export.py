@@ -102,6 +102,9 @@ print("[gvhmr_export] floor %.3f (per-frame lowest %.3f..%.3f), rest feet %.3f" 
 # rest joints (22 body + 2 knuckles), feet on the floor
 rest = np.concatenate([J_rest[:22], J_rest[[k for _, _, k in HAND_KIDS]]], 0)
 rest[:, 1] -= rest_floor
+# the rest hands' knuckles (index1, middle1, pinky1 per side: SMPL-X joints 25/28/31 and 40/43/46), for the palm plane
+# of the hand-orientation step (sam3d_wrists.py); world rest positions like `rest`
+rest_hands = J_rest[[25, 28, 31, 40, 43, 46]].copy(); rest_hands[:, 1] -= rest_floor
 names = NAMES + [n for n, _, _ in HAND_KIDS]
 parents = PARENTS + [p for _, p, _ in HAND_KIDS]
 
@@ -134,6 +137,7 @@ else:
 # Y up -> Z up: p_b = C p_s, R_b = C R_s C^-1 with C: (x, y, z) -> (x, -z, y). The SMPL rest faces +Z_s = -Y_b, the rig's forward.
 C = np.array([[1, 0, 0], [0, 0, -1], [0, 1, 0]], dtype=np.float64)
 rest_b = rest @ C.T
+rest_hands_b = (rest_hands @ C.T).reshape(2, 3, 3)       # [L, R] x [index1, middle1, pinky1]
 pelvis_b = pelvis @ C.T
 Rm = R.from_quat(quat_xyzw.reshape(-1, 4)).as_matrix()
 Rb = np.einsum("ij,njk,lk->nil", C, Rm, C)                     # C R C^T
@@ -150,7 +154,7 @@ if fps == fps_in:
     # the body model's own posed joints (Blender frame, floored): what smpl_to_armature must reproduce
     jp = J_posed.copy(); jp[..., 1] -= floor
     extra["joints_check"] = (jp @ C.T).astype(np.float32)
-np.savez(dst, **extra, names=np.array(names), parents=np.array(parents), rest=rest_b.astype(np.float32),
+np.savez(dst, **extra, rest_hands=rest_hands_b.astype(np.float32), names=np.array(names), parents=np.array(parents), rest=rest_b.astype(np.float32),
          quat=quat_wxyz.astype(np.float32), transl=pelvis_b.astype(np.float32), fps=np.float32(fps))
 print("[gvhmr_export] wrote %s: %d joints, %d frames @ %.1f fps, pelvis rest z %.3f, hand knuckles %s"
       % (dst, len(names), F, fps, rest_b[0, 2], np.round(rest_b[-2:], 3).tolist()))

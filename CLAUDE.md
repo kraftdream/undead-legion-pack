@@ -1957,8 +1957,26 @@ clips kept as `Attack_R_Swing_01/02_mannequin`. Not exported, manifest not updat
 installed for that: weights in `D:/Sam` (gated `facebook/sam-3d-body-dinov3`: `model.ckpt`, `model_config.yaml`,
 `assets/mhr_model.pt`), code `D:/Sam/sam-3d-body` (GitHub, with a local CPU patch: 7 hard-coded `.cuda()` calls), venv
 `D:/Sam/.venv` (`D:/Sam/setup_local.sh`), no Detectron2: `tools/sam3d_hands.py` feeds it GVHMR's per-frame box and camera.
-11.6 s per frame on this CPU; hand and finger keypoints land on the hands. Not done: the step that turns its hand keypoints
-into the SMPL wrist rotations.
+11.6 s per frame on this CPU; hand and finger keypoints land on the hands. **The hand step (2026-10-03 evening, `tools/sam3d_wrists.py`)**: SAM's hand orientation RELATIVE TO THE FOREARM, from joint
+positions only (forearm frame = elbow->wrist + the upper arm projected off it, blended to the shoulder line near a straight
+elbow; the hand = wrist->middle knuckle and the palm normal from the index/pinky knuckles), rebuilt on GVHMR's forearm of the
+same frame; the twist about the forearm axis goes on the ELBOW as pronation, the swing stays on the wrist (clamped 80 deg),
+slerped between SAM's frames (every 2nd) and low-passed. `video_mocap.py --hands [--step N] --anchor-foot L|R` runs the whole
+chain. On the one-handed swing video GVHMR's right wrist moved 6-23 deg over the swing, SAM's 6-74 deg + 0-79 deg of pronation.
+Measured on the same frames, SAM's per-frame body agrees with GVHMR's within 3-12 deg (joint angles) with ~2x the jitter and a
+1 cm/frame depth wander: a SAM-only path (MHR is Apache-2.0, SMPL-X is non-commercial) is feasible but not built - the user
+kept the hybrid ("already good as is"). Clips built this way: **`Attack_R_Swing_07`** (video 2 of the one-handed set, rebuilt
+with the hands; `Attack_R_Swing_01` still has GVHMR's hands), **`Attack_2H_03` / `Attack_2H_04`** (the user's `2 handed 1/2.MOV`,
+normal-speed recordings built at `time_scale 0.5`: 106 / 86 frames; `--start-blend / --end-blend Idle_TwoHanded:1:6 / :16`, both
+balls of the feet held on the idle's stance for the whole clip (`--pin-foot "L:1:1:N:toe,R:1:1:N:toe"`: the heels lift as recorded),
+`--leg-reach 0.95 --knee-swivel-to Idle_TwoHanded:1` (the recording's right knee pointed ~50 deg out, the idle's 13), then
+`--grip-follow L:@-0.075 --grip-pull --grip-reach 0.96 --fk-arm R` as on Attack_2H_01/02: the left hand within 51 mm of the shaft
+spot on the widest frame (the performer's hands were up to 0.56 m apart); the start/end crossfades turn the right forearm up to
+33-36 deg per frame at frames 4-7 and ~99). In the anim file only: no manifest entries, not exported, no controller states.
+⚠ A background SAM run was killed by Claude Code for low system memory (SAM takes ~9 GB); run it in foreground halves
+(`--frames A:B`, ≤ 10 min each) and merge the npz files by frame. **Feet fixes pulled from the user's side file** (same evening):
+`Run_Fwd_01/02`, `Walk_Back_01/02`, `Walk_Fwd_02` appended from `Animations/skeleton_anim_run_feet_fix.blend` over the anim file's
+(feet only differ; the `_base` / `_Fix` actions untouched); not re-exported, the speed table not re-measured.
 
 ### The clip factory (2026-09-19/20)
 
