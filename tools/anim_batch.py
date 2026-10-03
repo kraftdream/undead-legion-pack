@@ -83,7 +83,7 @@ def unity_flags(c):
     loop = "1" if (mode in ("idle", "loco") or c.get("loops")) else "0"          # `loops true`: a looping clip built in another mode (AOE_Cast_Hold: action mode + a --loop-seam bake)
     inplace = "0" if (mode == "loco" or c.get("drift") == "root") else "1"
     extra = []
-    if mode == "loco":
+    if mode == "loco" or c.get("bake_rot"):
         extra += ["--bake-rot", "1"]          # straight loops: the body's turn per step stays in the pose, the heading never drifts (Run_Fwd_01 drifted 5.8 cm/s off a 3 deg heading)
     if c.get("root_yaw_offset") is not None:
         extra += ["--rot-offset", str(c["root_yaw_offset"])]   # Root Transform Rotation Offset: a loop whose body faces a little off its path drifts sideways in Unity (Run_Fwd_01)
@@ -146,14 +146,17 @@ def build_pass(args, force, unity):
             notes += key
             if code != 0 or not any("saved" in l for l in lines):
                 ok = False
-            if ok and c.get("bake"):
+            runs_ = c.get("bake") or []
+            if runs_ and not isinstance(runs_[0], list): runs_ = [runs_]     # one run, or a list of runs in order (2026-10-02)
+            for bake_ in runs_:
+              if not ok: break
                 # manifest `bake`: anim_nla_bake passes run on the fresh retarget before the export (a reproducible
                 # post-pass, e.g. ["--loop", "--loop-seam", "6"] to close a hold loop cut from a one-shot take)
-                code, out = run([BLENDER, "-b", ANIM, "-P", os.path.join(ROOT, "tools", "anim_nla_bake.py"), "--", "--action", c["name"], "--result", c["name"]] + [str(a) for a in c["bake"]] + ["--save"])
-                blines = [l for l in out.splitlines() if l.startswith("[nla_bake]") or "Traceback" in l or "Error" in l]
-                notes += ["bake " + " ".join(str(a) for a in c["bake"])] + [l for l in blines if any(k in l for k in ("seam", "loop", "Traceback", "Error"))]
-                if code != 0 or not any("saved" in l for l in blines):
-                    ok = False
+              code, out = run([BLENDER, "-b", ANIM, "-P", os.path.join(ROOT, "tools", "anim_nla_bake.py"), "--", "--action", c["name"], "--result", c["name"]] + [str(a) for a in bake_] + ["--save"])
+              blines = [l for l in out.splitlines() if l.startswith("[nla_bake]") or "Traceback" in l or "Error" in l]
+              notes += ["bake " + " ".join(str(a) for a in bake_)] + [l for l in blines if any(k in l for k in ("seam", "loop", "hilt", "speed-segment", "blend", "Traceback", "Error"))]
+              if code != 0 or not any("saved" in l for l in blines):
+                  ok = False
         if ok:
             os.makedirs(PREVIEW, exist_ok=True)
             blender("anim_preview.py", ["--action", c["name"], "--out", PREVIEW])

@@ -58,7 +58,7 @@ the same skeleton, so any armour piece can be worn by any skeleton and every ani
   <li><b>6 skeleton classes</b>: Knight, Warrior, Archer, Assassin, Mage, Necromancer, each a ready prefab.</li>
   <li><b>48 armour modules</b> as separate prefabs: helms, chests, gloves, greaves, boots, skirts, robes and pants.</li>
   <li><b>12 weapon prefabs</b> with adjustable grip points, including a skinned recurve bow whose string follows the draw hand.</li>
-  <li><b>48 animation clips</b> plus grip pose data: idles, two locomotion sets with root motion, one- and two-handed attacks, a held block, a bow shot,
+  <li><b>50 animation clips</b> plus grip pose data: idles, two locomotion sets with root motion, one- and two-handed attacks, a held block, a bow shot,
       spell casts, class specials, two hit and two stagger reactions, four deaths, additive twitches and empty-hand finger idles.</li>
   <li>A <b>Humanoid avatar</b> on every character, so the clips also retarget to other humanoids and other humanoid clips play on the skeletons.</li>
   <li>A <b>demo scene</b> to browse every character, module, weapon and clip.</li>
@@ -176,8 +176,8 @@ Clips marked <i>root motion</i> move the character with <i>Apply Root Motion</i>
   <tr><td>Weapon idles</td><td>Idle_TwoHanded, Idle_Bow, Idle_Staff</td><td>loop</td></tr>
   <tr><td>Locomotion, heavy set</td><td>Walk_Fwd_01, Walk_Back_01, Run_Fwd_01, Strafe_Left_01, Strafe_Right_01</td><td>loop, root motion</td></tr>
   <tr><td>Locomotion, upright set</td><td>Walk_Fwd_02, Walk_Back_02, Run_Fwd_02, Strafe_Left_02, Strafe_Right_02</td><td>loop, root motion</td></tr>
-  <tr><td>Right arm</td><td>Attack_R_Stab, Attack_R_Slice</td><td>one-shot</td></tr>
-  <tr><td>Left arm</td><td>Attack_L_Stab, Attack_L_Slice, Block_L_Idle (held block)</td><td>one-shot; the block loops</td></tr>
+  <tr><td>Right arm</td><td>Attack_R_Stab, Attack_R_Swing_01, Attack_R_Swing_02</td><td>one-shot</td></tr>
+  <tr><td>Left arm</td><td>Attack_L_Stab, Attack_L_Swing_01, Attack_L_Swing_02, Block_L_Idle (held block)</td><td>one-shot; the block loops</td></tr>
   <tr><td>Two-handed</td><td>Attack_2H_01 (overhead chop), Attack_2H_02 (sweep)</td><td>one-shot</td></tr>
   <tr><td>Bow</td><td>Shoot_01 (raise, draw, release, lower)</td><td>one-shot, events</td></tr>
   <tr><td>Magic</td><td>Cast_Wand_01, Cast_Wand_02, Cast_Staff_01</td><td>one-shot</td></tr>
@@ -205,7 +205,7 @@ arm and upper-body layers over the legs of a walk or run (section 8).</p>
 </table>
 <p>Every layer other than Base has an <code>Empty</code> default state. To play an arm attack while walking, cross-fade the attack on its arm
 layer and let Base keep the walk:</p>
-<pre>animator.CrossFadeInFixedTime("Attack_R_Slice", 0.15f, animator.GetLayerIndex("RightArm"));</pre>
+<pre>animator.CrossFadeInFixedTime("Attack_R_Swing_01", 0.15f, animator.GetLayerIndex("RightArm"));</pre>
 <p>Two-handed attacks, staff casts, specials and deaths are full-body and belong on Base. <code>SkeletonGripState</code> on the two-handed
 and staff states closes the second hand on the weapon.</p>
 
@@ -261,7 +261,7 @@ on another Humanoid character, assign that character's avatar to the Animator an
   <tr><td>Characters</td><td>16.7k–18.9k triangles fully dressed (table in section 4)</td></tr>
   <tr><td>Textures</td><td>1024×1024 colour, normal, metallic/smoothness (R = metallic, A = smoothness)</td></tr>
   <tr><td>Materials</td><td>URP/Lit; armour double-sided</td></tr>
-  <tr><td>Animations</td><td>48 clips + grip pose data, 30 fps, Humanoid</td></tr>
+  <tr><td>Animations</td><td>50 clips + grip pose data, 30 fps, Humanoid</td></tr>
 </table>
 
 <h2>14. Support</h2>

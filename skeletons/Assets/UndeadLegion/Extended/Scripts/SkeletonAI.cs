@@ -39,13 +39,13 @@ namespace UndeadLegion.Extended
 
         static readonly Dictionary<Style, Move[]> Moves = new Dictionary<Style, Move[]>
         {
-            { Style.OneHanded,   new[] { M("Attack_R_Slice", 0.45f, 1.7f, 20, 70), M("Attack_R_Stab", 0.40f, 1.8f, 18, 55) } },
-            { Style.DualDaggers, new[] { M("Attack_R_Stab", 0.40f, 1.6f, 14, 45), M("Attack_L_Slice", 0.45f, 1.5f, 14, 55), M("Attack_L_Stab", 0.40f, 1.6f, 14, 45), M("Attack_R_Slice", 0.45f, 1.5f, 14, 55) } },
+            { Style.OneHanded,   new[] { M("Attack_R_Swing_01", 0.46f, 1.7f, 20, 70), M("Attack_R_Stab", 0.40f, 1.8f, 18, 55), M("Attack_R_Swing_02", 0.41f, 1.7f, 20, 70) } },
+            { Style.DualDaggers, new[] { M("Attack_R_Stab", 0.40f, 1.6f, 14, 45), M("Attack_L_Swing_01", 0.46f, 1.5f, 14, 55), M("Attack_L_Stab", 0.40f, 1.6f, 14, 45), M("Attack_R_Swing_01", 0.46f, 1.5f, 14, 55) } },
             { Style.TwoHanded,   new[] { M("Attack_2H_01", 0.55f, 2.1f, 35, 120), M("Attack_2H_02", 0.50f, 2.2f, 30, 110) } },
             { Style.Bow,         new[] { R("Shoot_01", 21f / 59f, 16f, 28, 50) } },
             { Style.Wand,        new[] { R("Cast_Wand_01", 0.45f, 11f, 16, 35), R("Cast_Wand_02", 0.45f, 11f, 16, 35) } },
             { Style.Staff,       new[] { R("Cast_Staff_01", 0.55f, 12f, 24, 45), A("AOE_Cast", 0.62f, 9f, 30, 90) } },
-            { Style.Unarmed,     new[] { M("Attack_R_Slice", 0.45f, 1.4f, 8, 40), M("Attack_L_Slice", 0.45f, 1.4f, 8, 40) } },
+            { Style.Unarmed,     new[] { M("Attack_R_Swing_01", 0.46f, 1.4f, 8, 40), M("Attack_L_Swing_01", 0.46f, 1.4f, 8, 40) } },
         };
         static Move M(string c, float at, float r, float d, float i) { return new Move { clip = c, hitAt = at, range = r, damage = d, impulse = i }; }
         static Move R(string c, float at, float r, float d, float i) { return new Move { clip = c, hitAt = at, range = r, damage = d, impulse = i, ranged = true }; }

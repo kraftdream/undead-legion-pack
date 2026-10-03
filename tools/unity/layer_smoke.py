@@ -2,7 +2,7 @@
 
     python tools/unity/layer_smoke.py [out_dir]
 
-Selects the Knight with a sword, plays Walk_Fwd_01, then clicks Attack_R_Slice (a right-arm
+Selects the Knight with a sword, plays Walk_Fwd_01, then clicks Attack_R_Swing_01 (a right-arm
 clip: must land on the RightArm layer while Base stays on Walk_Fwd_01), then Attack_2H_01
 (a full-stop clip: must take the Base layer, and Walk_Fwd_01 must resume after it), then the
 held block: Block_L_Idle toggled on (LeftArm layer holds it), Attack_R_Stab over it (standing,
@@ -65,7 +65,7 @@ def run(out_dir):
         print("walk:       ", probe(PLAY % "Walk_Fwd_01"))
         time.sleep(2.0)
         print("walking:    ", probe())
-        print("R on move:  ", probe(PLAY % "Attack_R_Slice"))
+        print("R on move:  ", probe(PLAY % "Attack_R_Swing_01"))
         time.sleep(1.2)
         print("mid attack: ", probe())
         shot("walk_attack")
