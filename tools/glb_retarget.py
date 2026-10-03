@@ -1147,6 +1147,16 @@ def pose(f, dz=0.0, f_travel=None):
         # (found when the pelvis hold of aim-forward landed on nothing)
         set_world(pbs["spine_fk"], targets["spine_fk"])
         update()
+        # ... and the FK legs hang under spine_fk (thigh_fk < MCH-thigh_parent < ORG-spine < tweak_spine <
+        # spine_fk): that correction dragged both legs, already set, as one rigid piece - 20-40 deg on a
+        # video capture (2026-10-03, swing_1: knee angles exact, every thigh and shin pitched off together,
+        # the plant then folded the stance), 4-15 deg on the earlier captures. Set them again, top down
+        for level in (["thigh_fk.L", "thigh_fk.R"], ["shin_fk.L", "shin_fk.R"], ["foot_fk.L", "foot_fk.R"], ["toe_fk.L", "toe_fk.R"]):
+            lv = [t for t in level if t in targets]
+            for tgt in lv:
+                set_world(pbs[tgt], targets[tgt])
+            if lv:
+                update()
     for side, (ca, cb) in HAND_CLEAR.items():
         # a captured hand that sinks into the torso (the bow idle, source frames 42-56): push the socket
         # out to the chest's outline in the horizontal plane and let the arm follow through IK, blended

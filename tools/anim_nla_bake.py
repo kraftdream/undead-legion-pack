@@ -60,6 +60,7 @@ FOOT_CLEAR = arg("--foot-clear", "")              # Z rig m: no model's BOOT goe
 LEG_REACH = float(arg("--leg-reach", "0"))         # 0..1 of the leg length: after the foot pins, the torso is lowered PER FRAME by what a held IK foot needs to stay within this reach (running max +-2 frames, smoothed), 0 elsewhere - a source whose hips rise over a held foot straightens the knee and lifts it otherwise (user, Death_01: "the feet leave the ground from frame 1; it is the torso height that lifts them")
 TORSO_DROP = float(arg("--torso-drop", "0"))       # rig m: the torso control (the hips, and with it the spine, head and FK arms) lowered by this on every frame; IK feet stay planted so the knees bend more, the poles re-aimed on the FK plane (user, Summon: "bring the torso down like 8 cm" = 0.044 rig m)
 YAW_CLIP = float(arg("--yaw-clip", "0"))          # degrees, + = left: the whole clip turned about the vertical through the root's first-frame spot - every root-level control (torso, feet, toes, knee poles, IK hands, elbow poles) and the root's path, the Root's own orientation left at identity so the export's Root stays as in every other clip (user, AOE_Cast: "animation direction the same as the feet direction in idle_02": the take faced 17 deg right)
+KNEE_SWIVEL_TO = arg("--knee-swivel-to", "")     # "Idle_1H_Combat:1": the IK knees turned about their hip->ankle axis so the knee direction equals that action frame's on the clip's FIRST and LAST frame, the offset fading linearly between them (a capture whose knees point 11-14 deg less outward than the idle swung them over the start/end blends; user, Attack_R_Swing_01: "legs rotate outward from frame 1 to 8, and back at the end"). Run before the blends
 KNEES_IN = float(arg("--knees-in", "0"))         # rig m: the IK knees swivelled toward the body's midline so their separation shrinks by this much (each knee's pole aimed at the FK knee moved half of it inward along the hips' lateral axis; the knee can only move on its swivel circle, so the pole takes the nearest point). Runs after every other leg pass. (user, Strafe_01: "knees not that far apart, like 20 cm closer": the knees sat 276-414 mm apart with the feet 132-299)
 KEEP_POLES = "--keep-poles" in argv               # with --pin-foot: the knee poles are left as they are (no re-aim onto the FK knee plane, no repole after the leg passes) - for a clip whose poles were set by hand or by --knees-in (user, Strafe_01: the fix keys the poles)
 WRIST_TWIST = {k.split(":")[0]: float(k.split(":")[1]) for k in arg("--wrist-twist", "").split(",") if k}   # "L:-67,R:63" degrees: each FK forearm turned about its own bone axis on every frame (the hand and fingers ride) - the retarget's wrist_twist pass, for a hand-edited clip that cannot be rebuilt (user, Run_Fwd_02: "turn hands so weapons point outward")
@@ -1071,6 +1072,52 @@ def yaw_clip(act, deg):
 KNEES_SHORT = []
 
 
+def _knee_swivel(side):
+    """Signed angle of the DEF knee about the hip->ankle axis, from the body's forward projected off the axis."""
+    hip_ = (rig.matrix_world @ pbs["DEF-thigh." + side].matrix).translation.copy(); ank_ = (rig.matrix_world @ pbs["DEF-foot." + side].matrix).translation.copy()
+    k_ = (rig.matrix_world @ pbs["DEF-shin." + side].matrix).translation.copy()
+    ax = (ank_ - hip_).normalized(); pk = (k_ - hip_); pk = pk - ax * pk.dot(ax)
+    fw = (rig.matrix_world @ pbs["DEF-spine"].matrix).to_3x3() @ Vector((0, 0, 1)); fw.z = 0
+    if fw.length < 1e-6: fw = Vector((0, -1, 0))
+    fw = fw - ax * fw.dot(ax)
+    if pk.length < 1e-6 or fw.length < 1e-6:
+        return 0.0, hip_, ank_, k_, ax
+    a, b = fw.normalized(), pk.normalized()
+    return math.atan2(a.cross(b).dot(ax), a.dot(b)), hip_, ank_, k_, ax
+
+
+def knee_swivel_to(act, spec):
+    ref_name, ref_f = spec.split(":")[0], int(spec.split(":")[1])
+    ref_act = bpy.data.actions[ref_name]
+    ad.action = ref_act; scene.frame_set(ref_f); bpy.context.view_layer.update()
+    ref = {sd: _knee_swivel(sd)[0] for sd in ("L", "R")}
+    ad.action = act
+    wrap = lambda x: (x + math.pi) % (2 * math.pi) - math.pi
+    off = {}
+    for sd in ("L", "R"):
+        scene.frame_set(F0); a0 = _knee_swivel(sd)[0]; scene.frame_set(F1); a1 = _knee_swivel(sd)[0]
+        off[sd] = (wrap(ref[sd] - a0), wrap(ref[sd] - a1))
+    for f in range(F0, F1 + 1):
+        scene.frame_set(f)
+        u = (f - F0) / float(max(1, F1 - F0))
+        for sd in ("L", "R"):
+            if pbs["thigh_parent." + sd]["IK_FK"] > 0.5:
+                continue
+            o = off[sd][0] + (off[sd][1] - off[sd][0]) * u
+            _, hip_, ank_, k_, ax = _knee_swivel(sd)
+            LEG_POLE_PREV.pop(sd, None)
+            leg_pole(sd, hip_ + Matrix.Rotation(o, 3, ax) @ (k_ - hip_), hip_, ank_)
+            pole = pbs["thigh_ik_target." + sd]
+            pole.keyframe_insert("location", frame=f, group="thigh_ik_target." + sd)
+            pole.keyframe_insert("rotation_quaternion" if pole.rotation_mode == 'QUATERNION' else "rotation_euler", frame=f, group="thigh_ik_target." + sd)
+            pbs["thigh_parent." + sd].keyframe_insert('["pole_vector"]', frame=f, group="thigh_parent." + sd)
+    scene.frame_set(F0); r0 = {sd: math.degrees(_knee_swivel(sd)[0]) for sd in ("L", "R")}
+    scene.frame_set(F1); r1 = {sd: math.degrees(_knee_swivel(sd)[0]) for sd in ("L", "R")}
+    log("knee-swivel-to %s: offsets L %+.1f -> %+.1f, R %+.1f -> %+.1f deg; knees now L %.1f / %.1f, R %.1f / %.1f (first / last) vs the reference L %.1f R %.1f"
+        % (spec, math.degrees(off["L"][0]), math.degrees(off["L"][1]), math.degrees(off["R"][0]), math.degrees(off["R"][1]),
+           r0["L"], r1["L"], r0["R"], r1["R"], math.degrees(ref["L"]), math.degrees(ref["R"])))
+
+
 def knees_in(act, d):
     ad.action = act
     sep0 = []; sep1 = []
@@ -1744,6 +1791,8 @@ if TORSO_SHIFT:
     log("torso shifted by (%+.3f, %+.3f) rig m on every frame: hips at (%.3f, %.3f) on frame %d" % (sx_, sy_, hp_.x, hp_.y, F0))
     if not KEEP_POLES:
         repole_legs(baked)
+if KNEE_SWIVEL_TO:
+    knee_swivel_to(baked, KNEE_SWIVEL_TO)
 if YAW_CLIP:
     yaw_clip(baked, YAW_CLIP)
 if KNEES_IN:
