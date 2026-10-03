@@ -28,6 +28,9 @@ TABLES = {
     "jnt": {"hips_JNT": "Hips", "spine2_JNT": "Chest", "head_JNT": "Head", "l_arm_JNT": "LeftArm", "l_forearm_JNT": "LeftForeArm", "l_hand_JNT": "LeftHand",
             "r_arm_JNT": "RightArm", "r_forearm_JNT": "RightForeArm", "r_hand_JNT": "RightHand", "l_upleg_JNT": "LeftLeg", "l_leg_JNT": "LeftShin", "l_foot_JNT": "LeftFoot",
             "r_upleg_JNT": "RightLeg", "r_leg_JNT": "RightShin", "r_foot_JNT": "RightFoot"},
+    "smpl": {"pelvis": "Hips", "spine3": "Chest", "head": "Head", "left_shoulder": "LeftArm", "left_elbow": "LeftForeArm", "left_wrist": "LeftHand",
+             "right_shoulder": "RightArm", "right_elbow": "RightForeArm", "right_wrist": "RightHand", "left_hip": "LeftLeg", "left_knee": "LeftShin", "left_ankle": "LeftFoot",
+             "right_hip": "RightLeg", "right_knee": "RightShin", "right_ankle": "RightFoot"},
 }
 RIG = {"Hips": "DEF-spine", "Chest": "DEF-spine.003", "Head": "DEF-spine.006", "LeftArm": "DEF-upper_arm.L", "LeftForeArm": "DEF-forearm.L", "LeftHand": "DEF-hand.L",
        "RightArm": "DEF-upper_arm.R", "RightForeArm": "DEF-forearm.R", "RightHand": "DEF-hand.R", "LeftLeg": "DEF-thigh.L", "LeftShin": "DEF-shin.L", "LeftFoot": "DEF-foot.L",
