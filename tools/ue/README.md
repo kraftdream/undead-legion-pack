@@ -164,6 +164,36 @@ Synced at the base pack's `5295a16`+ (2026-10-04). What changed on the Unity sid
 * Not ported: Unity's `AttackSpeed` Animator parameter (the per-weapon pace lives in the plan's `speed` and `PlayAction`'s rate here);
   the Extended edition; `Rise_01` (not exported anywhere yet).
 
+## Showreel fixes of 2026-10-04 ("the models float slightly"; "the model / camera still gets into position")
+
+Measured in PIE at 1/50 time dilation (a python poll every ~2 game frames, `ue_poll2`-style: actor Z, Root and Hips socket Z,
+camera Z, the active montage) and with per-frame image diffs of the rendered shots (`ImageChops.difference` means, spikes listed):
+* **The float** was CharacterMovement's floor distance: the capsule rests 2.28 cm above the floor (MIN/MAX_FLOOR_DIST) and the mesh
+  sat at −90 under a 90 half-height capsule, so every sole hung 2.3 cm up (+ the idles' Unity lift, 0.4–1.1 cm here, kept: a sole
+  1 cm under an opaque floor is invisible). **The mesh sits at −92.3 now** (`BP_UndeadSkeleton`, the six children compiled after it).
+  A plane constraint (Z) on the movement component also cured it but BLOCKED horizontal root motion (the staggers stood still): not used.
+* **The "getting into position"** was a VERTICAL ROOT-MOTION IMPULSE on the first frame of some root-motion montages: `Taunt_02`
+  (and `Cutthroat`, `Summon`, the wand casts in the old render) launched the capsule 12–34 cm up for one frame, the floor logic
+  pulled it back over 2–3 frames — a one-frame hop of the whole figure (frame-diff spikes of 6–8 at frame 25 of the Knight /
+  Assassin / Necromancer shots). Isolated with test maps (`ue_showreel.py build` with the character, idle, loadout and clip swapped
+  one at a time): the CLIP decides (Taunt_02 hops on every character / idle / loadout, Taunt_01 and Rally never, the staggers not),
+  not the weapons (their mesh collision is off now anyway), not the montage blend-in (0 hops the same), not the root lock
+  (ANIM_FIRST_FRAME the same), not the root-motion mode (`RootMotionFromMontagesOnly` halves it; it is the mode in `SetRootMotion`
+  now, the loops are montages anyway); the asset's Root track is flat (0.4 cm lift, roll 90) on every frame and the raw-track
+  accessors return nothing in 5.8, so the source of the Z delta is unknown. **The fix: those clips play IN PLACE in Unreal**
+  (`ue_anims.ROOT_MOTION_ONESHOTS` = the staggers only; `enable_root_motion` off on the taunts, casts, Summon, Cutthroat, Rally —
+  1–8 cm of travel that the pose carries instead, as Unity's in-place import would). An in-place clip's montage never hops.
+* **The seamless recenter popped the picture** even for a few cm of drift: the teleport of camera + character re-slices the
+  cascaded shadow map (camera-relative), and the first version re-spawned the character at Z 90 while it rests at 92.3 (a 3-frame
+  dip). `Recenter` keeps the current Z now, and the plan issues a `recenter` only after the clips in `showreel_plan.RECENTER` (the
+  staggers); the attack set is in place, so the weapons stage has no recenter at all and the camera never moves there.
+* The weapons stage follows the recorder's 2026-10-04 steps (heavy variants, the Knight mace step, the per-weapon pace `SWORD` 1.3 /
+  `DAGGER` 1.7 on the plan's steps instead of a 1.6 override). `BP_Weapon_*` mesh components are `NoCollision`.
+⚠ A sub-range render (`render 8 135:143 <shot>`) restarts the shot from its BeginPlay: the director's timeline is not the sequence's
+frame, so frames 135–143 show the shot's first frames again — render from 0 to test a later moment. ⚠ `ue_showreel.py build`'s
+arguments are split on spaces by `ue_py.py`: loadout names with spaces cannot be passed (use `Mace`, `Sword`, `Dagger`). ⚠ `ue_showreel.py
+shot` rebuilds the ONE showreel map: a `render` of another shot's sequence afterwards films the wrong actors (a tiny figure at the edge).
+
 ## Showreel in Unreal (2026-10-01, a first test: the modular stage's opening beat)
 
 `ue_showreel.py build Warrior Idle_03 3` → map `Demo/Maps/UndeadLegion_Showreel` (the stage on a 2 km floor, the class BP with no

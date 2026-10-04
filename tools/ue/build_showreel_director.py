@@ -14,7 +14,9 @@ the recording camera, the Unity recorder's step loop re-cut:
     14 show the held arrow again
   FollowCamera (Unity FollowCamera): with root motion the camera's POSITION closes on the character + its offset at
   FollowDamping 1/s; during a death it follows the hips horizontally and sinks DeathDrop cm; its rotation never changes.
-  Recenter (Unity RecenterSeamless): the character back on the spawn point facing the spawn yaw, and the camera moved by the
+  Recenter (Unity RecenterSeamless): the character back on the spawn point (X/Y only: the Z stays the capsule's current
+  height - CharacterMovement rests the capsule 2.3 cm above the floor, and a teleport to the spawn Z dipped the character for
+  three frames, 2026-10-04) facing the spawn yaw, and the camera moved by the
   same rigid transform in the same frame, so the picture does not change.
 """
 import os, sys
@@ -125,9 +127,10 @@ FUNCS = {
   (bind yaw (- (.yaw (Transformation|GetActorRotation :self c)) (%(V)sGetSpawnYaw)))
   (bind up (Math|Vector|MakeVector :X 0.0 :Y 0.0 :Z 1.0))
   (bind rel (Math|Vector|RotateVectorAroundAxis :InVect (- (Transformation|GetActorLocation :self cam) old) :AngleDeg (- yaw) :Axis up))
-  (Transformation|SetActorLocationAndRotation :self c :NewLocation (%(V)sGetSpawnLocation)
+  (bind dst (Math|Vector|MakeVector :X (.x (%(V)sGetSpawnLocation)) :Y (.y (%(V)sGetSpawnLocation)) :Z (.z old)))
+  (Transformation|SetActorLocationAndRotation :self c :NewLocation dst
      :NewRotation (Math|Rotator|MakeRotator :Roll 0.0 :Pitch 0.0 :Yaw (%(V)sGetSpawnYaw)) :bSweep false :bTeleport true)
-  (Transformation|SetActorLocation :self cam :NewLocation (+ (%(V)sGetSpawnLocation) rel) :bSweep false :bTeleport true)
+  (Transformation|SetActorLocation :self cam :NewLocation (+ dst rel) :bSweep false :bTeleport true)
   (Transformation|AddActorWorldRotation :self cam :DeltaRotation (Math|Rotator|MakeRotator :Roll 0.0 :Pitch 0.0 :Yaw (- yaw))
      :bSweep false :bTeleport true)
   (%(V)sSetCamOffset (Math|Vector|RotateVectorAroundAxis :InVect (%(V)sGetCamOffset) :AngleDeg (- yaw) :Axis up)))

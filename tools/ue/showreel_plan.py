@@ -30,8 +30,15 @@ MODULES = {"Knight": ["Boot_L", "Boot_R", "Chest", "Glove_L", "Glove_R", "Greave
            "Mage": ["Boot_L", "Boot_R", "Glove_L", "Glove_R", "Greave_L", "Greave_R", "Helm", "Robe"],
            "Necromancer": ["Boot_L", "Boot_R", "Glove_L", "Glove_R", "Greave_L", "Greave_R", "Helm", "Robe"],
            "Warrior": ["Boot_L", "Boot_R", "Chest", "Glove_L", "Glove_R", "Greave_L", "Greave_R", "Skirt"]}
-GRIP_L = {"Idle_TwoHanded", "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Cast_Staff_01"}          # manifest grip_hands L
-RETURN = {"Attack_R_01_Stab": "Idle_1H_Combat", "Attack_R_02_Swing": "Idle_1H_Combat", "Attack_L_01_Stab": "Idle_1H_Combat",
+# Clips whose root motion carries the character far enough to need the seamless recenter afterwards (the staggers: 66 cm).
+# Every other root-motion clip of the stages drifts 2-8 cm (taunts, casts, Summon, Cutthroat): the damped camera follows and
+# the character stays framed, while a recenter TELEPORT of camera + character pops the cascaded shadow map (it is camera-
+# relative) for a frame - measured 2026-10-04 on the Warrior's taunt: a 3.5 frame-diff spike at the recenter, none without it.
+RECENTER = {"Stagger_01", "Stagger_02"}
+GRIP_L = {"Idle_TwoHanded", "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_01_Swing_Heavy", "Attack_2H_02_Swing_Heavy", "Cast_Staff_01"}          # manifest grip_hands L
+RETURN = {**{"Attack_%s_0%d_%s%s" % (sd, i, k, h): "Idle_1H_Combat" for sd in "RL" for i, k in ((1, "Stab"), (2, "Swing"), (3, "Swing")) for h in ("", "_Heavy")},
+          **{"Attack_2H_0%d_Swing%s" % (i, h): "Idle_TwoHanded" for i in (1, 2) for h in ("", "_Heavy")},
+          "Attack_R_01_Stab": "Idle_1H_Combat", "Attack_R_02_Swing": "Idle_1H_Combat", "Attack_L_01_Stab": "Idle_1H_Combat",
           "Attack_L_02_Swing": "Idle_1H_Combat", "Attack_2H_01_Swing": "Idle_TwoHanded", "Attack_2H_02_Swing": "Idle_TwoHanded",
           "Shoot_01": "Idle_Bow", "Cast_Wand_01": "Idle_Staff", "Cast_Wand_02": "Idle_Staff", "Cast_Staff_01": "Idle_Staff"}
 # everything else returns to the running idle (Specials / Reactions: returnToLastIdle); deaths hold; hits are overlays
@@ -84,18 +91,22 @@ def modular():
 
 
 def weapons():
+    # the recorder's weapons stage of 2026-10-04 (cab06e8): heavy variants, a Knight mace step, the per-weapon pace of
+    # SkeletonWeapon.AttackSpeedFor (sword / sword + shield 1.3, dagger / two daggers 1.7, else 1) instead of a step override
+    SWORD, DAGGER = 1.3, 1.7
     st = [A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Taunt", "Taunt_01"),
-          A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Two-handed idle; the second hand rides the handle", "Attack_2H_01_Swing", "Attack_2H_02_Swing"),
-          A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "The same two-handed grip and attacks on every long weapon", "Attack_2H_01_Swing", "Attack_2H_02_Swing"),
+          A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Two-handed idle; the second hand rides the handle", "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_01_Swing_Heavy"),
+          A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "The same two-handed grip and attacks on every long weapon", "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_02_Swing_Heavy"),
           death(A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "Death", "Death_01")),
           A("Knight", "Axe + round shield", "Idle_1H_Combat", "Skeleton Knight  |  Axe + round shield", "Taunt and rally", "Taunt_02", "Rally"),
-          A("Knight", "Axe + round shield", "Idle_1H_Combat", "Skeleton Knight  |  Axe + round shield", "Left-arm block HELD on its own layer; the right arm attacks under it", "Attack_R_02_Swing", hold_on="Block_L_Idle"),
-          A("Knight", "Sword + shield", "Idle_1H_Combat", "Skeleton Knight  |  Sword + heater shield", "Any one-handed weapon, any shield; the block still held", "Attack_R_01_Stab", "Attack_R_02_Swing"),
-          A("Knight", "Sword", "Idle_1H_Combat", "Skeleton Knight  |  Sword", "Block released; the same attacks with the free hand", "Attack_R_01_Stab", "Attack_R_02_Swing", hold_off="Block_L_Idle"),
-          death(A("Knight", "Sword", "Idle_1H_Combat", "Skeleton Knight  |  Sword", "Death", "Death_02")),
+          A("Knight", "Axe + round shield", "Idle_1H_Combat", "Skeleton Knight  |  Axe + round shield", "Left-arm block HELD on its own layer; the right arm attacks under it", "Attack_R_02_Swing", "Attack_R_02_Swing_Heavy", hold_on="Block_L_Idle"),
+          A("Knight", "Sword + shield", "Idle_1H_Combat", "Skeleton Knight  |  Sword + heater shield", "Any one-handed weapon, any shield; the block still held", "Attack_R_01_Stab", "Attack_R_02_Swing", speed=SWORD),
+          A("Knight", "Sword", "Idle_1H_Combat", "Skeleton Knight  |  Sword", "Block released; the same attacks with the free hand", "Attack_R_01_Stab", "Attack_R_02_Swing", "Attack_R_01_Stab_Heavy", speed=SWORD, hold_off="Block_L_Idle"),
+          A("Knight", "Mace", "Idle_1H_Combat", "Skeleton Knight  |  Mace", "A swing, then its heavy variant: a bigger lunge", "Attack_R_03_Swing", "Attack_R_03_Swing_Heavy"),
+          death(A("Knight", "Mace", "Idle_1H_Combat", "Skeleton Knight  |  Mace", "Death", "Death_02")),
           A("Assassin", "Dagger", "Idle_1H_Combat", "Skeleton Assassin  |  Dagger", "Cutthroat", "Cutthroat"),
-          A("Assassin", "Dagger", "Idle_1H_Combat", "Skeleton Assassin  |  Dagger", "Right-arm attacks at 1.6x speed", "Attack_R_01_Stab", "Attack_R_02_Swing", speed=1.6),
-          A("Assassin", "Two daggers", "Idle_1H_Combat", "Skeleton Assassin  |  Two daggers", "Left-arm attacks at 1.6x speed", "Attack_L_01_Stab", "Attack_L_02_Swing", speed=1.6),
+          A("Assassin", "Dagger", "Idle_1H_Combat", "Skeleton Assassin  |  Dagger", "Right-arm attacks; a dagger strikes 70% faster", "Attack_R_01_Stab", "Attack_R_02_Swing", speed=DAGGER),
+          A("Assassin", "Two daggers", "Idle_1H_Combat", "Skeleton Assassin  |  Two daggers", "Left-arm attacks with the second dagger", "Attack_L_01_Stab", "Attack_L_02_Swing", speed=DAGGER),
           death(A("Assassin", "Two daggers", "Idle_1H_Combat", "Skeleton Assassin  |  Two daggers", "Death", "Death_03")),
           A("Archer", "Recurve bow", "Idle_Bow", "Skeleton Archer  |  Recurve bow", "The string follows the draw hand; an arrow is fired on release", "Shoot_01"),
           A("Mage", "Wand", "Idle_03", "Skeleton Mage  |  Wand", "Two wand casts", "Cast_Wand_01", "Cast_Wand_02"),
@@ -187,7 +198,7 @@ def shots(stage):
             if not a.startswith(("Hit_", "Death_")):
                 hold(cur, f - 2, s["idle"] in GRIP_L)                      # the one-shot is over: the loop's grip again
             f += round((step["after"] if step["after"] >= 0 else HOLD_AFTER) * FPS)
-            if s["rm"] and not a.startswith("Death_"):
+            if s["rm"] and a in RECENTER:
                 cmd(cur, f, "recenter")
         if step["attacks"]:
             caption(step["text"], f)

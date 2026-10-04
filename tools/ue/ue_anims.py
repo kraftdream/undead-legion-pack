@@ -18,6 +18,10 @@ from ue_common import (PKG, EXPORT, SKEL, EAL, log, pipeline, interchange, clips
 ANIMS = PKG + "/Animations"
 FPS = 30.0
 LOOP_MODES = ("idle", "loco")
+# One-shots that keep root motion in Unreal: the ones whose travel matters (the staggers, 66 cm). Every other `drift root`
+# clip (taunts, casts, Summon, Cutthroat, Rally: 1-8 cm of travel) plays IN PLACE here - a root-motion montage of those
+# launched the capsule 12-34 cm up on its first frame (2026-10-04, tools/ue/README.md "Showreel fixes"), which Unity does not do.
+ROOT_MOTION_ONESHOTS = {"Stagger_01", "Stagger_02"}
 
 
 def clip_names():
@@ -48,7 +52,7 @@ def clips(only=None):
         a = interchange(os.path.join(EXPORT, "Animations", "Skeleton@%s.fbx" % n), ANIMS, "A_" + n, pipe)
         if a is None:
             continue
-        a.set_editor_property("enable_root_motion", is_loco(n, man) or man.get(n, {}).get("drift") == "root")
+        a.set_editor_property("enable_root_motion", is_loco(n, man) or n in ROOT_MOTION_ONESHOTS)
         a.set_editor_property("root_motion_root_lock", unreal.RootMotionRootLock.REF_POSE)
         if is_additive(n, man):
             a.set_editor_property("additive_anim_type", unreal.AdditiveAnimationType.AAT_LOCAL_SPACE_BASE)

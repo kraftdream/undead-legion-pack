@@ -160,7 +160,7 @@ FUNCS = {
 (fn SetRootMotion (On)
   (bind anim (Components|SkeletalMesh|GetAnimInstance :self (Variables|Character|GetMesh)))
   (if On
-    (Animation|RootMotion|SetRootMotionMode :self anim :Value "RootMotionFromEverything")
+    (Animation|RootMotion|SetRootMotionMode :self anim :Value "RootMotionFromMontagesOnly")
     (else
       (Animation|RootMotion|SetRootMotionMode :self anim :Value "IgnoreRootMotion"))))
 """),

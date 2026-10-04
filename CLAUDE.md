@@ -2088,6 +2088,16 @@ loop) exported with `lift 0` and NO `ground_fit` (the fit curve deleted), under 
 export-time adjustments": in place, yaw 0, boots Knight −1.6 mm, the other four −4..−7 mm, the Necromancer's hips-weighted robe 69 mm under.
 Same session: the user re-tuned `W_H2Axe`'s Grip in Unity; `Animations/unity_grips.json` re-dumped.
 
+**Unreal showreel redo (2026-10-04 night, "redo the unreal showreel with the updated sequence, plus fixes: the delay before
+recording is sometimes not enough (model / camera still get into position); all models float slightly; just the first stage first",
+then "I'm going to sleep, record the full unreal showreel including the final video").** Both symptoms measured and fixed on the
+Unreal side (`tools/ue/README.md`, "Showreel fixes of 2026-10-04"): the float was the capsule's 2.3 cm floor distance (the mesh
+sits at −92.3 now); the "getting into position" was a one-frame vertical root-motion hop at the start of SOME root-motion montages
+(Taunt_02, Cutthroat, Summon, the wand casts; cause not found — the clips with 1–8 cm of travel play in place in Unreal now, only the
+staggers and the locomotion keep root motion) plus the seamless recenter's shadow-map pop (recenter only after the staggers now).
+The plan's weapons stage follows the recorder's new steps. The full render (`showreel_unreal_all.py --samples 64`, ~4 h, detached,
+log `Showreel/unreal/final_run.log`) was launched overnight; it encodes the stages and the YouTube cut at the end.
+
 ### Rise from the ground (2026-10-04, "a skeleton rises from under the ground like a zombie from a grave: head and arms pop out, the arms push it up, then a stand-up; ~3 s; only to the armature-in-Blender stage")
 
 `Rise_01` in the anim file = Kimodo candidate `rise_ground_c2` (seed 29, 150 frames, the skeleton profile + "lies flat on the ground face
