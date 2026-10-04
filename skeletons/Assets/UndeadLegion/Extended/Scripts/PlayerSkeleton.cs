@@ -129,7 +129,7 @@ namespace UndeadLegion.Extended
                 if (cur != _attackLoadout) { _attackLoadout = cur; _attackIndex = 0; }
                 if (moves.Count == 0) break;
                 var m = moves[_attackIndex % moves.Count]; _attackIndex++;
-                float len = _nav.PlayAction(m.clip, attackSpeed);
+                float len = _nav.PlayAction(m.clip, attackSpeed * m.Speed);
                 _attackLength = len; _attackEnds = Time.time + len;
                 float t = 0f, hit = len * m.hitAt;
                 while (t < hit) { t += Time.deltaTime; yield return null; }

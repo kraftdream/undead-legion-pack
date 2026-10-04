@@ -667,6 +667,13 @@ random pick that avoids the last clip (was a fixed rotation), the `Style` enum i
 hooded (Mage / Necromancer pieces mixed between the two), each class / loadout with the intended moves; an 8v8 battle with no console
 messages, regular and heavy one-handed moves, 2H, casts and shots played. Extended manual §11 / §12 and the extended listing updated.
 
+**Per-weapon attack modules (2026-10-04, "no stab attack for mace; dagger attacks 70 % faster; sword attacks 30 % faster").** The shared
+"Right hand" module split into one per weapon: Sword (sword, sword + shield: R stab + two swings at clip speed 1.3), Dagger (dagger, two
+daggers: the same at 1.7) + Dagger left hand (two daggers: the L three at 1.7), Axe + Axe heavy (axe + round shield: the three + the three
+`_Heavy`), Mace + Mace heavy (the two swings + the two heavy swings, no stab). `AttackMove.speed` (new, default 1; `Speed` reads 1 when unset,
+`Faster(s)` copies a move) multiplies `SkeletonAI.attackSpeed` / `PlayerSkeleton.attackSpeed` (1.1) in `PlayAction`; `hitAt` is normalised,
+so the hit moment follows. The `PFX_` prefabs serialise the module list: rebuild them (*Build All (1-5)*) after changing `Defaults()`.
+
 **The player demo (2026-10-04, extended only).** User: "a demo scene where I control a skeleton and fight other skeletons; Esc pauses
 with a menu to select a different class (replaces the current one); WASD, the mouse turns on Y, left click attacks cycling the variations,
 hold the right button to block with a shield; my skeleton has no HP, can't die, but shows hits; forward + Shift runs".

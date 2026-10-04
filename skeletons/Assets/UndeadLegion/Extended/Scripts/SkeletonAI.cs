@@ -147,7 +147,7 @@ namespace UndeadLegion.Extended
             var m = PickMove();
             if (m == null) { _nextAttack = Time.time + attackCooldown; _attack = null; yield break; }
             if (m.area) _nextArea = Time.time + 8f;
-            float len = _nav.PlayAction(m.clip, attackSpeed);
+            float len = _nav.PlayAction(m.clip, attackSpeed * m.Speed);
             float hitTime = len * m.hitAt;
             float t = 0f;
             // no steering while the clip plays: its root motion carries the step and the body's turn (a cast turns side-on and

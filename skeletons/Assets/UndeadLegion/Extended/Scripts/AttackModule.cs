@@ -20,6 +20,14 @@ namespace UndeadLegion.Extended
         public bool area;
         [Tooltip("The projectile is the bow's own arrow (fired by the clip's BowRelease event).")]
         public bool arrow;
+        [Tooltip("Clip speed for this move (1 = as authored; 1.3 = 30 % faster). Multiplies the skeleton's attackSpeed.")]
+        public float speed = 1f;
+
+        /// <summary>The speed, 1 when unset.</summary>
+        public float Speed { get { return speed > 0f ? speed : 1f; } }
+
+        /// <summary>A copy at another clip speed.</summary>
+        public AttackMove Faster(float s) { var m = (AttackMove)MemberwiseClone(); m.speed = s; return m; }
 
         public static AttackMove Melee(string c, float at, float r, float d, float i) { return new AttackMove { clip = c, hitAt = at, range = r, damage = d, impulse = i }; }
         public static AttackMove Bolt(string c, float at, float r, float d, float i) { return new AttackMove { clip = c, hitAt = at, range = r, damage = d, impulse = i, ranged = true }; }
@@ -55,28 +63,34 @@ namespace UndeadLegion.Extended
         }
 
         static readonly string[] Swords = { "Sword + shield", "Sword" };
-        static readonly string[] Blunt = { "Axe + round shield", "Mace" };
         static readonly string[] Daggers = { "Dagger", "Two daggers" };
 
+        static AttackMove Stab() { return AttackMove.Melee("Attack_R_01_Stab", 0.30f, 1.8f, 18, 55); }
+        static AttackMove Swing2() { return AttackMove.Melee("Attack_R_02_Swing", 0.46f, 1.7f, 20, 70); }
+        static AttackMove Swing3() { return AttackMove.Melee("Attack_R_03_Swing", 0.50f, 1.7f, 20, 70); }
+
         /// <summary>
-        /// The default modules: swords and daggers use regular one-handed attacks only, axes and maces mix regular and heavy,
-        /// a second dagger adds the left-hand attacks, the battle axe mixes regular and heavy two-handed swings, the longsword
-        /// swings regular only. hitAt = the hand-speed peak measured on each clip (2026-10-04).
+        /// The default modules, one set per weapon: the sword stabs and swings 30 % faster than authored, regular attacks only;
+        /// the dagger 70 % faster, regular only, and a second dagger adds the left-hand attacks at the same pace; the axe mixes
+        /// regular and heavy attacks; the mace too, without the stabs; the battle axe mixes regular and heavy two-handed swings,
+        /// the longsword swings regular only. hitAt = the hand-speed peak measured on each clip (2026-10-04).
         /// </summary>
         public static List<AttackModule> Defaults()
         {
-            var oneHanded = new List<string>(Swords); oneHanded.AddRange(Blunt); oneHanded.AddRange(Daggers);
             return new List<AttackModule>
             {
-                Make("Right hand", false, oneHanded.ToArray(),
-                     AttackMove.Melee("Attack_R_01_Stab", 0.30f, 1.8f, 18, 55), AttackMove.Melee("Attack_R_02_Swing", 0.46f, 1.7f, 20, 70),
-                     AttackMove.Melee("Attack_R_03_Swing", 0.50f, 1.7f, 20, 70)),
-                Make("Right hand, heavy", true, Blunt,
+                Make("Sword", false, Swords, Stab().Faster(1.3f), Swing2().Faster(1.3f), Swing3().Faster(1.3f)),
+                Make("Dagger", false, Daggers, Stab().Faster(1.7f), Swing2().Faster(1.7f), Swing3().Faster(1.7f)),
+                Make("Dagger, left hand (second dagger)", false, new[] { "Two daggers" },
+                     AttackMove.Melee("Attack_L_01_Stab", 0.30f, 1.6f, 14, 45).Faster(1.7f), AttackMove.Melee("Attack_L_02_Swing", 0.46f, 1.5f, 14, 55).Faster(1.7f),
+                     AttackMove.Melee("Attack_L_03_Swing", 0.50f, 1.5f, 14, 55).Faster(1.7f)),
+                Make("Axe", false, new[] { "Axe + round shield" }, Stab(), Swing2(), Swing3()),
+                Make("Axe, heavy", true, new[] { "Axe + round shield" },
                      AttackMove.Melee("Attack_R_01_Stab_Heavy", 0.27f, 1.9f, 26, 85), AttackMove.Melee("Attack_R_02_Swing_Heavy", 0.46f, 1.8f, 26, 90),
                      AttackMove.Melee("Attack_R_03_Swing_Heavy", 0.48f, 1.8f, 26, 90)),
-                Make("Left hand (second weapon)", false, new[] { "Two daggers" },
-                     AttackMove.Melee("Attack_L_01_Stab", 0.30f, 1.6f, 14, 45), AttackMove.Melee("Attack_L_02_Swing", 0.46f, 1.5f, 14, 55),
-                     AttackMove.Melee("Attack_L_03_Swing", 0.50f, 1.5f, 14, 55)),
+                Make("Mace", false, new[] { "Mace" }, Swing2(), Swing3()),
+                Make("Mace, heavy", true, new[] { "Mace" },
+                     AttackMove.Melee("Attack_R_02_Swing_Heavy", 0.46f, 1.8f, 26, 90), AttackMove.Melee("Attack_R_03_Swing_Heavy", 0.48f, 1.8f, 26, 90)),
                 Make("Two-handed", false, new[] { "Longsword (2H)", "Battle axe (2H)" },
                      AttackMove.Melee("Attack_2H_01_Swing", 0.54f, 2.1f, 35, 120), AttackMove.Melee("Attack_2H_02_Swing", 0.43f, 2.2f, 30, 110)),
                 Make("Two-handed, heavy", true, new[] { "Battle axe (2H)" },
