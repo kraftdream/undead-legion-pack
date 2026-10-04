@@ -2061,6 +2061,17 @@ UprightSpeeds`, the showreel captions (Unity recorder + `tools/ue/showreel_plan.
 (the tree reads ±0.64, the `PFX_` prefabs keep their controller). Boots after the export: the Knight within 1 mm on the strafes, the others
 ≤ 6 mm under; the run +4..+13 mm (its default lift, as before); the Necromancer's hips-weighted robe 9–14 cm under as on every `_02` loop.
 
+**Attack_R_02/03_Swing + Idle_1H_Combat re-exported (2026-10-04, "reimport updated animations").** The three actions the user had
+changed (found by hashing every action against HEAD; same frame counts) exported verbatim, the two LEFT swings REBUILT as mirrors first
+(`anim_nla_bake --action Attack_R_NN_Swing --result Attack_R_NN_Swing --keep-old <tmp> --mirror-to Attack_L_NN_Swing`, the temp base
+removed afterwards: flat = stack 0.00 mm, the mirrors within 15 / 4 mm of the exact X-flip). All five in place, yaw 0; boots: Knight −2..−5 mm,
+the others ≤ 9 mm under, the Necromancer's robe 2–9 cm. Lengths unchanged, so no controller rebuild; the AI's `hitAt` fractions were not
+re-measured. Rule: **an edit to an `Attack_R_*` action means re-mirroring its `Attack_L_*` before the export.**
+Second round the same evening ("reexport updated animations"): the user had also edited `Attack_R_02/03_Swing_Heavy`; all four right
+swings re-mirrored (`--keep-old <tmp>`, then the tmp bases AND the `Attack_L_*_base` copies the mirror step leaves on the left actions
+removed, so the attack set stays 16 actions with no bases) and the eight swing clips exported: in place, boots Knight −1..−4 mm, the others
+≤ 9 mm under, the robe 2–9 cm; the heavy mirrors deviate from the exact X-flip exactly as the plain ones (15 / 4 mm at the right hand).
+
 **Idle_TwoHanded re-exported verbatim (2026-10-04, "reimport the Idle_TwoHanded into unity").** The user's edited action (same 141-frame
 loop) exported with `lift 0` and NO `ground_fit` (the fit curve deleted), under the standing rule "all clips are fine-tuned to avoid
 export-time adjustments": in place, yaw 0, boots Knight −1.6 mm, the other four −4..−7 mm, the Necromancer's hips-weighted robe 69 mm under.

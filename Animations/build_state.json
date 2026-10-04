@@ -216,9 +216,9 @@
   "mode": "loco"
  },
  "Idle_1H_Combat": {
-  "sig": "idle_s42|1789837376|{\"_note\": \"2026-09-29, user: 'idle_{type}_combat for each weapon type: body pose from idle_01, hands placement from the first attack for that weapon type' (the crossfade from Idle_01 into an attack was too big for its 0.15 s). Built by anim_nla_bake --action Idle_01 --result Idle_1H_Combat --arms-from Attack_R_Slice:1: Idle_01's flattened clip (240 frames, the sway, legs, head) with one-handed weapon, with or without a shield: the arms of Attack_R_Slice's first frame (right hand at 0.97 m, elbow 96 deg, the left hand chest-high) held on every frame. Not reproducible from the entry alone (hand_edited); re-run that command after an Idle_01 or attack change. 2026-09-29, second round ('we only keep idle_1h_combat, the only different animation when the skeleton enters the combat state; other weapon types use their respective idles; the left arm stance is not as ready for left-hand attacks as the right'): rebuilt with --arms-from Attack_R_Slice:1:R,Attack_L_Slice:1:L (each arm from its own attack's first frame, the left the mirror stance of the right). Idle_2H_Combat / Idle_Staff_Combat / Idle_Bow_Combat removed.\", \"glb\": \"idle_s42\", \"hand_edited\": true, \"lift\": 0.0036, \"mode\": \"idle\", \"name\": \"Idle_1H_Combat\"}",
+  "sig": "idle_s42|1790702598|{\"_note\": \"2026-09-29, user: 'idle_{type}_combat for each weapon type: body pose from idle_01, hands placement from the first attack for that weapon type' (the crossfade from Idle_01 into an attack was too big for its 0.15 s). Built by anim_nla_bake --action Idle_01 --result Idle_1H_Combat --arms-from Attack_R_Slice:1: Idle_01's flattened clip (240 frames, the sway, legs, head) with one-handed weapon, with or without a shield: the arms of Attack_R_Slice's first frame (right hand at 0.97 m, elbow 96 deg, the left hand chest-high) held on every frame. Not reproducible from the entry alone (hand_edited); re-run that command after an Idle_01 or attack change. 2026-09-29, second round ('we only keep idle_1h_combat, the only different animation when the skeleton enters the combat state; other weapon types use their respective idles; the left arm stance is not as ready for left-hand attacks as the right'): rebuilt with --arms-from Attack_R_Slice:1:R,Attack_L_Slice:1:L (each arm from its own attack's first frame, the left the mirror stance of the right). Idle_2H_Combat / Idle_Staff_Combat / Idle_Bow_Combat removed.\", \"glb\": \"idle_s42\", \"hand_edited\": true, \"lift\": 0.0036, \"mode\": \"idle\", \"name\": \"Idle_1H_Combat\"}",
   "ok": true,
-  "when": "2026-09-29 16:31",
+  "when": "2026-10-04 18:17",
   "mode": "idle"
  },
  "Hit_01": {
@@ -260,25 +260,25 @@
  "Attack_R_02_Swing": {
   "sig": "None|0|{\"_note\": \"2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge\", \"hand_edited\": true, \"layer\": \"right\", \"lift\": 0, \"mode\": \"action\", \"name\": \"Attack_R_02_Swing\"}",
   "ok": true,
-  "when": "2026-10-04 13:21",
+  "when": "2026-10-04 18:38",
   "mode": "action"
  },
  "Attack_R_02_Swing_Heavy": {
   "sig": "None|0|{\"_note\": \"2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge\", \"hand_edited\": true, \"layer\": \"right\", \"lift\": 0, \"mode\": \"action\", \"name\": \"Attack_R_02_Swing_Heavy\"}",
   "ok": true,
-  "when": "2026-10-04 13:21",
+  "when": "2026-10-04 18:39",
   "mode": "action"
  },
  "Attack_R_03_Swing": {
   "sig": "None|0|{\"_note\": \"2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge\", \"hand_edited\": true, \"layer\": \"right\", \"lift\": 0, \"mode\": \"action\", \"name\": \"Attack_R_03_Swing\"}",
   "ok": true,
-  "when": "2026-10-04 13:21",
+  "when": "2026-10-04 18:39",
   "mode": "action"
  },
  "Attack_R_03_Swing_Heavy": {
   "sig": "None|0|{\"_note\": \"2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge\", \"hand_edited\": true, \"layer\": \"right\", \"lift\": 0, \"mode\": \"action\", \"name\": \"Attack_R_03_Swing_Heavy\"}",
   "ok": true,
-  "when": "2026-10-04 13:22",
+  "when": "2026-10-04 18:39",
   "mode": "action"
  },
  "Attack_L_01_Stab": {
@@ -296,25 +296,25 @@
  "Attack_L_02_Swing": {
   "sig": "None|0|{\"_note\": \"2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge\", \"hand_edited\": true, \"layer\": \"left\", \"lift\": 0, \"mode\": \"action\", \"name\": \"Attack_L_02_Swing\"}",
   "ok": true,
-  "when": "2026-10-04 13:22",
+  "when": "2026-10-04 18:40",
   "mode": "action"
  },
  "Attack_L_02_Swing_Heavy": {
   "sig": "None|0|{\"_note\": \"2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge\", \"hand_edited\": true, \"layer\": \"left\", \"lift\": 0, \"mode\": \"action\", \"name\": \"Attack_L_02_Swing_Heavy\"}",
   "ok": true,
-  "when": "2026-10-04 13:23",
+  "when": "2026-10-04 18:40",
   "mode": "action"
  },
  "Attack_L_03_Swing": {
   "sig": "None|0|{\"_note\": \"2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge\", \"hand_edited\": true, \"layer\": \"left\", \"lift\": 0, \"mode\": \"action\", \"name\": \"Attack_L_03_Swing\"}",
   "ok": true,
-  "when": "2026-10-04 13:23",
+  "when": "2026-10-04 18:40",
   "mode": "action"
  },
  "Attack_L_03_Swing_Heavy": {
   "sig": "None|0|{\"_note\": \"2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge\", \"hand_edited\": true, \"layer\": \"left\", \"lift\": 0, \"mode\": \"action\", \"name\": \"Attack_L_03_Swing_Heavy\"}",
   "ok": true,
-  "when": "2026-10-04 13:23",
+  "when": "2026-10-04 18:41",
   "mode": "action"
  },
  "Attack_2H_01_Swing": {
