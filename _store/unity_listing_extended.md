@@ -34,6 +34,9 @@ Spawn formations of varied skeletons: random classes, mixed armour borrowed acro
 **Arena demo**
 Two armies on a NavMesh arena. Raise them, start the battle, take control of any skeleton, strike or kill with the mouse, and switch cloth, death modes and corpse dissolving on the fly.
 
+**Player demo**
+Take a skeleton yourself: WASD to walk, Shift to run, the mouse to turn, click to attack through the weapon's moves, hold the right button to block with a shield, and fight waves of AI skeletons. Esc pauses and lets you switch class and weapon.
+
 **Extended animation browser**
 The character browser with the extended skeletons and a physics panel: switch cloth on and off, hit a skeleton by clicking it, kill it into a ragdoll, revive it, raise it from the ground or turn it to dust, alongside every animation, armour piece and weapon.
 
@@ -54,9 +57,10 @@ Everything from the base pack is included unchanged: the character browser demo,
 - Dissolve: URP Lit-based shader with height cut, noise and HDR edge; forward, depth and depth-normals passes
 - Navigation: AI Navigation package (NavMeshAgent), two 2D directional locomotion blend trees at measured clip speeds
 - Animator controller extended with locomotion blend trees and upper-body weapon idles
-- 15 runtime scripts (C#, source included): ragdoll, hit reactions, health, cloth, dissolve, navigation, combat AI, projectiles, army spawner, battle camera and the demo
+- 18 runtime scripts (C#, source included): ragdoll, hit reactions, health, cloth, dissolve, navigation, combat AI, projectiles, army spawner, battle camera, player controller and camera, and the demos
 - Arena demo scene with a baked NavMesh and URP post-processing (bloom)
 - Extended animation browser scene with a physics panel
+- Player demo scene: control a skeleton against AI waves
 
 **Requirements**
 - Unity 6 (6000.4 or newer)
@@ -66,7 +70,7 @@ Everything from the base pack is included unchanged: the character browser demo,
 **Included**
 - Everything in the base pack
 - Extended prefabs, controller, shader and scripts
-- Arena demo scene and the extended animation browser
+- Arena demo scene, the player demo and the extended animation browser
 - PDF documentation for both the base pack and the extended systems
 
 ## Keywords

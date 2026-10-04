@@ -135,6 +135,8 @@ every hit, so you rarely need to call it directly.</p>
       <b>DeathClipThenRagdoll</b> (the clip starts, the ragdoll takes over after <code>ragdollAfter</code> seconds)</td></tr>
   <tr><td><code>hitClips</code></td><td>additive reactions (<code>Hit_01</code>, <code>Hit_02</code>), one picked at random and played on the Animator's Hit layer on every hit that does not kill, over whatever the skeleton is doing, together with the physical flinch</td></tr>
   <tr><td><code>dissolveAfter</code></td><td>seconds after death before the corpse turns to dust (0 = stays); <code>destroyWhenDissolved</code> removes it</td></tr>
+  <tr><td><code>invulnerable</code></td><td>hits still flinch, play the hit clips and raise <code>onDamaged</code>, but health never drops (a player character that cannot die)</td></tr>
+  <tr><td><code>blocking</code>, <code>blockArc</code></td><td>while blocking, a hit from within <code>blockArc</code> degrees of the front does no damage and gives only <code>blockedReaction</code> of the flinch</td></tr>
   <tr><td><code>onDamaged</code>, <code>onDied</code></td><td>UnityEvents for your game logic (score, sounds, loot)</td></tr>
 </table>
 <p><code>Die()</code> kills at once, <code>Revive()</code> restores full health and blends a ragdoll back to the animation.
@@ -239,7 +241,25 @@ push it around. Picking any clip, or Revive, stands a fallen skeleton back up. T
 component <code>ExtendedShowcase</code> removes its navigation and AI when it spawns; the <code>Hit_01</code> and <code>Stagger_01</code>
 clips are in the Reactions section, and armour pieces put on from the modules panel get cloth.</p>
 
-<h2>15. Performance</h2>
+<h2>15. The player demo</h2>
+<p><code>UndeadLegion/Extended/Scenes/UndeadLegion_Extended_Player.unity</code>: control one skeleton against waves of AI skeletons on the arena.</p>
+<table>
+  <tr><th>Input</th><th>Action</th></tr>
+  <tr><td>W A S D</td><td>walk forward, back and sideways on the locomotion blend tree (root motion, the clips' measured speeds)</td></tr>
+  <tr><td>Shift + W</td><td>run</td></tr>
+  <tr><td>Mouse</td><td>turn (the camera follows behind the shoulder); wheel zooms</td></tr>
+  <tr><td>Left click</td><td>attack with the moves of the attack modules attached to the weapon; each click plays the next move, a click late in an attack chains the next</td></tr>
+  <tr><td>Right button (hold)</td><td>raise the shield (a loadout with a shield): frontal hits are blocked</td></tr>
+  <tr><td>Esc</td><td>pause; the menu switches the class (the new skeleton replaces the old one where it stands), the weapon, and how many enemies fight at once</td></tr>
+</table>
+<p>The controlled skeleton cannot die (<code>SkeletonHealth.invulnerable</code>) but shows every hit: the physical flinch, the hit clips, a camera kick
+and a red flash. Three components make it up, each usable on its own: <code>PlayerSkeleton</code> (on the character: input to the
+<code>SkeletonNavController</code>'s manual mode, attacks, block; the <code>SkeletonAI</code> stays on it, disabled, as the source of the attack
+modules), <code>PlayerCamera</code> (on the camera) and <code>PlayerDemo</code> (the scene: the player, the enemy waves from an
+<code>ArmySpawner</code>, the menu and the HUD). <code>SkeletonNavController.manual</code> with <code>ManualVelocity</code> (in the character's
+frame) is the hook for your own character controller.</p>
+
+<h2>16. Performance</h2>
 <ul>
   <li>Ragdoll bodies are kinematic until death, so a living skeleton costs only its colliders.</li>
   <li>Cloth is the most expensive feature: keep <code>cullDistance</code> modest, or remove <code>SkeletonCloth</code> from background crowds.</li>
@@ -248,7 +268,7 @@ clips are in the Reactions section, and armour pieces put on from the modules pa
   <li>For large crowds, set the agents' obstacle avoidance quality lower and consider disabling <code>SkeletonTwitch</code> and the hit reactions far from the camera.</li>
 </ul>
 
-<h2>16. Support</h2>
+<h2>17. Support</h2>
 <p>For questions or issues, email <b><a href="mailto:vadymudod@hotmail.com" style="color:inherit">vadymudod@hotmail.com</a></b>. Please include
 your Unity version, the edition (Extended) and a short description or screenshot of the problem.</p>
 

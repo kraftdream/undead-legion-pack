@@ -37,6 +37,14 @@ namespace UndeadLegion.Extended
         public string[] hitClips = { "Hit_01", "Hit_02" };
         [Tooltip("Remove the GameObject once dissolved.")]
         public bool destroyWhenDissolved = true;
+        [Tooltip("Takes the hits (reactions, hit clips, the damage event) but never loses health: a player character that cannot die.")]
+        public bool invulnerable = false;
+        [Tooltip("While true, hits from the front (within blockArc) are blocked: a small flinch, no hit clip, no damage.")]
+        public bool blocking = false;
+        [Tooltip("Half-angle, degrees, of the arc in front of the skeleton that a block covers.")]
+        public float blockArc = 70f;
+        [Range(0f, 1f)] [Tooltip("Share of the push a blocked hit still gives the hit reaction.")]
+        public float blockedReaction = 0.3f;
 
         public UnityEvent<DamageInfo> onDamaged = new UnityEvent<DamageInfo>();
         public UnityEvent onDied = new UnityEvent();
@@ -65,7 +73,15 @@ namespace UndeadLegion.Extended
         public void TakeDamage(DamageInfo info)
         {
             if (IsDead) return;
-            health = Mathf.Max(0f, health - info.amount);
+            if (IsBlocked(info))
+            {
+                if (_hit != null) _hit.Hit(info.point, info.impulse * blockedReaction);
+                info.amount = 0f; LastHitBlocked = true;
+                onDamaged.Invoke(info);
+                return;
+            }
+            LastHitBlocked = false;
+            if (!invulnerable) health = Mathf.Max(0f, health - info.amount);
             _lastHit = info;
             if (_hit != null) _hit.Hit(info.point, info.impulse);
             if (health > 0f) PlayHitClip();
@@ -76,6 +92,17 @@ namespace UndeadLegion.Extended
         public void TakeDamage(float amount, Vector3 point, Vector3 impulse, GameObject source = null)
         {
             TakeDamage(new DamageInfo { amount = amount, point = point, impulse = impulse, source = source });
+        }
+
+        /// <summary>True when the last hit taken was blocked.</summary>
+        public bool LastHitBlocked { get; private set; }
+
+        bool IsBlocked(DamageInfo info)
+        {
+            if (!blocking) return false;
+            Vector3 from = info.source != null ? info.source.transform.position : info.point;
+            Vector3 d = from - transform.position; d.y = 0f;
+            return d.sqrMagnitude > 1e-4f && Vector3.Angle(transform.forward, d) <= blockArc;
         }
 
         /// <summary>Kills the skeleton with the configured death mode.</summary>

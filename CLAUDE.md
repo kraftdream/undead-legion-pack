@@ -667,6 +667,27 @@ random pick that avoids the last clip (was a fixed rotation), the `Style` enum i
 hooded (Mage / Necromancer pieces mixed between the two), each class / loadout with the intended moves; an 8v8 battle with no console
 messages, regular and heavy one-handed moves, 2H, casts and shots played. Extended manual §11 / §12 and the extended listing updated.
 
+**The player demo (2026-10-04, extended only).** User: "a demo scene where I control a skeleton and fight other skeletons; Esc pauses
+with a menu to select a different class (replaces the current one); WASD, the mouse turns on Y, left click attacks cycling the variations,
+hold the right button to block with a shield; my skeleton has no HP, can't die, but shows hits; forward + Shift runs".
+`Extended/Scenes/UndeadLegion_Extended_Player.unity` (menu *Extended / 5. Build Player Demo Scene*, part of *Build All (1-5)*; the arena is
+`ExtendedBuilder.BuildArena`, shared with the battle scene, and its stone material and volume profile are now created ONCE and reused, so
+one scene's rebuild never breaks the other's references). New scripts: **`PlayerSkeleton`** (on the character: `SkeletonNavController.manual`
++ `ManualVelocity` — new, the wanted velocity in the character's frame, no steering — at the gait's measured walk / run / back / strafe speeds;
+the mouse yaws the transform; left click plays `SkeletonAI.CurrentMoves()` in order, the AI disabled but kept as the module source, a click in
+the second half of an attack chains the next; right button with a "shield" loadout crossfades `Block_L_Idle` on `LeftArm` and sets
+`SkeletonHealth.blocking`; melee hits everyone within reach and 70°, bolts home on the nearest enemy within 30°, arrows land on the nearest
+within 12° after their flight), **`PlayerCamera`** (behind the shoulder, follows the yaw, wheel zoom, `Shake`), **`PlayerDemo`** (spawns the
+player — the class's default loadout, teal eyes, invulnerable —, keeps `enemyCount` (4) enemies alive from an `ArmySpawner`, 9–14 m away,
+respawning 2.5 s after a death; Esc pauses with `Time.timeScale` 0 and a menu: six classes, eleven weapons, enemies 1/2/4/6/8, resume; HUD
+with class, weapon, next move, kills; a camera kick and a red flash on a hit). `SkeletonHealth` gained **`invulnerable`** and **`blocking`**
+(+ `blockArc` 70°, `blockedReaction` 0.3, `LastHitBlocked`); `ExtendedInput.KeyDown`; `SkeletonNavController` resets its moving state when a
+one-shot ends (a held W after an attack re-enters locomotion). Probed in play mode with Input System state events (`InputSettings` set to
+`IgnoreFocus` + `AllDeviceInputAlwaysGoesToGameView` for the probe): W walks (Walk_Fwd_01), Shift + W runs (MoveZ 1.14), S / D back /
+strafe at their speeds, the mouse turned 90°, three clicks cycled R_01_Stab → R_02_Swing → R_03_Swing, the block raised `Block_L_Idle` on the
+Knight's shield and released, a 50-damage hit left 100 health, Esc paused (timeScale 0, cursor free), switching to the Mage replaced the player
+with a wand in hand, 15 s of combat: 21 hits on the player, no console messages. Production: a build scene of the extended edition.
+
 **Extended browser layout (2026-09-30, "move the new UI panel under the animations panel, make that one shorter; the physics hit is
 weak, 2x"):** the PHYSICS panel is anchored bottom-right at the ANIMATIONS panel's right edge and width (−20 / 280 px, 78 px above the
 bottom), and `ExtendedShowcase.FitUnderAnimations` shortens the browser's `AnimationPanel` at runtime to end 10 px above it (measured
