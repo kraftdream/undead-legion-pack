@@ -340,6 +340,21 @@
    "_note": "2026-09-30, user: 'add hit 02 with stagger 02'. Built like Stagger_01, not from a retarget (hand_edited; glb names the hit's source only): session script stagger_compose.py --hit Hit_02 --out Stagger_02 (one full cycle of Walk_Back_01 resampled 1.4x -> 43 frames, Hit_02's motion added on top over frames 1..30), then anim_nla_bake --pin-foot L:40:40:43,R:40:40:43 --pin-ease 0:0 --keep-poles --leg-reach 0.985 (both feet frozen from frame 40). Stagger_02_base is the composed clip before the freeze."
   },
   {
+   "name": "Rise_01",
+   "glb": "rise_01",
+   "mode": "death",
+   "seed": 29,
+   "frames": 150,
+   "time_scale": 1.0,
+   "smooth": 1,
+   "hips_map": "floor",
+   "ground": "none",
+   "lift": 0,
+   "disabled": true,
+   "prompt": "lies flat on the ground face down with the arms stretched out, completely still, then slowly pushes its upper body up with both arms, drags its knees under itself onto all fours, pushes off the ground with both hands and rises to its feet, standing up slowly and unevenly, ending standing still, hunched, arms hanging.",
+   "_note": "2026-10-04, user: 'a skeleton rises from under the ground like a zombie from a grave: head and arms pop out, the arms push the body up, then a stand-up; ~3 s; get it to the armature-in-Blender stage, nothing further'. Four Kimodo candidates with the skeleton profile (rise_ground_c1..c4, two prompts x two seeds, generated LOCALLY: this machine is the Kimodo laptop); c2 kept as Rise_01 (face down on frame 1, hips 6 cm, pushes up onto all fours by ~f30, crouch f55, standing f83, settles to f150), the other three removed. Retargeted like the deaths (FK legs, hips proportional from the floor, no floor pass, no lift): the lying frames clip ~0.2 rig m into the floor, as the corpses do. NOT exported: 'disabled' keeps the batch off it; drop the flag (and set src_begin/src_end for the ~3 s cut) to export."
+  },
+  {
    "name": "Death_01",
    "glb": "death_instant_drop",
    "mode": "death",

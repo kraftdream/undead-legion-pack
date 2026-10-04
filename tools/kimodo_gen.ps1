@@ -35,6 +35,24 @@ $key = "$env:USERPROFILE\.ssh\kimodo_ed25519"
 $dest = Join-Path $root "External Anims\Kimodo"
 New-Item -ItemType Directory -Force $dest | Out-Null
 
+# On the Kimodo machine itself (2026-10-04: the user works on the laptop too, and it has no key to itself)
+# run generate.ps1 directly and copy the outputs; no SSH, no scp.
+if ($env:COMPUTERNAME -ieq $RemoteHost) {
+    $job = "$RemoteJobs\$Name"
+    Write-Host "[kimodo] generating '$Name' locally on $env:COMPUTERNAME ($Frames f, $Steps steps, seed $Seed)" -ForegroundColor Cyan
+    $t0 = Get-Date
+    & (Join-Path $RemoteKimodo "generate.ps1") $Prompt -Frames $Frames -Steps $Steps -Seed $Seed -Out $job
+    if ($LASTEXITCODE -ne 0) { throw "local generation failed (exit $LASTEXITCODE)" }
+    Write-Host ("[kimodo] done in {0:N0} s" -f ((Get-Date) - $t0).TotalSeconds) -ForegroundColor Cyan
+    foreach ($f in "animation.glb", "animation.bvh", "prompt.txt") {
+        Copy-Item (Join-Path $job $f) (Join-Path $dest "$Name.$($f.Split('.')[-1])") -Force
+    }
+    $glb = Join-Path $dest "$Name.glb"
+    if (-not (Test-Path $glb)) { throw "no $glb after the local run" }
+    Write-Host "[kimodo] -> $glb" -ForegroundColor Green
+    exit 0
+}
+
 $job = "$RemoteJobs\$Name"
 # The remote login shell is cmd.exe and an inline PowerShell command loses its quotes on the way
 # (the prompt arrived as a comma-split array). Ship the job as a .ps1 and run it with -File.

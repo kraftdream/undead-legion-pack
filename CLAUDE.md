@@ -2023,6 +2023,21 @@ UprightSpeeds`, the showreel captions (Unity recorder + `tools/ue/showreel_plan.
 (the tree reads ±0.64, the `PFX_` prefabs keep their controller). Boots after the export: the Knight within 1 mm on the strafes, the others
 ≤ 6 mm under; the run +4..+13 mm (its default lift, as before); the Necromancer's hips-weighted robe 9–14 cm under as on every `_02` loop.
 
+### Rise from the ground (2026-10-04, "a skeleton rises from under the ground like a zombie from a grave: head and arms pop out, the arms push it up, then a stand-up; ~3 s; only to the armature-in-Blender stage")
+
+`Rise_01` in the anim file = Kimodo candidate `rise_ground_c2` (seed 29, 150 frames, the skeleton profile + "lies flat on the ground face
+down ... pushes its upper body up with both arms, drags its knees under itself onto all fours, pushes off ... rises to its feet"), retargeted
+like the deaths (`mode death`, `hips_map floor`, `ground none`, `lift 0`: FK legs, the hips proportional from the floor, the lying frames
+clipping ~0.2 rig m into the floor as the corpses do). Measured on the source: face down on frame 1 (hips 6 cm, head on the floor — Kimodo
+did NOT start standing this time, so no front trim), onto all fours by ~f30, a crouch at f55, standing at f83, settling to f150; the rise
+is ~2.8 s, the 3 s clip is frames ~1–90. Four candidates were scored on the hips-height profile (`riseeval`-style: standing / lowest
+height, the frame the climb starts, the frame it is back at 90 %, hands and feet minima) + contact sheets: c1 (seed 11) started as a
+motionless sitting ball for 1.8 s, c3 / c4 (the "crouched low" prompt, seeds 17 / 41) started at 21 / 43 cm and stood in under 2 s —
+removed, GLBs deleted. Manifest entry `Rise_01` carries `disabled` (not exported; drop the flag and set the cut to ship it). The
+"under the ground" part is the engine's (spawn with the root sunk, or the Extended dissolve rise). **`kimodo_gen.ps1` runs locally when
+`$env:COMPUTERNAME` is the Kimodo host** (this machine IS `DESKTOP-PQNPNNB`; it has no SSH key to itself): 85 s per 150-frame clip.
+⚠ `anim_preview.py --out` must be ABSOLUTE: a relative path resolved against Blender's cwd and wrote to `C:\Animations\preview`.
+
 ### The clip factory (2026-09-19/20)
 
 `Animations/clips.json` is the manifest: one entry per clip with the Kimodo prompt,
