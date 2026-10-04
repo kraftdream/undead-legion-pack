@@ -68,8 +68,8 @@ identical because the avatar is shared). Ship these numbers with the pack:
 | `Walk_Back_02` | 1.467 s | −1.132 m | 0.77 m/s (the "normal" walk back, 2026-09-26) |
 | `Strafe_Left_01` | 1.467 s | −0.293 m (X) | 0.20 m/s (steps 30 % shorter 2026-09-24 and 30 % again 2026-09-26) |
 | `Strafe_Right_01` | 1.467 s | +0.293 m (X) | 0.20 m/s (the mirror of the finished Strafe_Left_01) |
-| `Strafe_Left_02` | 1.300 s | −1.204 m (X) | 0.93 m/s (the "normal" side-step, 2026-09-26; the retarget's mirror of the right) |
-| `Strafe_Right_02` | 1.300 s | +1.204 m (X) | 0.93 m/s |
+| `Strafe_Left_02` | 1.300 s | −0.843 m (X) | 0.64 m/s (the "normal" side-step, 2026-09-26; the retarget's mirror of the right; the user's shorter-step edit pulled 2026-10-04, was 1.204 m / 0.93) |
+| `Strafe_Right_02` | 1.300 s | +0.843 m (X) | 0.64 m/s (the same edit, 2026-10-04) |
 
 Measured on all six models: Idle travel 0, Head 5.2° / Hips 2.5° of motion; Twitch_03
 over Idle adds Head 5.7° / Jaw 4.7° peaks with Hips at 0.00°. Every clip's lowest baked
@@ -1996,6 +1996,15 @@ spot on the widest frame (the performer's hands were up to 0.56 m apart); the st
 (`--frames A:B`, ≤ 10 min each) and merge the npz files by frame. **Feet fixes pulled from the user's side file** (same evening):
 `Run_Fwd_01/02`, `Walk_Back_01/02`, `Walk_Fwd_02` appended from `Animations/skeleton_anim_run_feet_fix.blend` over the anim file's
 (feet only differ; the `_base` / `_Fix` actions untouched); not re-exported, the speed table not re-measured.
+**Second pull (2026-10-04, "pull Run_Fwd_02 and Strafe_02 left/right from skeleton_anim_skeletal_locomotion into the main file, re-export
+these 3 into Unity")**: the three actions appended from `Animations/skeleton_anim_skeletal_locomotion.blend` (the user's side file, untracked)
+over the anim file's (the old ones removed after `user_remap`; `bpy.data.libraries.load` append, saved compressed, 29 MB), all three
+`hand_edited` in the manifest (the strafes were reproducible entries before: a `--force` rebuild would have erased the edit), exported with
+`--export-only --force`. Measured: Run_Fwd_02 unchanged (0.833 s, 1.562 m, 1.87 m/s); **the `_02` strafes now step shorter: 0.843 m per
+1.300 s loop, 0.64 m/s (were 1.204 m / 0.93)** — the speed table, `ExtendedBuilder`'s `Locomotion_Upright` tree (±0.64), `SkeletonNavController.
+UprightSpeeds`, the showreel captions (Unity recorder + `tools/ue/showreel_plan.py`) and the buyer manual follow; Extended *Build All (1-4)* re-run
+(the tree reads ±0.64, the `PFX_` prefabs keep their controller). Boots after the export: the Knight within 1 mm on the strafes, the others
+≤ 6 mm under; the run +4..+13 mm (its default lift, as before); the Necromancer's hips-weighted robe 9–14 cm under as on every `_02` loop.
 
 ### The clip factory (2026-09-19/20)
 

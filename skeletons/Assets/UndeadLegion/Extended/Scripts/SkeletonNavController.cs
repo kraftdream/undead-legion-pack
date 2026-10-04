@@ -28,7 +28,7 @@ namespace UndeadLegion.Extended
 
         // measured on the shipped clips (Unity, Humanoid, root motion): walk / run / back / strafe, m/s
         static readonly float[] HeavySpeeds = { 0.52f, 1.14f, 0.34f, 0.20f };
-        static readonly float[] UprightSpeeds = { 1.28f, 1.87f, 0.77f, 0.93f };
+        static readonly float[] UprightSpeeds = { 1.28f, 1.87f, 0.77f, 0.64f };
 
         static readonly int MoveX = Animator.StringToHash("MoveX");
         static readonly int MoveZ = Animator.StringToHash("MoveZ");

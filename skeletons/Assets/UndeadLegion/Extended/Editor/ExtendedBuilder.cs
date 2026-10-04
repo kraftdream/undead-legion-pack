@@ -45,7 +45,7 @@ namespace UndeadLegion.ExtendedEditor
             ac.AddParameter("MoveZ", AnimatorControllerParameterType.Float);
             // measured speeds (m/s): walk forward, run, walk back, strafe
             AddLocomotion(ac, "Locomotion_Heavy", "Idle_01", "Walk_Fwd_01", 0.52f, "Run_Fwd_01", 1.14f, "Walk_Back_01", 0.34f, "Strafe_Left_01", "Strafe_Right_01", 0.20f);
-            AddLocomotion(ac, "Locomotion_Upright", "Idle_01", "Walk_Fwd_02", 1.28f, "Run_Fwd_02", 1.87f, "Walk_Back_02", 0.77f, "Strafe_Left_02", "Strafe_Right_02", 0.93f);
+            AddLocomotion(ac, "Locomotion_Upright", "Idle_01", "Walk_Fwd_02", 1.28f, "Run_Fwd_02", 1.87f, "Walk_Back_02", 0.77f, "Strafe_Left_02", "Strafe_Right_02", 0.64f);
             // weapon idles on the upper body, so the weapon stays in its pose while the legs walk
             int upper = -1; for (int i = 0; i < ac.layers.Length; i++) if (ac.layers[i].name == "UpperBody") upper = i;
             int added = 0;

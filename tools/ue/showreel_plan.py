@@ -109,7 +109,7 @@ def weapons():
 
 def movement():
     set01 = [("Walk_Fwd_01", "0.52"), ("Run_Fwd_01", "1.14"), ("Walk_Back_01", "0.34"), ("Strafe_Left_01", "0.20"), ("Strafe_Right_01", "0.20")]
-    set02 = [("Walk_Fwd_02", "1.28"), ("Run_Fwd_02", "1.87"), ("Walk_Back_02", "0.77"), ("Strafe_Left_02", "0.93"), ("Strafe_Right_02", "0.93")]
+    set02 = [("Walk_Fwd_02", "1.28"), ("Run_Fwd_02", "1.87"), ("Walk_Back_02", "0.77"), ("Strafe_Left_02", "0.64"), ("Strafe_Right_02", "0.64")]
     st = []
     for ch, lo, s in (("Warrior", "Axe + round shield", "01"), ("Mage", "Staff", "02")):
         line = "Shambling set (_01) for the lower ranks" if s == "01" else "Upright set (_02) for the higher ranks"

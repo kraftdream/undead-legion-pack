@@ -179,7 +179,7 @@ namespace UndeadLegion.Demo
             var steps = new List<Step>();
             steps.Add(new Step { titleCard = true, title = "MOVEMENT", text = "two locomotion sets  |  hit reactions and staggers  |  measured speed table shipped", seconds = titleCardSeconds });
             string[][] set01 = { new[] { "Walk_Fwd_01", "0.52" }, new[] { "Run_Fwd_01", "1.14" }, new[] { "Walk_Back_01", "0.34" }, new[] { "Strafe_Left_01", "0.20" }, new[] { "Strafe_Right_01", "0.20" } };
-            string[][] set02 = { new[] { "Walk_Fwd_02", "1.28" }, new[] { "Run_Fwd_02", "1.87" }, new[] { "Walk_Back_02", "0.77" }, new[] { "Strafe_Left_02", "0.93" }, new[] { "Strafe_Right_02", "0.93" } };
+            string[][] set02 = { new[] { "Walk_Fwd_02", "1.28" }, new[] { "Run_Fwd_02", "1.87" }, new[] { "Walk_Back_02", "0.77" }, new[] { "Strafe_Left_02", "0.64" }, new[] { "Strafe_Right_02", "0.64" } };
             // 2026-09-29, second cut: one character per set (the six-character version ran 92 s) - the Warrior for the low-rank _01 set, the Mage for the high-rank _02 set
             string[][] chars = { new[] { "Warrior", "Axe + round shield", "01" }, new[] { "Mage", "Staff", "02" } };
             foreach (var ch in chars)
