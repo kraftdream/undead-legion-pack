@@ -2051,6 +2051,11 @@ UprightSpeeds`, the showreel captions (Unity recorder + `tools/ue/showreel_plan.
 (the tree reads ±0.64, the `PFX_` prefabs keep their controller). Boots after the export: the Knight within 1 mm on the strafes, the others
 ≤ 6 mm under; the run +4..+13 mm (its default lift, as before); the Necromancer's hips-weighted robe 9–14 cm under as on every `_02` loop.
 
+**Idle_TwoHanded re-exported verbatim (2026-10-04, "reimport the Idle_TwoHanded into unity").** The user's edited action (same 141-frame
+loop) exported with `lift 0` and NO `ground_fit` (the fit curve deleted), under the standing rule "all clips are fine-tuned to avoid
+export-time adjustments": in place, yaw 0, boots Knight −1.6 mm, the other four −4..−7 mm, the Necromancer's hips-weighted robe 69 mm under.
+Same session: the user re-tuned `W_H2Axe`'s Grip in Unity; `Animations/unity_grips.json` re-dumped.
+
 ### Rise from the ground (2026-10-04, "a skeleton rises from under the ground like a zombie from a grave: head and arms pop out, the arms push it up, then a stand-up; ~3 s; only to the armature-in-Blender stage")
 
 `Rise_01` in the anim file = Kimodo candidate `rise_ground_c2` (seed 29, 150 frames, the skeleton profile + "lies flat on the ground face
