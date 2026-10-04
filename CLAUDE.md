@@ -680,9 +680,12 @@ layer — has `speedParameterActive` on it (`build_twitch_controller.py`); `AC_S
 (loadout)`** (sword / sword + shield 1.3, dagger / two daggers 1.7, else 1) is written into the Animator on `Equip` and re-asserted in
 `LateUpdate` (an Animator disabled under a ragdoll comes back with default parameters). The extended modules' sword / dagger moves are back
 to `speed` 1 (they would have doubled), and `SkeletonNavController.PlayAction` divides an `Attack_*` clip's length by the weapon's pace for its
-busy time. Probed in the base demo: the dagger's `Attack_R_02_Swing` at ×1.70 (1.16 s for 1.97), the axe at ×1.00. ⚠ The showreel recorder's
-`attackSpeed` (1.6 on the assassin's dagger steps) now multiplies with the dagger's 1.7: re-recording the weapons stage would play those
-steps 2.7× — lower the recorder's value first if it is ever re-recorded.
+busy time. Probed in the base demo: the dagger's `Attack_R_02_Swing` at ×1.70 (1.16 s for 1.97), the axe at ×1.00. The showreel
+recorder's own 1.6× on the assassin's dagger steps is gone (it would have stacked to 2.7×; the dagger pace alone applies), and all three
+stages were re-recorded headless the same day (modular 66 s, movement 42.5 s) with the user's attack set; then the weapons stage again
+with the heavy variants ("add 2H_01_Swing_Heavy to the longsword, 2H_02_Swing_Heavy to the battle axe, R_01_Stab_Heavy to the sword,
+R_02_Swing_Heavy to the axe, R_03_Swing_Heavy to the mace"; the Knight got a mace step after the sword, R_03_Swing + its heavy, and dies
+holding it): 133 s; the YouTube cut rebuilt (4:22, the outro chapter at 4:14).
 
 **The player demo (2026-10-04, extended only).** User: "a demo scene where I control a skeleton and fight other skeletons; Esc pauses
 with a menu to select a different class (replaces the current one); WASD, the mouse turns on Y, left click attacks cycling the variations,
