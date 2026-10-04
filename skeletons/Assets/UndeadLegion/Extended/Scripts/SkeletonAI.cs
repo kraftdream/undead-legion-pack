@@ -6,18 +6,20 @@ namespace UndeadLegion.Extended
 {
     /// <summary>
     /// A simple combat brain: pick the nearest living enemy (another team) in sight, chase it on the NavMesh, stop in range,
-    /// face it and attack with the moves of the equipped weapon. Melee deals damage at the swing's hit moment; the bow, wand
-    /// and staff fire projectiles; casters occasionally use the area cast. Idle skeletons can wander around their start.
+    /// face it and attack with the moves of the ATTACK MODULES that attach to the equipped weapon (see AttackModule: swords
+    /// and daggers regular one-handed attacks, axes and maces regular + heavy, a second dagger the left-hand attacks...).
+    /// Melee deals damage at the swing's hit moment; the bow, wand and staff fire projectiles; casters occasionally use the
+    /// area cast. Idle skeletons can wander around their start.
     /// </summary>
     [RequireComponent(typeof(SkeletonNavController))]
     [RequireComponent(typeof(SkeletonHealth))]
     [DisallowMultipleComponent]
     public class SkeletonAI : MonoBehaviour
     {
-        public enum Style { Auto, OneHanded, DualDaggers, TwoHanded, Bow, Wand, Staff, Unarmed }
-
-        [Tooltip("Attack style; Auto reads it from the equipped loadout.")]
-        public Style style = Style.Auto;
+        [Tooltip("Attack modules; every module whose weapon list holds the equipped loadout adds its moves.")]
+        public List<AttackModule> attackModules = AttackModule.Defaults();
+        [Tooltip("Off: heavy modules are skipped (the assassin fights with regular attacks only).")]
+        public bool allowHeavy = true;
         public float sightRange = 18f;
         [Tooltip("Seconds between attacks (after the attack clip ends).")]
         public float attackCooldown = 0.6f;
@@ -35,32 +37,15 @@ namespace UndeadLegion.Extended
         public SkeletonHealth target;
         [ColorUsage(false, true)] public Color magicColor = new Color(0.4f, 2.2f, 1.1f);
 
-        struct Move { public string clip; public float hitAt; public float range; public float damage; public float impulse; public bool ranged; public bool area; }
-
-        static readonly Dictionary<Style, Move[]> Moves = new Dictionary<Style, Move[]>
-        {
-            { Style.OneHanded,   new[] { M("Attack_R_02_Swing", 0.46f, 1.7f, 20, 70), M("Attack_R_01_Stab", 0.30f, 1.8f, 18, 55), M("Attack_R_03_Swing", 0.50f, 1.7f, 20, 70),
-                                         M("Attack_R_02_Swing_Heavy", 0.46f, 1.8f, 26, 90), M("Attack_R_03_Swing_Heavy", 0.48f, 1.8f, 26, 90) } },
-            { Style.DualDaggers, new[] { M("Attack_R_01_Stab", 0.30f, 1.6f, 14, 45), M("Attack_L_02_Swing", 0.46f, 1.5f, 14, 55), M("Attack_L_01_Stab", 0.30f, 1.6f, 14, 45), M("Attack_R_02_Swing", 0.46f, 1.5f, 14, 55),
-                                         M("Attack_L_03_Swing", 0.50f, 1.5f, 14, 55), M("Attack_R_03_Swing", 0.50f, 1.5f, 14, 55) } },
-            { Style.TwoHanded,   new[] { M("Attack_2H_01_Swing", 0.54f, 2.1f, 35, 120), M("Attack_2H_02_Swing", 0.43f, 2.2f, 30, 110),
-                                         M("Attack_2H_01_Swing_Heavy", 0.54f, 2.2f, 45, 150), M("Attack_2H_02_Swing_Heavy", 0.41f, 2.3f, 40, 140) } },   // hitAt = the hand-speed peak measured on each clip (2026-10-04)
-            { Style.Bow,         new[] { R("Shoot_01", 21f / 59f, 16f, 28, 50) } },
-            { Style.Wand,        new[] { R("Cast_Wand_01", 0.45f, 11f, 16, 35), R("Cast_Wand_02", 0.45f, 11f, 16, 35) } },
-            { Style.Staff,       new[] { R("Cast_Staff_01", 0.55f, 12f, 24, 45), A("AOE_Cast", 0.62f, 9f, 30, 90) } },
-            { Style.Unarmed,     new[] { M("Attack_R_02_Swing", 0.46f, 1.4f, 8, 40), M("Attack_L_02_Swing", 0.46f, 1.4f, 8, 40) } },
-        };
-        static Move M(string c, float at, float r, float d, float i) { return new Move { clip = c, hitAt = at, range = r, damage = d, impulse = i }; }
-        static Move R(string c, float at, float r, float d, float i) { return new Move { clip = c, hitAt = at, range = r, damage = d, impulse = i, ranged = true }; }
-        static Move A(string c, float at, float r, float d, float i) { return new Move { clip = c, hitAt = at, range = r, damage = d, impulse = i, ranged = true, area = true }; }
-
         SkeletonNavController _nav;
         SkeletonHealth _health;
         Animator _animator;
         UndeadLegion.Demo.SkeletonWeapon _weapon;
         Vector3 _home;
         float _nextAttack, _nextThink, _nextWander, _nextArea;
-        int _moveIndex;
+        string _lastClip;
+        int _movesFor = int.MinValue; bool _movesHeavy;
+        readonly List<AttackMove> _moves = new List<AttackMove>();
         Coroutine _attack;
 
         public bool InCombat { get { return target != null; } }
@@ -79,28 +64,38 @@ namespace UndeadLegion.Extended
 
         void Start() { _home = transform.position; }
 
+        void OnValidate() { _movesFor = int.MinValue; }   // modules edited in the inspector: rebuild the move list
+
         void OnDied() { if (_attack != null) StopCoroutine(_attack); _attack = null; target = null; enabled = false; }
 
-        public Style CurrentStyle()
+        /// <summary>The equipped loadout's name ("" when the skeleton holds nothing).</summary>
+        public string CurrentLoadout()
         {
-            if (style != Style.Auto) return style;
-            string lo = _weapon != null && _weapon.Current >= 0 ? _weapon.NameAt(_weapon.Current) : "";
-            if (lo.Contains("(2H)")) return Style.TwoHanded;
-            if (lo.Contains("bow")) return Style.Bow;
-            if (lo == "Staff") return Style.Staff;
-            if (lo == "Wand") return Style.Wand;
-            if (lo == "Two daggers") return Style.DualDaggers;
-            if (lo.Length > 0) return Style.OneHanded;
-            return Style.Unarmed;
+            return _weapon != null && _weapon.Current >= 0 ? _weapon.NameAt(_weapon.Current) : "";
         }
 
-        Move[] CurrentMoves() { Move[] m; return Moves.TryGetValue(CurrentStyle(), out m) ? m : Moves[Style.Unarmed]; }
+        /// <summary>The moves of every module attached to the equipped loadout (heavy ones only when allowed).</summary>
+        public List<AttackMove> CurrentMoves()
+        {
+            int cur = _weapon != null ? _weapon.Current : -1;
+            if (cur == _movesFor && allowHeavy == _movesHeavy && _moves.Count > 0) return _moves;
+            _movesFor = cur; _movesHeavy = allowHeavy; _moves.Clear();
+            string lo = CurrentLoadout();
+            foreach (var mod in attackModules)
+                if (mod != null && mod.AttachesTo(lo) && (allowHeavy || !mod.heavy)) _moves.AddRange(mod.moves);
+            if (_moves.Count == 0)   // a loadout no module knows: fight unarmed
+                foreach (var mod in attackModules)
+                    if (mod != null && mod.AttachesTo("") && (allowHeavy || !mod.heavy)) _moves.AddRange(mod.moves);
+            return _moves;
+        }
+
+        bool UsesBow() { foreach (var m in CurrentMoves()) if (m.arrow) return true; return false; }
 
         float PreferredRange()
         {
             var moves = CurrentMoves(); float r = float.MaxValue; bool melee = true;
             foreach (var m in moves) if (!m.area) { r = Mathf.Min(r, m.range); if (m.ranged) melee = false; }
-            return melee ? meleeRange : r;
+            return melee || r == float.MaxValue ? meleeRange : r;
         }
 
         SkeletonHealth FindTarget()
@@ -131,7 +126,7 @@ namespace UndeadLegion.Extended
             if (dist > range)
             {
                 Vector3 goal = target.transform.position - to.normalized * range * 0.85f;
-                _nav.MoveTo(goal, dist > range + walkWithin && CurrentStyle() != Style.Bow);   // run until just outside the reach
+                _nav.MoveTo(goal, dist > range + walkWithin && !UsesBow());   // run until just outside the reach
                 return;
             }
             _nav.Stop();
@@ -149,13 +144,9 @@ namespace UndeadLegion.Extended
 
         IEnumerator Attack()
         {
-            var moves = CurrentMoves();
-            Move m = moves[_moveIndex % moves.Length]; _moveIndex++;
-            if (m.area)
-            {
-                if (Time.time < _nextArea) { m = moves[0]; }
-                else _nextArea = Time.time + 8f;
-            }
+            var m = PickMove();
+            if (m == null) { _nextAttack = Time.time + attackCooldown; _attack = null; yield break; }
+            if (m.area) _nextArea = Time.time + 8f;
             float len = _nav.PlayAction(m.clip, attackSpeed);
             float hitTime = len * m.hitAt;
             float t = 0f;
@@ -168,7 +159,19 @@ namespace UndeadLegion.Extended
             _attack = null;
         }
 
-        void Strike(Move m)
+        /// <summary>A random move of the attached modules, not the one just used (when there is a choice) and no area cast on cooldown.</summary>
+        AttackMove PickMove()
+        {
+            var pool = new List<AttackMove>();
+            foreach (var mv in CurrentMoves()) if (!(mv.area && Time.time < _nextArea)) pool.Add(mv);
+            if (pool.Count == 0) return null;
+            if (pool.Count > 1) pool.RemoveAll(mv => mv.clip == _lastClip);
+            var pick = pool[Random.Range(0, pool.Count)];
+            _lastClip = pick.clip;
+            return pick;
+        }
+
+        void Strike(AttackMove m)
         {
             if (target == null || target.IsDead) return;
             float dmg = m.damage * damageScale;
@@ -189,7 +192,7 @@ namespace UndeadLegion.Extended
             if (m.ranged)
             {
                 var from = HandPoint();
-                if (CurrentStyle() == Style.Bow)
+                if (m.arrow)
                 {
                     // the visible arrow is the weapon's own (SkeletonWeapon fires it on BowRelease); the hit lands after its flight time
                     float fly = Vector3.Distance(from, aim) / 15f;

@@ -26,10 +26,10 @@ Skeletons rise out of the ground and turn to dust with a glowing edge, on a URP 
 A NavMeshAgent drives directional locomotion blend trees built from the pack's measured walk, run, back and strafe clips, so the feet match the ground at any speed. A heavy, shambling gait for the rank and file and an upright gait for casters. Weapon idles keep a two-hander, a bow or a staff properly held while moving.
 
 **Combat AI**
-Skeletons find the nearest enemy, close in and attack with the moves that suit their weapon: one-handed and dual-dagger combos, two-handed swings, bow shots, homing wand and staff bolts, and an area cast. Damage lands when the blow connects. Teams, health, damage and death events are ready to connect to your game.
+Skeletons find the nearest enemy, close in and attack with the moves that suit their weapon, from attack modules attached by the weapon held: regular one-handed attacks for swords and daggers, regular and heavy attacks for axes and maces, left-hand attacks with a second dagger, two-handed swings, bow shots, homing wand and staff bolts, and an area cast. Damage lands when the blow connects. Teams, health, damage and death events are ready to connect to your game.
 
 **Army spawner**
-Spawn formations of varied skeletons: random classes, mixed armour borrowed across classes, loadouts that suit each class, subtle colour variation and team-coloured eyes, rising from the ground one by one.
+Spawn formations of varied skeletons: random classes, mixed armour borrowed across classes under dressing rules (casters always robed and hooded, the melee ranks in plate and leather with pieces missing), loadouts that suit each class, subtle colour variation and team-coloured eyes, rising from the ground one by one.
 
 **Arena demo**
 Two armies on a NavMesh arena. Raise them, start the battle, take control of any skeleton, strike or kill with the mouse, and switch cloth, death modes and corpse dissolving on the fly.
@@ -54,7 +54,7 @@ Everything from the base pack is included unchanged: the character browser demo,
 - Dissolve: URP Lit-based shader with height cut, noise and HDR edge; forward, depth and depth-normals passes
 - Navigation: AI Navigation package (NavMeshAgent), two 2D directional locomotion blend trees at measured clip speeds
 - Animator controller extended with locomotion blend trees and upper-body weapon idles
-- 13 runtime scripts (C#, source included): ragdoll, hit reactions, health, cloth, dissolve, navigation, combat AI, projectiles, army spawner, battle camera and the demo
+- 15 runtime scripts (C#, source included): ragdoll, hit reactions, health, cloth, dissolve, navigation, combat AI, projectiles, army spawner, battle camera and the demo
 - Arena demo scene with a baked NavMesh and URP post-processing (bloom)
 - Extended animation browser scene with a physics panel
 

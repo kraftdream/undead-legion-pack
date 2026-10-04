@@ -650,6 +650,23 @@ melee median 3.93 → 2.42 m, casters just outside their 9–12 m reach; they st
 centre) is the engage distance of every style without a ranged move; the chase runs while `dist > range` toward a goal at 0.85 of it.
 The moves' `range` still gates whether a swing connects (`range + 0.4`), so blows land. Measured in a battle: melee attacks start at
 a median 1.10 m (0.76–1.11), 16 → 7 alive after 25 s, no errors.
+**Armour classes and attack modules (2026-10-04, extended only).** User: "armours should be classified; melee skeletons no robes /
+hoods, only the assassin can wear the mage hood; melee may miss more pieces, like the default archer; mage / necromancer always at least
+a robe and a hood" and "the assassin uses regular, not heavy attacks, left-hand attacks with both weapons; no heavy attacks for the sword;
+mace / axe mix heavy and regular; make it modules, attached by the equipped weapon". **`ArmourRules`** (`Extended/Scripts/`): a module's
+kind (`Robe`; `Hood` = the Mage's and Necromancer's `Helm`; else `Armour`), `CanWear(wearer, source, module)` (casters: no chest / skirt /
+pants, the head always a caster hood; melee classes — Knight, Warrior, Archer, Assassin — no robe, no hood, except the Assassin in the
+Mage's hood), `Required` (casters: robe + hood; melee: chest). `ArmySpawner.DressRandom` picks each slot among the sources the rules
+allow, `meleeBareChance` 0.3 (new) against `bareChance` 0.1 for casters. **`AttackModule`** (`Extended/Scripts/`, `[Serializable]`):
+a name, the loadout names it attaches to (empty = unarmed), `heavy`, `AttackMove[]` (clip, hitAt, range, damage, impulse, ranged / area /
+arrow); `SkeletonAI.attackModules` (defaults: Right hand on every one-handed loadout, Right hand heavy on axe + shield and mace, Left hand
+on two daggers, Two-handed on both 2H, Two-handed heavy on the battle axe only — the longsword counts as a sword —, Bow, Wand, Staff,
+Unarmed) and **`allowHeavy`** (off on `PFX_SkeletonAssassin` by `ExtendedBuilder` and by the spawner for the Assassin); the move is a
+random pick that avoids the last clip (was a fixed rotation), the `Style` enum is gone (the bow is `AttackMove.arrow`). The heavy stab
+(not in the old table): damage 26, reach 1.9, hitAt 0.27. Probed in play mode: 120 spawns, 0 rule violations, every caster robed and
+hooded (Mage / Necromancer pieces mixed between the two), each class / loadout with the intended moves; an 8v8 battle with no console
+messages, regular and heavy one-handed moves, 2H, casts and shots played. Extended manual §11 / §12 and the extended listing updated.
+
 **Extended browser layout (2026-09-30, "move the new UI panel under the animations panel, make that one shorter; the physics hit is
 weak, 2x"):** the PHYSICS panel is anchored bottom-right at the ANIMATIONS panel's right edge and width (−20 / 280 px, 78 px above the
 bottom), and `ExtendedShowcase.FitUnderAnimations` shortens the browser's `AnimationPanel` at runtime to end 10 px above it (measured

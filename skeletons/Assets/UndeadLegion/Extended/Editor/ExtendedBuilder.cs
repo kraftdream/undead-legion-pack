@@ -118,7 +118,8 @@ namespace UndeadLegion.ExtendedEditor
                 agent.radius = 0.32f; agent.height = 1.8f; agent.speed = 0.52f; agent.angularSpeed = 360f; agent.acceleration = 6f;
                 agent.stoppingDistance = 0.1f; agent.obstacleAvoidanceType = ObstacleAvoidanceType.MedQualityObstacleAvoidance;
                 go.AddComponent<UndeadLegion.Extended.SkeletonNavController>();
-                go.AddComponent<UndeadLegion.Extended.SkeletonAI>();
+                var ai = go.AddComponent<UndeadLegion.Extended.SkeletonAI>();
+                ai.allowHeavy = ch != "Assassin";   // the assassin fights with regular attacks only
                 var twitch = go.GetComponent<SkeletonTwitch>(); if (twitch != null) twitch.enabled = true;
                 PrefabUtility.SaveAsPrefabAsset(go, path);
                 Object.DestroyImmediate(go);

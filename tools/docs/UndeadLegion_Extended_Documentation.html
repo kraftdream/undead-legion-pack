@@ -178,17 +178,25 @@ nav.OnLoadoutChanged();                     // after equipping another weapon</p
 <h2>11. Combat AI</h2>
 <p><code>SkeletonAI</code> picks the nearest living enemy within <code>sightRange</code> (or your <code>target</code>), runs toward it and slows to a walk <code>walkWithin</code> metres (0.8) outside its attack's reach (archers keep walking),
 stops at the range of its attacks (melee: <code>meleeRange</code>, 1.1 m centre to centre), turns to face it and attacks, waiting <code>attackCooldown</code> seconds between attacks. Damage lands at
-the moment in the clip where the blow connects. The style is read from the equipped loadout unless you set it:</p>
+the moment in the clip where the blow connects. The attacks come from <b>attack modules</b> (<code>AttackModule</code>, the
+<code>attackModules</code> list on the component): each module names the weapon loadouts it attaches to, and a skeleton fights with
+the moves of every module that matches what it holds, picking one at random (never the same twice in a row when it has a choice).
+The defaults:</p>
 <table>
-  <tr><th>Style</th><th>Attacks</th><th class="n">Range</th></tr>
-  <tr><td>OneHanded</td><td><code>Attack_R_02_Swing</code>, <code>Attack_R_01_Stab</code>, <code>Attack_R_03_Swing</code></td><td class="n">1.7–1.8 m</td></tr>
-  <tr><td>DualDaggers</td><td>both right and both left attacks, alternating</td><td class="n">1.5–1.6 m</td></tr>
-  <tr><td>TwoHanded</td><td><code>Attack_2H_01_Swing</code>, <code>Attack_2H_02_Swing</code></td><td class="n">2.1–2.2 m</td></tr>
-  <tr><td>Bow</td><td><code>Shoot_01</code>: the arrow flies and hits after its flight time</td><td class="n">16 m</td></tr>
-  <tr><td>Wand</td><td><code>Cast_Wand_01/02</code>: a homing bolt (<code>MagicBolt</code>)</td><td class="n">11 m</td></tr>
-  <tr><td>Staff</td><td><code>Cast_Staff_01</code> bolt, and <code>AOE_Cast</code> hitting every enemy within 3 m of the target (8 s cooldown)</td><td class="n">9–12 m</td></tr>
-  <tr><td>Unarmed</td><td>light swings with both arms</td><td class="n">1.4 m</td></tr>
+  <tr><th>Module</th><th>Weapons</th><th>Attacks</th><th class="n">Range</th></tr>
+  <tr><td>Right hand</td><td>sword, sword + shield, axe + shield, mace, dagger, two daggers</td><td><code>Attack_R_01_Stab</code>, <code>Attack_R_02_Swing</code>, <code>Attack_R_03_Swing</code></td><td class="n">1.7–1.8 m</td></tr>
+  <tr><td>Right hand, heavy</td><td>axe + shield, mace</td><td>the three <code>_Heavy</code> variants: a bigger lunge, more damage</td><td class="n">1.8–1.9 m</td></tr>
+  <tr><td>Left hand</td><td>two daggers</td><td><code>Attack_L_01_Stab</code>, <code>Attack_L_02_Swing</code>, <code>Attack_L_03_Swing</code></td><td class="n">1.5–1.6 m</td></tr>
+  <tr><td>Two-handed</td><td>longsword, battle axe</td><td><code>Attack_2H_01_Swing</code>, <code>Attack_2H_02_Swing</code></td><td class="n">2.1–2.2 m</td></tr>
+  <tr><td>Two-handed, heavy</td><td>battle axe</td><td><code>Attack_2H_01_Swing_Heavy</code>, <code>Attack_2H_02_Swing_Heavy</code></td><td class="n">2.2–2.3 m</td></tr>
+  <tr><td>Bow</td><td>recurve bow</td><td><code>Shoot_01</code>: the arrow flies and hits after its flight time</td><td class="n">16 m</td></tr>
+  <tr><td>Wand</td><td>wand</td><td><code>Cast_Wand_01/02</code>: a homing bolt (<code>MagicBolt</code>)</td><td class="n">11 m</td></tr>
+  <tr><td>Staff</td><td>staff</td><td><code>Cast_Staff_01</code> bolt, and <code>AOE_Cast</code> hitting every enemy within 3 m of the target (8 s cooldown)</td><td class="n">9–12 m</td></tr>
+  <tr><td>Unarmed</td><td>nothing held</td><td>light swings with both arms</td><td class="n">1.4 m</td></tr>
 </table>
+<p>So swords and daggers use regular attacks only, axes and maces mix regular and heavy ones, and a second dagger adds the
+left-hand attacks. A heavy module is skipped when <code>allowHeavy</code> is off, which it is on the assassin: it fights with regular
+attacks whatever it holds. Add a module, or change one's weapons and moves, in the inspector to give a weapon its own set.</p>
 <p><code>damageScale</code> and <code>attackSpeed</code> tune difficulty; <code>wanderRadius</code> lets idle skeletons roam around their start point;
 <code>magicColor</code> colours the spells. Disable the component to take control of a skeleton (the arena demo does this when you select one).</p>
 
@@ -198,7 +206,10 @@ to the NavMesh and facing the spawner's forward. Each one gets:</p>
 <ul>
   <li>a random character from <code>characters</code>;</li>
   <li>a mixed armour set from <code>armourCatalogue</code>: each slot keeps the class's own piece or borrows another class's
-      (<code>mixChance</code>), or stays empty (<code>bareChance</code>); a robe replaces chest, skirt and pants;</li>
+      (<code>mixChance</code>), within the dressing rules of <code>ArmourRules</code>: the mage and the necromancer always wear a robe
+      and a hood (the robe replaces chest, skirt and pants); the melee classes never wear a robe or a hood, except the assassin, who may
+      wear the mage's hood; a melee skeleton always keeps a chest piece and leaves any other slot empty more often
+      (<code>meleeBareChance</code>, 0.3) than a caster (<code>bareChance</code>, 0.1);</li>
   <li>a loadout that suits its class (<code>randomLoadout</code>), a subtle colour variation (<code>tintStrength</code>), the team's
       <code>eyeColor</code> and <code>team</code>;</li>
   <li>the upright gait for casters and the heavy gait for the rest (<code>gaitByClass</code>);</li>
