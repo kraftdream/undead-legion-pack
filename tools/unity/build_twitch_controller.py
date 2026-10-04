@@ -56,6 +56,11 @@ while (ctrl.parameters.Length > 0) ctrl.RemoveParameter(0);
 ctrl.AddLayer("Base");
 ctrl.AddParameter("Twitch", AnimatorControllerParameterType.Trigger);
 ctrl.AddParameter("TwitchIndex", AnimatorControllerParameterType.Int);
+// AttackSpeed (2026-10-04): every Attack_* state plays at this multiplier; SkeletonWeapon sets it from the equipped loadout
+// (sword 1.3, dagger 1.7, else 1), so a weapon's attacks keep their pace in every demo scene and on any layer
+var asp = new AnimatorControllerParameter(); asp.name = "AttackSpeed"; asp.type = AnimatorControllerParameterType.Float; asp.defaultFloat = 1f;
+ctrl.AddParameter(asp);
+int nSpeed = 0;
 var baseSm = ctrl.layers[0].stateMachine;
 // NO Foot IK: measured 2026-09-19, Foot IK put the goals ~13 mm BELOW the FK feet (Idle raw
 // penetration -5 mm -> -18 mm). Grounding is a per-clip lift measured in Unity instead
@@ -70,6 +75,7 @@ var baseStates = new System.Collections.Generic.Dictionary<string, UnityEditor.A
 baseStates["Idle_01"] = idleState;
 foreach (var cl in idleClips) {
   var vs = baseSm.AddState(cl.name); vs.motion = cl; baseStates[cl.name] = vs;
+  if (cl.name.StartsWith("Attack_")) { vs.speedParameterActive = true; vs.speedParameter = "AttackSpeed"; nSpeed++; }
   if (gripL.Contains(cl.name)) { var gb = vs.AddStateMachineBehaviour<UndeadLegion.Demo.SkeletonGripState>(); gb.hand = UndeadLegion.Demo.SkeletonWeapon.Hand.Left; nGrip++; }
 }
 // manifest `next` + `next_at` (2026-09-27, Cast_Staff_01 -> Idle_Staff from frame 54): a one-shot's Base state gets an
@@ -84,7 +90,7 @@ foreach (var ns in nextSpec) {
   var trN = from_.AddTransition(to_); trN.hasExitTime = true; trN.exitTime = (atN - 1f) / nfrN; trN.hasFixedDuration = true; trN.duration = (nfrN - (atN - 1f)) / clipN.frameRate; trN.canTransitionToSelf = false;
   nNext++;
 }
-sb.AppendLine("base layer: Idle + " + idleClips.Count + " more states (" + nGrip + " with a left-hand grip state, " + nNext + " with a follow-up transition)");
+sb.AppendLine("base layer: Idle + " + idleClips.Count + " more states (" + nGrip + " with a left-hand grip state, " + nNext + " with a follow-up transition, " + nSpeed + " on AttackSpeed)");
 
 // ---- masks: humanoid parts on/off + the extra (non-humanoid) transforms under a bone. UpperBody:
 // Body/Head/Arms/Fingers, transforms under Spine1. LeftArm / RightArm (2026-09-22, the per-arm attack
@@ -153,6 +159,7 @@ System.Action<int, string, string[]> fillLayer = (li, label, names) => {
   foreach (var nm_ in names) {
     var cl_ = load(nm_); if (cl_ == null) { sb.AppendLine("missing " + label + " clip " + nm_); continue; }
     var st_ = lsm_.AddState(nm_); st_.motion = cl_;
+    if (nm_.StartsWith("Attack_")) { st_.speedParameterActive = true; st_.speedParameter = "AttackSpeed"; }
     if (gripL.Contains(nm_)) { var gb_ = st_.AddStateMachineBehaviour<UndeadLegion.Demo.SkeletonGripState>(); gb_.hand = UndeadLegion.Demo.SkeletonWeapon.Hand.Left; }
     if (cl_.isLooping) held_++;
     else { var back_ = st_.AddTransition(empty_); back_.hasExitTime = true; back_.exitTime = 1f; back_.duration = 0.25f; back_.hasFixedDuration = true; }   // 0.25 s: the arm clips end mid-action and the Animator carries the return
