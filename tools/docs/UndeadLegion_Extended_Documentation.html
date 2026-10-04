@@ -186,9 +186,9 @@ the moves of every module that matches what it holds, picking one at random (nev
 The defaults:</p>
 <table>
   <tr><th>Module</th><th>Weapons</th><th>Attacks</th><th class="n">Range</th></tr>
-  <tr><td>Sword</td><td>sword, sword + shield</td><td><code>Attack_R_01_Stab</code>, <code>Attack_R_02_Swing</code>, <code>Attack_R_03_Swing</code>, 30 % faster</td><td class="n">1.7–1.8 m</td></tr>
-  <tr><td>Dagger</td><td>dagger, two daggers</td><td>the same three, 70 % faster</td><td class="n">1.7–1.8 m</td></tr>
-  <tr><td>Dagger, left hand</td><td>two daggers</td><td><code>Attack_L_01_Stab</code>, <code>Attack_L_02_Swing</code>, <code>Attack_L_03_Swing</code>, 70 % faster</td><td class="n">1.5–1.6 m</td></tr>
+  <tr><td>Sword</td><td>sword, sword + shield</td><td><code>Attack_R_01_Stab</code>, <code>Attack_R_02_Swing</code>, <code>Attack_R_03_Swing</code></td><td class="n">1.7–1.8 m</td></tr>
+  <tr><td>Dagger</td><td>dagger, two daggers</td><td>the same three</td><td class="n">1.7–1.8 m</td></tr>
+  <tr><td>Dagger, left hand</td><td>two daggers</td><td><code>Attack_L_01_Stab</code>, <code>Attack_L_02_Swing</code>, <code>Attack_L_03_Swing</code></td><td class="n">1.5–1.6 m</td></tr>
   <tr><td>Axe / Axe, heavy</td><td>axe + shield</td><td>the three right-hand attacks / their <code>_Heavy</code> variants: a bigger lunge, more damage</td><td class="n">1.7–1.9 m</td></tr>
   <tr><td>Mace / Mace, heavy</td><td>mace</td><td>the two swings / their <code>_Heavy</code> variants (no stab)</td><td class="n">1.7–1.8 m</td></tr>
   <tr><td>Two-handed</td><td>longsword, battle axe</td><td><code>Attack_2H_01_Swing</code>, <code>Attack_2H_02_Swing</code></td><td class="n">2.1–2.2 m</td></tr>
@@ -199,7 +199,7 @@ The defaults:</p>
   <tr><td>Unarmed</td><td>nothing held</td><td>light swings with both arms</td><td class="n">1.4 m</td></tr>
 </table>
 <p>So swords and daggers use regular attacks only, axes and maces mix regular and heavy ones (the mace only swings), and a
-second dagger adds the left-hand attacks. Each move has its own clip <code>speed</code> (multiplied by the component's <code>attackSpeed</code>). A heavy module is skipped when <code>allowHeavy</code> is off, which it is on the assassin: it fights with regular
+second dagger adds the left-hand attacks. The weapon's pace comes from the base pack (the controller's <code>AttackSpeed</code>, set by <code>SkeletonWeapon</code>: sword 30 % faster, dagger 70 % faster), the same in every scene; a move's own <code>speed</code> and the component's <code>attackSpeed</code> multiply on top. A heavy module is skipped when <code>allowHeavy</code> is off, which it is on the assassin: it fights with regular
 attacks whatever it holds. Add a module, or change one's weapons and moves, in the inspector to give a weapon its own set.</p>
 <p><code>damageScale</code> and <code>attackSpeed</code> tune difficulty; <code>wanderRadius</code> lets idle skeletons roam around their start point;
 <code>magicColor</code> colours the spells. Disable the component to take control of a skeleton (the arena demo does this when you select one).</p>

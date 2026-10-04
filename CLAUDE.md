@@ -674,6 +674,16 @@ daggers: the same at 1.7) + Dagger left hand (two daggers: the L three at 1.7), 
 `Faster(s)` copies a move) multiplies `SkeletonAI.attackSpeed` / `PlayerSkeleton.attackSpeed` (1.1) in `PlayAction`; `hitAt` is normalised,
 so the hit moment follows. The `PFX_` prefabs serialise the module list: rebuild them (*Build All (1-5)*) after changing `Defaults()`.
 
+**The weapon pace moved to the base (2026-10-04, "apply the adjusted attack speeds in all the demo scenes; a little leak from extended into
+base is OK").** `AC_Skeleton` has a float parameter **`AttackSpeed`** (default 1) and every `Attack_*` state — 16 on Base, 6 on each arm
+layer — has `speedParameterActive` on it (`build_twitch_controller.py`); `AC_Skeleton_Extended` copies it. **`SkeletonWeapon.AttackSpeedFor
+(loadout)`** (sword / sword + shield 1.3, dagger / two daggers 1.7, else 1) is written into the Animator on `Equip` and re-asserted in
+`LateUpdate` (an Animator disabled under a ragdoll comes back with default parameters). The extended modules' sword / dagger moves are back
+to `speed` 1 (they would have doubled), and `SkeletonNavController.PlayAction` divides an `Attack_*` clip's length by the weapon's pace for its
+busy time. Probed in the base demo: the dagger's `Attack_R_02_Swing` at ×1.70 (1.16 s for 1.97), the axe at ×1.00. ⚠ The showreel recorder's
+`attackSpeed` (1.6 on the assassin's dagger steps) now multiplies with the dagger's 1.7: re-recording the weapons stage would play those
+steps 2.7× — lower the recorder's value first if it is ever re-recorded.
+
 **The player demo (2026-10-04, extended only).** User: "a demo scene where I control a skeleton and fight other skeletons; Esc pauses
 with a menu to select a different class (replaces the current one); WASD, the mouse turns on Y, left click attacks cycling the variations,
 hold the right button to block with a shield; my skeleton has no HP, can't die, but shows hits; forward + Shift runs".
