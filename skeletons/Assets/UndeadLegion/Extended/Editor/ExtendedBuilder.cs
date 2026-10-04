@@ -32,6 +32,7 @@ namespace UndeadLegion.ExtendedEditor
         const string SceneDir = Root + "/Scenes";
         const string ScenePath = SceneDir + "/UndeadLegion_Extended_Demo.unity";
         const string ShowcasePath = SceneDir + "/UndeadLegion_Extended_Showcase.unity";
+        const string PlayerScenePath = SceneDir + "/UndeadLegion_Extended_Player.unity";
         static readonly string[] Characters = { "Knight", "Warrior", "Archer", "Assassin", "Mage", "Necromancer" };
 
         [MenuItem("Undead Legion/Extended/1. Build Extended Controller")]
@@ -134,7 +135,69 @@ namespace UndeadLegion.ExtendedEditor
         {
             Directory.CreateDirectory(SceneDir); Directory.CreateDirectory(Root + "/Materials");
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            NavMeshSurface surface;
+            var camGo = BuildArena(SceneDir + "/UndeadLegion_Extended_Demo_NavMesh.asset", out surface);
+            var rts = camGo.AddComponent<UndeadLegion.Extended.RtsCamera>(); rts.distance = 18f; rts.pitch = 48f; rts.yaw = 35f;
 
+            // armies
+            var pfx = ExtendedPrefabs();
+            var catalogue = ArmourCatalogue();
+            var a = Spawner("Army A (teal)", new Vector3(0f, 0f, -6f), 0f, 0, new Color(0.3f, 2.4f, 1.6f), pfx, catalogue);
+            var b = Spawner("Army B (red)", new Vector3(0f, 0f, 6f), 180f, 1, new Color(2.8f, 0.35f, 0.2f), pfx, catalogue);
+
+            var es = new GameObject("EventSystem"); es.AddComponent<EventSystem>(); es.AddComponent<DemoEventSystemBootstrap>();
+            var demo = new GameObject("Extended Demo").AddComponent<UndeadLegion.Extended.ExtendedDemo>();
+            demo.teamA = a; demo.teamB = b; demo.rtsCamera = rts;
+
+            EditorSceneManager.SaveScene(scene, ScenePath);
+            AssetDatabase.SaveAssets();
+            return ScenePath + ": armies with " + pfx.Count + " characters, " + catalogue.Count + " armour modules, navmesh " + (surface.navMeshData != null);
+        }
+
+        [MenuItem("Undead Legion/Extended/5. Build Player Demo Scene")]
+        public static string BuildPlayerScene()
+        {
+            Directory.CreateDirectory(SceneDir); Directory.CreateDirectory(Root + "/Materials");
+            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            NavMeshSurface surface;
+            var camGo = BuildArena(SceneDir + "/UndeadLegion_Extended_Player_NavMesh.asset", out surface);
+            var follow = camGo.AddComponent<UndeadLegion.Extended.PlayerCamera>();
+
+            // the enemies: one spawner, raised one by one around the player by the demo
+            var pfx = ExtendedPrefabs();
+            var enemies = Spawner("Enemies (red)", new Vector3(0f, 0f, 8f), 180f, 1, new Color(2.8f, 0.35f, 0.2f), pfx, ArmourCatalogue());
+            enemies.enableAI = true; enemies.count = 0;
+
+            var es = new GameObject("EventSystem"); es.AddComponent<EventSystem>(); es.AddComponent<DemoEventSystemBootstrap>();
+            var demoGo = new GameObject("Player Demo"); demoGo.transform.position = new Vector3(0f, 0f, -4f);
+            var demo = demoGo.AddComponent<UndeadLegion.Extended.PlayerDemo>();
+            demo.characters = pfx; demo.enemies = enemies; demo.playerCamera = follow;
+
+            EditorSceneManager.SaveScene(scene, PlayerScenePath);
+            AssetDatabase.SaveAssets();
+            return PlayerScenePath + ": " + pfx.Count + " playable characters, navmesh " + (surface.navMeshData != null);
+        }
+
+        static List<GameObject> ExtendedPrefabs()
+        {
+            var pfx = new List<GameObject>();
+            foreach (var ch in Characters) { var p = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabDir + "/PFX_Skeleton" + ch + ".prefab"); if (p != null) pfx.Add(p); }
+            return pfx;
+        }
+
+        static List<GameObject> ArmourCatalogue()
+        {
+            var catalogue = new List<GameObject>();
+            foreach (var guid in AssetDatabase.FindAssets("t:Prefab A_Skeleton", new[] { "Assets/UndeadLegion/Prefabs/Armor" }))
+                catalogue.Add(AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid)));
+            return catalogue;
+        }
+
+        /// <summary>The arena both extended scenes share: lights, ground, pillars, walls, a baked NavMesh, a camera with bloom.
+        /// The stone material and the volume profile are created once and reused, so rebuilding one scene never breaks the
+        /// other's references.</summary>
+        static GameObject BuildArena(string navPath, out NavMeshSurface surface)
+        {
             // lights: the base demo's three-light rig, sky ambient
             var key = Light("Key Light", new Color(1f, 0.95f, 0.88f), 1.2f, LightShadows.Soft, new Vector3(50f, -35f, 0f));
             Light("Fill Light", new Color(0.45f, 0.55f, 0.75f), 0.4f, LightShadows.None, new Vector3(25f, 150f, 0f));
@@ -145,10 +208,13 @@ namespace UndeadLegion.ExtendedEditor
             var arena = new GameObject("Arena");
             var ground = GameObject.CreatePrimitive(PrimitiveType.Plane); ground.name = "Ground"; ground.transform.SetParent(arena.transform); ground.transform.localScale = new Vector3(10f, 1f, 10f);
             var groundMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/UndeadLegion/Materials/URP/M_Demo_Ground.mat"); if (groundMat != null) ground.GetComponent<Renderer>().sharedMaterial = groundMat;
-            var stone = new Material(Shader.Find("Universal Render Pipeline/Lit")); stone.SetColor("_BaseColor", new Color(0.36f, 0.35f, 0.33f)); stone.SetFloat("_Smoothness", 0.15f);
             string stonePath = Root + "/Materials/M_Arena_Stone.mat";
-            if (File.Exists(stonePath)) AssetDatabase.DeleteAsset(stonePath);
-            AssetDatabase.CreateAsset(stone, stonePath);
+            var stone = AssetDatabase.LoadAssetAtPath<Material>(stonePath);
+            if (stone == null)
+            {
+                stone = new Material(Shader.Find("Universal Render Pipeline/Lit")); stone.SetColor("_BaseColor", new Color(0.36f, 0.35f, 0.33f)); stone.SetFloat("_Smoothness", 0.15f);
+                AssetDatabase.CreateAsset(stone, stonePath);
+            }
             var rng = new System.Random(7);
             foreach (var p in new[] { new Vector3(-6f, 0f, 0f), new Vector3(6f, 0f, 1f), new Vector3(-2.5f, 0f, 3f), new Vector3(3f, 0f, -3f), new Vector3(-9f, 0f, 5f), new Vector3(9f, 0f, -5f) })
             {
@@ -165,11 +231,10 @@ namespace UndeadLegion.ExtendedEditor
                 wall.GetComponent<Renderer>().sharedMaterial = stone;
                 NotWalkable(wall);
             }
-            var surface = arena.AddComponent<NavMeshSurface>();
+            surface = arena.AddComponent<NavMeshSurface>();
             surface.collectObjects = CollectObjects.Children; surface.useGeometry = NavMeshCollectGeometry.RenderMeshes;
             surface.buildHeightMesh = true;          // agents stand on the real ground, not on the coarse navmesh (8 cm above it)
             surface.BuildNavMesh();
-            string navPath = SceneDir + "/UndeadLegion_Extended_Demo_NavMesh.asset";
             if (File.Exists(navPath)) AssetDatabase.DeleteAsset(navPath);
             AssetDatabase.CreateAsset(surface.navMeshData, navPath);
 
@@ -177,33 +242,19 @@ namespace UndeadLegion.ExtendedEditor
             var camGo = new GameObject("Main Camera"); camGo.tag = "MainCamera";
             var cam = camGo.AddComponent<Camera>(); cam.fieldOfView = 40f; cam.nearClipPlane = 0.1f; cam.farClipPlane = 200f;
             var camData = camGo.AddComponent<UniversalAdditionalCameraData>(); camData.renderPostProcessing = true; camData.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
-            var rts = camGo.AddComponent<UndeadLegion.Extended.RtsCamera>(); rts.distance = 18f; rts.pitch = 48f; rts.yaw = 35f;
             string profilePath = Root + "/Materials/ExtendedDemo_Volume.asset";
-            if (File.Exists(profilePath)) AssetDatabase.DeleteAsset(profilePath);
-            var profile = ScriptableObject.CreateInstance<VolumeProfile>();
-            AssetDatabase.CreateAsset(profile, profilePath);
-            var bloom = profile.Add<Bloom>(true); bloom.threshold.Override(1.0f); bloom.intensity.Override(0.9f); bloom.scatter.Override(0.6f);
-            var tone = profile.Add<Tonemapping>(true); tone.mode.Override(TonemappingMode.ACES);
-            var vig = profile.Add<Vignette>(true); vig.intensity.Override(0.25f);
-            foreach (var c in profile.components) AssetDatabase.AddObjectToAsset(c, profile);
+            var profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(profilePath);
+            if (profile == null)
+            {
+                profile = ScriptableObject.CreateInstance<VolumeProfile>();
+                AssetDatabase.CreateAsset(profile, profilePath);
+                var bloom = profile.Add<Bloom>(true); bloom.threshold.Override(1.0f); bloom.intensity.Override(0.9f); bloom.scatter.Override(0.6f);
+                var tone = profile.Add<Tonemapping>(true); tone.mode.Override(TonemappingMode.ACES);
+                var vig = profile.Add<Vignette>(true); vig.intensity.Override(0.25f);
+                foreach (var c in profile.components) AssetDatabase.AddObjectToAsset(c, profile);
+            }
             var volGo = new GameObject("Global Volume"); var vol = volGo.AddComponent<Volume>(); vol.isGlobal = true; vol.sharedProfile = profile;
-
-            // armies
-            var pfx = new List<GameObject>();
-            foreach (var ch in Characters) { var p = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabDir + "/PFX_Skeleton" + ch + ".prefab"); if (p != null) pfx.Add(p); }
-            var catalogue = new List<GameObject>();
-            foreach (var guid in AssetDatabase.FindAssets("t:Prefab A_Skeleton", new[] { "Assets/UndeadLegion/Prefabs/Armor" }))
-                catalogue.Add(AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid)));
-            var a = Spawner("Army A (teal)", new Vector3(0f, 0f, -6f), 0f, 0, new Color(0.3f, 2.4f, 1.6f), pfx, catalogue);
-            var b = Spawner("Army B (red)", new Vector3(0f, 0f, 6f), 180f, 1, new Color(2.8f, 0.35f, 0.2f), pfx, catalogue);
-
-            var es = new GameObject("EventSystem"); es.AddComponent<EventSystem>(); es.AddComponent<DemoEventSystemBootstrap>();
-            var demo = new GameObject("Extended Demo").AddComponent<UndeadLegion.Extended.ExtendedDemo>();
-            demo.teamA = a; demo.teamB = b; demo.rtsCamera = rts;
-
-            EditorSceneManager.SaveScene(scene, ScenePath);
-            AssetDatabase.SaveAssets();
-            return ScenePath + ": armies with " + pfx.Count + " characters, " + catalogue.Count + " armour modules, navmesh " + (surface.navMeshData != null);
+            return camGo;
         }
 
         [MenuItem("Undead Legion/Extended/4. Build Extended Browser Scene")]
@@ -252,12 +303,12 @@ namespace UndeadLegion.ExtendedEditor
             return l;
         }
 
-        [MenuItem("Undead Legion/Extended/Build All (1-4)")]
+        [MenuItem("Undead Legion/Extended/Build All (1-5)")]
         public static string BuildAll()
         {
             Directory.CreateDirectory(Root + "/Materials");
-            var r1 = BuildController(); var r2 = BuildPrefabs(); var r3 = BuildScene(); var r4 = BuildShowcaseScene();
-            return r1 + "\n" + r2 + r3 + "\n" + r4;
+            var r1 = BuildController(); var r2 = BuildPrefabs(); var r3 = BuildScene(); var r4 = BuildShowcaseScene(); var r5 = BuildPlayerScene();
+            return r1 + "\n" + r2 + r3 + "\n" + r4 + "\n" + r5;
         }
     }
 }
