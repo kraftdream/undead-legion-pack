@@ -117,20 +117,26 @@ def build_pass(args, force, unity):
     """Build what is buildable now; return how many manifest entries still lack a GLB."""
     clips = json.load(open(MAN, encoding="utf-8"))["clips"]
     state = json.load(open(STATE)) if os.path.exists(STATE) else {}
-    pending = sum(1 for c in clips if (not args or c["name"] in args) and not os.path.exists(os.path.join(GLB_DIR, c["glb"] + ".glb")))
+    pending = sum(1 for c in clips if (not args or c["name"] in args) and c.get("glb") and not os.path.exists(os.path.join(GLB_DIR, c["glb"] + ".glb")))
     todo = []
     for c in clips:
         if args and c["name"] not in args:
             continue
-        glb = os.path.join(GLB_DIR, c["glb"] + ".glb")
-        if not os.path.exists(glb):
+        glb = os.path.join(GLB_DIR, c["glb"] + ".glb") if c.get("glb") else None   # no glb: an action authored in the anim file (hand_edited), export-only
+        if glb is not None and not os.path.exists(glb):
+            continue
+        if glb is None and not (c.get("hand_edited") and EXPORT_ONLY):
+            if not c.get("hand_edited"):
+                log("%-16s has no glb and is not hand_edited: nothing to build" % c["name"])
+            else:
+                log("%-16s authored in the anim file (no glb): use --export-only" % c["name"])
             continue
         if c.get("disabled"):
             log("%-16s disabled in the manifest: not built, not exported (delete its FBX by hand when disabling; drop the flag to bring it back)" % c["name"]); continue
         if c.get("hand_edited") and not EXPORT_ONLY:
             log("%-16s hand-edited in the anim file (manifest hand_edited): not regenerated; use --export-only to export it, or drop the flag to rebuild from the recording" % c["name"])
             continue
-        sig = "%s|%d|%s" % (c["glb"], int(os.path.getmtime(glb)), json.dumps({k: v for k, v in c.items() if k != "prompt"}, sort_keys=True))
+        sig = "%s|%d|%s" % (c.get("glb"), int(os.path.getmtime(glb)) if glb else 0, json.dumps({k: v for k, v in c.items() if k != "prompt"}, sort_keys=True))
         if not force and state.get(c["name"], {}).get("sig") == sig and state[c["name"]].get("ok"):
             continue
         todo.append((c, sig))

@@ -423,277 +423,6 @@
    "hand_edited": true
   },
   {
-   "name": "Attack_2H_01",
-   "prompt": "A person swings a heavy two-handed axe overhead and down with both hands in a powerful chop, then returns to stance.",
-   "glb": "attack_ref6_arm",
-   "src_ext": "blend",
-   "rename": "ue5",
-   "fist": 0.9,
-   "heading": "auto",
-   "mode": "action",
-   "src_begin": 295,
-   "src_end": 351,
-   "time_scale": 1.0,
-   "smooth": 1,
-   "layer": "full",
-   "gate": "0.03,0.11",
-   "plant_feet": 0.001,
-   "drift": "root",
-   "unwind_yaw": true,
-   "unwind_ref": "body",
-   "lift": 0.004,
-   "ground_fit": true,
-   "_note": "2026-09-24: the user's Attack_2H_01_Fix baked; right arm converted to FK (arm_pole_fk + fk_arm); torso counter-yaw 55 (the chest's 73 deg leftward swing peak reduced to ~0, so the cut lands forward); 20% faster (57 -> 48 frames). hand_edited (2026-09-23): feet pinned by anim_nla_bake --pin-foot 'L:1:1:99:xy,R:auto' (rear left foot held horizontally, heel lift kept; the stepping right foot held on each auto-detected planted phase). 2026-09-23: the user's frame numbers count at 24 fps (the recording is 30 fps): 77-150 / 170-235 / 236-281 / 284-330 x1.25 -> 295-351 (measured: the two attacks' hand speed peaks at 304-327 and 368-412, nothing moves in 236-281). 2026-09-23: attack_ref6 frames 236-281, plain transfer with the legs (planted, the step on Root), both hands on the shaft through the gate | earlier: two-handed gate (user 2026-09-22): the left hand slides on the handle where the capture put it, 0.03..0.11 rig m below the right hand (the battle axe's handle below the socket is 0.13, the longsword's 0.108); replaces the fixed lock_left_hand 0.085",
-   "hand_edited": true,
-   "grip_hands": "L"
-  },
-  {
-   "name": "Attack_2H_02",
-   "prompt": "A person swings a large two-handed sword horizontally from right to left with both hands, then returns to stance.",
-   "glb": "attack_ref6_arm",
-   "src_ext": "blend",
-   "rename": "ue5",
-   "fist": 0.9,
-   "heading": "auto",
-   "mode": "action",
-   "src_begin": 355,
-   "src_end": 413,
-   "time_scale": 1.0,
-   "smooth": 1,
-   "layer": "full",
-   "gate": "0.03,0.11",
-   "plant_feet": 0.001,
-   "drift": "root",
-   "unwind_yaw": true,
-   "unwind_ref": "body",
-   "lift": 0.004,
-   "ground_fit": true,
-   "_note": "hand_edited (2026-09-23): feet pinned by anim_nla_bake --pin-foot 'L:1:1:99:xy,R:auto' (rear left foot held horizontally, heel lift kept; the stepping right foot held on each auto-detected planted phase). 2026-09-23: the user's frame numbers count at 24 fps (the recording is 30 fps): 77-150 / 170-235 / 236-281 / 284-330 x1.25 -> 355-413 (measured: the two attacks' hand speed peaks at 304-327 and 368-412, nothing moves in 236-281). 2026-09-23: attack_ref6 frames 284-330 (raise, sweep down with a 25 cm step and a 44 deg turn, unwound on the body orientation) | earlier: two-handed gate (user 2026-09-22): the left hand slides on the handle where the capture put it, 0.03..0.11 rig m below the right hand (the battle axe's handle below the socket is 0.13, the longsword's 0.108); replaces the fixed lock_left_hand 0.085",
-   "hand_edited": true,
-   "grip_hands": "L"
-  },
-  {
-   "name": "Attack_R_Stab",
-   "layer": "right",
-   "glb": "melee_ref_arm",
-   "src_ext": "blend",
-   "rename": "ue5",
-   "mode": "action",
-   "time_scale": 1.0,
-   "smooth": 1,
-   "fist": 0.9,
-   "heading": "auto",
-   "src_begin": 60,
-   "src_end": 104,
-   "plant_feet": 0.001,
-   "unwind_yaw": true,
-   "unwind_ref": "body",
-   "lift": 0.004,
-   "ground_fit": true,
-   "_note": "2026-09-26 (experimental, user: 'new recording melee in place.glb; replace slice with frames 1-40 and stab with 48-83, feet frozen in place'): the mannequin app (104 frames = 83 x1.25: the user's 24 fps numbers), the right hand attacks (2.1 / 1.4 m/s, the left calm), the pelvis in place, so a plain transfer with the legs planted and NO root drift; both feet then frozen at their frame-1 transforms for the whole clip by anim_nla_bake --pin-foot L,R (hand_edited). No time_scale (the take's own tempo; the ref5 builds ran at 0.38-0.45) and no blade pass. Previous (attack_ref5 take): {\"layer\": \"right\", \"glb\": \"attack_ref5_arm\", \"mode\": \"action\", \"rename\": \"ue5\", \"time_scale\": 0.3846, \"smooth\": 1, \"fist\": 0.9, \"heading\": \"auto\", \"src_begin\": 18, \"src_end\": 80, \"src_ext\": \"blend\", \"plant_feet\": 0.001, \"drift\": \"root\", \"unwind_yaw\": true, \"blade_along_arm\": \"R\", \"lift\": 0.004, \"ground_fit\": true, \"hand_edited\": true}.  2026-09-26 (user: 'for one-handed attacks only torso and above are used, we don't touch legs and feet'): anim_nla_bake --legs-from Idle_01:1 - every leg control from Idle's frame 1 on every frame, the clip's hips over the idle's stance. 2026-09-26: the user's updated Attack_R_Stab_Fix baked with --legs-from Idle_01:1 (the legs the idle's stance again), Attack_L_Stab re-mirrored.",
-   "hand_edited": true
-  },
-  {
-   "name": "Attack_R_Swing_01",
-   "layer": "right",
-   "glb": "onehand_extras_arm",
-   "src_ext": "blend",
-   "rename": "ue5",
-   "mode": "action",
-   "time_scale": 1.0,
-   "smooth": 1,
-   "fist": 0.9,
-   "heading": "first",
-   "plant_feet": 0.001,
-   "unwind_yaw": true,
-   "unwind_ref": "body",
-   "lift": 0.004,
-   "ground_fit": true,
-   "drift": "root",
-   "src_begin": 0,
-   "src_end": 71,
-   "_note": "2026-10-02 (user: 'replace the slice animation with swing: frames 0-57; swing_02 frames 64-122; P:/1 handed extras.glb'): the mannequin app, 153 frames at 30 fps = the user's 122 x1.25 (24 fps numbers again: at face value swing_02 ends mid-air with the hand at 1.73 m) -> source 0-71 / 80-152, each rest to rest. The right hand swings (5.6 / 6.5 m/s peaks), the performer lunges ~0.4 m and back, so a plain transfer with the feet planted and the step as root motion (drift root). Replaces Attack_R/L_Slice. 2026-10-02 second round (user: 'the transition from the end of attack to idle is too snappy; no feel of weight; swing_01: during the wind-up the weapon should face back, during the attack the attack direction (it strikes with the palm); after the attack the model direction slightly changes'): heading first (the take stood 28 deg off the idle's facing), bake_rot (root rotation in the pose), start/end blends to Idle_1H_Combat:1 (6 / 16 frames), speed segments for weight (Swing_01: the top of the wind-up 0.7x, the strike 1.25x, the recovery 1.15x; Swing_02: the wind-up 0.8x, the top 0.7x), and on Swing_01 the new --hilt-path (back-down behind the head in the wind-up, trailing up-back into the downswing, then the edge orientation at the strike: knuckles leading, the hilt 45 deg off the forearm, the roll on the forearm).",
-   "bake_rot": true,
-   "bake": [
-    [
-     "--hilt-path",
-     "R=1:rec,8:rec,20:-0.8/0/-0.6/0.7,25:-0.3/0/1/0.7,29:edge/0.9/45,34:edge/0.9/45,46:rec"
-    ],
-    [
-     "--speed-segment",
-     "40:72:1.15"
-    ],
-    [
-     "--speed-segment",
-     "23:31:1.25"
-    ],
-    [
-     "--speed-segment",
-     "17:23:0.7"
-    ],
-    [
-     "--start-blend",
-     "Idle_1H_Combat:1:6",
-     "--end-blend",
-     "Idle_1H_Combat:1:16"
-    ]
-   ]
-  },
-  {
-   "name": "Attack_R_Swing_02",
-   "layer": "right",
-   "glb": "onehand_extras_arm",
-   "src_ext": "blend",
-   "rename": "ue5",
-   "mode": "action",
-   "time_scale": 1.0,
-   "smooth": 1,
-   "fist": 0.9,
-   "heading": "first",
-   "plant_feet": 0.001,
-   "unwind_yaw": true,
-   "unwind_ref": "body",
-   "lift": 0.004,
-   "ground_fit": true,
-   "drift": "root",
-   "src_begin": 80,
-   "src_end": 152,
-   "_note": "2026-10-02 (user: 'replace the slice animation with swing: frames 0-57; swing_02 frames 64-122; P:/1 handed extras.glb'): the mannequin app, 153 frames at 30 fps = the user's 122 x1.25 (24 fps numbers again: at face value swing_02 ends mid-air with the hand at 1.73 m) -> source 0-71 / 80-152, each rest to rest. The right hand swings (5.6 / 6.5 m/s peaks), the performer lunges ~0.4 m and back, so a plain transfer with the feet planted and the step as root motion (drift root). Replaces Attack_R/L_Slice. 2026-10-02 second round (user: 'the transition from the end of attack to idle is too snappy; no feel of weight; swing_01: during the wind-up the weapon should face back, during the attack the attack direction (it strikes with the palm); after the attack the model direction slightly changes'): heading first (the take stood 28 deg off the idle's facing), bake_rot (root rotation in the pose), start/end blends to Idle_1H_Combat:1 (6 / 16 frames), speed segments for weight (Swing_01: the top of the wind-up 0.7x, the strike 1.25x, the recovery 1.15x; Swing_02: the wind-up 0.8x, the top 0.7x), and on Swing_01 the new --hilt-path (back-down behind the head in the wind-up, trailing up-back into the downswing, then the edge orientation at the strike: knuckles leading, the hilt 45 deg off the forearm, the roll on the forearm). Third round (user: 'fix the swing_02 weapon trailing'): --hilt-path in the pre-retime frames - the weapon hangs back-down on the far side of the coming swing at the bottom of the wind-up, still lags into the upswing, the edge orientation at impact (knuckles leading, 45 deg off the forearm), then the recorded follow-through.",
-   "bake_rot": true,
-   "bake": [
-    [
-     "--hilt-path",
-     "R=1:rec,8:rec,21:trail/0.5/31,27:trail/0.6/31,32:edge/0.9/45,34:edge/0.9/45,46:rec"
-    ],
-    [
-     "--speed-segment",
-     "36:44:0.7"
-    ],
-    [
-     "--speed-segment",
-     "15:25:0.8"
-    ],
-    [
-     "--start-blend",
-     "Idle_1H_Combat:1:6",
-     "--end-blend",
-     "Idle_1H_Combat:1:16"
-    ]
-   ]
-  },
-  {
-   "name": "Attack_L_Swing_01",
-   "layer": "left",
-   "glb": "onehand_extras_arm",
-   "src_ext": "blend",
-   "rename": "ue5",
-   "mode": "action",
-   "time_scale": 1.0,
-   "smooth": 1,
-   "fist": 0.9,
-   "heading": "first",
-   "plant_feet": 0.001,
-   "unwind_yaw": true,
-   "unwind_ref": "body",
-   "lift": 0.004,
-   "ground_fit": true,
-   "drift": "root",
-   "src_begin": 0,
-   "src_end": 71,
-   "mirror": true,
-   "_note": "2026-10-02 (user: 'replace the slice animation with swing: frames 0-57; swing_02 frames 64-122; P:/1 handed extras.glb'): the mannequin app, 153 frames at 30 fps = the user's 122 x1.25 (24 fps numbers again: at face value swing_02 ends mid-air with the hand at 1.73 m) -> source 0-71 / 80-152, each rest to rest. The right hand swings (5.6 / 6.5 m/s peaks), the performer lunges ~0.4 m and back, so a plain transfer with the feet planted and the step as root motion (drift root). Replaces Attack_R/L_Slice. 2026-10-02 second round (user: 'the transition from the end of attack to idle is too snappy; no feel of weight; swing_01: during the wind-up the weapon should face back, during the attack the attack direction (it strikes with the palm); after the attack the model direction slightly changes'): heading first (the take stood 28 deg off the idle's facing), bake_rot (root rotation in the pose), start/end blends to Idle_1H_Combat:1 (6 / 16 frames), speed segments for weight (Swing_01: the top of the wind-up 0.7x, the strike 1.25x, the recovery 1.15x; Swing_02: the wind-up 0.8x, the top 0.7x), and on Swing_01 the new --hilt-path (back-down behind the head in the wind-up, trailing up-back into the downswing, then the edge orientation at the strike: knuckles leading, the hilt 45 deg off the forearm, the roll on the forearm).",
-   "bake_rot": true,
-   "bake": [
-    [
-     "--hilt-path",
-     "L=1:rec,8:rec,20:-0.8/0/-0.6/0.7,25:-0.3/0/1/0.7,29:edge/0.9/45,34:edge/0.9/45,46:rec"
-    ],
-    [
-     "--speed-segment",
-     "40:72:1.15"
-    ],
-    [
-     "--speed-segment",
-     "23:31:1.25"
-    ],
-    [
-     "--speed-segment",
-     "17:23:0.7"
-    ],
-    [
-     "--start-blend",
-     "Idle_1H_Combat:1:6",
-     "--end-blend",
-     "Idle_1H_Combat:1:16"
-    ]
-   ]
-  },
-  {
-   "name": "Attack_L_Swing_02",
-   "layer": "left",
-   "glb": "onehand_extras_arm",
-   "src_ext": "blend",
-   "rename": "ue5",
-   "mode": "action",
-   "time_scale": 1.0,
-   "smooth": 1,
-   "fist": 0.9,
-   "heading": "first",
-   "plant_feet": 0.001,
-   "unwind_yaw": true,
-   "unwind_ref": "body",
-   "lift": 0.004,
-   "ground_fit": true,
-   "drift": "root",
-   "src_begin": 80,
-   "src_end": 152,
-   "mirror": true,
-   "_note": "2026-10-02 (user: 'replace the slice animation with swing: frames 0-57; swing_02 frames 64-122; P:/1 handed extras.glb'): the mannequin app, 153 frames at 30 fps = the user's 122 x1.25 (24 fps numbers again: at face value swing_02 ends mid-air with the hand at 1.73 m) -> source 0-71 / 80-152, each rest to rest. The right hand swings (5.6 / 6.5 m/s peaks), the performer lunges ~0.4 m and back, so a plain transfer with the feet planted and the step as root motion (drift root). Replaces Attack_R/L_Slice. 2026-10-02 second round (user: 'the transition from the end of attack to idle is too snappy; no feel of weight; swing_01: during the wind-up the weapon should face back, during the attack the attack direction (it strikes with the palm); after the attack the model direction slightly changes'): heading first (the take stood 28 deg off the idle's facing), bake_rot (root rotation in the pose), start/end blends to Idle_1H_Combat:1 (6 / 16 frames), speed segments for weight (Swing_01: the top of the wind-up 0.7x, the strike 1.25x, the recovery 1.15x; Swing_02: the wind-up 0.8x, the top 0.7x), and on Swing_01 the new --hilt-path (back-down behind the head in the wind-up, trailing up-back into the downswing, then the edge orientation at the strike: knuckles leading, the hilt 45 deg off the forearm, the roll on the forearm). Third round (user: 'fix the swing_02 weapon trailing'): --hilt-path in the pre-retime frames - the weapon hangs back-down on the far side of the coming swing at the bottom of the wind-up, still lags into the upswing, the edge orientation at impact (knuckles leading, 45 deg off the forearm), then the recorded follow-through.",
-   "bake_rot": true,
-   "bake": [
-    [
-     "--hilt-path",
-     "L=1:rec,8:rec,21:trail/0.5/31,27:trail/0.6/31,32:edge/0.9/45,34:edge/0.9/45,46:rec"
-    ],
-    [
-     "--speed-segment",
-     "36:44:0.7"
-    ],
-    [
-     "--speed-segment",
-     "15:25:0.8"
-    ],
-    [
-     "--start-blend",
-     "Idle_1H_Combat:1:6",
-     "--end-blend",
-     "Idle_1H_Combat:1:16"
-    ]
-   ]
-  },
-  {
-   "name": "Attack_L_Stab",
-   "layer": "left",
-   "glb": "melee_ref_arm",
-   "src_ext": "blend",
-   "rename": "ue5",
-   "mode": "action",
-   "time_scale": 1.0,
-   "smooth": 1,
-   "fist": 0.9,
-   "heading": "auto",
-   "src_begin": 60,
-   "src_end": 104,
-   "plant_feet": 0.001,
-   "unwind_yaw": true,
-   "unwind_ref": "body",
-   "lift": 0.004,
-   "ground_fit": true,
-   "mirror": true,
-   "_note": "2026-09-26 (experimental, user: 'new recording melee in place.glb; replace slice with frames 1-40 and stab with 48-83, feet frozen in place'): the mannequin app (104 frames = 83 x1.25: the user's 24 fps numbers), the right hand attacks (2.1 / 1.4 m/s, the left calm), the pelvis in place, so a plain transfer with the legs planted and NO root drift; both feet then frozen at their frame-1 transforms for the whole clip by anim_nla_bake --pin-foot L,R and this clip written as the X-mirror of the finished right one (hand_edited). No time_scale (the take's own tempo; the ref5 builds ran at 0.38-0.45) and no blade pass. Previous (attack_ref5 take): {\"layer\": \"left\", \"glb\": \"attack_ref5_arm\", \"mode\": \"action\", \"rename\": \"ue5\", \"time_scale\": 0.3846, \"smooth\": 1, \"fist\": 0.9, \"heading\": \"auto\", \"src_begin\": 18, \"src_end\": 80, \"src_ext\": \"blend\", \"mirror\": true, \"plant_feet\": 0.001, \"drift\": \"root\", \"unwind_yaw\": true, \"blade_along_arm\": \"L\", \"lift\": 0.004, \"ground_fit\": true, \"hand_edited\": true}.  2026-09-26 (user: 'for one-handed attacks only torso and above are used, we don't touch legs and feet'): anim_nla_bake --legs-from Idle_01:1 - every leg control from Idle's frame 1 on every frame, the clip's hips over the idle's stance; the L clip the mirror.",
-   "hand_edited": true
-  },
-  {
    "name": "Block_L_Idle",
    "glb": "block_hold",
    "mode": "idle",
@@ -710,6 +439,138 @@
    "_note": "a held block: loops on the LeftArm layer while the demo's block toggle is on ('left arm stuck in block action until released'); replaces Block and Shield_Bash. Shields are hand-held (Hand.Left); arm_pose shield_block: Kimodo returned both arms hanging (no props), the left hand is put on IK in a chest-high guard, knuckles forward, hilt down so the plate stands upright; hand_edited (2026-09-23): the user's Block_L_Idle_Fix (hand_ik.L, one key held over the loop, posed with the heater shield attached as Unity places it) baked in by anim_nla_bake.py",
    "arm_pose": "shield_block",
    "hand_edited": true
+  },
+  {
+   "name": "Attack_R_01_Stab",
+   "layer": "right",
+   "mode": "action",
+   "hand_edited": true,
+   "lift": 0,
+   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+  },
+  {
+   "name": "Attack_R_01_Stab_Heavy",
+   "layer": "right",
+   "mode": "action",
+   "hand_edited": true,
+   "lift": 0,
+   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+  },
+  {
+   "name": "Attack_R_02_Swing",
+   "layer": "right",
+   "mode": "action",
+   "hand_edited": true,
+   "lift": 0,
+   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+  },
+  {
+   "name": "Attack_R_02_Swing_Heavy",
+   "layer": "right",
+   "mode": "action",
+   "hand_edited": true,
+   "lift": 0,
+   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+  },
+  {
+   "name": "Attack_R_03_Swing",
+   "layer": "right",
+   "mode": "action",
+   "hand_edited": true,
+   "lift": 0,
+   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+  },
+  {
+   "name": "Attack_R_03_Swing_Heavy",
+   "layer": "right",
+   "mode": "action",
+   "hand_edited": true,
+   "lift": 0,
+   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+  },
+  {
+   "name": "Attack_L_01_Stab",
+   "layer": "left",
+   "mode": "action",
+   "hand_edited": true,
+   "lift": 0,
+   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+  },
+  {
+   "name": "Attack_L_01_Stab_Heavy",
+   "layer": "left",
+   "mode": "action",
+   "hand_edited": true,
+   "lift": 0,
+   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+  },
+  {
+   "name": "Attack_L_02_Swing",
+   "layer": "left",
+   "mode": "action",
+   "hand_edited": true,
+   "lift": 0,
+   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+  },
+  {
+   "name": "Attack_L_02_Swing_Heavy",
+   "layer": "left",
+   "mode": "action",
+   "hand_edited": true,
+   "lift": 0,
+   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+  },
+  {
+   "name": "Attack_L_03_Swing",
+   "layer": "left",
+   "mode": "action",
+   "hand_edited": true,
+   "lift": 0,
+   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+  },
+  {
+   "name": "Attack_L_03_Swing_Heavy",
+   "layer": "left",
+   "mode": "action",
+   "hand_edited": true,
+   "lift": 0,
+   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+  },
+  {
+   "name": "Attack_2H_01_Swing",
+   "layer": "full",
+   "mode": "action",
+   "hand_edited": true,
+   "lift": 0,
+   "grip_hands": "L",
+   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+  },
+  {
+   "name": "Attack_2H_01_Swing_Heavy",
+   "layer": "full",
+   "mode": "action",
+   "hand_edited": true,
+   "lift": 0,
+   "grip_hands": "L",
+   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+  },
+  {
+   "name": "Attack_2H_02_Swing",
+   "layer": "full",
+   "mode": "action",
+   "hand_edited": true,
+   "lift": 0,
+   "grip_hands": "L",
+   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+  },
+  {
+   "name": "Attack_2H_02_Swing_Heavy",
+   "layer": "full",
+   "mode": "action",
+   "hand_edited": true,
+   "lift": 0,
+   "grip_hands": "L",
+   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
   },
   {
    "name": "Shoot_01",
