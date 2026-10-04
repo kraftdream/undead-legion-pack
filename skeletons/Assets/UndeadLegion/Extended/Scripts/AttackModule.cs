@@ -20,7 +20,7 @@ namespace UndeadLegion.Extended
         public bool area;
         [Tooltip("The projectile is the bow's own arrow (fired by the clip's BowRelease event).")]
         public bool arrow;
-        [Tooltip("Clip speed for this move (1 = as authored; 1.3 = 30 % faster). Multiplies the skeleton's attackSpeed.")]
+        [Tooltip("Extra clip speed for this move (1 = none). Multiplies the skeleton's attackSpeed and the weapon's pace (SkeletonWeapon.AttackSpeedFor).")]
         public float speed = 1f;
 
         /// <summary>The speed, 1 when unset.</summary>
@@ -70,20 +70,22 @@ namespace UndeadLegion.Extended
         static AttackMove Swing3() { return AttackMove.Melee("Attack_R_03_Swing", 0.50f, 1.7f, 20, 70); }
 
         /// <summary>
-        /// The default modules, one set per weapon: the sword stabs and swings 30 % faster than authored, regular attacks only;
-        /// the dagger 70 % faster, regular only, and a second dagger adds the left-hand attacks at the same pace; the axe mixes
+        /// The default modules, one set per weapon: the sword stabs and swings, regular attacks only; the dagger the same, and a
+        /// second dagger adds the left-hand attacks; the axe mixes
         /// regular and heavy attacks; the mace too, without the stabs; the battle axe mixes regular and heavy two-handed swings,
-        /// the longsword swings regular only. hitAt = the hand-speed peak measured on each clip (2026-10-04).
+        /// the longsword swings regular only. hitAt = the hand-speed peak measured on each clip (2026-10-04). The weapon's own
+        /// pace (sword 1.3x, dagger 1.7x) is not here: SkeletonWeapon.AttackSpeedFor drives the controller's AttackSpeed
+        /// parameter, so the same pace shows in every scene; a move's speed multiplies on top.
         /// </summary>
         public static List<AttackModule> Defaults()
         {
             return new List<AttackModule>
             {
-                Make("Sword", false, Swords, Stab().Faster(1.3f), Swing2().Faster(1.3f), Swing3().Faster(1.3f)),
-                Make("Dagger", false, Daggers, Stab().Faster(1.7f), Swing2().Faster(1.7f), Swing3().Faster(1.7f)),
+                Make("Sword", false, Swords, Stab(), Swing2(), Swing3()),
+                Make("Dagger", false, Daggers, Stab(), Swing2(), Swing3()),
                 Make("Dagger, left hand (second dagger)", false, new[] { "Two daggers" },
-                     AttackMove.Melee("Attack_L_01_Stab", 0.30f, 1.6f, 14, 45).Faster(1.7f), AttackMove.Melee("Attack_L_02_Swing", 0.46f, 1.5f, 14, 55).Faster(1.7f),
-                     AttackMove.Melee("Attack_L_03_Swing", 0.50f, 1.5f, 14, 55).Faster(1.7f)),
+                     AttackMove.Melee("Attack_L_01_Stab", 0.30f, 1.6f, 14, 45), AttackMove.Melee("Attack_L_02_Swing", 0.46f, 1.5f, 14, 55),
+                     AttackMove.Melee("Attack_L_03_Swing", 0.50f, 1.5f, 14, 55)),
                 Make("Axe", false, new[] { "Axe + round shield" }, Stab(), Swing2(), Swing3()),
                 Make("Axe, heavy", true, new[] { "Axe + round shield" },
                      AttackMove.Melee("Attack_R_01_Stab_Heavy", 0.27f, 1.9f, 26, 85), AttackMove.Melee("Attack_R_02_Swing_Heavy", 0.46f, 1.8f, 26, 90),

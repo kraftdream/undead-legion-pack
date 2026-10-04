@@ -206,6 +206,10 @@ arm and upper-body layers over the legs of a walk or run (section 8).</p>
 <p>Every layer other than Base has an <code>Empty</code> default state. To play an arm attack while walking, cross-fade the attack on its arm
 layer and let Base keep the walk:</p>
 <pre>animator.CrossFadeInFixedTime("Attack_R_02_Swing", 0.15f, animator.GetLayerIndex("RightArm"));</pre>
+<p>Every <code>Attack_*</code> state, on Base and on the arm layers, plays at the float parameter <b><code>AttackSpeed</code></b> (default 1).
+<code>SkeletonWeapon</code> sets it from the equipped loadout, so each weapon keeps its own pace wherever its attacks play: the sword's
+attacks run 30 % faster, the dagger's 70 % faster (both hands with two daggers), every other weapon as authored. The table is
+<code>SkeletonWeapon.AttackSpeedFor</code>; edit it to retune a weapon.</p>
 <p>Two-handed attacks, staff casts, specials and deaths are full-body and belong on Base. <code>SkeletonGripState</code> on the two-handed
 and staff states closes the second hand on the weapon.</p>
 
@@ -232,7 +236,7 @@ casters. With <i>Apply Root Motion</i> off every clip plays in place, which suit
   <tr><th>Script</th><th>On</th><th>Does</th></tr>
   <tr><td>SkeletonModules</td><td>character</td><td>Toggles the default armour set; wears and removes any module prefab.</td></tr>
   <tr><td>ArmorModule / ArmorPiece</td><td>armour prefab / attached piece</td><td>Binds a piece to a character by bone name; marks where an attached piece came from.</td></tr>
-  <tr><td>SkeletonWeapon</td><td>character</td><td>Loadouts, hand slots, the grip pose, finger idles, the bow events and the fired arrow.</td></tr>
+  <tr><td>SkeletonWeapon</td><td>character</td><td>Loadouts, hand slots, the grip pose, finger idles, the attack speed per weapon, the bow events and the fired arrow.</td></tr>
   <tr><td>BowString</td><td>bow prefab</td><td>Pulls the string to the draw hand and bends the limbs.</td></tr>
   <tr><td>ArrowProjectile</td><td>spawned arrow</td><td>A straight flight that removes itself after its lifetime.</td></tr>
   <tr><td>SkeletonGripState</td><td>Animator states</td><td>Closes the second hand on a two-handed weapon during the state.</td></tr>

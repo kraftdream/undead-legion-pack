@@ -127,6 +127,8 @@ namespace UndeadLegion.Extended
             if (_animator == null) return 0f;
             Stop();
             float len = ClipLength(state);
+            // Attack_* states also play at the controller's AttackSpeed (the weapon's pace, set by SkeletonWeapon)
+            if (state.StartsWith("Attack_") && _weapon != null) len /= Mathf.Max(0.01f, _weapon.AttackSpeed);
             _animator.speed = speed;
             _animator.CrossFadeInFixedTime(state, 0.12f, 0); _basePlaying = state;
             if (_upperLayer >= 0 && _upperPlaying != "Empty") { _animator.CrossFadeInFixedTime("Empty", 0.12f, _upperLayer); _upperPlaying = "Empty"; }

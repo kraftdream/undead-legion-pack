@@ -234,12 +234,51 @@ namespace UndeadLegion.Demo
         void FadeFingers()
         {
             if (_animator == null) return;
+            ApplyAttackSpeed();
             float step = fingerFade > 0f ? Time.deltaTime / fingerFade : 1f;
             if (_fingersLeft >= 0) _animator.SetLayerWeight(_fingersLeft, Mathf.MoveTowards(_animator.GetLayerWeight(_fingersLeft), _fingerTargetLeft, step));
             if (_fingersRight >= 0) _animator.SetLayerWeight(_fingersRight, Mathf.MoveTowards(_animator.GetLayerWeight(_fingersRight), _fingerTargetRight, step));
         }
 
         float GripWeight(int layer) { return layer >= 0 && _animator != null && Application.isPlaying ? 1f - _animator.GetLayerWeight(layer) : 1f; }
+
+        // ------------------------------------------------------------- attack speed per weapon
+
+        /// <summary>Animator float that every Attack_* state of AC_Skeleton plays at.</summary>
+        public const string AttackSpeedParameter = "AttackSpeed";
+
+        /// <summary>
+        /// Clip speed of the attack animations per loadout: a sword's attacks play 30 % faster, a dagger's 70 % faster
+        /// (both hands with two daggers), every other weapon as authored. Edit the table to retune a weapon.
+        /// </summary>
+        public static float AttackSpeedFor(string loadout)
+        {
+            if (string.IsNullOrEmpty(loadout)) return 1f;
+            if (loadout == "Sword" || loadout == "Sword + shield") return 1.3f;
+            if (loadout == "Dagger" || loadout == "Two daggers") return 1.7f;
+            return 1f;
+        }
+
+        /// <summary>The attack clip speed of the equipped loadout.</summary>
+        public float AttackSpeed { get { return AttackSpeedFor(_current >= 0 && _current < loadouts.Count ? loadouts[_current].displayName : ""); } }
+
+        int _attackSpeedParam = -2;   // -2 = not looked up, -1 = the controller has no AttackSpeed
+
+        /// <summary>Writes the loadout's attack speed into the Animator (re-asserted every frame: an Animator that was
+        /// disabled, e.g. under a ragdoll, comes back with its parameters at their defaults).</summary>
+        void ApplyAttackSpeed()
+        {
+            if (_animator == null || _animator.runtimeAnimatorController == null || !_animator.isActiveAndEnabled) return;
+            if (_attackSpeedParam == -2)
+            {
+                _attackSpeedParam = -1;
+                foreach (var p in _animator.parameters)
+                    if (p.name == AttackSpeedParameter && p.type == AnimatorControllerParameterType.Float) { _attackSpeedParam = p.nameHash; break; }
+            }
+            if (_attackSpeedParam == -1) return;
+            float want = AttackSpeed;
+            if (!Mathf.Approximately(_animator.GetFloat(_attackSpeedParam), want)) _animator.SetFloat(_attackSpeedParam, want);
+        }
 
         public int Count { get { return loadouts.Count; } }
         public int Current { get { return _current; } }
@@ -317,6 +356,7 @@ namespace UndeadLegion.Demo
                 if (bow != null) { bow.drawHand = it.hand == Hand.Left ? _right : _left; bow.attached = false; bow.Resolve(); }
             }
             ApplyFingerLayers();
+            ApplyAttackSpeed();
         }
 
         /// <summary>The weapon instances currently held (for physics or effects that act on them).</summary>
