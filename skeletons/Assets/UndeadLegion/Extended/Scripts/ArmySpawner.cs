@@ -8,7 +8,8 @@ namespace UndeadLegion.Extended
 {
     /// <summary>
     /// Spawns a formation of skeletons with varied looks: random class, an armour mix that borrows slots from other classes
-    /// (a robe replaces chest, skirt and pants), a loadout that suits the class, a subtle tint, team-coloured eyes, and a
+    /// under the ArmourRules (casters always in a robe and a hood, melee classes never in either except the assassin in the
+    /// mage's hood, melee pieces more often missing), a loadout that suits the class, a subtle tint, team-coloured eyes, and a
     /// rise-from-the-ground entrance. Everything is optional, so it also works as a plain crowd spawner.
     /// </summary>
     public class ArmySpawner : MonoBehaviour
@@ -26,8 +27,10 @@ namespace UndeadLegion.Extended
         [Header("Variety")]
         [Range(0f, 1f)] [Tooltip("Chance that a slot borrows a piece from another class instead of the character's own.")]
         public float mixChance = 0.45f;
-        [Range(0f, 1f)] [Tooltip("Chance that a slot is left empty.")]
+        [Range(0f, 1f)] [Tooltip("Chance that an optional slot of a caster is left empty.")]
         public float bareChance = 0.1f;
+        [Range(0f, 1f)] [Tooltip("Chance that an optional slot of a melee skeleton is left empty (the default archer has no greaves).")]
+        public float meleeBareChance = 0.3f;
         public bool randomLoadout = true;
         [Range(0f, 0.6f)] public float tintStrength = 0.22f;
         [Tooltip("Casters (Mage, Necromancer) walk upright; the rest use the heavy gait.")]
@@ -92,7 +95,7 @@ namespace UndeadLegion.Extended
                 if (gaitByClass) nav.gait = cls == "Mage" || cls == "Necromancer" ? SkeletonNavController.Gait.Upright : SkeletonNavController.Gait.Heavy;
                 if (nav.Agent != null) nav.Agent.Warp(position);
             }
-            var ai = go.GetComponent<SkeletonAI>(); if (ai != null) { ai.enabled = enableAI; ai.wanderRadius = wanderRadius; ai.magicColor = eyeColor * 0.9f; }
+            var ai = go.GetComponent<SkeletonAI>(); if (ai != null) { ai.enabled = enableAI; ai.wanderRadius = wanderRadius; ai.magicColor = eyeColor * 0.9f; ai.allowHeavy = cls != "Assassin"; }
             var twitch = go.GetComponent<SkeletonTwitch>(); if (twitch != null) twitch.enabled = true;
             if (riseFromGround) StartCoroutine(Rise(go, Random.value * riseStagger));
             return go;
@@ -130,17 +133,19 @@ namespace UndeadLegion.Extended
             }
             var chosen = new Dictionary<string, GameObject>();
             var sources = new List<string>(bySource.Keys);
+            bool caster = ArmourRules.IsCaster(cls);
             foreach (var slot in Slots)
             {
-                if (Random.value < bareChance && slot[0] != "Chest" && slot[0] != "Robe") continue;
-                string src = cls;
-                if (Random.value < mixChance)
-                {
-                    var withSlot = sources.FindAll(s => bySource[s].ContainsKey(slot[0]));
-                    if (withSlot.Count > 0) src = withSlot[Random.Range(0, withSlot.Count)];
-                }
-                Dictionary<string, GameObject> set;
-                if (!bySource.TryGetValue(src, out set)) continue;
+                string key = slot[0];
+                var allowed = sources.FindAll(s => bySource[s].ContainsKey(key) && ArmourRules.CanWear(cls, s, key));
+                if (allowed.Count == 0) continue;
+                bool required = ArmourRules.Required(cls, key);
+                if (!required && Random.value < (caster ? bareChance : meleeBareChance)) continue;
+                string src;
+                if (allowed.Contains(cls) && Random.value >= mixChance) src = cls;     // the class's own piece
+                else if (required || Random.value < mixChance) src = allowed[Random.Range(0, allowed.Count)];
+                else continue;                                                        // the class has no such piece (the warrior's helm)
+                var set = bySource[src];
                 foreach (var piece in slot) { GameObject pf; if (set.TryGetValue(piece, out pf)) chosen[piece] = pf; }
             }
             if (chosen.ContainsKey("Robe")) { chosen.Remove("Chest"); chosen.Remove("Skirt"); chosen.Remove("Pants"); }
