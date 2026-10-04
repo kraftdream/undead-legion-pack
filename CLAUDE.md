@@ -407,6 +407,21 @@ backends. `tools/unity/demo_smoke.py` plays the scene headlessly and screenshots
 
 ### Import decisions
 
+- **Avatar Lower Arm Twist = 1.0 on all six `SK_` models (2026-10-04, "during Attack_2H_02_Swing the right forearm snaps between two
+  frames; in Blender the forearm is alright; fix the cause").** Measured: the clip's forearm carries 150–180° of axial twist relative to its
+  rest (the pronated two-handed grip) and crosses ±180° on frames 7 / 18 / 22 / 35; the hand's own twist is ≤ 4°. Unity stores that as the
+  `Right Forearm Twist In-Out` muscle at ±1.97–1.99 and wraps its sign at the crossings — the same orientation for the chain, but the
+  avatar's default Lower Arm Twist 0.5 puts HALF the value on the forearm BONE (+89° vs −89°): a 178° vambrace snap with the hand and the
+  weapon in place (`HumanPoseHandler` per frame + per-frame local-rotation steps; the Warrior at 0.5 snapped 179° on the same clip after
+  the Knight at 1.0 read 9°). At 1.0 the forearm bone takes the whole value, a wrap is invisible (180 ≡ −180) and the vambrace shows the
+  authored twist. `UndeadLegionImportSetup.SetModel` sets `humanDescription.lowerArmTwist` (`LowerArmTwist` const; the dirty check
+  includes it); the legs keep 0.5 (measured better than 1.0 / 0.0 on 2026-09-21). All 58 clips in `Animations/` scanned on the Knight afterwards: no arm
+  bone step above 60° except the strikes' own motion. Rule: **a Unity-only forearm snap with a quiet wrist is the twist wrap; measure
+  the forearm's rest-relative twist (a `HumanPoseHandler` muscle at |value| ≈ 2 is the signature), never re-author the clip.**
+  Side effect: writing `humanDescription` makes each `SK_*.fbx.meta` carry the explicit 53-bone human map (it was `human: []`,
+  auto-mapped at import), so the six metas grew by ~750 lines each; the avatars are valid humanoids with the same 53 bones and the
+  `PF_` prefabs reference them unchanged (no prefab rebuild needed).
+
 - **Scale**: `SK_*.fbx` bake the 1.8 at export and import at **`globalScale = 1`**.
   The old mesh-only Knight FBXs (globalScale 1.8) were deleted on 2026-09-19.
 - **Smoothness**: URP has no roughness input; the packed `_metallicsmoothness` map

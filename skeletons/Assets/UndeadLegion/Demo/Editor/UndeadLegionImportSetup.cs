@@ -170,9 +170,11 @@ namespace UndeadLegion.DemoEditor
         {
             var imp = AssetImporter.GetAtPath(path) as ModelImporter;
             if (imp == null) { Debug.LogWarning("[UndeadLegion] missing model " + path); return; }
+            var hd = imp.humanDescription;
             bool dirty = imp.animationType != ModelImporterAnimationType.Human
                          || imp.materialImportMode != ModelImporterMaterialImportMode.None
-                         || Mathf.Abs(imp.globalScale - 1f) > 1e-4f || imp.importAnimation;
+                         || Mathf.Abs(imp.globalScale - 1f) > 1e-4f || imp.importAnimation
+                         || Mathf.Abs(hd.lowerArmTwist - LowerArmTwist) > 1e-4f;
             if (!dirty) return;
             imp.animationType = ModelImporterAnimationType.Human;
             imp.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
@@ -181,8 +183,19 @@ namespace UndeadLegion.DemoEditor
             imp.importAnimation = false;
             imp.materialImportMode = ModelImporterMaterialImportMode.None;
             imp.bakeAxisConversion = false;
+            // Lower Arm Twist 1.0: the forearm bone takes the WHOLE forearm-twist muscle. At the default 0.5
+            // Humanoid puts half of it on the forearm bone, and a clip whose forearm is pronated past 180 deg
+            // from the rest (a two-handed grip; Attack_2H_02_Swing crosses it four times) wraps the muscle
+            // from +178 to -179: the same orientation for the chain, but half of it is +89 vs -89 on the bone,
+            // a 178 deg forearm snap in one frame while the hand and the weapon stay (2026-10-04). At 1.0 the
+            // wrap is invisible (180 == -180) and the forearm shows the authored twist exactly; the legs keep
+            // their 0.5 (measured better than 1.0 / 0.0 against the Generic playback, 2026-09-21).
+            hd.lowerArmTwist = LowerArmTwist;
+            imp.humanDescription = hd;
             imp.SaveAndReimport();
         }
+
+        const float LowerArmTwist = 1f;
 
         static void EnsureMaterial(string c, string part)
         {
