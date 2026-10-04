@@ -64,7 +64,7 @@ identical because the avatar is shared). Ship these numbers with the pack:
 | `Walk_Back_01` | 1.967 s | −0.662 m | 0.34 m/s (redone 2026-09-24; upper body from Idle_03) |
 | `Run_Fwd_01` | 0.967 s | +1.107 m | 1.14 m/s (`Run_Fwd` until 2026-09-29) |
 | `Walk_Fwd_02` | 1.133 s | +1.455 m | 1.28 m/s (the upright "normal" walk, 2026-09-25) |
-| `Run_Fwd_02` | 0.833 s | +1.562 m | 1.87 m/s (the "normal" jog) |
+| `Run_Fwd_02` | 0.933 s | +1.753 m | 1.88 m/s (the "normal" jog; the user's 29-frame edit, re-exported 2026-10-04) |
 | `Walk_Back_02` | 1.467 s | −1.132 m | 0.77 m/s (the "normal" walk back, 2026-09-26) |
 | `Strafe_Left_01` | 1.467 s | −0.293 m (X) | 0.20 m/s (steps 30 % shorter 2026-09-24 and 30 % again 2026-09-26) |
 | `Strafe_Right_01` | 1.467 s | +0.293 m (X) | 0.20 m/s (the mirror of the finished Strafe_Left_01) |
