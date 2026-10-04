@@ -2,10 +2,10 @@
 
     python tools/unity/layer_smoke.py [out_dir]
 
-Selects the Knight with a sword, plays Walk_Fwd_01, then clicks Attack_R_Swing_01 (a right-arm
-clip: must land on the RightArm layer while Base stays on Walk_Fwd_01), then Attack_2H_01
+Selects the Knight with a sword, plays Walk_Fwd_01, then clicks Attack_R_02_Swing (a right-arm
+clip: must land on the RightArm layer while Base stays on Walk_Fwd_01), then Attack_2H_01_Swing
 (a full-stop clip: must take the Base layer, and Walk_Fwd_01 must resume after it), then the
-held block: Block_L_Idle toggled on (LeftArm layer holds it), Attack_R_Stab over it (standing,
+held block: Block_L_Idle toggled on (LeftArm layer holds it), Attack_R_01_Stab over it (standing,
 so it plays full-body on Base and the LeftArm layer keeps the block up), Block_L_Idle toggled
 off (LeftArm back to Empty). Prints
 the state of every layer at each step and writes <out_dir>/layer_<step>.png. Same
@@ -65,13 +65,13 @@ def run(out_dir):
         print("walk:       ", probe(PLAY % "Walk_Fwd_01"))
         time.sleep(2.0)
         print("walking:    ", probe())
-        print("R on move:  ", probe(PLAY % "Attack_R_Swing_01"))
+        print("R on move:  ", probe(PLAY % "Attack_R_02_Swing"))
         time.sleep(1.2)
         print("mid attack: ", probe())
         shot("walk_attack")
         time.sleep(3.5)
         print("after:      ", probe())
-        print("2H fullstop:", probe(PLAY % "Attack_2H_01"))
+        print("2H fullstop:", probe(PLAY % "Attack_2H_01_Swing"))
         time.sleep(1.5)
         print("mid 2H:     ", probe())
         shot("fullstop")
@@ -80,7 +80,7 @@ def run(out_dir):
         print("block on:   ", probe(PLAY % "Block_L_Idle"))
         time.sleep(1.5)
         print("holding:    ", probe())
-        print("R stab held:", probe(PLAY % "Attack_R_Stab"))
+        print("R stab held:", probe(PLAY % "Attack_R_01_Stab"))
         time.sleep(1.2)
         print("mid stab:   ", probe())
         shot("block_stab")

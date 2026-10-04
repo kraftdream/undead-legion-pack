@@ -176,9 +176,9 @@ Clips marked <i>root motion</i> move the character with <i>Apply Root Motion</i>
   <tr><td>Weapon idles</td><td>Idle_TwoHanded, Idle_Bow, Idle_Staff</td><td>loop</td></tr>
   <tr><td>Locomotion, heavy set</td><td>Walk_Fwd_01, Walk_Back_01, Run_Fwd_01, Strafe_Left_01, Strafe_Right_01</td><td>loop, root motion</td></tr>
   <tr><td>Locomotion, upright set</td><td>Walk_Fwd_02, Walk_Back_02, Run_Fwd_02, Strafe_Left_02, Strafe_Right_02</td><td>loop, root motion</td></tr>
-  <tr><td>Right arm</td><td>Attack_R_Stab, Attack_R_Swing_01, Attack_R_Swing_02</td><td>one-shot</td></tr>
-  <tr><td>Left arm</td><td>Attack_L_Stab, Attack_L_Swing_01, Attack_L_Swing_02, Block_L_Idle (held block)</td><td>one-shot; the block loops</td></tr>
-  <tr><td>Two-handed</td><td>Attack_2H_01 (overhead chop), Attack_2H_02 (sweep)</td><td>one-shot</td></tr>
+  <tr><td>Right arm</td><td>Attack_R_01_Stab, Attack_R_02_Swing, Attack_R_03_Swing</td><td>one-shot</td></tr>
+  <tr><td>Left arm</td><td>Attack_L_01_Stab, Attack_L_02_Swing, Attack_L_03_Swing, Block_L_Idle (held block)</td><td>one-shot; the block loops</td></tr>
+  <tr><td>Two-handed</td><td>Attack_2H_01_Swing (overhead chop), Attack_2H_02_Swing (sweep)</td><td>one-shot</td></tr>
   <tr><td>Bow</td><td>Shoot_01 (raise, draw, release, lower)</td><td>one-shot, events</td></tr>
   <tr><td>Magic</td><td>Cast_Wand_01, Cast_Wand_02, Cast_Staff_01</td><td>one-shot</td></tr>
   <tr><td>Specials</td><td>Taunt_01, Taunt_02, Taunt_03, Rally, Cutthroat, Summon, AOE_Cast</td><td>one-shot</td></tr>
@@ -205,7 +205,7 @@ arm and upper-body layers over the legs of a walk or run (section 8).</p>
 </table>
 <p>Every layer other than Base has an <code>Empty</code> default state. To play an arm attack while walking, cross-fade the attack on its arm
 layer and let Base keep the walk:</p>
-<pre>animator.CrossFadeInFixedTime("Attack_R_Swing_01", 0.15f, animator.GetLayerIndex("RightArm"));</pre>
+<pre>animator.CrossFadeInFixedTime("Attack_R_02_Swing", 0.15f, animator.GetLayerIndex("RightArm"));</pre>
 <p>Two-handed attacks, staff casts, specials and deaths are full-body and belong on Base. <code>SkeletonGripState</code> on the two-handed
 and staff states closes the second hand on the weapon.</p>
 

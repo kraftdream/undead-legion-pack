@@ -215,22 +215,22 @@ namespace UndeadLegion.Demo
             var steps = new List<Step>();
             steps.Add(new Step { titleCard = true, title = "WEAPONS & UTILS", text = "every weapon with its idle and attacks  |  taunts, specials, deaths", seconds = titleCardSeconds });
             steps.Add(A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Taunt", "Taunt_01"));
-            steps.Add(A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Two-handed idle; the second hand rides the handle", "Attack_2H_01", "Attack_2H_02"));
-            steps.Add(A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "The same two-handed grip and attacks on every long weapon", "Attack_2H_01", "Attack_2H_02"));
+            steps.Add(A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Two-handed idle; the second hand rides the handle", "Attack_2H_01_Swing", "Attack_2H_02_Swing"));
+            steps.Add(A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "The same two-handed grip and attacks on every long weapon", "Attack_2H_01_Swing", "Attack_2H_02_Swing"));
             steps.Add(Death(A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "Death", "Death_01")));
             // Knight: taunt and rally, then the combat idle with the left block HELD; axe + round shield swing; sword + heater shield
             // with both right attacks under the block; the sword alone with the block released and both attacks; then the death
             steps.Add(A("Knight", "Axe + round shield", "Idle_1H_Combat", "Skeleton Knight  |  Axe + round shield", "Taunt and rally", "Taunt_02", "Rally"));
-            var axe = A("Knight", "Axe + round shield", "Idle_1H_Combat", "Skeleton Knight  |  Axe + round shield", "Left-arm block HELD on its own layer; the right arm attacks under it", "Attack_R_Swing_01");
+            var axe = A("Knight", "Axe + round shield", "Idle_1H_Combat", "Skeleton Knight  |  Axe + round shield", "Left-arm block HELD on its own layer; the right arm attacks under it", "Attack_R_02_Swing");
             axe.holdOn = "Block_L_Idle"; steps.Add(axe);
-            steps.Add(A("Knight", "Sword + shield", "Idle_1H_Combat", "Skeleton Knight  |  Sword + heater shield", "Any one-handed weapon, any shield; the block still held", "Attack_R_Stab", "Attack_R_Swing_01"));
-            var sw = A("Knight", "Sword", "Idle_1H_Combat", "Skeleton Knight  |  Sword", "Block released; the same attacks with the free hand", "Attack_R_Stab", "Attack_R_Swing_01");
+            steps.Add(A("Knight", "Sword + shield", "Idle_1H_Combat", "Skeleton Knight  |  Sword + heater shield", "Any one-handed weapon, any shield; the block still held", "Attack_R_01_Stab", "Attack_R_02_Swing"));
+            var sw = A("Knight", "Sword", "Idle_1H_Combat", "Skeleton Knight  |  Sword", "Block released; the same attacks with the free hand", "Attack_R_01_Stab", "Attack_R_02_Swing");
             sw.holdOff = "Block_L_Idle"; steps.Add(sw);
             steps.Add(Death(A("Knight", "Sword", "Idle_1H_Combat", "Skeleton Knight  |  Sword", "Death", "Death_02")));
             // Assassin: the cutthroat at normal speed, the attacks at 1.6x, the death at normal speed
             steps.Add(A("Assassin", "Dagger", "Idle_1H_Combat", "Skeleton Assassin  |  Dagger", "Cutthroat", "Cutthroat"));
-            var d1 = A("Assassin", "Dagger", "Idle_1H_Combat", "Skeleton Assassin  |  Dagger", "Right-arm attacks at 1.6x speed", "Attack_R_Stab", "Attack_R_Swing_01"); d1.attackSpeed = 1.6f; steps.Add(d1);
-            var d2 = A("Assassin", "Two daggers", "Idle_1H_Combat", "Skeleton Assassin  |  Two daggers", "Left-arm attacks at 1.6x speed", "Attack_L_Stab", "Attack_L_Swing_01"); d2.attackSpeed = 1.6f; steps.Add(d2);
+            var d1 = A("Assassin", "Dagger", "Idle_1H_Combat", "Skeleton Assassin  |  Dagger", "Right-arm attacks at 1.6x speed", "Attack_R_01_Stab", "Attack_R_02_Swing"); d1.attackSpeed = 1.6f; steps.Add(d1);
+            var d2 = A("Assassin", "Two daggers", "Idle_1H_Combat", "Skeleton Assassin  |  Two daggers", "Left-arm attacks at 1.6x speed", "Attack_L_01_Stab", "Attack_L_02_Swing"); d2.attackSpeed = 1.6f; steps.Add(d2);
             steps.Add(Death(A("Assassin", "Two daggers", "Idle_1H_Combat", "Skeleton Assassin  |  Two daggers", "Death", "Death_03")));
             steps.Add(A("Archer", "Recurve bow", "Idle_Bow", "Skeleton Archer  |  Recurve bow", "The string follows the draw hand; an arrow is fired on release", "Shoot_01"));
             steps.Add(A("Mage", "Wand", "Idle_03", "Skeleton Mage  |  Wand", "Two wand casts", "Cast_Wand_01", "Cast_Wand_02"));
