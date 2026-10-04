@@ -24,9 +24,11 @@ SECTIONS = [
     ("Weapon idles", [("Idle_TwoHanded", 0), ("Idle_Bow", 0), ("Idle_Staff", 0)]),
     ("Locomotion", [(n, 0) for n in ("Walk_Fwd_01", "Walk_Back_01", "Run_Fwd_01", "Strafe_Left_01", "Strafe_Right_01",
                                      "Walk_Fwd_02", "Walk_Back_02", "Run_Fwd_02", "Strafe_Left_02", "Strafe_Right_02")]),
-    ("Right arm", [("Attack_R_Stab", 4), ("Attack_R_Slice", 4)]),
-    ("Left arm (block = hold)", [("Attack_L_Stab", 3), ("Attack_L_Slice", 3), ("Block_L_Idle", 5)]),
-    ("Two-handed", [("Attack_2H_01", 1), ("Attack_2H_02", 1)]),
+    ("Right arm", [(n, 4) for n in ("Attack_R_01_Stab", "Attack_R_02_Swing", "Attack_R_03_Swing",
+                                    "Attack_R_01_Stab_Heavy", "Attack_R_02_Swing_Heavy", "Attack_R_03_Swing_Heavy")]),
+    ("Left arm (block = hold)", [(n, 3) for n in ("Attack_L_01_Stab", "Attack_L_02_Swing", "Attack_L_03_Swing",
+                                                  "Attack_L_01_Stab_Heavy", "Attack_L_02_Swing_Heavy", "Attack_L_03_Swing_Heavy")] + [("Block_L_Idle", 5)]),
+    ("Two-handed", [(n, 1) for n in ("Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_01_Swing_Heavy", "Attack_2H_02_Swing_Heavy")]),
     ("Bow", [("Shoot_01", 2)]),
     ("Magic", [("Cast_Wand_01", 2), ("Cast_Wand_02", 2), ("Cast_Staff_01", 1)]),
     ("Specials", [("Taunt_01", 1), ("Taunt_02", 1), ("Taunt_03", 1), ("Rally", 2), ("Cutthroat", 1), ("Summon", 1), ("AOE_Cast", 1)]),
@@ -37,7 +39,7 @@ SECTIONS = [
 ]
 RETURN = {"Right arm": "Idle_1H_Combat", "Left arm (block = hold)": "Idle_1H_Combat", "Two-handed": "Idle_TwoHanded",
           "Bow": "Idle_Bow", "Magic": "Idle_Staff"}                 # Unity: each section's idlePreference
-GRIP_L = {"Idle_TwoHanded", "Attack_2H_01", "Attack_2H_02", "Cast_Staff_01"}   # manifest grip_hands "L"
+GRIP_L = {"Idle_TwoHanded", "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_01_Swing_Heavy", "Attack_2H_02_Swing_Heavy", "Cast_Staff_01"}   # manifest grip_hands "L"
 
 
 def _t(kind, cls=None):

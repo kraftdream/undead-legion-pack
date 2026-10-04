@@ -143,6 +143,27 @@ separate Unity product and is not ported):
   parentheses included — a failed `write_graph_dsl` leaves the function EMPTY (the clip list had 0 buttons): never put a comment
   after code on a line.
 
+## Base-pack update of 2026-10-04 (the user's attack set)
+
+Synced at the base pack's `5295a16`+ (2026-10-04). What changed on the Unity side and how it was carried over:
+* **The 16-clip attack set** replaces every earlier attack clip: `Attack_R/L_01_Stab`, `_02_Swing`, `_03_Swing` + a `_Heavy` variant of
+  each, `Attack_2H_01/02_Swing` + `_Heavy` (CLAUDE.md §1). `export_ue.py clips <names>` wrote them (the six retired exports deleted from
+  `Export_UE/`), `ue_build.py clips:<names>` imported them (all in place, `rm off`), `montages:<names>` built their `AM_`, and the
+  retired `A_` / `AM_` assets were deleted (`EditorAssetLibrary.delete_asset`). ⚠ **A deleted montage's `.uasset` stayed on disk** (delete
+  reported True, the registry re-found the file on its next scan and the asset came back): the six `AM_` files were removed from disk by
+  hand after the registry delete. ⚠ `montages` used to crash on the first clip whose montage could not be deleted (`create_asset` returned
+  None, nothing built): it now takes `montages:A,B` and keeps-and-logs an undeletable montage.
+* **Re-exported clips**: `Idle_1H_Combat`, `Idle_TwoHanded` (verbatim, no fit), `Run_Fwd_02` (0.933 s, 175.1 cm per loop, 187.6 cm/s),
+  `Strafe_Left/Right_02` (1.300 s, 84.3 cm, 64.8 cm/s — the user's shorter steps).
+* **Grips**: `weapon_blueprints:H2Axe,H2Longsword` re-applied the re-tuned grips (axe yaw 40, longsword yaw 130 in Unity).
+* **Browser**: `ue_demo_ui.SECTIONS` carries the new Right arm / Left arm / Two-handed members (the `_Heavy` variants included) and
+  `GRIP_L` the four 2H clips; `demo_data` rebuilt (58 clips in 13 sections).
+* **Showreel plan**: `showreel_plan.py` renamed to the new clips (the recorder's steps: Warrior 2H_01/02_Swing, Knight axe R_02_Swing,
+  sword R_01_Stab + R_02_Swing, Assassin R/L_01_Stab + R/L_02_Swing at 1.6×); `Showreel/unreal/clip_lengths.json` re-dumped from the
+  imported assets (a `ue_py` one-liner over every `A_` clip: `get_play_length`), `plan.json` regenerated. The stages were NOT re-rendered.
+* Not ported: Unity's `AttackSpeed` Animator parameter (the per-weapon pace lives in the plan's `speed` and `PlayAction`'s rate here);
+  the Extended edition; `Rise_01` (not exported anywhere yet).
+
 ## Showreel in Unreal (2026-10-01, a first test: the modular stage's opening beat)
 
 `ue_showreel.py build Warrior Idle_03 3` → map `Demo/Maps/UndeadLegion_Showreel` (the stage on a 2 km floor, the class BP with no

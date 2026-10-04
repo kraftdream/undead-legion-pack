@@ -110,17 +110,24 @@ def measure_clips(only=None):
             "  loop" if is_loop(n, man) else ""))
 
 
-def montages():
+def montages(only=None):
     """AM_<Clip> in DefaultSlot for every one-shot (the buyer's usual route; the demo plays sequences through
-    slots directly with PlaySlotAnimationAsDynamicMontage)."""
+    slots directly with PlaySlotAnimationAsDynamicMontage). `montages:A,B` limits it to those clips. A montage
+    that cannot be deleted (still referenced by something loaded in the editor) is kept and logged instead of
+    crashing the step (2026-10-04: create_asset returned None on the first clip and nothing was built)."""
     man = clips_manifest()
     for n in clip_names():
+        if only and n not in only:
+            continue
         if is_loop(n, man) or n == "Grip" or is_additive(n, man):
             continue
         a = unreal.load_asset(ANIMS + "/A_" + n)
         path = PKG + "/Animations/Montages/AM_" + n
         if EAL.does_asset_exist(path):
             EAL.delete_asset(path)
+            if EAL.does_asset_exist(path):
+                log("montage AM_%s: could not be deleted (still referenced), kept" % n)
+                continue
         f = unreal.AnimMontageFactory()
         f.set_editor_property("target_skeleton", a.get_editor_property("skeleton"))
         f.set_editor_property("source_animation", a)

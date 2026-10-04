@@ -30,9 +30,9 @@ MODULES = {"Knight": ["Boot_L", "Boot_R", "Chest", "Glove_L", "Glove_R", "Greave
            "Mage": ["Boot_L", "Boot_R", "Glove_L", "Glove_R", "Greave_L", "Greave_R", "Helm", "Robe"],
            "Necromancer": ["Boot_L", "Boot_R", "Glove_L", "Glove_R", "Greave_L", "Greave_R", "Helm", "Robe"],
            "Warrior": ["Boot_L", "Boot_R", "Chest", "Glove_L", "Glove_R", "Greave_L", "Greave_R", "Skirt"]}
-GRIP_L = {"Idle_TwoHanded", "Attack_2H_01", "Attack_2H_02", "Cast_Staff_01"}          # manifest grip_hands L
-RETURN = {"Attack_R_Stab": "Idle_1H_Combat", "Attack_R_Slice": "Idle_1H_Combat", "Attack_L_Stab": "Idle_1H_Combat",
-          "Attack_L_Slice": "Idle_1H_Combat", "Attack_2H_01": "Idle_TwoHanded", "Attack_2H_02": "Idle_TwoHanded",
+GRIP_L = {"Idle_TwoHanded", "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Cast_Staff_01"}          # manifest grip_hands L
+RETURN = {"Attack_R_01_Stab": "Idle_1H_Combat", "Attack_R_02_Swing": "Idle_1H_Combat", "Attack_L_01_Stab": "Idle_1H_Combat",
+          "Attack_L_02_Swing": "Idle_1H_Combat", "Attack_2H_01_Swing": "Idle_TwoHanded", "Attack_2H_02_Swing": "Idle_TwoHanded",
           "Shoot_01": "Idle_Bow", "Cast_Wand_01": "Idle_Staff", "Cast_Wand_02": "Idle_Staff", "Cast_Staff_01": "Idle_Staff"}
 # everything else returns to the running idle (Specials / Reactions: returnToLastIdle); deaths hold; hits are overlays
 
@@ -85,17 +85,17 @@ def modular():
 
 def weapons():
     st = [A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Taunt", "Taunt_01"),
-          A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Two-handed idle; the second hand rides the handle", "Attack_2H_01", "Attack_2H_02"),
-          A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "The same two-handed grip and attacks on every long weapon", "Attack_2H_01", "Attack_2H_02"),
+          A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Two-handed idle; the second hand rides the handle", "Attack_2H_01_Swing", "Attack_2H_02_Swing"),
+          A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "The same two-handed grip and attacks on every long weapon", "Attack_2H_01_Swing", "Attack_2H_02_Swing"),
           death(A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "Death", "Death_01")),
           A("Knight", "Axe + round shield", "Idle_1H_Combat", "Skeleton Knight  |  Axe + round shield", "Taunt and rally", "Taunt_02", "Rally"),
-          A("Knight", "Axe + round shield", "Idle_1H_Combat", "Skeleton Knight  |  Axe + round shield", "Left-arm block HELD on its own layer; the right arm attacks under it", "Attack_R_Slice", hold_on="Block_L_Idle"),
-          A("Knight", "Sword + shield", "Idle_1H_Combat", "Skeleton Knight  |  Sword + heater shield", "Any one-handed weapon, any shield; the block still held", "Attack_R_Stab", "Attack_R_Slice"),
-          A("Knight", "Sword", "Idle_1H_Combat", "Skeleton Knight  |  Sword", "Block released; the same attacks with the free hand", "Attack_R_Stab", "Attack_R_Slice", hold_off="Block_L_Idle"),
+          A("Knight", "Axe + round shield", "Idle_1H_Combat", "Skeleton Knight  |  Axe + round shield", "Left-arm block HELD on its own layer; the right arm attacks under it", "Attack_R_02_Swing", hold_on="Block_L_Idle"),
+          A("Knight", "Sword + shield", "Idle_1H_Combat", "Skeleton Knight  |  Sword + heater shield", "Any one-handed weapon, any shield; the block still held", "Attack_R_01_Stab", "Attack_R_02_Swing"),
+          A("Knight", "Sword", "Idle_1H_Combat", "Skeleton Knight  |  Sword", "Block released; the same attacks with the free hand", "Attack_R_01_Stab", "Attack_R_02_Swing", hold_off="Block_L_Idle"),
           death(A("Knight", "Sword", "Idle_1H_Combat", "Skeleton Knight  |  Sword", "Death", "Death_02")),
           A("Assassin", "Dagger", "Idle_1H_Combat", "Skeleton Assassin  |  Dagger", "Cutthroat", "Cutthroat"),
-          A("Assassin", "Dagger", "Idle_1H_Combat", "Skeleton Assassin  |  Dagger", "Right-arm attacks at 1.6x speed", "Attack_R_Stab", "Attack_R_Slice", speed=1.6),
-          A("Assassin", "Two daggers", "Idle_1H_Combat", "Skeleton Assassin  |  Two daggers", "Left-arm attacks at 1.6x speed", "Attack_L_Stab", "Attack_L_Slice", speed=1.6),
+          A("Assassin", "Dagger", "Idle_1H_Combat", "Skeleton Assassin  |  Dagger", "Right-arm attacks at 1.6x speed", "Attack_R_01_Stab", "Attack_R_02_Swing", speed=1.6),
+          A("Assassin", "Two daggers", "Idle_1H_Combat", "Skeleton Assassin  |  Two daggers", "Left-arm attacks at 1.6x speed", "Attack_L_01_Stab", "Attack_L_02_Swing", speed=1.6),
           death(A("Assassin", "Two daggers", "Idle_1H_Combat", "Skeleton Assassin  |  Two daggers", "Death", "Death_03")),
           A("Archer", "Recurve bow", "Idle_Bow", "Skeleton Archer  |  Recurve bow", "The string follows the draw hand; an arrow is fired on release", "Shoot_01"),
           A("Mage", "Wand", "Idle_03", "Skeleton Mage  |  Wand", "Two wand casts", "Cast_Wand_01", "Cast_Wand_02"),
