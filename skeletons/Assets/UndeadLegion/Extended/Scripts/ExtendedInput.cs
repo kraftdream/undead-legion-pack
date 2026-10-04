@@ -92,6 +92,32 @@ namespace UndeadLegion.Extended
 #endif
         }
 
+        /// <summary>A key pressed this frame (Escape, Space, Tab, the letters and digits; Shift / Ctrl / Alt as held keys).</summary>
+        public static bool KeyDown(KeyCode k)
+        {
+#if ENABLE_INPUT_SYSTEM
+            var kb = Keyboard.current; if (kb == null) return false;
+            var key = ToKey(k);
+            return key != UnityEngine.InputSystem.Key.None && kb[key].wasPressedThisFrame;
+#else
+            return Input.GetKeyDown(k);
+#endif
+        }
+
+#if ENABLE_INPUT_SYSTEM
+        static UnityEngine.InputSystem.Key ToKey(KeyCode k)
+        {
+            if (k == KeyCode.Escape) return UnityEngine.InputSystem.Key.Escape;
+            if (k == KeyCode.Space) return UnityEngine.InputSystem.Key.Space;
+            if (k == KeyCode.Tab) return UnityEngine.InputSystem.Key.Tab;
+            if (k == KeyCode.Return) return UnityEngine.InputSystem.Key.Enter;
+            if (k >= KeyCode.A && k <= KeyCode.Z) return UnityEngine.InputSystem.Key.A + (k - KeyCode.A);
+            if (k >= KeyCode.Alpha1 && k <= KeyCode.Alpha9) return UnityEngine.InputSystem.Key.Digit1 + (k - KeyCode.Alpha1);
+            if (k == KeyCode.Alpha0) return UnityEngine.InputSystem.Key.Digit0;
+            return UnityEngine.InputSystem.Key.None;
+        }
+#endif
+
         public static bool PointerOverUI { get { return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(); } }
     }
 }

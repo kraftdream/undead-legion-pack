@@ -41,6 +41,7 @@ DROP_PACKAGES = ["com.coplaydev.unity-mcp", "com.unity.collab-proxy", "com.unity
 NAVIGATION = "com.unity.ai.navigation"          # the extended edition's NavMesh; dropped from the base
 SCENES = {"base": ["Assets/UndeadLegion/Demo/Scenes/UndeadLegion_Demo.unity"],
           "extended": ["Assets/UndeadLegion/Extended/Scenes/UndeadLegion_Extended_Demo.unity", "Assets/UndeadLegion/Extended/Scenes/UndeadLegion_Extended_Showcase.unity",
+                       "Assets/UndeadLegion/Extended/Scenes/UndeadLegion_Extended_Player.unity",
                        "Assets/UndeadLegion/Demo/Scenes/UndeadLegion_Demo.unity"]}
 PRODUCT = {"base": "Undead Legion", "extended": "Undead Legion Extended"}
 # anything that points back at how the pack was made

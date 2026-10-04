@@ -135,6 +135,8 @@ every hit, so you rarely need to call it directly.</p>
       <b>DeathClipThenRagdoll</b> (the clip starts, the ragdoll takes over after <code>ragdollAfter</code> seconds)</td></tr>
   <tr><td><code>hitClips</code></td><td>additive reactions (<code>Hit_01</code>, <code>Hit_02</code>), one picked at random and played on the Animator's Hit layer on every hit that does not kill, over whatever the skeleton is doing, together with the physical flinch</td></tr>
   <tr><td><code>dissolveAfter</code></td><td>seconds after death before the corpse turns to dust (0 = stays); <code>destroyWhenDissolved</code> removes it</td></tr>
+  <tr><td><code>invulnerable</code></td><td>hits still flinch, play the hit clips and raise <code>onDamaged</code>, but health never drops (a player character that cannot die)</td></tr>
+  <tr><td><code>blocking</code>, <code>blockArc</code></td><td>while blocking, a hit from within <code>blockArc</code> degrees of the front does no damage and gives only <code>blockedReaction</code> of the flinch</td></tr>
   <tr><td><code>onDamaged</code>, <code>onDied</code></td><td>UnityEvents for your game logic (score, sounds, loot)</td></tr>
 </table>
 <p><code>Die()</code> kills at once, <code>Revive()</code> restores full health and blends a ragdoll back to the animation.
@@ -184,9 +186,11 @@ the moves of every module that matches what it holds, picking one at random (nev
 The defaults:</p>
 <table>
   <tr><th>Module</th><th>Weapons</th><th>Attacks</th><th class="n">Range</th></tr>
-  <tr><td>Right hand</td><td>sword, sword + shield, axe + shield, mace, dagger, two daggers</td><td><code>Attack_R_01_Stab</code>, <code>Attack_R_02_Swing</code>, <code>Attack_R_03_Swing</code></td><td class="n">1.7–1.8 m</td></tr>
-  <tr><td>Right hand, heavy</td><td>axe + shield, mace</td><td>the three <code>_Heavy</code> variants: a bigger lunge, more damage</td><td class="n">1.8–1.9 m</td></tr>
-  <tr><td>Left hand</td><td>two daggers</td><td><code>Attack_L_01_Stab</code>, <code>Attack_L_02_Swing</code>, <code>Attack_L_03_Swing</code></td><td class="n">1.5–1.6 m</td></tr>
+  <tr><td>Sword</td><td>sword, sword + shield</td><td><code>Attack_R_01_Stab</code>, <code>Attack_R_02_Swing</code>, <code>Attack_R_03_Swing</code>, 30 % faster</td><td class="n">1.7–1.8 m</td></tr>
+  <tr><td>Dagger</td><td>dagger, two daggers</td><td>the same three, 70 % faster</td><td class="n">1.7–1.8 m</td></tr>
+  <tr><td>Dagger, left hand</td><td>two daggers</td><td><code>Attack_L_01_Stab</code>, <code>Attack_L_02_Swing</code>, <code>Attack_L_03_Swing</code>, 70 % faster</td><td class="n">1.5–1.6 m</td></tr>
+  <tr><td>Axe / Axe, heavy</td><td>axe + shield</td><td>the three right-hand attacks / their <code>_Heavy</code> variants: a bigger lunge, more damage</td><td class="n">1.7–1.9 m</td></tr>
+  <tr><td>Mace / Mace, heavy</td><td>mace</td><td>the two swings / their <code>_Heavy</code> variants (no stab)</td><td class="n">1.7–1.8 m</td></tr>
   <tr><td>Two-handed</td><td>longsword, battle axe</td><td><code>Attack_2H_01_Swing</code>, <code>Attack_2H_02_Swing</code></td><td class="n">2.1–2.2 m</td></tr>
   <tr><td>Two-handed, heavy</td><td>battle axe</td><td><code>Attack_2H_01_Swing_Heavy</code>, <code>Attack_2H_02_Swing_Heavy</code></td><td class="n">2.2–2.3 m</td></tr>
   <tr><td>Bow</td><td>recurve bow</td><td><code>Shoot_01</code>: the arrow flies and hits after its flight time</td><td class="n">16 m</td></tr>
@@ -194,8 +198,8 @@ The defaults:</p>
   <tr><td>Staff</td><td>staff</td><td><code>Cast_Staff_01</code> bolt, and <code>AOE_Cast</code> hitting every enemy within 3 m of the target (8 s cooldown)</td><td class="n">9–12 m</td></tr>
   <tr><td>Unarmed</td><td>nothing held</td><td>light swings with both arms</td><td class="n">1.4 m</td></tr>
 </table>
-<p>So swords and daggers use regular attacks only, axes and maces mix regular and heavy ones, and a second dagger adds the
-left-hand attacks. A heavy module is skipped when <code>allowHeavy</code> is off, which it is on the assassin: it fights with regular
+<p>So swords and daggers use regular attacks only, axes and maces mix regular and heavy ones (the mace only swings), and a
+second dagger adds the left-hand attacks. Each move has its own clip <code>speed</code> (multiplied by the component's <code>attackSpeed</code>). A heavy module is skipped when <code>allowHeavy</code> is off, which it is on the assassin: it fights with regular
 attacks whatever it holds. Add a module, or change one's weapons and moves, in the inspector to give a weapon its own set.</p>
 <p><code>damageScale</code> and <code>attackSpeed</code> tune difficulty; <code>wanderRadius</code> lets idle skeletons roam around their start point;
 <code>magicColor</code> colours the spells. Disable the component to take control of a skeleton (the arena demo does this when you select one).</p>
@@ -239,7 +243,25 @@ push it around. Picking any clip, or Revive, stands a fallen skeleton back up. T
 component <code>ExtendedShowcase</code> removes its navigation and AI when it spawns; the <code>Hit_01</code> and <code>Stagger_01</code>
 clips are in the Reactions section, and armour pieces put on from the modules panel get cloth.</p>
 
-<h2>15. Performance</h2>
+<h2>15. The player demo</h2>
+<p><code>UndeadLegion/Extended/Scenes/UndeadLegion_Extended_Player.unity</code>: control one skeleton against waves of AI skeletons on the arena.</p>
+<table>
+  <tr><th>Input</th><th>Action</th></tr>
+  <tr><td>W A S D</td><td>walk forward, back and sideways on the locomotion blend tree (root motion, the clips' measured speeds)</td></tr>
+  <tr><td>Shift + W</td><td>run</td></tr>
+  <tr><td>Mouse</td><td>turn (the camera follows behind the shoulder); wheel zooms</td></tr>
+  <tr><td>Left click</td><td>attack with the moves of the attack modules attached to the weapon; each click plays the next move, a click late in an attack chains the next</td></tr>
+  <tr><td>Right button (hold)</td><td>raise the shield (a loadout with a shield): frontal hits are blocked</td></tr>
+  <tr><td>Esc</td><td>pause; the menu switches the class (the new skeleton replaces the old one where it stands), the weapon, and how many enemies fight at once</td></tr>
+</table>
+<p>The controlled skeleton cannot die (<code>SkeletonHealth.invulnerable</code>) but shows every hit: the physical flinch, the hit clips, a camera kick
+and a red flash. Three components make it up, each usable on its own: <code>PlayerSkeleton</code> (on the character: input to the
+<code>SkeletonNavController</code>'s manual mode, attacks, block; the <code>SkeletonAI</code> stays on it, disabled, as the source of the attack
+modules), <code>PlayerCamera</code> (on the camera) and <code>PlayerDemo</code> (the scene: the player, the enemy waves from an
+<code>ArmySpawner</code>, the menu and the HUD). <code>SkeletonNavController.manual</code> with <code>ManualVelocity</code> (in the character's
+frame) is the hook for your own character controller.</p>
+
+<h2>16. Performance</h2>
 <ul>
   <li>Ragdoll bodies are kinematic until death, so a living skeleton costs only its colliders.</li>
   <li>Cloth is the most expensive feature: keep <code>cullDistance</code> modest, or remove <code>SkeletonCloth</code> from background crowds.</li>
@@ -248,7 +270,7 @@ clips are in the Reactions section, and armour pieces put on from the modules pa
   <li>For large crowds, set the agents' obstacle avoidance quality lower and consider disabling <code>SkeletonTwitch</code> and the hit reactions far from the camera.</li>
 </ul>
 
-<h2>16. Support</h2>
+<h2>17. Support</h2>
 <p>For questions or issues, email <b><a href="mailto:vadymudod@hotmail.com" style="color:inherit">vadymudod@hotmail.com</a></b>. Please include
 your Unity version, the edition (Extended) and a short description or screenshot of the problem.</p>
 

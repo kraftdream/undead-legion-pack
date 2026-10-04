@@ -64,7 +64,7 @@ identical because the avatar is shared). Ship these numbers with the pack:
 | `Walk_Back_01` | 1.967 s | −0.662 m | 0.34 m/s (redone 2026-09-24; upper body from Idle_03) |
 | `Run_Fwd_01` | 0.967 s | +1.107 m | 1.14 m/s (`Run_Fwd` until 2026-09-29) |
 | `Walk_Fwd_02` | 1.133 s | +1.455 m | 1.28 m/s (the upright "normal" walk, 2026-09-25) |
-| `Run_Fwd_02` | 0.833 s | +1.562 m | 1.87 m/s (the "normal" jog) |
+| `Run_Fwd_02` | 0.933 s | +1.751 m | 1.88 m/s (the "normal" jog; the user's second 29-frame edit, re-exported 2026-10-04) |
 | `Walk_Back_02` | 1.467 s | −1.132 m | 0.77 m/s (the "normal" walk back, 2026-09-26) |
 | `Strafe_Left_01` | 1.467 s | −0.293 m (X) | 0.20 m/s (steps 30 % shorter 2026-09-24 and 30 % again 2026-09-26) |
 | `Strafe_Right_01` | 1.467 s | +0.293 m (X) | 0.20 m/s (the mirror of the finished Strafe_Left_01) |
@@ -666,6 +666,34 @@ random pick that avoids the last clip (was a fixed rotation), the `Style` enum i
 (not in the old table): damage 26, reach 1.9, hitAt 0.27. Probed in play mode: 120 spawns, 0 rule violations, every caster robed and
 hooded (Mage / Necromancer pieces mixed between the two), each class / loadout with the intended moves; an 8v8 battle with no console
 messages, regular and heavy one-handed moves, 2H, casts and shots played. Extended manual §11 / §12 and the extended listing updated.
+
+**Per-weapon attack modules (2026-10-04, "no stab attack for mace; dagger attacks 70 % faster; sword attacks 30 % faster").** The shared
+"Right hand" module split into one per weapon: Sword (sword, sword + shield: R stab + two swings at clip speed 1.3), Dagger (dagger, two
+daggers: the same at 1.7) + Dagger left hand (two daggers: the L three at 1.7), Axe + Axe heavy (axe + round shield: the three + the three
+`_Heavy`), Mace + Mace heavy (the two swings + the two heavy swings, no stab). `AttackMove.speed` (new, default 1; `Speed` reads 1 when unset,
+`Faster(s)` copies a move) multiplies `SkeletonAI.attackSpeed` / `PlayerSkeleton.attackSpeed` (1.1) in `PlayAction`; `hitAt` is normalised,
+so the hit moment follows. The `PFX_` prefabs serialise the module list: rebuild them (*Build All (1-5)*) after changing `Defaults()`.
+
+**The player demo (2026-10-04, extended only).** User: "a demo scene where I control a skeleton and fight other skeletons; Esc pauses
+with a menu to select a different class (replaces the current one); WASD, the mouse turns on Y, left click attacks cycling the variations,
+hold the right button to block with a shield; my skeleton has no HP, can't die, but shows hits; forward + Shift runs".
+`Extended/Scenes/UndeadLegion_Extended_Player.unity` (menu *Extended / 5. Build Player Demo Scene*, part of *Build All (1-5)*; the arena is
+`ExtendedBuilder.BuildArena`, shared with the battle scene, and its stone material and volume profile are now created ONCE and reused, so
+one scene's rebuild never breaks the other's references). New scripts: **`PlayerSkeleton`** (on the character: `SkeletonNavController.manual`
++ `ManualVelocity` — new, the wanted velocity in the character's frame, no steering — at the gait's measured walk / run / back / strafe speeds;
+the mouse yaws the transform; left click plays `SkeletonAI.CurrentMoves()` in order, the AI disabled but kept as the module source, a click in
+the second half of an attack chains the next; right button with a "shield" loadout crossfades `Block_L_Idle` on `LeftArm` and sets
+`SkeletonHealth.blocking`; melee hits everyone within reach and 70°, bolts home on the nearest enemy within 30°, arrows land on the nearest
+within 12° after their flight), **`PlayerCamera`** (behind the shoulder, follows the yaw, wheel zoom, `Shake`), **`PlayerDemo`** (spawns the
+player — the class's default loadout, teal eyes, invulnerable —, keeps `enemyCount` (4) enemies alive from an `ArmySpawner`, 9–14 m away,
+respawning 2.5 s after a death; Esc pauses with `Time.timeScale` 0 and a menu: six classes, eleven weapons, enemies 1/2/4/6/8, resume; HUD
+with class, weapon, next move, kills; a camera kick and a red flash on a hit). `SkeletonHealth` gained **`invulnerable`** and **`blocking`**
+(+ `blockArc` 70°, `blockedReaction` 0.3, `LastHitBlocked`); `ExtendedInput.KeyDown`; `SkeletonNavController` resets its moving state when a
+one-shot ends (a held W after an attack re-enters locomotion). Probed in play mode with Input System state events (`InputSettings` set to
+`IgnoreFocus` + `AllDeviceInputAlwaysGoesToGameView` for the probe): W walks (Walk_Fwd_01), Shift + W runs (MoveZ 1.14), S / D back /
+strafe at their speeds, the mouse turned 90°, three clicks cycled R_01_Stab → R_02_Swing → R_03_Swing, the block raised `Block_L_Idle` on the
+Knight's shield and released, a 50-damage hit left 100 health, Esc paused (timeScale 0, cursor free), switching to the Mage replaced the player
+with a wand in hand, 15 s of combat: 21 hits on the player, no console messages. Production: a build scene of the extended edition.
 
 **Extended browser layout (2026-09-30, "move the new UI panel under the animations panel, make that one shorter; the physics hit is
 weak, 2x"):** the PHYSICS panel is anchored bottom-right at the ANIMATIONS panel's right edge and width (−20 / 280 px, 78 px above the

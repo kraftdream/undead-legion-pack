@@ -25,6 +25,10 @@ namespace UndeadLegion.Extended
         public float parameterDamping = 0.12f;
         [Tooltip("Degrees per second the agent turns.")]
         public float turnSpeed = 360f;
+        [Tooltip("Driven by a player (or your own code) through ManualVelocity instead of NavMesh paths; the body does not steer.")]
+        public bool manual = false;
+        /// <summary>In manual mode: the wanted velocity in the CHARACTER's frame (x right, z forward), m/s.</summary>
+        public Vector3 ManualVelocity { get; set; }
 
         // measured on the shipped clips (Unity, Humanoid, root motion): walk / run / back / strafe, m/s
         static readonly float[] HeavySpeeds = { 0.52f, 1.14f, 0.34f, 0.20f };
@@ -69,6 +73,8 @@ namespace UndeadLegion.Extended
 
         public float WalkSpeed { get { return (gait == Gait.Heavy ? HeavySpeeds : UprightSpeeds)[0]; } }
         public float RunSpeed { get { return (gait == Gait.Heavy ? HeavySpeeds : UprightSpeeds)[1]; } }
+        public float BackSpeed { get { return (gait == Gait.Heavy ? HeavySpeeds : UprightSpeeds)[2]; } }
+        public float StrafeSpeed { get { return (gait == Gait.Heavy ? HeavySpeeds : UprightSpeeds)[3]; } }
         string LocomotionState { get { return gait == Gait.Heavy ? "Locomotion_Heavy" : "Locomotion_Upright"; } }
 
         public void ApplyGait() { if (_agent != null) _agent.speed = run ? RunSpeed : WalkSpeed; }
@@ -150,15 +156,24 @@ namespace UndeadLegion.Extended
         void Update()
         {
             if (_animator == null || _agent == null || !_animator.enabled) return;
-            if (_busy && Time.time >= _busyUntil) { _busy = false; _animator.speed = 1f; _basePlaying = ""; }
+            if (_busy && Time.time >= _busyUntil) { _busy = false; _animator.speed = 1f; _basePlaying = ""; _moving = false; }   // re-enter locomotion or the idle
             if (_busy) { _animator.SetFloat(MoveX, 0f); _animator.SetFloat(MoveZ, 0f); return; }
 
-            bool live = _agent.enabled && _agent.isOnNavMesh;
-            bool moving = live && !_agent.isStopped && (_agent.pathPending || (_agent.hasPath && _agent.remainingDistance > _agent.stoppingDistance));
-            Vector3 v = moving ? _agent.desiredVelocity : Vector3.zero; v.y = 0f;
-            if (v.sqrMagnitude > 1e-4f)                                   // steer: turn toward the path, the clip's own turn rides on top
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(v), turnSpeed * Time.deltaTime);
-            Vector3 local = transform.InverseTransformDirection(v);
+            bool moving; Vector3 local;
+            if (manual)
+            {
+                local = ManualVelocity; local.y = 0f;
+                moving = local.sqrMagnitude > 1e-4f;
+            }
+            else
+            {
+                bool live = _agent.enabled && _agent.isOnNavMesh;
+                moving = live && !_agent.isStopped && (_agent.pathPending || (_agent.hasPath && _agent.remainingDistance > _agent.stoppingDistance));
+                Vector3 v = moving ? _agent.desiredVelocity : Vector3.zero; v.y = 0f;
+                if (v.sqrMagnitude > 1e-4f)                                   // steer: turn toward the path, the clip's own turn rides on top
+                    transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(v), turnSpeed * Time.deltaTime);
+                local = transform.InverseTransformDirection(v);
+            }
             _animator.SetFloat(MoveX, local.x, parameterDamping, Time.deltaTime);
             _animator.SetFloat(MoveZ, local.z, parameterDamping, Time.deltaTime);
 
