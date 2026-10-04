@@ -2071,6 +2071,14 @@ Second round the same evening ("reexport updated animations"): the user had also
 swings re-mirrored (`--keep-old <tmp>`, then the tmp bases AND the `Attack_L_*_base` copies the mirror step leaves on the left actions
 removed, so the attack set stays 16 actions with no bases) and the eight swing clips exported: in place, boots Knight −1..−4 mm, the others
 ≤ 9 mm under, the robe 2–9 cm; the heavy mirrors deviate from the exact X-flip exactly as the plain ones (15 / 4 mm at the right hand).
+Third round ("added Fix_01, bake it to Attack_R_03_Swing and Attack_R_03_Swing_Heavy"; a plain re-edit of R_03 before it was
+exported and REVERTED at the user's request, "looks bad, revert all changes": `git checkout` of the anim file, the two exports and the build
+state, a Unity refresh). `Fix_01` = `forearm_fk.R` + `hand_fk.R`, 3–4 keys over frames 15–59, Combine with Hold over a Replace strip of the
+heavy swing: baked as set up (flat = stack 0.00 mm), then the strip RE-POINTED at the plain swing (session script `repoint.py`: the strip's
+action / range swapped, `Fix_01` kept active in Combine) and baked again — one fix on two clips; both left mirrors rebuilt (4.2 mm), the
+temp / `_base` copies removed, the four clips exported in place. ⚠ The bake tool removes every NLA track: after a bake the user's
+session still shows the old stack — File > Revert before editing on. The axe reference `Ref_H1Axe` sits in the right hand in the anim file
+(`anim_weapon_ref.py --attach H1Axe:R`, the re-dumped grips) since this round.
 
 **Idle_TwoHanded re-exported verbatim (2026-10-04, "reimport the Idle_TwoHanded into unity").** The user's edited action (same 141-frame
 loop) exported with `lift 0` and NO `ground_fit` (the fit curve deleted), under the standing rule "all clips are fine-tuned to avoid
