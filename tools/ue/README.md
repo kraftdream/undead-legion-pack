@@ -164,6 +164,14 @@ Synced at the base pack's `5295a16`+ (2026-10-04). What changed on the Unity sid
 * Not ported: Unity's `AttackSpeed` Animator parameter (the per-weapon pace lives in the plan's `speed` and `PlayAction`'s rate here);
   the Extended edition; `Rise_01` (not exported anywhere yet).
 
+## Base-pack update of 2026-10-05 (checked at `e233110`: nothing to port)
+
+* **`bake_rot` on ten one-shots** (`Cast_Wand_01/02`, `Cutthroat`, `Rally`, `Stagger_01/02`, `Summon`, `Taunt_01/02/03`) is a Unity
+  IMPORT setting only: Unity derived a 30–44° root yaw from the BODY and turned the character (and the Extended player camera) with it.
+  Unreal extracts root motion from the `Root` bone, whose rotation is constant on every frame of all ten actions (checked in the anim
+  file), so these clips never turned the actor here; the FBX files did not change. No re-export, no re-import.
+* **Per-weapon AI engage distance, `allowArea`**: Extended edition only (`SkeletonAI` / `AttackModule`), not ported.
+
 ## Showreel fixes of 2026-10-04 ("the models float slightly"; "the model / camera still gets into position")
 
 Measured in PIE at 1/50 time dilation (a python poll every ~2 game frames, `ue_poll2`-style: actor Z, Root and Hips socket Z,
