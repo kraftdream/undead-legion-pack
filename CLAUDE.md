@@ -760,6 +760,14 @@ short-weapon enemies round a still player, 227 of 518 samples had a skeleton WIT
 of its engage point (the others hold the spot). `SkeletonAI` now attacks when blocked (`blockedAttackAfter` 0.4 s of chasing at < 0.1 m/s)
 within its shortest melee move's reach, and keeps attacking until the target is `engageSlack` (0.3 m) beyond the engage distance:
 attacking 209 → 277, blocked chasing 227 → 129 (the rest is walking in). A target backing away is still chased, not swung at (left as is).
+**"Bobbing head" on a corpse (2026-10-05).** Three things, measured with a play-mode probe (an enemy killed by a head hit, the head's
+rotation against the chest over 180 frames after it lands): (1) **the head pendulum**: a corpse whose head lies unsupported (head 26 cm up,
+the chest at rest) swung on its joint for seconds (moving on 162 of 180 frames, no decay) — the bodies had 0.1 angular damping;
+`SkeletonRagdoll.angularDamping` 0.6 / **`headAngularDamping` 5** are applied on `Activate`: 8 corpses, at most 23 of 180 frames moving, all
+while the whole body still slid to rest. (2) **`Physics.IgnoreCollision` is runtime state**: `Build()` set it in the editor, so in play every
+body part collided with every other (head against the upper arms); now `IgnoreSelfCollisions()` in `Awake`. (3) **The hit springs**
+(`SkeletonHitReaction`) kept rotating bones after the killing blow while the Animator was off, where nothing resets the pose: they clear
+under a ragdoll and ignore hits there. Rule: **anything set with `Physics.IgnoreCollision` at build time must be set again at runtime.**
 **Extended browser layout (2026-09-30, "move the new UI panel under the animations panel, make that one shorter; the physics hit is
 weak, 2x"):** the PHYSICS panel is anchored bottom-right at the ANIMATIONS panel's right edge and width (−20 / 280 px, 78 px above the
 bottom), and `ExtendedShowcase.FitUnderAnimations` shortens the browser's `AnimationPanel` at runtime to end 10 px above it (measured
