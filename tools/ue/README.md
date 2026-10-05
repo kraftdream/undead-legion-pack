@@ -264,9 +264,33 @@ exposure (`EXPOSURE` +1 EV) with Bloom 8 / threshold 0.5, picked against the Uni
 ⚠ Python's `subprocess` "bash" on this machine is WSL's (no /bin/bash): the orchestrator calls Git Bash by path. ⚠ A Claude Code
 background task is capped at 2 h: the 4-hour render runs as a detached process (log `Showreel/unreal/final_run.log`).
 
+## The Fab package (2026-10-05)
+
+`python tools/make_documentation.py ue` prints the buyer manual (`tools/docs/UndeadLegion_UE_Documentation.html`, the Unity
+manual's stylesheet, 10 A4 pages: the Blueprint API from `build_character.py`'s function table, the loadout table, the clip
+list with `clip_lengths.json`'s lengths, the speed table in cm/s) to `skeletons_ue/Content/UndeadLegion/Documentation.pdf`
+(tracked; the editor ignores a PDF under Content, and Fab wants the documentation inside the package). Then
+**`python tools/ue/make_production_ue.py --verify`** writes `../undead-legion-production-ue/UndeadLegion/` (`Config/`,
+`Content/UndeadLegion/`, `UndeadLegion.uproject`) and zips it as `UndeadLegion_UE58.zip` (top folder `UndeadLegion/`,
+291 files, 95 MB): the showreel map, `Demo/Showreel/LS_*`, `BP_ShowreelDirector` and `Pipelines/IP_*` are left out,
+`Developers` / `Collections` never copied, all seven plugins dropped from the `.uproject` (Blueprint-only, no dependency),
+`DefaultEditorPerProjectUserSettings.ini` (the MCP auto-start) and the empty `DefaultEditor.ini` removed, the Python
+remote-execution block cut from `DefaultEngine.ini`, `/Script/skeletons_ue` renamed, the project name without
+"(development)". The audit (the creatures pack's Fab rules): root entries, one Content subfolder, no generated folders,
+no empty directories, no redirectors, no `IP_` / `LS_` / showreel asset, no shipped asset importing a dropped plugin's
+module (`/Script/PythonScriptPlugin`, `MovieRenderPipeline`, `SequencerScripting`, the MCP modules, `EditorScriptingUtilities`
+— NOT `/Script/MovieScene`, an engine module every AnimSequence imports for its data model), no tooling or AI names in any
+asset or text file, the manual source free of pipeline names. `--verify` runs `UnrealEditor-Cmd -run=CompileAllBlueprints
+-NullRHI` on the COPY (~2 min; 29 pack Blueprints compiled, 0 errors, 0 warnings) and removes the generated folders again
+before the zip. Measured in the editor first (`AssetRegistry.get_dependencies` on the shipped set): nothing shipped depends on
+anything stripped, no redirectors; the 33 `AM_` montages are referenced by nothing (the character builds its montages at
+runtime) and ship as buyer content; `BP_ArrowProjectile` was referenced only by the director and ships as a ready actor.
+The description and the manual say what the demo does NOT do: drive the bow string or fire the arrow.
+
 ## Not done yet
 
 The recurve bow's string pull and the fired arrow in the DEMO (the showreel director does both; the notifies exist on Shoot_01
 but `AN_BowAttach` / `AN_BowRelease` have no Received_Notify graph yet); the in-place locomotion blend space;
 the Unity "Specials return to the last idle" is implemented, the Cast_Staff_01 → Idle_Staff hand-off at frame 54 is a
-plain return; Unreal-side grounding measurement per clip; a Fab production copy.
+plain return; Unreal-side grounding measurement per clip; a full cook of the Fab package and an interactive open of the zip on
+a clean machine.

@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Undead Legion - Modular Skeleton Army - Documentation (Unreal Engine)</title>
+<style>
+  @font-face { font-family: "Cinzel Decorative"; src: url("fonts/CinzelDecorative-Bold.ttf"); font-weight: 700; }
+  @font-face { font-family: "Cinzel"; src: url("fonts/Cinzel.ttf"); font-weight: 400 900; }
+  @font-face { font-family: "EB Garamond"; src: url("fonts/EBGaramond.ttf"); font-weight: 400 800; }
+  @page { size: A4; margin: 18mm 17mm 18mm 17mm; }
+  :root { --ink: #1d1b18; --dim: #5b564d; --gold: #8a6a2c; --rule: #d8cdb6; --tint: #f6f1e6; }
+  html, body { background: #fff; color: var(--ink); }
+  body { font-family: "EB Garamond", Georgia, serif; font-size: 11.2pt; line-height: 1.42; margin: 0; }
+  h1, h2, h3 { font-family: "Cinzel", Georgia, serif; color: var(--ink); font-weight: 700; }
+  h2 { font-size: 16pt; margin: 22pt 0 6pt; padding-bottom: 3pt; border-bottom: 1.2pt solid var(--rule); break-after: avoid; }
+  h3 { font-size: 11.5pt; margin: 14pt 0 4pt; color: var(--gold); break-after: avoid; }
+  p { margin: 0 0 7pt; }
+  code, .mono { font-family: Consolas, "Courier New", monospace; font-size: 9.2pt; }
+  pre { font-family: Consolas, "Courier New", monospace; font-size: 8.8pt; background: var(--tint); border-left: 3pt solid var(--gold); padding: 7pt 9pt; margin: 4pt 0 9pt; white-space: pre-wrap; break-inside: avoid; }
+  table { width: 100%; border-collapse: collapse; margin: 4pt 0 10pt; font-size: 10pt; break-inside: auto; }
+  th { font-family: "Cinzel", Georgia, serif; font-size: 8.8pt; text-align: left; color: var(--gold); border-bottom: 1pt solid var(--rule); padding: 3pt 5pt; }
+  td { border-bottom: 0.5pt solid #ece5d6; padding: 3pt 5pt; vertical-align: top; }
+  tr { break-inside: avoid; }
+  td.n, th.n { text-align: right; white-space: nowrap; }
+  ul { margin: 2pt 0 8pt 16pt; padding: 0; } li { margin: 0 0 2pt; }
+  .note { background: var(--tint); padding: 6pt 9pt; margin: 6pt 0 10pt; font-size: 10.2pt; break-inside: avoid; }
+  .cover { height: 250mm; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; break-after: page; }
+  .cover .t { font-family: "Cinzel Decorative", "Cinzel", serif; font-size: 40pt; color: var(--gold); line-height: 1.1; }
+  .cover .s { font-family: "Cinzel", serif; font-size: 17pt; margin-top: 8pt; }
+  .cover .e { font-family: "Cinzel", serif; font-size: 11pt; margin-top: 26pt; color: var(--dim); letter-spacing: 1pt; }
+  .cover .r { width: 60mm; border-top: 1.2pt solid var(--gold); margin: 14pt auto 0; }
+  .toc { columns: 2; column-gap: 12mm; font-size: 10.6pt; } .toc div { margin: 0 0 3pt; }
+  .page { break-before: page; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="t">Undead Legion</div>
+  <div class="s">Modular Skeleton Army</div>
+  <div class="r"></div>
+  <div class="e">DOCUMENTATION &nbsp;·&nbsp; UNREAL ENGINE PACKAGE</div>
+  <div class="e" style="margin-top:6pt">Unreal Engine 5.8 &nbsp;·&nbsp; Blueprint only</div>
+</div>
+
+<h2 style="margin-top:0">Contents</h2>
+<div class="toc">
+  <div>1. Overview</div><div>2. Requirements and setup</div><div>3. Folder structure</div><div>4. Characters</div>
+  <div>5. Armour modules</div><div>6. Weapons and loadouts</div><div>7. Animations</div><div>8. The Animation Blueprint</div>
+  <div>9. Root motion and speeds</div><div>10. The character Blueprint API</div><div>11. The demo map</div><div>12. Using your own animations</div>
+  <div>13. Technical details</div><div>14. Support</div>
+</div>
+
+<h2>1. Overview</h2>
+<p>Undead Legion is a skeleton army built on <b>one shared skeleton</b>. Six class presets, every armour piece and every animation use
+the same skeleton asset, so any armour piece can be worn by any skeleton and every animation plays on every character.</p>
+<ul>
+  <li><b>6 skeleton classes</b>: Knight, Warrior, Archer, Assassin, Mage, Necromancer, each a ready Blueprint Character.</li>
+  <li><b>48 armour modules</b> as separate skeletal meshes: helms, hoods, chests, gloves, greaves, boots, skirts, robes and pants.</li>
+  <li><b>12 weapons</b> as Blueprints spawned on the hand sockets, with adjustable grips; the recurve bow is skinned.</li>
+  <li><b>58 animations</b> at 30 fps: idles, two locomotion sets with root motion, one- and two-handed attacks with heavy variants,
+      a held block, a bow shot, casts, specials, hit reactions, staggers, deaths, additive twitches and finger idles. A montage
+      for every one-shot.</li>
+  <li><b>One Animation Blueprint</b> with a layer stack: base loop, upper body, left arm, right arm, additive twitches, finger layers.</li>
+  <li>A <b>demo map</b> with an animation browser and an overview map.</li>
+</ul>
+
+<h2>2. Requirements and setup</h2>
+<p><b>Unreal Engine 5.8.</b> The package is a complete Blueprint project with no C++ and no plugin dependencies. Open
+<code>UndeadLegion.uproject</code> and press Play: the startup map is the animation browser.</p>
+<p><b>Adding the pack to your own project</b>: with both editors closed copy the <code>Content/UndeadLegion</code> folder into your
+project's <code>Content</code> folder (or use <i>Asset Actions &gt; Migrate</i> on the <code>UndeadLegion</code> folder). Everything
+the pack references lives inside that one folder. The demo's Game Mode is <code>Demo/Blueprints/BP_DemoGameMode</code>; set it on
+the demo map's World Settings if your project overrides the default.</p>
+<p><b>Rendering</b>: the materials are standard lit materials (one master, instances per character and weapon). The project ships
+with virtual shadow maps and Lumen off and static lighting disabled, which is the setting the demo was tuned for; the assets work
+under any renderer setting. The eyes are an unlit emissive material and glow through a Bloom post-process volume in the maps.</p>
+
+<h2>3. Folder structure</h2>
+<table>
+<tr><th>Folder (<code>Content/UndeadLegion/</code>)</th><th>Contents</th></tr>
+<tr><td><code>Animations/</code></td><td>58 animation sequences <code>A_&lt;Clip&gt;</code> plus <code>A_Grip</code> (finger-pose data); <code>Montages/AM_&lt;Clip&gt;</code>, one per one-shot</td></tr>
+<tr><td><code>Blueprints/</code></td><td><code>BP_UndeadSkeleton</code> (the base character), <code>ABP_UndeadSkeleton</code> (the Animation Blueprint), <code>Notifies/AN_BowAttach</code>, <code>AN_BowRelease</code></td></tr>
+<tr><td><code>Characters/</code></td><td><code>SKEL_UndeadLegion</code> (the shared skeleton), <code>PA_UndeadLegion</code> (physics asset); per class <code>Skeleton&lt;Class&gt;/</code>: the body <code>SK_</code>, <code>BP_Skeleton&lt;Class&gt;</code>, textures, material instances and <code>Armor/SK_Skeleton&lt;Class&gt;_&lt;Module&gt;</code></td></tr>
+<tr><td><code>Materials/</code></td><td><code>M_UndeadLegion_Master</code>, <code>M_Eyes</code></td></tr>
+<tr><td><code>Weapons/</code></td><td>11 static meshes, the skinned bow <code>SK_H2Recurvebow</code> with its skeleton, <code>Blueprints/BP_Weapon_&lt;Name&gt;</code>, <code>Materials/</code>, <code>Textures/</code></td></tr>
+<tr><td><code>Demo/</code></td><td><code>Maps/UndeadLegion_Demo</code> (the browser, startup map), <code>Maps/UndeadLegion_Overview</code>, <code>Blueprints/</code> (game mode, showcase, orbit pawn, arrow projectile), <code>UI/</code> widgets, the floor material</td></tr>
+<tr><td><code>Documentation.pdf</code></td><td>this document</td></tr>
+</table>
+
+<h2>4. Characters</h2>
+<p>Every character shares the skeleton <code>SKEL_UndeadLegion</code>: 68 bones with Mixamo-style names (<code>Hips</code>, <code>Spine</code>,
+<code>Spine1</code>, <code>Spine2</code>, <code>Neck</code>, <code>Head</code>, <code>Jaw</code>, <code>LeftArm</code>, <code>LeftForeArm</code>,
+<code>LeftHand</code>, full fingers, …) and two weapon socket bones <code>LeftWeaponSocket</code> / <code>RightWeaponSocket</code> under the
+hands. Characters stand 170 cm to the top of the skull with the hips at 98 cm, feet on Z 0, facing +Y in the mesh (the Blueprint
+turns the mesh so the character faces its +X, as the Unreal mannequin does).</p>
+<table>
+<tr><th>Blueprint</th><th>Default armour</th><th>Default loadout</th><th class="n">Body tris</th><th class="n">Armour tris</th><th class="n">Total</th></tr>
+<tr><td>BP_SkeletonKnight</td><td>Helm, Chest, Gloves, Greaves, Boots, Skirt</td><td>Sword + shield</td><td class="n">7,011</td><td class="n">9,717</td><td class="n">16,728</td></tr>
+<tr><td>BP_SkeletonWarrior</td><td>Chest, Gloves, Greaves, Boots, Skirt</td><td>Axe + round shield</td><td class="n">7,588</td><td class="n">9,391</td><td class="n">16,979</td></tr>
+<tr><td>BP_SkeletonArcher</td><td>Helm, Chest, Gloves, Boots, Skirt</td><td>Recurve bow</td><td class="n">6,364</td><td class="n">10,992</td><td class="n">17,356</td></tr>
+<tr><td>BP_SkeletonAssassin</td><td>Hood, Chest, Gloves, Pants, Boots, Skirt</td><td>Two daggers</td><td class="n">7,588</td><td class="n">11,282</td><td class="n">18,870</td></tr>
+<tr><td>BP_SkeletonMage</td><td>Hood, Robe, Gloves, Greaves, Boots</td><td>Staff</td><td class="n">7,502</td><td class="n">10,147</td><td class="n">17,649</td></tr>
+<tr><td>BP_SkeletonNecromancer</td><td>Hood, Robe, Gloves, Greaves, Boots</td><td>Staff</td><td class="n">7,502</td><td class="n">9,882</td><td class="n">17,384</td></tr>
+</table>
+<p>Each class is a child of <code>BP_UndeadSkeleton</code> (a Character: capsule, Character Movement, the Animation Blueprint, the eyes)
+and sets only its own data: <code>DefaultModules</code> (the armour set above), <code>StartLoadout</code> and <code>DisplayName</code>.
+Drop one into a level and it plays its idle; a spawned character is auto-possessed by an AI controller so that Character Movement
+runs (root motion needs it).</p>
+<p>Each character has two material instances, <code>MI_&lt;Class&gt;_Body</code> and <code>MI_&lt;Class&gt;_Armor</code>, on the master
+material, with 1024×1024 base colour, normal and packed metallic / roughness maps. Armour instances are two-sided, so torn cloth and
+open hoods read correctly from behind.</p>
+<p><b>Eyes.</b> Two small emissive spheres sit in the eye sockets (sockets <code>EyeL</code> / <code>EyeR</code> on the head bone).
+<code>EyeColor</code> (HDR, default a glowing red) and <code>EyesVisible</code> are variables on the character; <code>TintEyes(Color)</code>
+and <code>ShowEyes(On)</code> change them at runtime, for example for an army's team colour.</p>
+
+<h2>5. Armour modules</h2>
+<p>Every armour piece is its own skeletal mesh on the shared skeleton, in <code>Characters/Skeleton&lt;Class&gt;/Armor</code>. A piece
+worn by a character is a skeletal mesh component that follows the body as its leader pose, so a Warrior can wear the Knight's helm
+or the Mage's robe, on any animation.</p>
+<table>
+<tr><th>Set</th><th>Modules</th></tr>
+<tr><td>Knight</td><td>Helm, Chest, Glove_L, Glove_R, Greave_L, Greave_R, Boot_L, Boot_R, Skirt</td></tr>
+<tr><td>Warrior</td><td>Chest, Glove_L, Glove_R, Greave_L, Greave_R, Boot_L, Boot_R, Skirt</td></tr>
+<tr><td>Archer</td><td>Helm, Chest, Glove_L, Glove_R, Boot_L, Boot_R, Skirt</td></tr>
+<tr><td>Assassin</td><td>Helm (hood), Chest, Glove_L, Glove_R, Pants, Boot_L, Boot_R, Skirt</td></tr>
+<tr><td>Mage</td><td>Helm (hood), Robe, Glove_L, Glove_R, Greave_L, Greave_R, Boot_L, Boot_R</td></tr>
+<tr><td>Necromancer</td><td>Helm (hood), Robe, Glove_L, Glove_R, Greave_L, Greave_R, Boot_L, Boot_R</td></tr>
+</table>
+<h3>Wearing and removing pieces</h3>
+<p>The functions on the character take the module's <b>skeletal mesh asset</b>:</p>
+<pre>WearModule(Module)            attach any module (its material comes with the mesh)
+RemoveModule(Module)          take a piece off (a default piece is switched off, a borrowed one removed)
+IsModuleWorn(Module) -> Worn
+SetDefaultModulesWorn(Worn)   the character's own set, all on or all off</pre>
+<p>When you swap a piece, take off the character's own piece of the same slot first (for example its <code>Helm</code>) so two pieces
+do not overlap. A module placed in a level on its own is a prop in its rest pose; it animates once it is worn.</p>
+
+<h2>6. Weapons and loadouts</h2>
+<table>
+<tr><th>Blueprint</th><th>Weapon</th><th class="n">Tris</th><th>Held</th></tr>
+<tr><td>BP_Weapon_H1Sword</td><td>Sword</td><td class="n">824</td><td>right hand</td></tr>
+<tr><td>BP_Weapon_H1Axe</td><td>Axe</td><td class="n">1,091</td><td>right hand</td></tr>
+<tr><td>BP_Weapon_H1Mace</td><td>Mace</td><td class="n">1,051</td><td>right hand</td></tr>
+<tr><td>BP_Weapon_H1Dagger</td><td>Dagger</td><td class="n">897</td><td>either hand</td></tr>
+<tr><td>BP_Weapon_H1Wand</td><td>Wand</td><td class="n">1,495</td><td>right hand</td></tr>
+<tr><td>BP_Weapon_H1HeaterShield</td><td>Heater shield</td><td class="n">586</td><td>left hand</td></tr>
+<tr><td>BP_Weapon_H1RoundShield</td><td>Round shield</td><td class="n">931</td><td>left hand</td></tr>
+<tr><td>BP_Weapon_H2Longsword</td><td>Longsword</td><td class="n">881</td><td>two-handed</td></tr>
+<tr><td>BP_Weapon_H2Axe</td><td>Battle axe</td><td class="n">1,110</td><td>two-handed</td></tr>
+<tr><td>BP_Weapon_H2MagicStuff</td><td>Staff</td><td class="n">1,203</td><td>right hand, both hands in the staff cast</td></tr>
+<tr><td>BP_Weapon_H2Recurvebow</td><td>Recurve bow (skinned, 8 bones)</td><td class="n">3,869</td><td>left hand</td></tr>
+<tr><td>BP_Weapon_Arrow</td><td>Arrow</td><td class="n">344</td><td>right hand, with the bow</td></tr>
+</table>
+<h3>Loadouts</h3>
+<p><code>EquipLoadout(Index)</code> spawns the loadout's weapon Blueprints on the hand sockets and destroys the previous ones
+(<code>GetLoadout</code> returns the current index). The eleven loadouts, right hand first:</p>
+<table>
+<tr><th class="n">Index</th><th>Loadout</th><th>Right hand</th><th>Left hand</th><th>Idle that fits</th></tr>
+<tr><td class="n">0</td><td>Sword + shield</td><td>Sword</td><td>Heater shield</td><td>Idle_1H_Combat</td></tr>
+<tr><td class="n">1</td><td>Sword</td><td>Sword</td><td>—</td><td>Idle_1H_Combat</td></tr>
+<tr><td class="n">2</td><td>Axe + round shield</td><td>Axe</td><td>Round shield</td><td>Idle_1H_Combat</td></tr>
+<tr><td class="n">3</td><td>Mace</td><td>Mace</td><td>—</td><td>Idle_1H_Combat</td></tr>
+<tr><td class="n">4</td><td>Dagger</td><td>Dagger</td><td>—</td><td>Idle_1H_Combat</td></tr>
+<tr><td class="n">5</td><td>Two daggers</td><td>Dagger</td><td>Dagger</td><td>Idle_1H_Combat</td></tr>
+<tr><td class="n">6</td><td>Longsword (2H)</td><td>Longsword</td><td>on the shaft</td><td>Idle_TwoHanded</td></tr>
+<tr><td class="n">7</td><td>Battle axe (2H)</td><td>Battle axe</td><td>on the shaft</td><td>Idle_TwoHanded</td></tr>
+<tr><td class="n">8</td><td>Recurve bow</td><td>Arrow</td><td>Recurve bow</td><td>Idle_Bow</td></tr>
+<tr><td class="n">9</td><td>Staff</td><td>Staff</td><td>—</td><td>Idle_Staff</td></tr>
+<tr><td class="n">10</td><td>Wand</td><td>Wand</td><td>—</td><td>Idle_03 / Idle_Staff</td></tr>
+</table>
+<h3>Hand sockets and grips</h3>
+<p>Two transforms meet when a weapon is equipped: the body's socket <code>RightHandSlot</code> / <code>LeftHandSlot</code> (on the weapon
+socket bones, the same values on all six bodies) and the weapon Blueprint's mesh component offset. Move either one to change how a
+weapon sits in the hand: the socket in the skeletal mesh editor (copy it to the other five bodies, they share the skeleton), the
+mesh component in the weapon Blueprint. The socket convention: +Y along the handle toward the blade, +Z out of the back of the hand.</p>
+<p>When a hand holds an item its fingers close into the grip pose (from <code>A_Grip</code>); an empty hand plays a relaxed finger idle
+(the finger layers, section 8). Two-handed clips hold the second hand on the shaft themselves: <code>SetClipHold(Left, Right)</code>
+closes a hand that holds nothing while such a clip plays (the demo does this for the two-handed attacks, the two-handed idle and the
+staff cast).</p>
+<h3>The bow</h3>
+<p><code>Shoot_01</code> carries two notifies, <code>BowAttach</code> (frame 15, the draw hand reaches the string) and <code>BowRelease</code>
+(frame 21). <code>BP_Weapon_H2Recurvebow</code> carries a poseable copy of the skinned bow (<code>BowPose</code>) whose bones <code>Nock</code>
+and <code>Limb_U1/U2</code>, <code>Limb_L1/L2</code> can be driven from the draw hand between the two notifies, and
+<code>Demo/Blueprints/BP_ArrowProjectile</code> is a ready arrow actor (a projectile movement at 15 m/s, no gravity, 4 s life). The demo
+browser plays the shot as a plain one-shot; the string pull and the fired arrow are left for your own gameplay code, the notifies mark
+the window.</p>
+
+<h2 class="page">7. Animations</h2>
+<p>All clips are 30 fps sequences on <code>SKEL_UndeadLegion</code>, <code>Animations/A_&lt;Clip&gt;</code>. Loops close seamlessly.
+Clips marked root motion carry their travel on the root bone; played from a montage they move the character, with
+<code>SetRootMotion(false)</code> they play in place. Every other clip plays in place.</p>
+<table>
+<tr><th>Group</th><th>Clips (length in seconds)</th><th>Type</th></tr>
+<tr><td>Idles</td><td>Idle_01 (8.0), Idle_02 (12.0), Idle_03 (10.8)</td><td>loop</td></tr>
+<tr><td>Combat idle</td><td>Idle_1H_Combat (8.0): one-handed weapons and shields, both hands ready</td><td>loop</td></tr>
+<tr><td>Weapon idles</td><td>Idle_TwoHanded (4.67), Idle_Bow (19.87), Idle_Staff (10.8)</td><td>loop</td></tr>
+<tr><td>Locomotion, heavy set</td><td>Walk_Fwd_01 (1.40), Walk_Back_01 (1.97), Run_Fwd_01 (0.97), Strafe_Left_01 (1.47), Strafe_Right_01 (1.47)</td><td>loop, root motion</td></tr>
+<tr><td>Locomotion, upright set</td><td>Walk_Fwd_02 (1.13), Walk_Back_02 (1.47), Run_Fwd_02 (0.93), Strafe_Left_02 (1.30), Strafe_Right_02 (1.30)</td><td>loop, root motion</td></tr>
+<tr><td>Right arm</td><td>Attack_R_01_Stab (1.47), Attack_R_02_Swing (1.97), Attack_R_03_Swing (1.93) and Attack_R_01_Stab_Heavy, Attack_R_02_Swing_Heavy, Attack_R_03_Swing_Heavy (the same lengths; a bigger lunge of the body)</td><td>one-shot</td></tr>
+<tr><td>Left arm</td><td>Attack_L_01_Stab, Attack_L_02_Swing, Attack_L_03_Swing and their _Heavy variants (the mirrors of the right set); Block_L_Idle (6.0, the held shield block)</td><td>one-shot; the block loops</td></tr>
+<tr><td>Two-handed</td><td>Attack_2H_01_Swing (1.67, overhead chop), Attack_2H_02_Swing (1.70, sweep) and Attack_2H_01_Swing_Heavy, Attack_2H_02_Swing_Heavy</td><td>one-shot</td></tr>
+<tr><td>Bow</td><td>Shoot_01 (1.93: raise, draw, release, lower; notifies BowAttach / BowRelease)</td><td>one-shot</td></tr>
+<tr><td>Magic</td><td>Cast_Wand_01 (2.23), Cast_Wand_02 (1.80), Cast_Staff_01 (2.23, both hands on the staff)</td><td>one-shot</td></tr>
+<tr><td>Specials</td><td>Taunt_01 (2.73), Taunt_02 (2.43), Taunt_03 (2.70), Rally (3.03), Cutthroat (3.10), Summon (3.77), AOE_Cast (4.77)</td><td>one-shot</td></tr>
+<tr><td>Reactions</td><td>Hit_01 (0.97, a head-and-shoulders recoil) and Hit_02 (0.97, a gut blow): additive, added over whatever plays; Stagger_01 / Stagger_02 (1.40 each: the hit while stepping back one walk cycle, 66 cm of root motion)</td><td>additive overlay / one-shot</td></tr>
+<tr><td>Deaths</td><td>Death_01 (2.50, drops), Death_02 (2.87, face-down), Death_03 (2.30, on the back), Death_04 (2.90, limp)</td><td>one-shot, ends lying</td></tr>
+<tr><td>Twitches</td><td>Twitch_01 (2.47), Twitch_02 (3.47), Twitch_03 (4.47): head and jaw</td><td>additive loop</td></tr>
+<tr><td>Finger idles</td><td>Hand_Idle_L, Hand_Idle_R (7.97): a relaxed empty hand</td><td>loop, fingers only</td></tr>
+<tr><td>Grip pose</td><td>Grip: the finger pose for a held item (data, not a playable clip)</td><td>data</td></tr>
+</table>
+<p>The one-handed attacks and casts carry the whole body, so they read complete when a character stands; on the move they play on
+the arm and upper-body slots over the legs of a walk or run (section 8). The twitches and the hits are additive against their own
+first frame. <code>Animations/Montages/AM_&lt;Clip&gt;</code> holds a ready montage for every one-shot (33), each in the slot the clip
+belongs to, for your own Animation Blueprints; the pack's own character creates its montages at runtime from the sequences.</p>
+
+<h2>8. The Animation Blueprint</h2>
+<p><code>ABP_UndeadSkeleton</code> is a flat layer stack rather than a state machine, so every clip can be driven by name from
+Blueprint and you can build your own state machine on the same sequences. From the bottom up:</p>
+<table>
+<tr><th>Layer</th><th>What plays there</th><th>Driven by</th></tr>
+<tr><td>Base</td><td>the looping clips (idles, locomotion, the held block's body) as looping montages in slot <code>Base</code>, and full-body one-shots in <code>DefaultSlot</code></td><td><code>PlayLoop</code>, <code>PlayAction</code> with slot <code>DefaultSlot</code></td></tr>
+<tr><td>Upper body</td><td>layered per bone from <code>Spine1</code>: slot <code>UpperBody</code> (wand casts, the shot, Rally over a walk)</td><td><code>PlayAction</code>, slot <code>UpperBody</code></td></tr>
+<tr><td>Left arm</td><td>layered from <code>LeftShoulder</code>: slot <code>LeftArm</code>, and the held block (Block_L_Idle blended in by <code>BlockAlpha</code>)</td><td><code>PlayAction</code>, slot <code>LeftArm</code>; <code>SetHeldBlock</code></td></tr>
+<tr><td>Right arm</td><td>layered from <code>RightShoulder</code>: slot <code>RightArm</code></td><td><code>PlayAction</code>, slot <code>RightArm</code></td></tr>
+<tr><td>Twitches</td><td>three additive loops, Twitch_01..03, each with its own weight</td><td><code>SetTwitch(Index, Weight)</code></td></tr>
+<tr><td>Hits</td><td>Hit_01 / Hit_02 as additive one-shots over everything</td><td><code>PlayOverlay</code> (the demo's Reactions buttons)</td></tr>
+<tr><td>Fingers</td><td>per hand, layered from the palm bones: the relaxed finger idle on an empty hand, the grip fist on a full one</td><td>automatic on equip; <code>SetFingerIdle(Left, On)</code>, <code>SetFingersSuspended</code></td></tr>
+</table>
+<p>A loop and a one-shot play together (the one-shot's montage does not stop the base loop), so a stab on the right-arm slot plays
+over a walk with the walk's legs and spine, and a shield block held on the left arm stays up through walks and right-hand attacks.
+Played from standing, the same attack in <code>DefaultSlot</code> reads whole, with its step. The demo browser routes each clip this
+way: a masked clip goes to its slot while a locomotion loop runs and plays full body otherwise.</p>
+
+<h2>9. Root motion and speeds</h2>
+<p>The locomotion loops and the two staggers carry root motion on the root bone; everything else keeps the root still, so hits and
+deaths displace the body in the pose. Character Movement reads root motion <b>from montages only</b> (the character's root-motion mode),
+which is why the loops are played as montages; a sequence player in the graph would not move the capsule. <code>SetRootMotion(false)</code>
+switches the character to ignore root motion and the loops play in place; the clips then suit an in-place blend space driven by your
+movement speed, with the measured speeds below. The travel per loop was measured on the exported clips and is identical on all six
+characters.</p>
+<table>
+<tr><th>Clip</th><th class="n">Length</th><th class="n">Travel per loop</th><th class="n">Speed</th></tr>
+<tr><td>Walk_Fwd_01</td><td class="n">1.400 s</td><td class="n">+72.4 cm</td><td class="n">51.7 cm/s</td></tr>
+<tr><td>Walk_Back_01</td><td class="n">1.967 s</td><td class="n">−66.2 cm</td><td class="n">33.7 cm/s</td></tr>
+<tr><td>Run_Fwd_01</td><td class="n">0.967 s</td><td class="n">+110.7 cm</td><td class="n">114.5 cm/s</td></tr>
+<tr><td>Strafe_Left_01</td><td class="n">1.467 s</td><td class="n">29.3 cm sideways</td><td class="n">20.0 cm/s</td></tr>
+<tr><td>Strafe_Right_01</td><td class="n">1.467 s</td><td class="n">29.3 cm sideways</td><td class="n">20.0 cm/s</td></tr>
+<tr><td>Walk_Fwd_02</td><td class="n">1.133 s</td><td class="n">+145.5 cm</td><td class="n">128.4 cm/s</td></tr>
+<tr><td>Walk_Back_02</td><td class="n">1.467 s</td><td class="n">−113.2 cm</td><td class="n">77.2 cm/s</td></tr>
+<tr><td>Run_Fwd_02</td><td class="n">0.933 s</td><td class="n">+175.1 cm</td><td class="n">187.7 cm/s</td></tr>
+<tr><td>Strafe_Left_02</td><td class="n">1.300 s</td><td class="n">84.3 cm sideways</td><td class="n">64.8 cm/s</td></tr>
+<tr><td>Strafe_Right_02</td><td class="n">1.300 s</td><td class="n">84.3 cm sideways</td><td class="n">64.8 cm/s</td></tr>
+<tr><td>Stagger_01 / Stagger_02</td><td class="n">1.400 s</td><td class="n">−66 cm</td><td class="n">one-shot</td></tr>
+</table>
+
+<h2>10. The character Blueprint API</h2>
+<p>All functions live on <code>BP_UndeadSkeleton</code> and are callable on every class:</p>
+<table>
+<tr><th>Function</th><th>Does</th></tr>
+<tr><td><code>PlayLoop(Clip)</code></td><td>plays a looping sequence on the base layer (replaces the current loop with a blend)</td></tr>
+<tr><td><code>PlayAction(Clip, Slot, BlendIn, BlendOut, Rate) → Length</code></td><td>plays a one-shot in <code>DefaultSlot</code>, <code>UpperBody</code>, <code>LeftArm</code> or <code>RightArm</code> at a play rate; returns the clip's length divided by the rate</td></tr>
+<tr><td><code>PlayOverlay(Clip)</code></td><td>plays an additive hit over whatever is playing</td></tr>
+<tr><td><code>StopActions(BlendOut)</code>, <code>PauseActions</code></td><td>end every one-shot (the loop keeps playing); freeze the pose, for example a corpse</td></tr>
+<tr><td><code>SetHeldBlock(Held)</code></td><td>raise or lower the shield block on the left arm, held over anything</td></tr>
+<tr><td><code>SetTwitch(Index, Weight)</code></td><td>weight of twitch loop 1..3 (0 off, 1 full)</td></tr>
+<tr><td><code>SetRootMotion(On)</code></td><td>root motion drives the capsule, or every clip plays in place</td></tr>
+<tr><td><code>EquipLoadout(Index)</code>, <code>GetLoadout</code></td><td>the loadouts of section 6</td></tr>
+<tr><td><code>WearModule</code>, <code>RemoveModule</code>, <code>IsModuleWorn</code>, <code>SetDefaultModulesWorn</code></td><td>the armour of section 5</td></tr>
+<tr><td><code>SetClipHold(Left, Right)</code></td><td>close a hand that holds nothing while a two-handed clip plays</td></tr>
+<tr><td><code>SetFingerIdle(Left, On)</code>, <code>GetFingerIdle</code>, <code>SetFingersSuspended(Suspended)</code></td><td>the relaxed finger idle per hand; suspend both (the demo does so for a death)</td></tr>
+<tr><td><code>ShowEyes(On)</code>, <code>TintEyes(Color)</code></td><td>the glowing eyes</td></tr>
+</table>
+<p>Variables you may set on an instance or a child class: <code>DefaultModules</code>, <code>StartLoadout</code>, <code>DisplayName</code>,
+<code>EyeColor</code>, <code>EyesVisible</code>, <code>StartActionDelay</code> / <code>StartActionGap</code> (the idle a placed character starts
+with and how it spaces its first actions).</p>
+
+<h2>11. The demo map</h2>
+<p><code>Demo/Maps/UndeadLegion_Demo</code> is the startup map, an animation browser: pick a class at the top left; the armour panel
+lists the character's own set as toggles with <i>All</i> / <i>None</i> and every other class's set to borrow from; the weapons panel the
+eleven loadouts; the animation list is grouped as in section 7. A masked clip (right arm, left arm, upper body) clicked while a
+locomotion loop plays goes to its slot over the walk; otherwise it plays full body and the list's idle returns after it. The block,
+the twitches and the hand idles are toggles. Deaths hold the corpse for two seconds with the twitches and finger idles off. The
+footer has Root motion, Turntable, Recenter and Eyes. Drag with either mouse button to orbit, wheel to zoom.
+<code>Demo/Maps/UndeadLegion_Overview</code> shows all six characters side by side.</p>
+<p>The browser is <code>Demo/Blueprints/BP_DemoShowcase</code> with the widgets in <code>Demo/UI</code>; <code>BP_OrbitPawn</code> is the
+camera and <code>BP_DemoGameMode</code> ties them together. None of it is needed by the characters.</p>
+
+<h2>12. Using your own animations</h2>
+<p>Import animation FBX files against <code>Characters/SKEL_UndeadLegion</code> (set it as the skeleton in the import dialog) and they play on
+every character and every armour module. Bone names are Mixamo-style; a clip authored for another humanoid skeleton can be retargeted
+onto <code>SKEL_UndeadLegion</code> with Unreal's IK Retargeter, but the pack ships no retargeting setup for the UE mannequin. Clips you
+add are played by the same functions: <code>PlayLoop</code> for loops, <code>PlayAction</code> with a slot for one-shots. To use the pack's
+clips in your own Animation Blueprint, the montages in <code>Animations/Montages</code> are already in the right slots.</p>
+<p>Weapon-specific clips expect the matching loadout: the two-handed attacks and idle hold the second hand on the shaft, the bow shot
+needs the bow in the left hand and the arrow in the right, the staff cast both hands on the staff.</p>
+
+<h2>13. Technical details</h2>
+<ul>
+  <li><b>Skeleton</b>: one asset, 68 bones rooted at <code>Root</code>; 65 deforming bones, a second neck bone, two jaw bones, four palm
+      bones per hand and the two weapon socket bones. Up to 4 bone influences per vertex. No IK bones; not the Epic skeleton.</li>
+  <li><b>Scale</b>: 1 uu = 1 cm, feet on Z 0; the bodies are 169.5 cm tall to the skull, helmets reach about 181 cm.</li>
+  <li><b>Meshes</b>: 55 skeletal meshes (6 bodies, 48 modules, the bow) and 11 static meshes, one LOD each, triangulated. Bodies
+      6,364–7,588 triangles, modules 191–6,582, a dressed character 16,728–18,870, weapons 344–1,495 (the bow 3,869).</li>
+  <li><b>Materials</b>: <code>M_UndeadLegion_Master</code> with 25 instances (12 character, 12 weapon, 1 demo floor) and <code>M_Eyes</code>
+      (unlit emissive). 67 textures: base colour (sRGB), normal (DirectX, Y−) and a packed map with metallic in R and roughness in A;
+      1024² for the characters, 512² for the weapons, 128² for the arrow.</li>
+  <li><b>Collision</b>: the characters collide through their capsule; <code>PA_UndeadLegion</code> is the import's physics asset on every
+      body (a capsule per bone, not a tuned ragdoll). The weapon static meshes carry no collision primitives.</li>
+  <li><b>Root motion</b>: on the root bone for the loops and staggers; locked root (in place) on everything else. Twitches and hits
+      are additive against their own first frame.</li>
+  <li><b>Project</b>: Blueprint only, no C++, no plugins. Startup and default map <code>UndeadLegion_Demo</code>; the renderer settings
+      in <code>Config/DefaultEngine.ini</code> are the demo's (no static lighting, Lumen and virtual shadow maps off, DX12 SM6).</li>
+</ul>
+
+<h2>14. Support</h2>
+<p>Questions, bug reports and requests: through the Fab product page's "Questions" section or the publisher contact there. Please
+include the engine version and, for an animation issue, the clip and the character.</p>
+
+</body>
+</html>
