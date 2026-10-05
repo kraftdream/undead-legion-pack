@@ -107,15 +107,16 @@ def overview():
 
 
 
-def demo():
+def demo(path=None, showcase=None, label="DemoShowcase"):
     """The animation browser map: one skeleton at a time on the spawn point, the orbit camera, the UMG browser
-    (BP_DemoShowcase puts WBP_AnimBrowser on screen; BP_DemoGameMode spawns BP_OrbitPawn)."""
-    path = MAPS + "/UndeadLegion_Demo"
+    (BP_DemoShowcase puts WBP_AnimBrowser on screen; BP_DemoGameMode spawns BP_OrbitPawn). The dev test map
+    (ue_uetest.py) is the same with its child showcase at another path."""
+    path = path or MAPS + "/UndeadLegion_Demo"
     open_map(path)
     stage()
-    show = unreal.load_asset(PKG + "/Demo/Blueprints/BP_DemoShowcase")
+    show = unreal.load_asset(showcase or PKG + "/Demo/Blueprints/BP_DemoShowcase")
     a = EAS.spawn_actor_from_class(unreal.BlueprintEditorLibrary.generated_class(show), unreal.Vector(0, 0, 0))
-    a.set_actor_label("DemoShowcase")
+    a.set_actor_label(label)
     ps = EAS.spawn_actor_from_class(unreal.PlayerStart, unreal.Vector(-600, 0, 100), unreal.Rotator(roll=0, pitch=0, yaw=0))
     ps.set_actor_label("PlayerStart")
     gm = unreal.BlueprintEditorLibrary.generated_class(unreal.load_asset(PKG + "/Demo/Blueprints/BP_DemoGameMode"))

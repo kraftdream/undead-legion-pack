@@ -13,7 +13,7 @@ Clip settings mirror the Unity import (tools/unity/verify_clip.py per retarget m
 """
 import os, glob
 import unreal
-from ue_common import (PKG, EXPORT, SKEL, EAL, log, pipeline, interchange, clips_manifest)
+from ue_common import (PKG, EXPORT, SKEL, EAL, log, pipeline, interchange, clips_manifest, bn)
 
 ANIMS = PKG + "/Animations"
 FPS = 30.0
@@ -104,8 +104,8 @@ def measure_clips(only=None):
             continue
         nf = a.get_editor_property("number_of_sampled_frames")
         p0, pN = X.get_anim_pose_at_frame(a, 0, opts), X.get_anim_pose_at_frame(a, nf, opts)
-        r0 = X.get_bone_pose(p0, "Root", unreal.AnimPoseSpaces.WORLD).translation
-        rN = X.get_bone_pose(pN, "Root", unreal.AnimPoseSpaces.WORLD).translation
+        r0 = X.get_bone_pose(p0, bn("Root"), unreal.AnimPoseSpaces.WORLD).translation
+        rN = X.get_bone_pose(pN, bn("Root"), unreal.AnimPoseSpaces.WORLD).translation
         L = a.get_play_length()
         tr = rN - r0
         d = (tr.x ** 2 + tr.y ** 2) ** 0.5

@@ -95,6 +95,24 @@ manual, `tools/docs/UndeadLegion_UE_Documentation.html` → `skeletons_ue/Conten
 `python tools/ue/make_production_ue.py --verify` → `../undead-legion-production-ue/UndeadLegion_UE58.zip` (showreel, level
 sequences, import pipelines, all plugins and the dev config stripped; audited; every Blueprint compiled headlessly on the copy);
 `tools/ue/README.md` "The Fab package"; the store texts in `_store/FAB_*`.
+**The Epic-skeleton twin `skeletons_ue_epic/` (2026-10-05, user: "let's start with the full transition, as it makes it look like
+the asset was actually made for Unreal Engine, plus less friction for users to test new animations; do it in a separate project
+sub-folder").** The same Unreal project rebuilt on the UE5 MANNEQUIN's bone set (89 bones + `jaw_01/02` + `pelvis_l/r` = 93),
+our directions and proportions: `tools/epic_skeleton.py` (→ `Rig/epic_skeleton.json`, from `Rig/ue5_mannequin_refpose.json`
+dumped with `tools/ue/dump_refpose.py`), `tools/export_epic.py` (`tools/ue/export_ue.py --epic` → `Export_UE_Epic/`; every target
+bone rigid with one DEF bone, the spine split 3 → 5 at the mannequin's stations, twist and ik bones added, the twist bones given
+a station share of the limb weights), `bash tools/ue/epic_build_all.sh` (the usual steps with `UL_EPIC=1`; `ue_common.EPIC`,
+`bn()`), the hand slots on `hand_l` / `hand_r` with the old socket-bone offset folded in. Proven: our Knight binds to the
+mannequin's own `SK_Mannequin` asset and a mannequin walk parked at 0.45 s gives the same world rotation on all 89 shared bones
+to 0.00°. In Unreal an animation is absolute LOCAL rotations, so hierarchy + bone-axis convention are what Epic compatibility
+needs, not the bind pose (I said otherwise first). The Blender rig, the Unity side and `skeletons_ue/` are untouched. Everything,
+including the three traps (the mannequin content must sit at `Content/Characters/Mannequins`; edit-mode viewports never evaluate
+a clip — Simulate + the saved play data; Git Bash mangles `/Game/...` arguments — `MSYS_NO_PATHCONV=1`), is in `tools/ue/README.md`
+"The Epic-skeleton twin". `make_production_ue.py --epic` packages it (the mannequin test content never ships). The Mixamo project `skeletons_ue` is KEPT as
+it was but everything generated from it is gone (its `Export_UE/` — the weapons export moved to `Export_UE_Epic/Weapons` —, its
+printed manual, its production copy); `skeletons_ue_epic` is tracked, and it carries a dev-only test map
+`/Game/Dev/Maps/UE_AnimTest` (the browser with seven UE5-mannequin sections, `tools/ue/ue_uetest.py`, README "The UE-animation
+test map"; the mannequin content comes from `tools/ue/epic_mannequin_content.py`, never shipped).
 
 ### Known gaps
 

@@ -95,11 +95,11 @@ def export_local_mesh(src, name, log=print):
 import sys
 argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 ONLY = set(argv[argv.index("--only") + 1].split(",")) if "--only" in argv else None   # e.g. the Arrow, still exported from weapons.blend
-# --unreal (2026-09-29): the same meshes for UE 5.8 in Export_UE/Weapons, in CENTIMETRES (x100 on the data,
+# --unreal (2026-09-29): the same meshes for UE 5.8 in Export_UE_Epic/Weapons (the Mixamo export folder Export_UE was cleared on 2026-10-05), in CENTIMETRES (x100 on the data,
 # scale_length 0.01 during the write; see tools/export_fbx.py), no baked space transform
 UNREAL = "--unreal" in argv
 if UNREAL:
-    OUT, SCALE = os.path.join(ROOT, "Export_UE", "Weapons"), SCALE * 100.0
+    OUT, SCALE = os.path.join(ROOT, "Export_UE_Epic", "Weapons"), SCALE * 100.0
     bpy.context.scene.unit_settings.system = 'METRIC'; bpy.context.scene.unit_settings.scale_length = 0.01
 for name, (grip, roll) in (GRIP.items() if __name__ == "__main__" else ()):
     if ONLY is not None and name not in ONLY:

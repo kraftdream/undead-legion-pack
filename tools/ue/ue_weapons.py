@@ -15,17 +15,21 @@ S = diag(1,-1,1), to 3 decimals on both weapon sockets), and tools/anim_weapon_r
 Move the socket in the skeleton editor (Unity: the hand slot) or the mesh component in BP_Weapon_<Name> (Unity: the
 Grip) to re-tune; the builder creates missing ones and never overwrites an existing weapon Blueprint.
 """
-import json, math, os
+import json, math, os, sys
 try:
     import unreal
-    from ue_common import PKG, REPO, SKEL, WEAPONS, RIGGED_WEAPONS, CHARACTERS, EAL, log
+    from ue_common import PKG, REPO, SKEL, WEAPONS, RIGGED_WEAPONS, CHARACTERS, EAL, log, EPIC, bn
 except ImportError:          # system Python (sockets_create only)
     PKG, CHARACTERS = "/Game/UndeadLegion", ["SkeletonKnight", "SkeletonArcher", "SkeletonAssassin", "SkeletonMage", "SkeletonNecromancer", "SkeletonWarrior"]
     REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    EPIC = os.environ.get("UL_EPIC") == "1" or "--epic" in sys.argv      # `import unreal` fails here, so ue_common is not used
+    bn = lambda n: {"LeftWeaponSocket": "hand_l", "RightWeaponSocket": "hand_r", "Head": "head"}.get(n, n) if EPIC else n
 
 GRIPS = os.path.join(REPO, "Animations", "unity_grips.json")
-BONE = {"R": "RightWeaponSocket", "L": "LeftWeaponSocket"}
+# the Epic skeleton has no weapon-socket bones: the slots sit on the hands, the socket bone's rest offset folded in
+BONE = {"R": bn("RightWeaponSocket"), "L": bn("LeftWeaponSocket")}
 SOCKET = {"R": "RightHandSlot", "L": "LeftHandSlot"}
+EPIC_FRAMES = os.path.join(REPO, "Export_UE_Epic", "frames.json")
 
 
 def _qmat(x, y, z, w):
@@ -62,7 +66,22 @@ def socket_transform(side, grips):
     s = grips["slots"][side]
     x, y, z = s["pos"]
     R = _mul([[-1, 0, 0], [0, -1, 0], [0, 0, 1]], _qmat(*s["rot"]))
-    return unreal.Vector(-x * 100, -y * 100, z * 100), _rot(_matquat(R))
+    loc = [-x * 100, -y * 100, z * 100]
+    if EPIC:
+        # the slot is written in the Mixamo export's weapon-socket bone frame; on the Epic skeleton the socket hangs
+        # from the hand, so compose with T = hand_new^-1 . weaponbone_old (both frames in component space, from the
+        # exporter's frames.json)
+        fr = json.load(open(EPIC_FRAMES, encoding="utf-8"))
+        w = fr["DEF-weapon.%s" % side]["old"]; h = fr["hand_%s" % side.lower()]["new"]
+        Rw = [[w["x"][i], w["y"][i], w["z"][i]] for i in range(3)]          # columns = axes
+        Rh = [[h["x"][i], h["y"][i], h["z"][i]] for i in range(3)]
+        RhT = [list(r) for r in zip(*Rh)]
+        Tr = _mul(RhT, Rw)
+        d = [w["pos"][i] - h["pos"][i] for i in range(3)]
+        Tp = [sum(RhT[i][k] * d[k] for k in range(3)) for i in range(3)]
+        loc = [sum(Tr[i][k] * loc[k] for k in range(3)) + Tp[i] for i in range(3)]
+        R = _mul(Tr, R)
+    return unreal.Vector(*loc), _rot(_matquat(R))
 
 
 def grip_transform(name, grips):
@@ -90,7 +109,7 @@ def sockets_create():
                 print("added", c, SOCKET[side])
         for eye in ("EyeL", "EyeR"):            # the glowing eyes (ue_eyes.py seats them per skull)
             if eye not in have:
-                tool(SM, "add_socket", mesh=m, socket_name=eye, bone_name="Head")
+                tool(SM, "add_socket", mesh=m, socket_name=eye, bone_name=bn("Head"))
                 print("added", c, eye)
 
 

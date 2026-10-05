@@ -62,6 +62,8 @@ the same skeleton asset, so any armour piece can be worn by any skeleton and eve
       a held block, a bow shot, casts, specials, hit reactions, staggers, deaths, additive twitches and finger idles. A montage
       for every one-shot.</li>
   <li><b>One Animation Blueprint</b> with a layer stack: base loop, upper body, left arm, right arm, additive twitches, finger layers.</li>
+  <li><b>Rigged to the Epic skeleton</b>: the UE5 mannequin's bone hierarchy, names and bone frames, so any mannequin animation plays on
+      the characters as it plays on the mannequin (section 12).</li>
   <li>A <b>demo map</b> with an animation browser and an overview map.</li>
 </ul>
 
@@ -89,11 +91,13 @@ under any renderer setting. The eyes are an unlit emissive material and glow thr
 </table>
 
 <h2>4. Characters</h2>
-<p>Every character shares the skeleton <code>SKEL_UndeadLegion</code>: 68 bones with Mixamo-style names (<code>Hips</code>, <code>Spine</code>,
-<code>Spine1</code>, <code>Spine2</code>, <code>Neck</code>, <code>Head</code>, <code>Jaw</code>, <code>LeftArm</code>, <code>LeftForeArm</code>,
-<code>LeftHand</code>, full fingers, …) and two weapon socket bones <code>LeftWeaponSocket</code> / <code>RightWeaponSocket</code> under the
-hands. Characters stand 170 cm to the top of the skull with the hips at 98 cm, feet on Z 0, facing +Y in the mesh (the Blueprint
-turns the mesh so the character faces its +X, as the Unreal mannequin does).</p>
+<p>Every character shares the skeleton <code>SKEL_UndeadLegion</code>: the <b>UE5 mannequin's hierarchy</b> (<code>root</code>, <code>pelvis</code>,
+<code>spine_01</code>–<code>spine_05</code>, <code>neck_01</code> / <code>neck_02</code>, <code>head</code>, <code>clavicle</code> / <code>upperarm</code> /
+<code>lowerarm</code> / <code>hand</code> with their twist bones, the metacarpals and fingers, <code>thigh</code> / <code>calf</code> / <code>foot</code> /
+<code>ball</code> with their twist bones, the <code>ik_hand_*</code> and <code>ik_foot_*</code> bones) with the mannequin's bone frames and our
+proportions, plus four extra bones: <code>jaw_01</code> / <code>jaw_02</code> under the head and <code>pelvis_l</code> / <code>pelvis_r</code> under the
+pelvis — 93 bones in all. Characters stand 170 cm to the top of the skull with the pelvis at 98 cm, feet on Z 0, facing +Y in the mesh
+(the Blueprint turns the mesh so the character faces its +X, exactly like the mannequin).</p>
 <table>
 <tr><th>Blueprint</th><th>Default armour</th><th>Default loadout</th><th class="n">Body tris</th><th class="n">Armour tris</th><th class="n">Total</th></tr>
 <tr><td>BP_SkeletonKnight</td><td>Helm, Chest, Gloves, Greaves, Boots, Skirt</td><td>Sword + shield</td><td class="n">7,011</td><td class="n">9,717</td><td class="n">16,728</td></tr>
@@ -170,8 +174,8 @@ do not overlap. A module placed in a level on its own is a prop in its rest pose
 <tr><td class="n">10</td><td>Wand</td><td>Wand</td><td>—</td><td>Idle_03 / Idle_Staff</td></tr>
 </table>
 <h3>Hand sockets and grips</h3>
-<p>Two transforms meet when a weapon is equipped: the body's socket <code>RightHandSlot</code> / <code>LeftHandSlot</code> (on the weapon
-socket bones, the same values on all six bodies) and the weapon Blueprint's mesh component offset. Move either one to change how a
+<p>Two transforms meet when a weapon is equipped: the body's socket <code>RightHandSlot</code> / <code>LeftHandSlot</code> (on
+<code>hand_r</code> / <code>hand_l</code>, the same values on all six bodies) and the weapon Blueprint's mesh component offset. Move either one to change how a
 weapon sits in the hand: the socket in the skeletal mesh editor (copy it to the other five bodies, they share the skeleton), the
 mesh component in the weapon Blueprint. The socket convention: +Y along the handle toward the blade, +Z out of the back of the hand.</p>
 <p>When a hand holds an item its fingers close into the grip pose (from <code>A_Grip</code>); an empty hand plays a relaxed finger idle
@@ -220,12 +224,12 @@ Blueprint and you can build your own state machine on the same sequences. From t
 <table>
 <tr><th>Layer</th><th>What plays there</th><th>Driven by</th></tr>
 <tr><td>Base</td><td>the looping clips (idles, locomotion, the held block's body) as looping montages in slot <code>Base</code>, and full-body one-shots in <code>DefaultSlot</code></td><td><code>PlayLoop</code>, <code>PlayAction</code> with slot <code>DefaultSlot</code></td></tr>
-<tr><td>Upper body</td><td>layered per bone from <code>Spine1</code>: slot <code>UpperBody</code> (wand casts, the shot, Rally over a walk)</td><td><code>PlayAction</code>, slot <code>UpperBody</code></td></tr>
-<tr><td>Left arm</td><td>layered from <code>LeftShoulder</code>: slot <code>LeftArm</code>, and the held block (Block_L_Idle blended in by <code>BlockAlpha</code>)</td><td><code>PlayAction</code>, slot <code>LeftArm</code>; <code>SetHeldBlock</code></td></tr>
-<tr><td>Right arm</td><td>layered from <code>RightShoulder</code>: slot <code>RightArm</code></td><td><code>PlayAction</code>, slot <code>RightArm</code></td></tr>
+<tr><td>Upper body</td><td>layered per bone from <code>spine_04</code>: slot <code>UpperBody</code> (wand casts, the shot, Rally over a walk)</td><td><code>PlayAction</code>, slot <code>UpperBody</code></td></tr>
+<tr><td>Left arm</td><td>layered from <code>clavicle_l</code>: slot <code>LeftArm</code>, and the held block (Block_L_Idle blended in by <code>BlockAlpha</code>)</td><td><code>PlayAction</code>, slot <code>LeftArm</code>; <code>SetHeldBlock</code></td></tr>
+<tr><td>Right arm</td><td>layered from <code>clavicle_r</code>: slot <code>RightArm</code></td><td><code>PlayAction</code>, slot <code>RightArm</code></td></tr>
 <tr><td>Twitches</td><td>three additive loops, Twitch_01..03, each with its own weight</td><td><code>SetTwitch(Index, Weight)</code></td></tr>
 <tr><td>Hits</td><td>Hit_01 / Hit_02 as additive one-shots over everything</td><td><code>PlayOverlay</code> (the demo's Reactions buttons)</td></tr>
-<tr><td>Fingers</td><td>per hand, layered from the palm bones: the relaxed finger idle on an empty hand, the grip fist on a full one</td><td>automatic on equip; <code>SetFingerIdle(Left, On)</code>, <code>SetFingersSuspended</code></td></tr>
+<tr><td>Fingers</td><td>per hand, layered from the metacarpal and thumb bones: the relaxed finger idle on an empty hand, the grip fist on a full one</td><td>automatic on equip; <code>SetFingerIdle(Left, On)</code>, <code>SetFingersSuspended</code></td></tr>
 </table>
 <p>A loop and a one-shot play together (the one-shot's montage does not stop the base loop), so a stab on the right-arm slot plays
 over a walk with the walk's legs and spine, and a shield block held on the left arm stays up through walks and right-hand attacks.
@@ -287,18 +291,31 @@ footer has Root motion, Turntable, Recenter and Eyes. Drag with either mouse but
 camera and <code>BP_DemoGameMode</code> ties them together. None of it is needed by the characters.</p>
 
 <h2>12. Using your own animations</h2>
-<p>Import animation FBX files against <code>Characters/SKEL_UndeadLegion</code> (set it as the skeleton in the import dialog) and they play on
-every character and every armour module. Bone names are Mixamo-style; a clip authored for another humanoid skeleton can be retargeted
-onto <code>SKEL_UndeadLegion</code> with Unreal's IK Retargeter, but the pack ships no retargeting setup for the UE mannequin. Clips you
-add are played by the same functions: <code>PlayLoop</code> for loops, <code>PlayAction</code> with a slot for one-shots. To use the pack's
-clips in your own Animation Blueprint, the montages in <code>Animations/Montages</code> are already in the right slots.</p>
+<p><b>Mannequin animations.</b> The skeleton is the UE5 mannequin's, so an animation made for the mannequin (Manny / Quinn, the
+Epic marketplace and Fab packs, your own mocap retargeted to the mannequin) plays on the characters as it plays on the mannequin.
+Three ways to use them, pick one:</p>
+<ul>
+  <li><b>Compatible skeletons</b> (no copies): open your mannequin's skeleton asset (<code>SK_Mannequin</code>) and add
+      <code>SKEL_UndeadLegion</code> to its <i>Compatible Skeletons</i> (or the other way round). Every mannequin sequence and montage then
+      plays on the characters directly — <code>PlayLoop</code> / <code>PlayAction</code> accept them, and so does any state machine you build.</li>
+  <li><b>Assign Skeleton</b>: in a character's skeletal mesh asset choose <i>Assign Skeleton</i> → your <code>SK_Mannequin</code>. The
+      mesh joins your mannequin skeleton (its four extra bones are added to it) and uses your animations with nothing else to do.</li>
+  <li><b>IK Retargeter</b>: with an identical hierarchy the retargeter's chains map automatically; use it when you want baked copies.</li>
+</ul>
+<p>The twist bones carry a share of the limb weights, so a mannequin clip twists the forearms and thighs the way it does on the
+mannequin; the pack's own clips carry their twist on the limb bones.</p>
+<p><b>Your own clips.</b> Import animation FBX files against <code>Characters/SKEL_UndeadLegion</code> (set it as the skeleton in the import
+dialog) and they play on every character and every armour module. Clips you add are played by the same functions:
+<code>PlayLoop</code> for loops, <code>PlayAction</code> with a slot for one-shots. To use the pack's clips in your own Animation Blueprint,
+the montages in <code>Animations/Montages</code> are already in the right slots.</p>
 <p>Weapon-specific clips expect the matching loadout: the two-handed attacks and idle hold the second hand on the shaft, the bow shot
 needs the bow in the left hand and the arrow in the right, the staff cast both hands on the staff.</p>
 
 <h2>13. Technical details</h2>
 <ul>
-  <li><b>Skeleton</b>: one asset, 68 bones rooted at <code>Root</code>; 65 deforming bones, a second neck bone, two jaw bones, four palm
-      bones per hand and the two weapon socket bones. Up to 4 bone influences per vertex. No IK bones; not the Epic skeleton.</li>
+  <li><b>Skeleton</b>: one asset, the UE5 mannequin's 89 bones (hierarchy, names and bone frames, ik bones included) plus
+      <code>jaw_01</code> / <code>jaw_02</code> and <code>pelvis_l</code> / <code>pelvis_r</code>: 93 bones rooted at <code>root</code>. Up to 8 bone
+      influences per vertex. Rigged to the Epic skeleton.</li>
   <li><b>Scale</b>: 1 uu = 1 cm, feet on Z 0; the bodies are 169.5 cm tall to the skull, helmets reach about 181 cm.</li>
   <li><b>Meshes</b>: 55 skeletal meshes (6 bodies, 48 modules, the bow) and 11 static meshes, one LOD each, triangulated. Bodies
       6,364–7,588 triangles, modules 191–6,582, a dressed character 16,728–18,870, weapons 344–1,495 (the bow 3,869).</li>

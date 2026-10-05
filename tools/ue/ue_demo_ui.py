@@ -95,22 +95,27 @@ def demo_vars():
     log("demo widget variables")
 
 
-def demo_data():
-    browser_bp = unreal.load_asset(UI + "/WBP_AnimBrowser")
+def demo_data(widget=None, sections=None, paths=None, returns=None, loco=None):
+    """The browser's class defaults. The dev test map (ue_uetest.py) passes its child widget, extra sections, the clip asset
+    paths that are not A_<name> under the pack, their return idles and the sections that count as locomotion."""
+    widget = widget or UI + "/WBP_AnimBrowser"; sections = sections or SECTIONS; paths = paths or {}
+    returns = returns or RETURN; loco_secs = loco or {"Locomotion"}
+    browser_bp = unreal.load_asset(widget)
     L.compile_blueprint(browser_bp)
     cdo = unreal.get_default_object(L.generated_class(browser_bp))
     names, clips, modes, args, secs, loco, grip = [], [], [], [], [], [], []
-    order = [n for _, m in SECTIONS for n, _ in m]
-    for si, (sec, members) in enumerate(SECTIONS):
+    order = [n for _, m in sections for n, _ in m]
+    for si, (sec, members) in enumerate(sections):
         for n, mode in members:
-            a = unreal.load_asset(PKG + "/Animations/A_" + n) if EAL.does_asset_exist(PKG + "/Animations/A_" + n) else None
+            path = paths.get(n, PKG + "/Animations/A_" + n)
+            a = unreal.load_asset(path) if EAL.does_asset_exist(path) else None
             if a is None:
-                log("!! no A_%s, skipped" % n)
+                log("!! no %s, skipped" % path)
                 continue
             names.append(n); clips.append(a); modes.append(mode); secs.append(si)
-            loco.append(sec == "Locomotion"); grip.append(n in GRIP_L)
+            loco.append(sec in loco_secs); grip.append(n in GRIP_L)
             if mode in (1, 2, 3, 4):
-                args.append(order.index(RETURN[sec]) if sec in RETURN else -1)
+                args.append(order.index(returns[sec]) if sec in returns else -1)
             elif mode == 6:
                 args.append(int(n[-2:]))
             elif mode == 7:
@@ -131,7 +136,7 @@ def demo_data():
     char_cdo = unreal.get_default_object(L.generated_class(unreal.load_asset(PKG + "/Blueprints/BP_UndeadSkeleton")))
     for k, v in (("CharacterClasses", classes), ("CharacterNames", [c.replace("Skeleton", "") for c in CHARACTERS]),
                  ("Clips", clips), ("ClipNames", names), ("ClipModes", modes), ("ClipArgs", args), ("ClipSections", secs),
-                 ("ClipLoco", loco), ("ClipGrip", grip), ("SectionNames", [s for s, _ in SECTIONS]),
+                 ("ClipLoco", loco), ("ClipGrip", grip), ("SectionNames", [s for s, _ in sections]),
                  ("AllModules", mods), ("AllModuleOwner", owner), ("AllModuleNames", mnames),
                  ("LoadoutNames", list(char_cdo.get_editor_property("LoadoutNames"))),
                  ("SpawnTransform", unreal.Transform(unreal.Vector(0, 0, 92), unreal.Rotator(roll=0, pitch=0, yaw=180))),
@@ -140,7 +145,7 @@ def demo_data():
         cdo.set_editor_property(k, v)
     L.compile_blueprint(browser_bp)
     EAL.save_loaded_asset(browser_bp, False)
-    log("demo data: %d clips in %d sections, %d modules, %d characters" % (len(clips), len(SECTIONS), len(mods), len(classes)))
+    log("demo data (%s): %d clips in %d sections, %d modules, %d characters" % (widget.split("/")[-1], len(clips), len(sections), len(mods), len(classes)))
 
 
 def _bp(path, parent):
@@ -274,6 +279,8 @@ def showreel_bow():
     L.compile_blueprint(bow)
     EAL.save_loaded_asset(bow, False)
     dbp = unreal.load_asset(D + "/BP_ShowreelDirector")
+    if dbp is None:                       # no showreel director in this project (the Epic twin): the bow and the arrow are enough
+        log("bow string + arrow projectile (no BP_ShowreelDirector here)"); return
     _add(dbp, [("BowMesh", "obj", unreal.PoseableMeshComponent, False, False), ("HeldArrow", "obj", unreal.Actor, False, False),
                ("BowAttached", "bool", None, False, False), ("Draw", "float", None, False, False),
                ("Apex", "vector", None, False, False), ("HasBow", "bool", None, False, False),

@@ -551,4 +551,5 @@ def main():
         export_model(out_dir, bst, legacy="--legacy" in argv)
 
 
-main()
+if __name__ == "__main__":
+    main()

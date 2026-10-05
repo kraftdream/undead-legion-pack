@@ -21,11 +21,14 @@ of every asset for the dropped plugins' modules), and with --verify a headless C
 import argparse, json, os, re, shutil, subprocess, sys, time, zipfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-SRC = os.path.join(ROOT, "skeletons_ue")
-OUT_ROOT = os.path.join(os.path.dirname(ROOT), "undead-legion-production-ue")
+# --epic: the Epic-skeleton twin (skeletons_ue_epic, 2026-10-05) -> ../undead-legion-production-ue-epic/UndeadLegion_UE58_Epic.zip;
+# the template mannequin content it carries for testing (Content/Characters/Mannequins) and the test imports never ship
+EPIC = "--epic" in sys.argv
+SRC = os.path.join(ROOT, "skeletons_ue_epic" if EPIC else "skeletons_ue")
+OUT_ROOT = os.path.join(os.path.dirname(ROOT), "undead-legion-production-ue-epic" if EPIC else "undead-legion-production-ue")
 SHIP = "UndeadLegion"
 OUT = os.path.join(OUT_ROOT, SHIP)
-ZIP = os.path.join(OUT_ROOT, SHIP + "_UE58.zip")
+ZIP = os.path.join(OUT_ROOT, SHIP + ("_UE58_Epic.zip" if EPIC else "_UE58.zip"))
 ENGINE = "5.8"
 UE_CMD = r"C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe"
 
@@ -36,6 +39,8 @@ EXCLUDE = [                                   # relative to the project, files o
     PRODUCT + "/Demo/Blueprints/BP_ShowreelDirector.uasset",
     PRODUCT + "/Pipelines",
 ]
+if EPIC:
+    EXCLUDE += ["Content/_EpicTest", "Content/Characters/Mannequins"]
 CONFIG_DROP = ["DefaultEditorPerProjectUserSettings.ini", "DefaultEditor.ini"]   # the MCP auto-start; an empty file
 # a shipped asset must not import a module of a plugin the package does not enable
 DROPPED_MODULES = [b"/Script/PythonScriptPlugin", b"/Script/ModelContextProtocol", b"/Script/MCPClientToolset", b"/Script/AllToolsets",
@@ -234,6 +239,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--verify", action="store_true", help="run CompileAllBlueprints on the copy with UnrealEditor-Cmd 5.8")
     ap.add_argument("--no-zip", action="store_true")
+    ap.add_argument("--epic", action="store_true", help="package skeletons_ue_epic (the Epic-skeleton project)")
     a = ap.parse_args()
     shutil.rmtree(OUT, ignore_errors=True)
     if os.path.exists(OUT):

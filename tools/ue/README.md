@@ -279,6 +279,101 @@ anything stripped, no redirectors; the 33 `AM_` montages are referenced by nothi
 runtime) and ship as buyer content; `BP_ArrowProjectile` was referenced only by the director and ships as a ready actor.
 The description and the manual say what the demo does NOT do: drive the bow string or fire the arrow.
 
+## The Epic-skeleton twin: `skeletons_ue_epic/` (2026-10-05)
+
+User: "let's start with the full transition [to the Epic skeleton], as it makes it look like the asset was actually made for
+Unreal Engine, plus less friction for users to test new animations; do it in a separate project sub-folder." `skeletons_ue/`
+(Mixamo names) stays as it is; `skeletons_ue_epic/` is the same project rebuilt on the **UE5 mannequin's bone set**, so a
+mannequin animation plays on the skeletons unchanged and Fab's "Rigged to Epic skeleton" is true.
+
+**What "Epic skeleton" has to mean, measured.** Unreal stores an animation as absolute LOCAL rotations per bone, so on a skeleton
+with the mannequin's hierarchy and the mannequin's bone-axis convention every animated WORLD rotation is the mannequin's whatever
+the bind pose or the proportions; the bind pose's A-pose angle does not matter (the first analysis said it did: wrong), the local
+axis convention does. The mannequin's reference skeleton was dumped from the editor (`tools/ue/dump_refpose.py` on
+`SKM_Manny_Simple` → `Rig/ue5_mannequin_refpose.json`: 89 bones, the character facing +Y with its left at +X like ours, X down
+each bone, Y forward, Z to the right on the spine; the RIGHT arm, the right fingers and the LEFT leg point toward the parent;
+twist bones at 1/3 and 2/3 of their parent; `ik_hand_gun` / `ik_hand_l/r` / `ik_foot_l/r` equal to the hands' and feet's frames;
+`interaction` / `center_of_mass` at the root). The pipeline's Blender→Unreal frame map was verified on all 68 bones of the Mixamo
+export before anything was written: `x_ue = M(x_b)`, `y_ue = -M(y_b)`, `z_ue = M(z_b)`, `pos_ue = M(head)·180`, with
+`M(x, y, z) = (x, −y, z)` (5e-7 worst error).
+
+**The spec**: `python tools/epic_skeleton.py` → `Rig/epic_skeleton.json` (93 bones = the 89 + `jaw_01` / `jaw_02` under `head`
++ `pelvis_l` / `pelvis_r` under `pelvis`, which carry skirt and robe weights). Every bone's frame is the mannequin's re-aimed by
+the least rotation onto OUR bone's direction (sign per bone: toward the child or toward the parent as the mannequin has it;
+the foot's X continues the shin, the ball's X runs along the toe); the three Rigify spine bones become five at the mannequin's
+stations along our spine polyline (pelvis 0, spine_01 0.064, spine_02 0.182, spine_03 0.308, spine_04 0.456, spine_05 0.793,
+neck_01 1), each rigid with the DEF bone whose span holds its head (spine_01 ← Hips, spine_02/03 ← Spine, spine_04 ← Spine1,
+spine_05 ← Spine2); twist bones rigid with their parent at the stations; ik bones copies of hands and feet; the thumb's parent
+is the hand, the metacarpals are Rigify's palm bones.
+
+**The exporter**: `tools/export_epic.py` (`python tools/ue/export_ue.py --epic [models|clips]` → `Export_UE_Epic/`; the weapons
+stay in `Export_UE/Weapons`). A model: the spec's bones as Blender edit bones through the inverse frame map, the vertex groups
+remapped — a DEF bone's weight goes to its target; the split spine by the vertex's station along the DEF bone (pelvis below 0.42
+of Hips, else spine_01; spine_02 / spine_03 at 0.72 of Spine; spine_04; spine_05); the upper arm / forearm / thigh / shin weight
+shared with the two twist bones by a hat function over the stations, so mannequin clips twist the limbs the way they do on the
+mannequin while OUR clips (the twist on the bone itself, the twist bones identity) deform exactly as before — up to 8 influences.
+A clip: per frame `W_target = W_DEF · W_DEF(rest)⁻¹ · W_target(rest)` for all 93 bones, the basis decomposed and keyed
+(rotation everywhere, location on `root` and `pelvis` only), `root` = Rigify's root location + its yaw, the lift on root Z; 4 s
+per clip. `Export_UE_Epic/frames.json` carries the hands' and head's new frames and the old weapon-socket frames.
+
+**The build**: the same steps as above with `UL_EPIC=1` (`bash tools/ue/epic_build_all.sh [assets|sockets|abp|character|demo|map]`,
+the editor open on `skeletons_ue_epic` through `editor_up.sh skeletons_ue_epic`). `ue_common.EPIC` is detected from the open
+project's folder in the editor and from `UL_EPIC=1` / `--epic` in system Python (`import unreal` is optional there now);
+`EXPORT` becomes `Export_UE_Epic`, `bn()` maps the bone names the steps touch (`Hips`→`pelvis`, `Spine1`→`spine_04`,
+`Head`→`head`, `LeftShoulder`→`clavicle_l`, the weapon-socket bones → `hand_l` / `hand_r`), the finger layers blend from the four
+metacarpals + `thumb_01` per hand. **Sockets**: there are no weapon-socket bones, so `RightHandSlot` / `LeftHandSlot` sit on the
+hands with `T = hand_new⁻¹ · weaponbone_old` (from `frames.json`) folded into the Unity slot transform. Measured after the import:
+all 93 bones, every frame within 0.06° and 0.000 cm of the spec; 53 modules + bow on the shared skeleton; 59 clips with the loops'
+root travel on `root` (Walk_Fwd_01 72.4 cm per loop as before); 33 montages.
+
+**Verified against the mannequin** (`tools/ue/epic_anim_test.py`, `tools/ue/epic_pose_shot.py`): the Knight body imported a
+second time AGAINST the mannequin's own `SK_Mannequin` skeleton asset binds (the buyer's "Assign Skeleton" path; our extra bones
+are merged into it), and with `MF_Unarmed_Walk_Fwd` parked at 0.45 s on SKM_Manny and on that Knight in a Simulate session every
+one of the 89 shared bones' world rotations agrees to 0.00° (median 0.00°). ⚠ Three traps on the way: (1) the template's
+mannequin content must live at `Content/Characters/Mannequins` — its assets reference each other at that path; copied to
+`Content/Mannequins` the meshes and clips had no skeleton (a poseable mesh then asserted `AssetSkeletonObj` in FBoneContainer
+and crashed the editor); (2) an edit-mode viewport never evaluates a SkeletalMeshActor's clip (every capture showed the
+reference pose): pose in a Simulate session, and set the component's SAVED play data (`SingleAnimationPlayData`:
+`anim_to_play`, `saved_position`, `saved_play_rate` 0) — `set_animation` only reaches the live instance and the simulation's copy
+started with no clip; read the simulated actors through `UnrealEditorSubsystem.get_game_world()`; (3) Git Bash rewrites a
+`/Game/...` argument into `C:/Program Files/Git/Game/...` — `MSYS_NO_PATHCONV=1` before every `ue_py.py` call that passes an asset path.
+The mannequin content and `/Game/_EpicTest` are test-only: `make_production_ue.py --epic` leaves them out.
+
+**In the shipped demo** (`tools/ue/epic_demo_probe.py`, a PIE probe: `play` / `where` / `weapons` / `action ANIM [rate]` /
+`montage` / `turn YAW` / `stop`, captures through `capture_editor.py` — the MCP viewport capture renders the EDITOR world, which
+PIE is not, Simulate is): the Knight spawns with sword and shield on `hand_r` / `hand_l` (the slots 5.8 / 6.1 cm from the hand
+bones, the weapons attached to them), the eyes glow in the sockets, and `PlayAction` with a MANNEQUIN clip (`MM_Attack_01`,
+`MF_Unarmed_Walk_Fwd`) plays it on the Knight once the two skeleton assets list each other as compatible (`epic_demo_probe.py compat`;
+the shipped `SKEL_UndeadLegion` carries NO such reference — the buyer adds the compatibility in their project, one click, documented
+in the manual's section 12 together with Assign Skeleton and the IK Retargeter). ⚠ `unreal.Rotator(a, b, c)` is (roll, pitch, yaw):
+`Rotator(0, 90, 0)` pitched the character onto its face; use keywords. The `ABP_UndeadSkeleton` ASSET is now created by the step
+`ue_build.py abp_asset` (the Mixamo project's was made by hand once), and `eyes` must run after `character` and before
+`build_character.py` (its graphs read `EyesVisible` / `EyeColor`): `epic_build_all.sh` has that order. The manual
+(`make_documentation.py ue`) prints into the Epic project since 2026-10-05 (11 pages: section 12 is the mannequin-animation
+recipe); `make_production_ue.py --epic --verify` → `../undead-legion-production-ue-epic/UndeadLegion_UE58_Epic.zip`.
+⚠ The MCP-built widgets and graphs stay UNSAVED in memory: after a complete build `WBP_DemoHeader` was missing on disk (the
+package audit counted 2 widgets) while the editor showed it — `ue_build.py save_all` (`EAL.save_directory(PKG, only_if_is_dirty)`)
+ends `epic_build_all.sh` now; run it before packaging or restarting the editor. `ue_build.py showreel_bow` builds the bow's
+`BowPose` and `BP_ArrowProjectile` here too and skips its director part when `BP_ShowreelDirector` is absent.
+
+**The UE-animation test map (2026-10-05, "since skeletons_ue_epic is a dev environment, add another map for testing UE animations on
+our skeletons").** `/Game/Dev/Maps/UE_AnimTest`: the demo browser with the pack's 13 sections plus seven mannequin sections (unarmed
+loops, attacks, jump / dash, hit reactions, deaths, rifle, pistol: 102 clips in 20 sections) on any of the six characters with their
+armour and weapons. Built by `tools/ue/ue_uetest.py assets` (a child widget `/Game/Dev/UI/WBP_UETestBrowser` of `WBP_AnimBrowser`
+and a child showcase `/Game/Dev/Blueprints/BP_UETestShowcase` of `BP_DemoShowcase`, plus a `Browser` variable on the child),
+`build_demo_logic.py uetest` (the child showcase's BeginPlay = the parent's with the child widget class and `SetBrowser`; the child
+WIDGET gets the parent's whole EventGraph as its own — UMG decides whether a widget class ticks from that class's graphs, and with an
+empty one the parent's Tick never ran: no orbit-pawn target, the camera stayed on the player start), `ue_uetest.py data`
+(`demo_data()` takes the widget, the sections, the clip asset paths, the return idles and the loco sections now; the UE one-shots
+return to `MM_Idle`, the deaths hold; `RootMotionOn` false by default — the mannequin clips carry root motion and the first jog ran
+the Mage out of frame), `ue_uetest.py map` (`ue_demo_map.demo(path, showcase, label)`). Everything sits under `/Game/Dev`, so
+the package never carries it and the shipped Blueprints are untouched. Before it on a fresh clone: `python tools/ue/
+epic_mannequin_content.py` (the template content into `Content/Characters/Mannequins`, git-ignored) and `ue_py.py tools/ue/
+epic_demo_probe.py compat` (SK_Mannequin lists SKEL_UndeadLegion; one-sided is enough, measured). Driving it from Python in PIE:
+`epic_demo_probe.py open /Game/Dev/Maps/UE_AnimTest`, `play`, `button KIND INDEX` / `clip NAME` (the browser's own `OnButton`
+through the showcase's `Browser`), `stop`. ⚠ The editor caches `ue_demo_ui` / `ue_demo_map` between runs: `ue_uetest.py`
+reloads them (`demo_data() got an unexpected keyword argument` was the stale module).
+
 ## Not done yet
 
 The recurve bow's string pull and the fired arrow in the DEMO (the showreel director does both; the notifies exist on Shoot_01
