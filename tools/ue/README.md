@@ -194,6 +194,21 @@ frame, so frames 135–143 show the shot's first frames again — render from 0 
 arguments are split on spaces by `ue_py.py`: loadout names with spaces cannot be passed (use `Mace`, `Sword`, `Dagger`). ⚠ `ue_showreel.py
 shot` rebuilds the ONE showreel map: a `render` of another shot's sequence afterwards films the wrong actors (a tiny figure at the edge).
 
+## Death patches (2026-10-05, "the deaths have twitching playing; re-record just the deaths with twitching disabled and edit them in")
+
+The director had no twitch command, so the corpses kept the additive twitch loops and the finger idles (Unity's showcase turns both
+off for a death). Now: **RunCommand kind 15 `twitch`** (CmdInt 1 on / 0 off: `SetTwitch` 1..3 and `SetFingersSuspended`), and the
+plan emits `twitch 0` at a death step's start and `twitch 1` after its hold. Re-rendering only the deaths without the hours: a
+**`patch` stage** built from the plan's own functions — per weapons shot with a death, one shot = [the idle held for P frames] + [the
+death step], with **P = Fd mod L** (Fd = the death step's first frame in the full shot, L = the idle loop's frame count; the loop
+runs from BeginPlay in both renders and no `loop` restart precedes the deaths, so frame Pf of the patch has the idle at the same phase
+as frame Fd of the shot; the twitch loops' phases differ, which only shows if a jerk was mid-way on the cut frame). The four patch
+shots are 270 / 267 / 345 / 186 frames (~45 min at 64 samples) against 3476 for the four full shots. `Showreel/unreal/patch_info.json`
+records the mapping; `showreel_unreal_all.py --only patch_00,patch_01,patch_02,patch_03 --no-encode` renders them;
+**`tools/ue/showreel_patch_deaths.py`** copies each patch's frames from Pf over the shot's frames from Fd (the same count by
+construction) and re-encodes the weapons stage and the YouTube cut. The `patch` stage lives in `plan.json` only while needed:
+`showreel_plan.py` regenerates the three stages without it.
+
 ## Showreel in Unreal (2026-10-01, a first test: the modular stage's opening beat)
 
 `ue_showreel.py build Warrior Idle_03 3` → map `Demo/Maps/UndeadLegion_Showreel` (the stage on a 2 km floor, the class BP with no

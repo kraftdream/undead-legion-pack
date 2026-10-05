@@ -19,7 +19,7 @@ CARD_SECONDS = 1.6
 HOLD_BEFORE, HOLD_AFTER, DEATH_HOLD, MOVEMENT_SECONDS, CROSSFADE = 0.8, 0.9, 1.6, 3.0, 0.15
 LENGTH = json.load(open(os.path.join(OUTDIR, "clip_lengths.json")))
 K = dict(loop=0, action=1, equip=2, wear=3, remove=4, block=5, overlay=6, rootmotion=7, recenter=8, hips=9, hold=10, pause=11,
-         bow=12, fire=13, arrow=14)
+         bow=12, fire=13, arrow=14, twitch=15)
 BOW_EVENTS = {"Shoot_01": (15, 21)}      # manifest events BowAttach / BowRelease (clip frames, 1-based)
 ARROW_HIDE = 1.2                         # SkeletonWeapon.arrowHideSeconds
 LOADOUTS = ["Sword + shield", "Sword", "Axe + round shield", "Mace", "Dagger", "Two daggers", "Longsword (2H)",
@@ -170,6 +170,8 @@ def shots(stage):
             cmd(cur, t0, "block", n=1); s["block"] = True
         hold(cur, t0, step["idle"] in GRIP_L)
         cmd(cur, t0, "hips", n=int(step["hips"]))
+        if step["hips"]:                              # a death step: twitches and finger idles off (Unity: SetDeathSuspend)
+            cmd(cur, t0, "twitch", n=0)
         if step["root_motion"] is not None and step["root_motion"] != s["rm"]:
             cmd(cur, t0, "rootmotion", n=int(step["root_motion"])); s["rm"] = step["root_motion"]
         caption(step["text"], f)
@@ -202,6 +204,8 @@ def shots(stage):
                 cmd(cur, f, "recenter")
         if step["attacks"]:
             caption(step["text"], f)
+        if step["hips"]:
+            cmd(cur, f, "twitch", n=1)                # back on after the corpse hold (the next step is a new character anyway)
         cur["frames"] = f
     for sh in out:
         if sh["captions"]:

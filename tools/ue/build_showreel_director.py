@@ -55,7 +55,12 @@ FUNCS = {
       (CallFunction|FindBow)
       (%(V)sSetBowAttached (== n 1)))
     (:13 (CallFunction|FireArrow))
-    (:14 (Rendering|SetActorHiddenInGame :self (%(V)sGetHeldArrow) :bNewHidden false))))
+    (:14 (Rendering|SetActorHiddenInGame :self (%(V)sGetHeldArrow) :bNewHidden false))
+    (:15
+      (%(C)sSetTwitch :self c :Index 1 :Weight (select (== n 1) 1.0 0.0))
+      (%(C)sSetTwitch :self c :Index 2 :Weight (select (== n 1) 1.0 0.0))
+      (%(C)sSetTwitch :self c :Index 3 :Weight (select (== n 1) 1.0 0.0))
+      (%(C)sSetFingersSuspended :self c :Suspended (== n 0)))))
 """),
     "FindBow": ([], """
 (fn FindBow ()
