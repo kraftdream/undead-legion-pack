@@ -89,6 +89,8 @@ namespace UndeadLegion.Extended
                 string want = !string.IsNullOrEmpty(loadout) ? loadout : DefaultLoadouts[Mathf.Clamp(index, 0, DefaultLoadouts.Length - 1)];
                 for (int i = 0; i < weapon.Count; i++) if (weapon.NameAt(i) == want) { weapon.Equip(i); break; }
             }
+            var playerAi = _player.GetComponent<SkeletonAI>();   // the move source: a player necromancer casts no AOE
+            if (playerAi != null) playerAi.allowArea = cls != "Necromancer";
             _control = _player.AddComponent<PlayerSkeleton>();
             _control.magicColor = playerEyes * 0.9f;
             _control.inputEnabled = !_paused;

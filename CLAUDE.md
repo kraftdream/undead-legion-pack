@@ -716,6 +716,16 @@ strafe at their speeds, the mouse turned 90°, three clicks cycled R_01_Stab →
 Knight's shield and released, a 50-damage hit left 100 health, Esc paused (timeScale 0, cursor free), switching to the Mage replaced the player
 with a wand in hand, 15 s of combat: 21 hits on the player, no console messages. Production: a build scene of the extended edition.
 
+**Per-weapon engage distance, no player AOE for the Necromancer, one-shots without root rotation (2026-10-05).** User: "attack distance
+for AI depends on the weapon equipped; as a mage with a wand, attacks rotate my camera (and the model); disable the AOE for the staff when
+playing the necromancer". `AttackModule.engageRange` (dagger 0.9, sword 1.1, axe / mace 1.2, two-handers 1.5, unarmed 0.8 m; 0 = `meleeRange`)
+→ `SkeletonAI.EngageRange()` (ranged weapons keep their moves' range; several modules: the shortest); `SkeletonAI.allowArea` (skips `area`
+moves), switched off by `PlayerDemo` for a player Necromancer only (arena AI necromancers still cast it). The camera: `Cast_Wand_01/02`,
+`Cutthroat`, `Rally`, `Stagger_01/02`, `Summon`, `Taunt_01/02/03` imported with their root rotation as root motion, so the 44° side-on turn
+of a wand cast turned the transform and the player camera with it; manifest **`bake_rot true`** on all ten (the `.meta`
+`loopBlendOrientation 1`): measured on the Knight, root yaw 0.00° through every clip, the chest still turns 30–41° in the casts, the
+staggers still travel 0.667 m back, the others' few cm of XZ unchanged. Extended *Build All (1-5)* re-run (the `PFX_` prefabs serialise
+the modules). Rule: **every one-shot bakes its root rotation; only turn clips may drive the heading.**
 **Extended browser layout (2026-09-30, "move the new UI panel under the animations panel, make that one shorter; the physics hit is
 weak, 2x"):** the PHYSICS panel is anchored bottom-right at the ANIMATIONS panel's right edge and width (−20 / 280 px, 78 px above the
 bottom), and `ExtendedShowcase.FitUnderAnimations` shortens the browser's `AnimationPanel` at runtime to end 10 px above it (measured
