@@ -685,7 +685,15 @@ recorder's own 1.6× on the assassin's dagger steps is gone (it would have stack
 stages were re-recorded headless the same day (modular 66 s, movement 42.5 s) with the user's attack set; then the weapons stage again
 with the heavy variants ("add 2H_01_Swing_Heavy to the longsword, 2H_02_Swing_Heavy to the battle axe, R_01_Stab_Heavy to the sword,
 R_02_Swing_Heavy to the axe, R_03_Swing_Heavy to the mace"; the Knight got a mace step after the sword, R_03_Swing + its heavy, and dies
-holding it): 133 s; the YouTube cut rebuilt (4:22, the outro chapter at 4:14).
+holding it): 133 s; the YouTube cut rebuilt (4:22, the outro chapter at 4:14) — then re-recorded once more after the other machine's repair of `Attack_R_03_Swing`'s bake (the first take had
+the broken 16–60 clip in the mace step), outro at 4:15. **Quality check (same night, "are the showreels at the highest 1080p this machine can
+push?")**: the recorder's `_rt.antiAliasing` line sat INSIDE the comment of the line above, so the target never had MSAA — fixed, and
+`targetMsaa` (default 8) / `SHOWREEL_MSAA` / `showreel_headless --msaa` added; but URP's own 8x MSAA already covered it (A/B frames differ on
+~1000 of 2M pixels, invisible at 2x zoom). `supersample 4` added (two exact 2x box blits; 3 would point-sample through one bilinear blit and
+rounds up to 4): 6x slower, barely smoother, and a tighter bloom halo; 4x + 8x MSAA crashed Unity (integrated AMD GPU, 512 MB + shared RAM).
+1440p (`--width 2560 --height 1440`; `showreel_youtube --height` lays the cards out in 1080p units scaled to the output) was killed by Claude
+Code for low system memory 333 frames in, with the production project open in another Unity; the user chose to stay at 1080p. Stage encodes
+now at `--crf 12` (the cut re-encodes them; the weapons stage is 91 MB, under GitHub's 100 MB limit).
 
 **The player demo (2026-10-04, extended only).** User: "a demo scene where I control a skeleton and fight other skeletons; Esc pauses
 with a menu to select a different class (replaces the current one); WASD, the mouse turns on Y, left click attacks cycling the variations,

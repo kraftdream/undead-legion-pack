@@ -91,8 +91,10 @@ namespace UndeadLegion.Demo
         [Tooltip("Offline, so everything can be maxed: the highest quality level, forced anisotropic filtering, full-resolution textures, the URP asset at 8x MSAA with a single 4096 shadow cascade over `shadowDistance`, HDR, soft shadows high, and SMAA (high) on the recording camera. Restored when the recording ends.")]
         public bool maxQuality = true;
         public float shadowDistance = 10f;
-        [Tooltip("Render each frame at this multiple of the output size and box-filter it down (2 = 4 samples per pixel on top of MSAA + SMAA). Offline, so only memory limits it.")]
-        [Range(1, 3)] public int supersample = 2;
+        [Tooltip("Render each frame at this multiple of the output size and box-filter it down: 2 = 4 samples per pixel, 4 = 16 (two exact 2x box filters), on top of MSAA + SMAA. 3 is rounded up to 4 (one bilinear blit from 3x would point-sample). Offline, so only memory limits it.")]
+        [Range(1, 4)] public int supersample = 2;
+        [Tooltip("MSAA samples on the render target (1, 2, 4 or 8).")]
+        public int targetMsaa = 8;
         [Tooltip("Test runs: stop after this many steps (0 = the whole stage).")]
         public int maxLoadouts = 0;
 
@@ -104,7 +106,7 @@ namespace UndeadLegion.Demo
         void SetStatus(string s) { Status = s; if (Application.isBatchMode) Debug.Log("Showreel: " + s + " (frame " + FramesWritten + ")"); }
 
         Camera _cam;
-        RenderTexture _rt, _out;
+        RenderTexture _rt, _mid, _out;
         Texture2D _tex;
         SkeletonShowcase _showcase;
         Animator _animator; SkeletonWeapon _weapon; SkeletonModules _modules;
@@ -347,7 +349,7 @@ namespace UndeadLegion.Demo
             foreach (var cv in _hidden) if (cv != null) cv.enabled = true;
             RestoreQuality();
             if (_canvasGo != null) Destroy(_canvasGo);
-            _cam.targetTexture = null; Destroy(_cam.gameObject); if (_out != _rt) Destroy(_out); Destroy(_rt); Destroy(_tex);
+            _cam.targetTexture = null; Destroy(_cam.gameObject); if (_out != _rt) Destroy(_out); if (_mid != null) Destroy(_mid); Destroy(_rt); Destroy(_tex);
             SetStatus("done: " + FramesWritten + " frames in " + _dir);
             File.WriteAllText(Path.Combine(_dir, "done.txt"), Status);      // a marker a shell can poll without the bridge
             Debug.Log("Showreel " + Status);
@@ -399,9 +401,16 @@ namespace UndeadLegion.Demo
             camGo.transform.position = look + offset.normalized * distance;
             camGo.transform.LookAt(look);
             _camHomePos = camGo.transform.position; _camHomeRot = camGo.transform.rotation; _camOffset = _camHomePos - pivot;
-            int ss = Mathf.Max(1, supersample);
-            _rt = new RenderTexture(width * ss, height * ss, 24, RenderTextureFormat.DefaultHDR);   // HDR: an 8-bit target clamps the eyes to 1 before Bloom (halo 0.01 vs 0.21, measured) _rt.antiAliasing = maxQuality ? (ss > 1 ? 4 : 8) : 4;
-            _out = ss > 1 ? new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32) : _rt;   // a bilinear blit from 2x averages exactly 2x2 texels (a box filter)
+            int ss = Mathf.Max(1, supersample); if (ss == 3) ss = 4;
+            // HDR: an 8-bit target clamps the eyes to 1 before Bloom (halo 0.01 vs 0.21, measured)
+            _rt = new RenderTexture(width * ss, height * ss, 24, RenderTextureFormat.DefaultHDR);
+            // (until 2026-10-04 this assignment sat inside the comment above, so every recording had NO MSAA on its target)
+            _rt.antiAliasing = Mathf.ClosestPowerOfTwo(Mathf.Clamp(targetMsaa, 1, 8));
+            _rt.filterMode = FilterMode.Bilinear;
+            // a bilinear blit from 2x averages exactly 2x2 texels (a box filter); 4x goes through a 2x texture, so 4x4 texels
+            _mid = ss == 4 ? new RenderTexture(width * 2, height * 2, 0, RenderTextureFormat.DefaultHDR) : null;
+            if (_mid != null) _mid.filterMode = FilterMode.Bilinear;
+            _out = ss > 1 ? new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32) : _rt;
             if (ss > 1) _out.filterMode = FilterMode.Bilinear;
             _tex = new Texture2D(width, height, TextureFormat.RGB24, false);
             _cam.targetTexture = _rt;
@@ -449,7 +458,8 @@ namespace UndeadLegion.Demo
                 else yield return new WaitForEndOfFrame();
                 FollowCamera();
                 _cam.Render();
-                if (_out != _rt) Graphics.Blit(_rt, _out);
+                if (_mid != null) { Graphics.Blit(_rt, _mid); Graphics.Blit(_mid, _out); }
+                else if (_out != _rt) Graphics.Blit(_rt, _out);
                 var prev = RenderTexture.active; RenderTexture.active = _out;
                 _tex.ReadPixels(new Rect(0, 0, width, height), 0, 0); _tex.Apply();
                 RenderTexture.active = prev;
@@ -553,7 +563,7 @@ namespace UndeadLegion.Demo
                 var data = _cam.GetUniversalAdditionalCameraData();
                 if (data != null) { data.renderPostProcessing = true; data.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing; data.antialiasingQuality = AntialiasingQuality.High; data.renderShadows = true; }
             }
-            Debug.Log(string.Format("Showreel quality: level {0}, MSAA {1}, shadow map {2} x1 cascade over {3} m, soft shadows high, SMAA high, HDR, supersample {4}x", QualitySettings.names[QualitySettings.GetQualityLevel()], _urp != null ? _urp.msaaSampleCount : 0, _urp != null ? _urp.mainLightShadowmapResolution : 0, shadowDistance, Mathf.Max(1, supersample)));
+            Debug.Log(string.Format("Showreel quality: level {0}, MSAA {1}, shadow map {2} x1 cascade over {3} m, soft shadows high, SMAA high, HDR, supersample {4}x, target MSAA {5}x", QualitySettings.names[QualitySettings.GetQualityLevel()], _urp != null ? _urp.msaaSampleCount : 0, _urp != null ? _urp.mainLightShadowmapResolution : 0, shadowDistance, Mathf.Max(1, supersample), Mathf.ClosestPowerOfTwo(Mathf.Clamp(targetMsaa, 1, 8))));
         }
 
         void RestoreQuality()
