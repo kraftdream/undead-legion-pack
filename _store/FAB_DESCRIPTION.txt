@@ -1,0 +1,100 @@
+UNDEAD LEGION - MODULAR SKELETON ARMY
+
+Six skeleton warriors on one shared skeleton for Unreal Engine 5.8: 48 swappable armour
+pieces that fit every skeleton, 12 weapons on adjustable hand sockets, and one set of 58
+animations that plays on every character. Each class is a drop-in Blueprint Character with
+the Animation Blueprint, its armour, its weapons and glowing eyes already wired, plus a
+demo map with an animation browser.
+
+SIX CLASSES
+Knight - plate helm, chest, gloves, greaves, boots, skirt - sword and shield, longsword
+Warrior - chest, gloves, greaves, boots, skirt - axe and round shield, battle axe, mace
+Archer - helm, chest, gloves, boots, skirt - recurve bow and arrow
+Assassin - hood, chest, gloves, pants, boots, skirt - dagger, two daggers
+Mage - hood, robe, gloves, greaves, boots - staff, wand
+Necromancer - hood, robe, gloves, greaves, boots - staff, wand
+About 170 cm tall, feet at Z 0, facing +Y.
+
+MODULAR ARMOUR - ANY PIECE ON ANY SKELETON
+48 armour modules as separate skeletal meshes on the shared skeleton: helms, hoods, chest
+plates, gloves, greaves, boots, skirts, robes and pants. Every piece is a leader-pose
+component on the body, so the Knight's helm goes on the Mage and the Necromancer's robe on
+the Warrior, at runtime, through WearModule / RemoveModule / SetDefaultModulesWorn.
+
+12 WEAPONS, 11 LOADOUTS
+Sword, axe, mace, dagger, wand, heater shield, round shield, longsword, battle axe, staff,
+recurve bow and arrow, each a Blueprint spawned on the hand socket at its grip. Loadouts
+from sword and shield to two daggers (EquipLoadout). The fingers close on a held weapon and
+relax on an empty hand. The recurve bow is skinned: its string follows the draw hand and
+the limbs bend with the pull, and the shot fires an arrow.
+
+58 ANIMATIONS, ONE SET FOR ALL SIX
+- Idles: three general idles, a one-handed combat stance, two-handed, bow and staff idles
+- Locomotion: two complete sets with root motion - a heavy shambling set for the rank and
+  file and an upright set for captains and casters: walk, walk back, run, strafe left and
+  right
+- Combat: a stab and two swings per arm, each with a heavy variant that throws the body
+  into the blow; two two-handed swings with heavy variants; a held shield block; a bow shot
+  with string and arrow notifies; wand and staff casts
+- Specials: three taunts, rally, cutthroat, summon and an area cast
+- Two hit reactions (additive, over anything) and two staggers with root motion
+- Four deaths
+- Additive head and jaw twitches and relaxed finger idles, so a crowd never stands still
+All 30 fps, seamless loops, one-shots that start and end on their idle.
+
+EVERY CLASS SHIPS WITH
+- A Blueprint Character: capsule, movement, the Animation Blueprint, its default armour
+  set and loadout, glowing eyes in any colour
+- The shared Animation Blueprint: a base loop, upper-body, left-arm and right-arm layers
+  cut at the spine and shoulders, additive twitch and hit layers, finger layers - attack or
+  cast with the arms while the legs keep walking, hold a shield block over any motion
+- Root motion on the locomotion loops and the staggers, with the measured speed per loop
+  in the documentation for in-place blend spaces; every other clip plays in place
+- A montage for every one-shot, 33 in total
+- Hand sockets you can move in the skeletal mesh editor, grips you can move in the weapon
+  Blueprints
+
+DEMO MAP
+An animation browser: pick a class, toggle its armour, borrow any other class's pieces,
+equip any loadout, play every clip by name, hold the block, toggle the twitches and the
+finger idles, root motion on or off, turntable, recenter, eyes on or off. Drag to orbit,
+wheel to zoom.
+
+TECHNICAL DETAILS
+Rigged: Yes. Rigged to Epic skeleton: No. IK bones: No. Animated: Yes.
+Number of Animations: 58 (plus one two-frame finger-pose clip the characters read)
+Animation types: root motion (locomotion, staggers) and in-place (everything else)
+Characters: 6 Blueprint Characters on 1 shared skeleton; 55 skeletal meshes (6 bodies,
+48 armour modules, 1 skinned bow); 1 physics asset
+Animation Blueprints 1, Montages 33
+Triangles (fully dressed): Assassin 18,870 / Mage 17,649 / Necromancer 17,384 /
+Archer 17,356 / Warrior 16,979 / Knight 16,728. Bare bodies 6,364 - 7,588; armour modules
+191 - 6,582 each; weapons 344 - 1,495 each (the skinned bow 3,869). 119,248 triangles in
+total. Max 4 bone influences per vertex.
+Materials: 2 master materials plus 25 material instances - 12 character (body and armour
+per class, armour two-sided), 12 weapon, 1 demo floor; the eyes an unlit emissive
+Textures: 67. Resolutions 1024x1024 characters (base colour, normal, packed
+metallic / smoothness), 512x512 weapons, 128x128 arrow
+Normal maps are DirectX (Y-) oriented
+Scale: 1 uu = 1 cm, feet at Z 0, facing +Y
+Supported engine version: 5.8
+Development platform: Windows. Target platforms: Windows, macOS, Linux - Blueprint only,
+no C++
+Documentation included at Content/UndeadLegion/Documentation.pdf
+
+SKELETON
+One skeleton for all six characters and every armour module: 68 bones, Mixamo-style names
+(Hips, Spine, Spine1, Spine2, Neck, Head, Left/Right Shoulder, Arm, ForeArm, Hand and
+fingers, UpLeg, Leg, Foot, ToeBase ...). Beyond a standard humanoid hierarchy it carries a
+second neck bone, two jaw bones, palm bones and two weapon socket bones in the hands. It is
+not the Epic skeleton and carries no IK bones; every clip is authored against it, and
+retargeting to the UE mannequin is not set up in the pack.
+
+NOTES
+- Not rigged to the Epic skeleton. One custom skeleton, one clip set.
+- The Animation Blueprint is a flat layer stack by design - loops as montages in a base
+  slot, one-shots in slot layers - so you can build your own state machine on the same
+  clips.
+- No LODs: the dressed characters are 16.7k - 18.9k triangles.
+- The weapon static meshes carry no collision; the characters collide through their
+  capsule and the physics asset.
