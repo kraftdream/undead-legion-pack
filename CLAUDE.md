@@ -732,6 +732,12 @@ moving (Idle_Staff / Idle_Bow / Idle_1H_Combat / Idle_TwoHanded), freezing the t
 **`upperHoldWhileMoving`** (default `Idle_TwoHanded`: both hands stay on the shaft) are held; everything else runs on the clip's own upper
 body. Probed in the player demo at run speed: Necromancer + staff and Knight + sword and shield, `UpperBody` Empty, the left hand swinging
 39 / 29 cm fore-aft. Extended *Build All (1-5)* re-run.
+**Crowded melee attacks from where it stands (2026-10-05, "some skeletons don't attack while standing next to me").** Not the capsules:
+1-on-1 every melee weapon reached its engage distance (dagger 0.90, unarmed 0.79 m centre to centre; capsules touch at 0.70). With 8
+short-weapon enemies round a still player, 227 of 518 samples had a skeleton WITHIN its moves' reach still chasing, a median 0.34 m short
+of its engage point (the others hold the spot). `SkeletonAI` now attacks when blocked (`blockedAttackAfter` 0.4 s of chasing at < 0.1 m/s)
+within its shortest melee move's reach, and keeps attacking until the target is `engageSlack` (0.3 m) beyond the engage distance:
+attacking 209 → 277, blocked chasing 227 → 129 (the rest is walking in). A target backing away is still chased, not swung at (left as is).
 **Extended browser layout (2026-09-30, "move the new UI panel under the animations panel, make that one shorter; the physics hit is
 weak, 2x"):** the PHYSICS panel is anchored bottom-right at the ANIMATIONS panel's right edge and width (−20 / 280 px, 78 px above the
 bottom), and `ExtendedShowcase.FitUnderAnimations` shortens the browser's `AnimationPanel` at runtime to end 10 px above it (measured

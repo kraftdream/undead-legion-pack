@@ -35,6 +35,10 @@ namespace UndeadLegion.Extended
         public float walkWithin = 0.8f;
         [Tooltip("Distance (metres, centre to centre) at which a melee skeleton stops and attacks, for a weapon whose modules set no engageRange.")]
         public float meleeRange = 1.1f;
+        [Tooltip("Once engaged, a melee skeleton keeps attacking until the target is this far (metres) beyond its engage distance.")]
+        public float engageSlack = 0.3f;
+        [Tooltip("Seconds a chasing skeleton may be blocked (others in the way) within its weapon's reach before it attacks from there.")]
+        public float blockedAttackAfter = 0.4f;
         [Tooltip("An explicit target; otherwise the nearest enemy is chosen.")]
         public SkeletonHealth target;
         [ColorUsage(false, true)] public Color magicColor = new Color(0.4f, 2.2f, 1.1f);
@@ -47,7 +51,9 @@ namespace UndeadLegion.Extended
         float _nextAttack, _nextThink, _nextWander, _nextArea;
         string _lastClip;
         int _movesFor = int.MinValue; bool _movesHeavy, _movesArea;
-        float _engage;
+        float _engage, _blockedFor;
+        bool _engaged;
+        Vector3 _lastPos;
         readonly List<AttackMove> _moves = new List<AttackMove>();
         Coroutine _attack;
 
@@ -98,6 +104,14 @@ namespace UndeadLegion.Extended
             return _moves.Count > 0;
         }
 
+        /// <summary>The shortest reach of the equipped weapon's melee moves (0 for a ranged weapon).</summary>
+        float MeleeReach()
+        {
+            float r = float.MaxValue;
+            foreach (var m in CurrentMoves()) { if (m.ranged) return 0f; r = Mathf.Min(r, m.range); }
+            return r == float.MaxValue ? 0f : r;
+        }
+
         /// <summary>Where this skeleton stops to attack with the equipped weapon: the nearest ranged move's range for a bow,
         /// wand or staff, else the weapon modules' engageRange (the shortest of the attached ones), else meleeRange.</summary>
         public float EngageRange()
@@ -129,13 +143,18 @@ namespace UndeadLegion.Extended
             if (Time.time >= _nextThink)
             {
                 _nextThink = Time.time + 0.25f + Random.value * 0.1f;
-                if (target == null || target.IsDead || (target.transform.position - transform.position).sqrMagnitude > sightRange * sightRange * 1.5f) target = FindTarget();
+                if (target == null || target.IsDead || (target.transform.position - transform.position).sqrMagnitude > sightRange * sightRange * 1.5f) { var t = FindTarget(); if (t != target) _engaged = false; target = t; }
             }
             if (target == null) { Wander(); return; }
 
             Vector3 to = target.transform.position - transform.position; to.y = 0f;
             float dist = to.magnitude, range = EngageRange();
-            if (dist > range)
+            // blocked: chasing but hardly moving (other skeletons hold the spot); within the weapon's reach that is close enough
+            Vector3 step = transform.position - _lastPos; step.y = 0f; _lastPos = transform.position;
+            _blockedFor = _nav.IsMoving && step.magnitude < 0.1f * Time.deltaTime ? _blockedFor + Time.deltaTime : 0f;
+            bool inRange = dist <= range || (_engaged && dist <= range + engageSlack) || (dist <= MeleeReach() && _blockedFor >= blockedAttackAfter);
+            _engaged = inRange;
+            if (!inRange)
             {
                 Vector3 goal = target.transform.position - to.normalized * range * 0.85f;
                 _nav.MoveTo(goal, dist > range + walkWithin && !UsesBow());   // run until just outside the reach
