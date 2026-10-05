@@ -84,6 +84,20 @@ def abp_asset():
     log("ABP_UndeadSkeleton created on " + SKEL)
 
 
+def abp_defaults():
+    """ABP_UndeadSkeleton's float defaults (ue_common.ABP_FLOATS) onto its class, after build_abp.py added the variables."""
+    bp = unreal.load_asset(PKG + "/Blueprints/ABP_UndeadSkeleton")
+    L = unreal.BlueprintEditorLibrary
+    L.compile_blueprint(bp)
+    cdo = unreal.get_default_object(L.generated_class(bp))
+    for k, v in ABP_FLOATS.items():
+        cdo.set_editor_property(k, v)
+    L.compile_blueprint(bp)
+    EAL.save_loaded_asset(bp, False)
+    cdo = unreal.get_default_object(L.generated_class(bp))
+    log("abp_defaults: FadeSpeed %.3f, FingerL %.1f, Twitch1 %.1f" % tuple(cdo.get_editor_property(k) for k in ("FadeSpeed", "FingerL", "Twitch1")))
+
+
 def save_all():
     """Save every dirty asset under the pack: the MCP-built widgets and graphs stay unsaved in memory (WBP_DemoHeader was missing
     from the Epic project on disk after a complete build, 2026-10-05) and an editor restart would lose them."""
@@ -128,7 +142,7 @@ def measure():
         log("%-20s z %.2f..%.2f  x %.1f..%.1f  y %.1f..%.1f  modules %d" % (c, lo.z, hi.z, lo.x, hi.x, lo.y, hi.y, len(mods)))
 
 
-STEPS = {"models": models, "abp_asset": abp_asset, "save_all": save_all, "textures": textures, "weapons": weapons, "materials": materials, "clips": clips, "montages": montages, "measure": measure, "measure_clips": measure_clips, "sockets": sockets, "weapon_blueprints": weapon_blueprints,
+STEPS = {"models": models, "abp_asset": abp_asset, "abp_defaults": abp_defaults, "save_all": save_all, "textures": textures, "weapons": weapons, "materials": materials, "clips": clips, "montages": montages, "measure": measure, "measure_clips": measure_clips, "sockets": sockets, "weapon_blueprints": weapon_blueprints,
          "character": character, "character_children": character_children,
          "demo_vars": demo_vars, "demo_data": demo_data, "demo_actors": demo_actors, "eyes": eyes, "showreel_director": showreel_director, "showreel_bow": showreel_bow}
 

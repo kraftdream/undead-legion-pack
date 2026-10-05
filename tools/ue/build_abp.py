@@ -22,7 +22,7 @@ replaces the previous one - the loops, the held block and the twitches are graph
 import json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from mcp import bp, obj, ref
-from ue_common import EPIC, EPIC_FINGERS, bn      # the Epic skeleton's bone names (UL_EPIC=1 / --epic)
+from ue_common import EPIC, EPIC_FINGERS, ABP_FLOATS, bn      # the Epic skeleton's bone names (UL_EPIC=1 / --epic)
 
 ABP = "/Game/UndeadLegion/Blueprints/ABP_UndeadSkeleton"
 BPR = ref(ABP)
@@ -30,9 +30,7 @@ G = {"refPath": ABP + ".ABP_UndeadSkeleton:AnimGraph"}
 EG = {"refPath": ABP + ".ABP_UndeadSkeleton:EventGraph"}
 ANIM = "/Game/UndeadLegion/Animations/"
 
-FLOATS = {"BlockAlpha": 0.0, "BlockTarget": 0.0, "Twitch1": 1.0, "Twitch2": 1.0, "Twitch3": 1.0,
-          "FingerL": 1.0, "FingerR": 1.0, "FingerTargetL": 1.0, "FingerTargetR": 1.0,
-          "GripL": 0.0, "GripR": 0.0, "GripTargetL": 0.0, "GripTargetR": 0.0, "FadeSpeed": 6.6667}
+FLOATS = ABP_FLOATS      # ue_common; the DEFAULTS are written by `ue_py.py ue_build.py abp_defaults` after this script (the MCP add leaves 0)
 
 
 def variables():

@@ -359,6 +359,13 @@ in the manual's section 12 together with Assign Skeleton and the IK Retargeter).
 `build_character.py` (its graphs read `EyesVisible` / `EyeColor`): `epic_build_all.sh` has that order. The manual
 (`make_documentation.py ue`) prints into the Epic project since 2026-10-05 (11 pages: section 12 is the mannequin-animation
 recipe); `make_production_ue.py --epic --verify` → `../undead-legion-production-ue-epic/UndeadLegion_UE58_Epic.zip`.
+**"Only thing that isn't working is shield block" (2026-10-05):** `SetHeldBlock` set `BlockTarget` to 1 but `BlockAlpha` stayed 0 —
+and so did `FingerL` / `GripL` under their targets: every float of `ABP_UndeadSkeleton` was 0 on the class, `FadeSpeed` included, so the
+event graph's `FInterpToConstant` never moved. `build_abp.py variables` only ADDS the variables through the MCP (defaults 0); the
+Mixamo project's asset had its defaults set by hand once. Now `ue_common.ABP_FLOATS` is the one list, `ue_build.py abp_defaults`
+writes it onto the class (in `epic_build_all.sh` right after `build_abp.py`); measured after it: the block raises the hand to
+124 cm and the shield fist closes. Rule: **a variable added through the MCP has default 0; anything that divides or interpolates
+by it needs its default written in-editor.**
 ⚠ The MCP-built widgets and graphs stay UNSAVED in memory: after a complete build `WBP_DemoHeader` was missing on disk (the
 package audit counted 2 widgets) while the editor showed it — `ue_build.py save_all` (`EAL.save_directory(PKG, only_if_is_dirty)`)
 ends `epic_build_all.sh` now; run it before packaging or restarting the editor. `ue_build.py showreel_bow` builds the bow's

@@ -19,6 +19,7 @@ fi
 if step abp; then
   $PY tools/ue/ue_build.py abp_asset --timeout 60        # the ABP asset itself; build_abp.py writes its graphs
   python tools/ue/build_abp.py
+  $PY tools/ue/ue_build.py abp_defaults --timeout 60      # the float defaults (FadeSpeed...) the MCP variable add leaves at 0
 fi
 if step character; then
   $PY tools/ue/ue_build.py character eyes --timeout 60     # eyes: the EyesVisible / EyeColor variables + sphere components on BP_UndeadSkeleton, before its graphs and its children
