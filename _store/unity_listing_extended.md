@@ -8,7 +8,7 @@ The full Undead Legion skeleton pack plus ragdolls, hit reactions, cloth, rise a
 
 Raise an undead army, then send it to battle.
 
-Undead Legion Extended contains everything in Undead Legion - Modular Skeleton Army (six skeleton classes on one shared rig, 48 swappable armour pieces, 12 weapons and 50 Humanoid animations) and adds the systems that make the skeletons playable: physics, movement, combat and whole armies. Owners of Undead Legion can upgrade at a discount.
+Undead Legion Extended contains everything in Undead Legion - Modular Skeleton Army (six skeleton classes on one shared rig, 48 swappable armour pieces, 12 weapons and 58 Humanoid animations) and adds the systems that make the skeletons playable: physics, movement, combat and whole armies. Owners of Undead Legion can upgrade at a discount.
 
 **Full-body ragdolls**
 Every skeleton carries an 11-body ragdoll. While it animates, the bodies are hitboxes that tell you which part was struck. On death it falls with the impact of the killing blow and drops its weapons, and it can blend back to the animation for revives and get-ups.
@@ -26,7 +26,7 @@ Skeletons rise out of the ground and turn to dust with a glowing edge, on a URP 
 A NavMeshAgent drives directional locomotion blend trees built from the pack's measured walk, run, back and strafe clips, so the feet match the ground at any speed. A heavy, shambling gait for the rank and file and an upright gait for casters. Weapon idles keep a two-hander, a bow or a staff properly held while moving.
 
 **Combat AI**
-Skeletons find the nearest enemy, close in and attack with the moves that suit their weapon, from attack modules attached by the weapon held: regular one-handed attacks for swords and daggers, regular and heavy attacks for axes and maces, left-hand attacks with a second dagger, two-handed swings, bow shots, homing wand and staff bolts, and an area cast. Damage lands when the blow connects. Teams, health, damage and death events are ready to connect to your game.
+Skeletons find the nearest enemy, close in and attack with the moves that suit their weapon, from attack modules attached by the weapon held: regular one-handed attacks for swords and daggers, regular and heavy attacks for axes and maces, left-hand attacks with a second dagger, regular and heavy two-handed swings, bow shots, homing wand and staff bolts, and an area cast. Damage lands when the blow connects. Assassins fight with quick regular attacks only. Add your own modules or change the moves per weapon in the inspector. Teams, health, damage and death events are ready to connect to your game.
 
 **Army spawner**
 Spawn formations of varied skeletons: random classes, mixed armour borrowed across classes under dressing rules (casters always robed and hooded, the melee ranks in plate and leather with pieces missing), loadouts that suit each class, subtle colour variation and team-coloured eyes, rising from the ground one by one.
@@ -46,7 +46,7 @@ Everything from the base pack is included unchanged: the character browser demo,
 
 **Everything in Undead Legion - Modular Skeleton Army**
 - 6 characters on one 68-bone Humanoid rig, 16,728 - 18,870 triangles fully dressed
-- 48 armour modules, 12 weapons (a rigged recurve bow), 50 animations at 30 fps
+- 48 armour modules, 12 weapons (a rigged recurve bow), 58 animations at 30 fps
 - URP/Lit materials, 1024x1024 character maps
 - See that listing for the full breakdown
 
