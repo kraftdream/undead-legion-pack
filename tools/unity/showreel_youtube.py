@@ -21,6 +21,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 SR = os.path.join(ROOT, "Showreel"); AS = os.path.join(SR, "assets"); WK = os.path.join(AS, "work")
 FF = imageio_ffmpeg.get_ffmpeg_exe()
 W, H, FPS = 1920, 1080, 30
+S = 1.0                            # card layout scale: the cards are laid out in 1080p units (H / 1080), set by --height
 FADE = 0.8
 STAGE_TITLE = 48 / 30.0            # the recorder's own title card, cut
 
@@ -53,7 +54,7 @@ def duration(path):
 
 
 def font(name, size, weight=None):
-    f = ImageFont.truetype(os.path.join(AS, name), size)
+    f = ImageFont.truetype(os.path.join(AS, name), int(round(size * S)))
     if weight:
         try: f.set_variation_by_name(weight)
         except Exception: pass
@@ -71,30 +72,32 @@ def background(img, blur=14, dark=0.32):
     # vignette
     v = Image.new("L", (W, H), 0); d = ImageDraw.Draw(v)
     for i in range(60):
-        a = int(255 * (i / 60.0) ** 1.6); m = i * 9
-        d.rectangle([m * 1.6, m * 0.9, W - m * 1.6, H - m * 0.9], outline=a, width=12)
-    v = v.filter(ImageFilter.GaussianBlur(80))
+        a = int(255 * (i / 60.0) ** 1.6); m = i * 9 * S
+        d.rectangle([m * 1.6, m * 0.9, W - m * 1.6, H - m * 0.9], outline=a, width=max(1, int(12 * S)))
+    v = v.filter(ImageFilter.GaussianBlur(80 * S))
     black = Image.new("RGB", (W, H), (6, 6, 8))
     return Image.composite(bg, black, v)
 
 
 def text(d, xy, s, f, fill, anchor="mm", shadow=True, spacing=0):
+    xy = (xy[0] * S, xy[1] * S)                                        # layout units (1080p) -> pixels
     if shadow:
         for o in ((3, 3), (2, 2)):
-            d.text((xy[0] + o[0], xy[1] + o[1]), s, font=f, fill=(0, 0, 0), anchor=anchor)
+            d.text((xy[0] + o[0] * S, xy[1] + o[1] * S), s, font=f, fill=(0, 0, 0), anchor=anchor)
     d.text(xy, s, font=f, fill=fill, anchor=anchor)
 
 
 def rule(d, cx, y, half, color=GOLD):
-    d.line([cx - half, y, cx - 18, y], fill=color, width=2); d.line([cx + 18, y, cx + half, y], fill=color, width=2)
-    d.polygon([(cx, y - 7), (cx + 7, y), (cx, y + 7), (cx - 7, y)], outline=color, fill=None)
+    cx, y, half = cx * S, y * S, half * S; k = S
+    d.line([cx - half, y, cx - 18 * k, y], fill=color, width=max(1, int(2 * k))); d.line([cx + 18 * k, y, cx + half, y], fill=color, width=max(1, int(2 * k)))
+    d.polygon([(cx, y - 7 * k), (cx + 7 * k, y), (cx, y + 7 * k), (cx - 7 * k, y)], outline=color, fill=None)
 
 
 ENGINE = ""                        # --engine: a small line under the intro (e.g. "Rendered in Unreal Engine 5.8")
 
 
 def card_intro(bg):
-    im = background(bg, 5, 0.55); d = ImageDraw.Draw(im); cx = W // 2
+    im = background(bg, 5, 0.55); d = ImageDraw.Draw(im); cx = 960      # layout units
     text(d, (cx, 400), "UNDEAD LEGION", font("CinzelDecorative-Bold.ttf", 150), GOLD_HI)
     rule(d, cx, 500, 420)
     text(d, (cx, 575), "Modular Skeleton Army", font("Cinzel.ttf", 64, b"Regular"), BONE)
@@ -105,7 +108,7 @@ def card_intro(bg):
 
 
 def card_features(bg):
-    im = background(bg, 16, 0.32); d = ImageDraw.Draw(im); cx = W // 2
+    im = background(bg, 16, 0.32); d = ImageDraw.Draw(im); cx = 960      # layout units
     text(d, (cx, 190), "WHAT'S INSIDE", font("Cinzel.ttf", 70, b"Bold"), GOLD_HI)
     rule(d, cx, 262, 300)
     items = [("6 skeleton classes", "Knight, Warrior, Archer, Assassin, Mage, Necromancer"),
@@ -121,7 +124,7 @@ def card_features(bg):
 
 
 def card_stage(bg, title, sub):
-    im = background(bg, 12, 0.42); d = ImageDraw.Draw(im); cx = W // 2
+    im = background(bg, 12, 0.42); d = ImageDraw.Draw(im); cx = 960      # layout units
     text(d, (cx, 490), title, font("CinzelDecorative-Bold.ttf", 120), GOLD_HI)
     rule(d, cx, 580, 320)
     text(d, (cx, 650), sub, font("EBGaramond.ttf", 48, b"Medium"), BONE)
@@ -129,7 +132,7 @@ def card_stage(bg, title, sub):
 
 
 def card_outro(bg):
-    im = background(bg, 5, 0.5); d = ImageDraw.Draw(im); cx = W // 2
+    im = background(bg, 5, 0.5); d = ImageDraw.Draw(im); cx = 960      # layout units
     text(d, (cx, 380), "UNDEAD LEGION", font("CinzelDecorative-Bold.ttf", 136), GOLD_HI)
     rule(d, cx, 470, 400)
     text(d, (cx, 540), "Modular Skeleton Army", font("Cinzel.ttf", 58, b"Regular"), BONE)
@@ -165,11 +168,13 @@ def stage_clip(video, name):
 
 
 def main():
-    global WK, ENGINE
+    global WK, ENGINE, W, H, S
     ap = argparse.ArgumentParser(); ap.add_argument("--out", default=os.path.join(SR, "undead_legion_showreel.mp4")); ap.add_argument("--crf", type=int, default=16)
     ap.add_argument("--src", default=SR, help="folder with showreel_{modular,movement,weapons}.mp4 (Showreel/unreal for the Unreal renders)")
     ap.add_argument("--engine", default="", help="a line under the intro title")
+    ap.add_argument("--height", type=int, default=1080, help="output height (1440: YouTube serves a better encode of a >1080p upload); the stage videos must match")
     a = ap.parse_args()
+    H = a.height; W = H * 16 // 9; S = H / 1080.0
     ENGINE = a.engine
     if os.path.abspath(a.src) != os.path.abspath(SR):
         WK = os.path.join(AS, "work_" + os.path.basename(os.path.normpath(a.src)))

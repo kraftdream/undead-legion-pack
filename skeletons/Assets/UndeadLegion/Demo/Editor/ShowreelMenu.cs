@@ -26,7 +26,7 @@ namespace UndeadLegion.Demo
         public class Config
         {
             public float azimuth = -30f, elevation = 12f, distance = 4.0f, lookHeight = 1.0f, fieldOfView = 32f;
-            public int width = 1920, height = 1080, supersample = 2, maxLoadouts = 0, fps = 30;
+            public int width = 1920, height = 1080, supersample = 2, maxLoadouts = 0, fps = 30, msaa = 8;
             public string outputDir = "";
             public string stage = "weapons";
         }
@@ -77,7 +77,7 @@ namespace UndeadLegion.Demo
             cfg.fieldOfView = float.Parse(Env("SHOWREEL_FOV", "32"), System.Globalization.CultureInfo.InvariantCulture);
             cfg.width = int.Parse(Env("SHOWREEL_WIDTH", "1920")); cfg.height = int.Parse(Env("SHOWREEL_HEIGHT", "1080"));
             cfg.supersample = int.Parse(Env("SHOWREEL_SUPERSAMPLE", "2")); cfg.maxLoadouts = int.Parse(Env("SHOWREEL_MAXLOADOUTS", "0"));
-            cfg.fps = int.Parse(Env("SHOWREEL_FPS", "30"));
+            cfg.fps = int.Parse(Env("SHOWREEL_FPS", "30")); cfg.msaa = int.Parse(Env("SHOWREEL_MSAA", "8"));
             cfg.outputDir = Env("SHOWREEL_OUT", "");
             cfg.stage = Env("SHOWREEL_STAGE", "weapons");
             SessionState.SetString(KeyConfig, JsonUtility.ToJson(cfg));
@@ -108,7 +108,7 @@ namespace UndeadLegion.Demo
                 var cfg = JsonUtility.FromJson<Config>(SessionState.GetString(KeyConfig, "{}"));
                 _rec = new GameObject("ShowreelRecorder").AddComponent<ShowreelRecorder>();
                 _rec.azimuth = cfg.azimuth; _rec.elevation = cfg.elevation; _rec.distance = cfg.distance; _rec.lookHeight = cfg.lookHeight; _rec.fieldOfView = cfg.fieldOfView;
-                _rec.width = cfg.width; _rec.height = cfg.height; _rec.supersample = cfg.supersample; _rec.maxLoadouts = cfg.maxLoadouts; _rec.fps = cfg.fps;
+                _rec.width = cfg.width; _rec.height = cfg.height; _rec.supersample = cfg.supersample; _rec.targetMsaa = cfg.msaa; _rec.maxLoadouts = cfg.maxLoadouts; _rec.fps = cfg.fps;
                 _rec.outputDir = cfg.outputDir; _rec.maxQuality = true; _rec.stage = cfg.stage;
                 _rec.Begin();
                 Debug.Log("Showreel headless: recorder started");
