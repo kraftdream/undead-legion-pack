@@ -11,7 +11,7 @@ Raise an undead army, then send it to battle.
 Undead Legion Extended contains everything in Undead Legion - Modular Skeleton Army (six skeleton classes on one shared rig, 48 swappable armour pieces, 12 weapons and 58 Humanoid animations) and adds the systems that make the skeletons playable: physics, movement, combat and whole armies. Owners of Undead Legion can upgrade at a discount.
 
 **Full-body ragdolls**
-Every skeleton carries an 11-body ragdoll. While it animates, the bodies are hitboxes that tell you which part was struck. On death it falls with the impact of the killing blow and drops its weapons, and it can blend back to the animation for revives and get-ups.
+Every skeleton carries an 11-body ragdoll. While it animates, the bodies are hitboxes that tell you which part was struck. On death it falls with the impact of the killing blow, drops its weapons and settles naturally, and it can blend back to the animation for revives and get-ups.
 
 **Hit reactions**
 Physical flinches layered over any animation: a struck skeleton recoils through the spine, head and arms and recovers, while it keeps walking, idling or attacking.
@@ -23,10 +23,10 @@ Robes, skirts and pants simulate as cloth, pinned at the waist and colliding wit
 Skeletons rise out of the ground and turn to dust with a glowing edge, on a URP Lit dissolve shader that keeps each material's look. The glowing eyes bloom in the arena.
 
 **NavMesh movement**
-A NavMeshAgent drives directional locomotion blend trees built from the pack's measured walk, run, back and strafe clips, so the feet match the ground at any speed. A heavy, shambling gait for the rank and file and an upright gait for casters. Weapon idles keep a two-hander, a bow or a staff properly held while moving.
+A NavMeshAgent drives directional locomotion blend trees built from the pack's measured walk, run, back and strafe clips, so the feet match the ground at any speed. A heavy, shambling gait for the rank and file and an upright gait for casters. Skeletons swing their arms as they walk and run, and a two-handed weapon stays held in both hands while moving.
 
 **Combat AI**
-Skeletons find the nearest enemy, close in and attack with the moves that suit their weapon, from attack modules attached by the weapon held: regular one-handed attacks for swords and daggers, regular and heavy attacks for axes and maces, left-hand attacks with a second dagger, regular and heavy two-handed swings, bow shots, homing wand and staff bolts, and an area cast. Damage lands when the blow connects. Assassins fight with quick regular attacks only. Add your own modules or change the moves per weapon in the inspector. Teams, health, damage and death events are ready to connect to your game.
+Skeletons find the nearest enemy, close in to their weapon's reach (daggers get close, two-handers strike from further out, casters and archers keep their distance) and attack with the moves that suit their weapon, from attack modules attached by the weapon held: regular one-handed attacks for swords and daggers, regular and heavy attacks for axes and maces, left-hand attacks with a second dagger, regular and heavy two-handed swings, bow shots, homing wand and staff bolts, and an area cast. Damage lands when the blow connects. In a crowd, a skeleton that cannot get closer strikes from where it stands. Assassins fight with quick regular attacks only, and area casts can be switched off per skeleton. Add your own modules or change the moves per weapon in the inspector. Teams, health, damage and death events are ready to connect to your game.
 
 **Army spawner**
 Spawn formations of varied skeletons: random classes, mixed armour borrowed across classes under dressing rules (casters always robed and hooded, the melee ranks in plate and leather with pieces missing), loadouts that suit each class, subtle colour variation and team-coloured eyes, rising from the ground one by one.
@@ -57,6 +57,7 @@ Everything from the base pack is included unchanged: the character browser demo,
 - Dissolve: URP Lit-based shader with height cut, noise and HDR edge; forward, depth and depth-normals passes
 - Navigation: AI Navigation package (NavMeshAgent), two 2D directional locomotion blend trees at measured clip speeds
 - Animator controller extended with locomotion blend trees and upper-body weapon idles
+- Attack modules per weapon: moves, damage, reach and engage distance, editable in the inspector
 - 18 runtime scripts (C#, source included): ragdoll, hit reactions, health, cloth, dissolve, navigation, combat AI, projectiles, army spawner, battle camera, player controller and camera, and the demos
 - Arena demo scene with a baked NavMesh and URP post-processing (bloom)
 - Extended animation browser scene with a physics panel
