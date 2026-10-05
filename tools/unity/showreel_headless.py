@@ -17,7 +17,8 @@ ap = argparse.ArgumentParser()
 ap.add_argument("--stage", choices=["modular", "movement", "weapons", "attacks"], default="modular", help="which stage to render (one per run; stitched later)")
 ap.add_argument("--side", choices=["left", "right"], default="left", help="left = the camera at -30 deg (the character's left side nearest), right = +30")
 ap.add_argument("--azimuth", type=float, default=None, help="overrides --side")
-ap.add_argument("--supersample", type=int, default=2)
+ap.add_argument("--supersample", type=int, default=2, help="1, 2 or 4 (3 rounds up to 4)")
+ap.add_argument("--msaa", type=int, default=8, help="MSAA samples on the render target")
 ap.add_argument("--max-loadouts", type=int, default=0, help="test runs: stop after N loadouts (0 = the whole plan)")
 ap.add_argument("--width", type=int, default=1920)
 ap.add_argument("--height", type=int, default=1080)
@@ -41,7 +42,7 @@ if os.path.exists(os.path.join(PROJECT, "Temp", "UnityLockfile")):
 
 env = dict(os.environ)
 env.update({"SHOWREEL_AZIMUTH": str(az), "SHOWREEL_WIDTH": str(a.width), "SHOWREEL_HEIGHT": str(a.height), "SHOWREEL_SUPERSAMPLE": str(a.supersample),
-            "SHOWREEL_MAXLOADOUTS": str(a.max_loadouts), "SHOWREEL_FPS": str(a.fps), "SHOWREEL_OUT": frames, "SHOWREEL_STAGE": a.stage})
+            "SHOWREEL_MAXLOADOUTS": str(a.max_loadouts), "SHOWREEL_FPS": str(a.fps), "SHOWREEL_MSAA": str(a.msaa), "SHOWREEL_OUT": frames, "SHOWREEL_STAGE": a.stage})
 cmd = [a.unity, "-batchmode", "-projectPath", PROJECT, "-executeMethod", "UndeadLegion.Demo.ShowreelMenu.RecordHeadless", "-logFile", log]
 print("launching headless Unity: stage %s, azimuth %+.0f, %dx%d, supersample %dx, steps %s -> %s" % (a.stage, az, a.width, a.height, a.supersample, a.max_loadouts or "all", frames), flush=True)
 t0 = time.time()
