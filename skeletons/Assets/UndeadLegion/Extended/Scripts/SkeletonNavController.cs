@@ -7,8 +7,9 @@ namespace UndeadLegion.Extended
     /// Moves a skeleton along NavMesh paths with ROOT MOTION: the agent plans the path and gives the wanted velocity, which (in
     /// the character's frame) drives a 2D locomotion blend tree whose clips sit at their measured speeds; the clips' own root
     /// motion then moves and turns the body, the agent kept on it and the body kept on the mesh, so the feet plant. Two gaits:
-    /// Heavy (the shambling _01 set) and Upright (the _02 set). While moving, the weapon's idle pose holds the upper body;
-    /// when the agent stops, the full weapon idle takes over. Also the entry point for one-shot actions (attacks, casts).
+    /// Heavy (the shambling _01 set) and Upright (the _02 set). While moving, the locomotion clip animates the whole body (arm
+    /// swing included); only a two-handed weapon holds its idle pose on the upper body (both hands stay on the shaft). When the
+    /// agent stops, the full weapon idle takes over. Also the entry point for one-shot actions (attacks, casts).
     /// </summary>
     [RequireComponent(typeof(NavMeshAgent))]
     [DisallowMultipleComponent]
@@ -25,6 +26,8 @@ namespace UndeadLegion.Extended
         public float parameterDamping = 0.12f;
         [Tooltip("Degrees per second the agent turns.")]
         public float turnSpeed = 360f;
+        [Tooltip("Weapon idles held on the upper body while moving (the rest run with the locomotion's own arms). Default: the two-handed idle, which keeps both hands on the shaft.")]
+        public string[] upperHoldWhileMoving = { "Idle_TwoHanded" };
         [Tooltip("Driven by a player (or your own code) through ManualVelocity instead of NavMesh paths; the body does not steer.")]
         public bool manual = false;
         /// <summary>In manual mode: the wanted velocity in the CHARACTER's frame (x right, z forward), m/s.</summary>
@@ -183,7 +186,7 @@ namespace UndeadLegion.Extended
             {
                 _animator.CrossFadeInFixedTime(LocomotionState, 0.2f, 0); _basePlaying = LocomotionState;
                 var idle = WeaponIdle();
-                if (_upperLayer >= 0 && idle != "Idle_01" && _animator.HasState(_upperLayer, Animator.StringToHash(idle)))
+                if (_upperLayer >= 0 && HoldsUpper(idle) && _animator.HasState(_upperLayer, Animator.StringToHash(idle)))
                 { _animator.CrossFadeInFixedTime(idle, 0.2f, _upperLayer); _upperPlaying = idle; }
             }
             else if (!moving && _moving)
@@ -194,6 +197,13 @@ namespace UndeadLegion.Extended
             else if (!moving && string.IsNullOrEmpty(_basePlaying)) PlayIdle(true);
             _moving = moving;
             if (_footLock != null) _footLock.enabledLock = !moving;
+        }
+
+        bool HoldsUpper(string idle)
+        {
+            if (upperHoldWhileMoving == null) return false;
+            foreach (var h in upperHoldWhileMoving) if (h == idle) return true;
+            return false;
         }
 
         /// <summary>Re-reads the loadout (call after equipping another weapon) so the idle and the upper-body pose follow it.</summary>
