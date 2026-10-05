@@ -1,4 +1,4 @@
-Six skeleton classes on one shared 68-bone skeleton for Unreal Engine 5.8, with 48 swappable armour modules that fit every skeleton, 12 weapons on adjustable hand sockets and 58 animation sequences at 30 fps that play on every character - two locomotion sets with root motion, 16 one- and two-handed attacks with heavy variants, a held block, a bow shot with string and arrow notifies, casts, taunts, hit reactions, staggers and four deaths, plus additive twitches and finger idles.
+Six skeleton classes rigged to the Epic skeleton for Unreal Engine 5.8, with 48 swappable armour modules that fit every skeleton, 12 weapons on adjustable hand sockets and 58 animation sequences at 30 fps that play on every character - two locomotion sets with root motion, 16 one- and two-handed attacks with heavy variants, a held block, a bow shot with string and arrow notifies, casts, taunts, hit reactions, staggers and four deaths, plus additive twitches and finger idles.
 
 Each class is a ready BP_<Class> Character: the capsule and movement, the shared Animation Blueprint, its default armour set and loadout, and glowing eyes in any colour. Armour pieces are leader-pose components on the body (WearModule / RemoveModule), weapons are Blueprints spawned on the hand sockets (EquipLoadout), and the fingers close on whatever the hand holds.
 
@@ -6,6 +6,6 @@ The included map, UndeadLegion/Demo/Maps/UndeadLegion_Demo, is an animation brow
 
 The Animation Blueprint is a flat layer stack by design - the base loop, upper-body and per-arm layers, additive twitch and hit layers, finger layers - so attacks and casts can play over a walk and a shield block can be held over anything, and you can build your own state machine on the same clips.
 
-Not rigged to the Epic skeleton: one custom skeleton (Mixamo-style names plus jaw, palm and weapon-socket bones) and one clip set authored for it. Built for Unreal Engine 5.8. Blueprint only - no C++ and no plugin dependencies.
+Rigged to the Epic skeleton: the UE5 mannequin's hierarchy and bone frames with the skeletons' own proportions, plus jaw and pelvis helper bones (93 bones). Add it to your mannequin's compatible skeletons and every mannequin animation plays on the characters directly; the pack's own 58 clips are authored on it. Built for Unreal Engine 5.8. Blueprint only - no C++ and no plugin dependencies.
 
 Clip lengths, the measured root-motion speed per loop, the Animation Blueprint layers, the sockets and grips and the per-class figures are in Content/UndeadLegion/Documentation.pdf, so the documentation travels with the asset package.

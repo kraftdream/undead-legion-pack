@@ -6,9 +6,10 @@ maps' `flip_green_channel`). The description and the additional-information box 
 files beside this one; paste those, not this file. Edit the `.txt`, then re-check the figures here —
 the creatures pack was rejected once for a description that did not match the pack.
 
-**The package to upload** is built by `python tools/ue/make_production_ue.py --verify` (after
-`python tools/make_documentation.py ue`, which prints the manual into the project): `../undead-legion-
-production-ue/UndeadLegion_UE58.zip` (top folder `UndeadLegion/`: `Config/`, `Content/UndeadLegion/`,
+**The package to upload** is the EPIC-SKELETON project (`skeletons_ue_epic`, 2026-10-05), built by
+`python tools/ue/make_production_ue.py --epic --verify` (after `python tools/make_documentation.py ue`, which prints the
+manual into it): `../undead-legion-production-ue-epic/UndeadLegion_UE58_Epic.zip` (the Mixamo-skeleton package of
+`skeletons_ue` is `make_production_ue.py --verify` → `../undead-legion-production-ue/UndeadLegion_UE58.zip`) (top folder `UndeadLegion/`: `Config/`, `Content/UndeadLegion/`,
 `UndeadLegion.uproject`; 291 files, 95 MB). It strips the showreel map, the 25 `LS_*` level sequences,
 `BP_ShowreelDirector`, the 5 `Pipelines/IP_*` Interchange pipelines (import settings, not content —
 Fab's "no unused assets" rule, the creatures pack's rejection #2), `Developers`, `Collections`, all seven
@@ -32,7 +33,7 @@ necromancer, armor, weapons, animated, rigged, game ready, army, horde
 
 ## Category
 
-Characters & Creatures → Humanoids (the six are human-shaped skeletons on a humanoid skeleton; the
+Characters & Creatures → Humanoids (the six are human-shaped skeletons on the Epic skeleton; the
 creatures pack went under Creatures & Monsters)
 
 ## "Add Unreal Engine version" dialog
@@ -57,7 +58,7 @@ creatures pack went under Creatures & Monsters)
 | Triangles | 191 – 7,588 | per mesh: `SK_SkeletonMage_Greave_L` → `SK_SkeletonAssassin` body |
 | Vertices | 134 – 5,031 | the same two meshes |
 | Pack of multiple assets | Yes | |
-| Assets | 286 | 55 skeletal meshes, 11 static meshes, 2 skeletons, 1 physics asset, 67 textures, 2 materials, 25 instances, 59 sequences, 33 montages, 1 Animation Blueprint, 2 notifies, 23 Blueprints, 3 widgets, 2 maps (counted in the stripped package) |
+| Assets | 286 | 55 skeletal meshes, 11 static meshes, 2 skeletons, 1 physics asset, 67 textures, 2 materials, 25 instances, 59 sequences, 33 montages, 1 Animation Blueprint, 2 notifies, 23 Blueprints, 3 widgets, 2 maps (counted in the stripped Epic-skeleton package, 2026-10-05) |
 | Unique meshes | 66 | 55 skeletal (6 bodies, 48 modules, 1 bow) + 11 static (weapons) |
 | Includes LODs | No | every skeletal and static mesh has 1 LOD |
 | Bounding box size | 170 | the dressed characters, cm |
@@ -88,13 +89,13 @@ creatures pack went under Creatures & Monsters)
 |---|---|---|
 | Animated | Yes | |
 | Rigged animation | Yes | |
-| Rigged to | Custom | one shared 68-bone skeleton, not the Epic skeleton |
+| Rigged to | Epic skeleton | the UE5 mannequin's 89 bones (hierarchy, names, bone frames, ik bones) + jaw_01/02 + pelvis_l/r = 93, our proportions (`skeletons_ue_epic`, 2026-10-05) |
 | Animation tracks | 59 | 58 clips + the two-frame `A_Grip` finger-pose data |
 | Solid animation | No | |
 | Morph animation / blendshapes | No | |
 | Scale animation | No | |
 | Baked animation | Yes | |
-| IK bones included | No | |
+| IK bones included | Yes | the mannequin's ik_hand_root / ik_hand_gun / ik_hand_l/r and ik_foot_root / ik_foot_l/r | |
 | Characters | 6 | |
 | Animation type | Root Motion | the locomotion loops and the staggers; every other clip in place |
 
@@ -127,7 +128,7 @@ creatures pack went under Creatures & Monsters)
 | Supported engine version | 5.8 |
 | Supported target platforms | Windows, macOS, Linux |
 | Distribution method | Asset package |
-| Documentation | `Content/UndeadLegion/Documentation.pdf` — the Unreal manual (10 A4 pages: setup, folders, characters, armour API, weapons and loadouts, sockets, the bow, the clip list with lengths, the Animation Blueprint layers, root motion and speeds in cm/s, the Blueprint API, the demo map, own animations, technical details), printed from `tools/docs/UndeadLegion_UE_Documentation.html` by `python tools/make_documentation.py ue` |
+| Documentation | `Content/UndeadLegion/Documentation.pdf` — the Unreal manual (11 A4 pages: setup, folders, characters, armour API, weapons and loadouts, sockets, the bow, the clip list with lengths, the Animation Blueprint layers, root motion and speeds in cm/s, the Blueprint API, the demo map, mannequin animations and own animations, technical details), printed from `tools/docs/UndeadLegion_UE_Documentation.html` by `python tools/make_documentation.py ue` |
 
 ---
 

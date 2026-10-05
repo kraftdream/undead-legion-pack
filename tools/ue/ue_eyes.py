@@ -12,7 +12,7 @@ character's right is -X (the BP yaws the mesh -90).
 """
 import os, re
 import unreal
-from ue_common import PKG, UNITY, CHARACTERS, EAL, log
+from ue_common import (PKG, UNITY, CHARACTERS, EAL, log, bn)
 
 MEL = unreal.MaterialEditingLibrary
 MAT = PKG + "/Materials/M_Eyes"
@@ -43,7 +43,7 @@ def material():
 def sockets():
     X = unreal.AnimPoseExtensions
     ref = X.get_reference_pose(unreal.load_asset(PKG + "/Characters/SKEL_UndeadLegion"))
-    head = X.get_bone_pose(ref, "Head", unreal.AnimPoseSpaces.WORLD)
+    head = X.get_bone_pose(ref, bn("Head"), unreal.AnimPoseSpaces.WORLD)
     for c in CHARACTERS:
         ox, oy, oz, size = unity_eyes(c)
         mesh = unreal.load_asset("%s/Characters/%s/SK_%s" % (PKG, c, c))

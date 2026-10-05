@@ -22,6 +22,7 @@ replaces the previous one - the loops, the held block and the twitches are graph
 import json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from mcp import bp, obj, ref
+from ue_common import EPIC, EPIC_FINGERS, bn      # the Epic skeleton's bone names (UL_EPIC=1 / --epic)
 
 ABP = "/Game/UndeadLegion/Blueprints/ABP_UndeadSkeleton"
 BPR = ref(ABP)
@@ -144,7 +145,7 @@ def anim_graph():
     save("Base", s0, X + 1050, -150)
 
     X = -2900
-    up = layered(use("Base", X, -150), [slot("UpperBody", use("Base", X, 50), X + 250, 50)], [["Spine1"]], X + 550, -150)
+    up = layered(use("Base", X, -150), [slot("UpperBody", use("Base", X, 50), X + 250, 50)], [[bn("Spine1")]], X + 550, -150)
     save("Upper", up, X + 850, -150)
 
     X = -2200
@@ -152,11 +153,11 @@ def anim_graph():
     link(use("Upper", X, 100), "Pose", blk, "A")
     link(player("Block_L_Idle", X, 250), "Pose", blk, "B")
     link(get("BlockAlpha", X, 400), "BlockAlpha", blk, "Alpha")
-    la = layered(use("Upper", X, -150), [slot("LeftArm", blk, X + 500, 150)], [["LeftShoulder"]], X + 800, -150)
+    la = layered(use("Upper", X, -150), [slot("LeftArm", blk, X + 500, 150)], [[bn("LeftShoulder")]], X + 800, -150)
     save("Arms", la, X + 1100, -150)
 
     X = -1300
-    ra = layered(use("Arms", X, -150), [slot("RightArm", use("Arms", X, 50), X + 250, 50)], [["RightShoulder"]], X + 550, -150)
+    ra = layered(use("Arms", X, -150), [slot("RightArm", use("Arms", X, 50), X + 250, 50)], [[bn("RightShoulder")]], X + 550, -150)
     prev, X = ra, -600
     for i in (1, 2, 3):
         aa = node("Animation|Blends|ApplyAdditive", X + 300 * i, -150)
@@ -180,7 +181,7 @@ def anim_graph():
         link(node("Animation|Sequences|Evaluate'A_Grip'", X, y + 150, props={"explicitTime": 0.0}), "Pose", tw, "B")
         link(get("Grip" + lr, X, y + 300), "Grip" + lr, tw, "Alpha")
         hands.append(tw)
-    palms = lambda s: ["%sHandPalm%d" % (s, i) for i in (1, 2, 3, 4)]
+    palms = lambda s: EPIC_FINGERS[s] if EPIC else ["%sHandPalm%d" % (s, i) for i in (1, 2, 3, 4)]
     # one layer per hand, chained (the toolset cannot add a second blend pin to one Layered-blend node)
     fin = layered(use("Body", X + 300, -150), [hands[0]], [palms("Left")], X + 700, -150, weights=["FingerL"])
     fin = layered(fin, [hands[1]], [palms("Right")], X + 1000, -150, weights=["FingerR"])

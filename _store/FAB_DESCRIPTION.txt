@@ -1,8 +1,9 @@
 UNDEAD LEGION - MODULAR SKELETON ARMY
 
-Six skeleton warriors on one shared skeleton for Unreal Engine 5.8: 48 swappable armour
-pieces that fit every skeleton, 12 weapons on adjustable hand sockets, and one set of 58
-animations that plays on every character. Each class is a drop-in Blueprint Character with
+Six skeleton warriors rigged to the Epic skeleton for Unreal Engine 5.8: 48 swappable
+armour pieces that fit every skeleton, 12 weapons on adjustable hand sockets, one set of
+58 animations that plays on every character, and any UE5 mannequin animation plays on
+them too. Each class is a drop-in Blueprint Character with
 the Animation Blueprint, its armour, its weapons and glowing eyes already wired, plus a
 demo map with an animation browser.
 
@@ -62,7 +63,8 @@ finger idles, root motion on or off, turntable, recenter, eyes on or off. Drag t
 wheel to zoom.
 
 TECHNICAL DETAILS
-Rigged: Yes. Rigged to Epic skeleton: No. IK bones: No. Animated: Yes.
+Rigged: Yes. Rigged to Epic skeleton: Yes (UE5 mannequin hierarchy and bone frames,
+plus 4 extra bones: jaw x2, pelvis helpers x2). IK bones: Yes. Animated: Yes.
 Number of Animations: 58 (plus one two-frame finger-pose clip the characters read)
 Animation types: root motion (locomotion, staggers) and in-place (everything else)
 Characters: 6 Blueprint Characters on 1 shared skeleton; 55 skeletal meshes (6 bodies,
@@ -71,7 +73,7 @@ Animation Blueprints 1, Montages 33
 Triangles (fully dressed): Assassin 18,870 / Mage 17,649 / Necromancer 17,384 /
 Archer 17,356 / Warrior 16,979 / Knight 16,728. Bare bodies 6,364 - 7,588; armour modules
 191 - 6,582 each; weapons 344 - 1,495 each (the skinned bow 3,869). 119,248 triangles in
-total. Max 4 bone influences per vertex.
+total. Max 8 bone influences per vertex.
 Materials: 2 master materials plus 25 material instances - 12 character (body and armour
 per class, armour two-sided), 12 weapon, 1 demo floor; the eyes an unlit emissive
 Textures: 67. Resolutions 1024x1024 characters (base colour, normal, packed
@@ -84,15 +86,17 @@ no C++
 Documentation included at Content/UndeadLegion/Documentation.pdf
 
 SKELETON
-One skeleton for all six characters and every armour module: 68 bones, Mixamo-style names
-(Hips, Spine, Spine1, Spine2, Neck, Head, Left/Right Shoulder, Arm, ForeArm, Hand and
-fingers, UpLeg, Leg, Foot, ToeBase ...). Beyond a standard humanoid hierarchy it carries a
-second neck bone, two jaw bones, palm bones and two weapon socket bones in the hands. It is
-not the Epic skeleton and carries no IK bones; every clip is authored against it, and
-retargeting to the UE mannequin is not set up in the pack.
+One skeleton for all six characters and every armour module, and it is the Epic skeleton:
+the UE5 mannequin's 89 bones (root, pelvis, spine_01-05, neck_01/02, head, clavicle /
+upperarm / lowerarm / hand with twist bones, metacarpals and fingers, thigh / calf / foot /
+ball with twist bones, ik_hand and ik_foot bones) with the mannequin's bone frames and the
+skeletons' own proportions, plus jaw_01 / jaw_02 and pelvis_l / pelvis_r - 93 bones. Add
+it to your mannequin's compatible skeletons and every mannequin animation, montage or
+blend space plays on the characters directly; Assign Skeleton and the IK Retargeter work
+as on any mannequin-rigged mesh.
 
 NOTES
-- Not rigged to the Epic skeleton. One custom skeleton, one clip set.
+- Rigged to the Epic skeleton (UE5 mannequin hierarchy); one clip set of its own on top.
 - The Animation Blueprint is a flat layer stack by design - loops as montages in a base
   slot, one-shots in slot layers - so you can build your own state machine on the same
   clips.

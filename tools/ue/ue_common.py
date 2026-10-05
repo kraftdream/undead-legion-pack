@@ -1,9 +1,28 @@
 """Shared constants and import helpers for the tools/ue/ scripts (run inside the UE 5.8 editor)."""
 import os, sys, glob, json
-import unreal
+try:
+    import unreal
+except ImportError:          # system Python (the MCP-driven builders) only needs the constants and the name map
+    unreal = None
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-EXPORT = os.path.join(REPO, "Export_UE")
+# the Epic-skeleton project (skeletons_ue_epic, 2026-10-05) is the one that is built; its exports live in Export_UE_Epic/
+# (the Mixamo project skeletons_ue is kept as it is, its Export_UE/ folder was cleared on 2026-10-05)
+EPIC = (unreal.Paths.project_dir().replace("\\", "/").rstrip("/").endswith("skeletons_ue_epic") if unreal
+        else (os.environ.get("UL_EPIC") == "1" or "--epic" in sys.argv))      # system Python: UL_EPIC=1 or --epic
+EXPORT = os.path.join(REPO, "Export_UE_Epic" if EPIC else "Export_UE")
+WEAPONS_EXPORT = os.path.join(REPO, "Export_UE_Epic", "Weapons")
+# the Epic skeleton's names for the bones the build steps touch (Rig/epic_skeleton.json; the Mixamo names otherwise)
+EPIC_NAMES = {"Root": "root", "Hips": "pelvis", "Spine1": "spine_04", "Head": "head",
+              "LeftShoulder": "clavicle_l", "RightShoulder": "clavicle_r", "LeftHand": "hand_l", "RightHand": "hand_r",
+              "LeftWeaponSocket": "hand_l", "RightWeaponSocket": "hand_r"}
+EPIC_FINGERS = {"Left": ["index_metacarpal_l", "middle_metacarpal_l", "ring_metacarpal_l", "pinky_metacarpal_l", "thumb_01_l"],
+                "Right": ["index_metacarpal_r", "middle_metacarpal_r", "ring_metacarpal_r", "pinky_metacarpal_r", "thumb_01_r"]}
+
+
+def bn(name):
+    """A bone's name in the open project's skeleton."""
+    return EPIC_NAMES.get(name, name) if EPIC else name
 UNITY = os.path.join(REPO, "skeletons", "Assets", "UndeadLegion")
 PKG = "/Game/UndeadLegion"
 SKEL = PKG + "/Characters/SKEL_UndeadLegion"
@@ -11,7 +30,7 @@ CHARACTERS = ["SkeletonKnight", "SkeletonArcher", "SkeletonAssassin", "SkeletonM
 WEAPONS = ["H1Sword", "H1Dagger", "H1Axe", "H1Mace", "H2Longsword", "H2Axe", "H2Recurvebow", "H2MagicStuff", "H1Wand",
            "H1HeaterShield", "H1RoundShield", "Arrow"]
 RIGGED_WEAPONS = ["H2Recurvebow"]            # skinned to its own 8-bone rig (the string pull), CLAUDE.md 8
-EAL = unreal.EditorAssetLibrary
+EAL = unreal.EditorAssetLibrary if unreal else None
 DEFAULT_PIPELINE = "/Interchange/Pipelines/DefaultAssetsPipeline"
 
 

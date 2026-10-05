@@ -22,7 +22,9 @@ DOCS = {
     "extended": ("UndeadLegion_Extended_Documentation.html", os.path.join(ASSETS, "Extended", "Documentation", "UndeadLegion_Extended_Documentation.pdf")),
     # the Unreal manual lives INSIDE the Unreal project's content folder (Fab wants the documentation in the package; the
     # editor ignores a PDF under Content) and gets no .meta: tools/ue/make_production_ue.py ships it as it is
-    "ue": ("UndeadLegion_UE_Documentation.html", os.path.join(ROOT, "skeletons_ue", "Content", "UndeadLegion", "Documentation.pdf")),
+    # since 2026-10-05 the Unreal manual describes the EPIC-skeleton project and prints into it; the Mixamo project's PDF in
+    # skeletons_ue/Content stays as printed on 2026-10-05 (its HTML is in git history before that date)
+    "ue": ("UndeadLegion_UE_Documentation.html", os.path.join(ROOT, "skeletons_ue_epic", "Content", "UndeadLegion", "Documentation.pdf")),
 }
 DEFAULT = ("base", "extended")   # `ue` only on request: it is printed into the other project
 FOLDER_META = "fileFormatVersion: 2\nguid: %s\nfolderAsset: yes\nDefaultImporter:\n  externalObjects: {}\n  userData: \n  assetBundleName: \n  assetBundleVariant: \n"

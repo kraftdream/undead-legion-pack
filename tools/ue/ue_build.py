@@ -1,4 +1,4 @@
-"""Build the Unreal content of the pack from Export_UE/ (runs INSIDE the UE 5.8 editor).
+"""Build the Unreal content of the pack from the export folder of the open project (Export_UE_Epic/ for skeletons_ue_epic; runs INSIDE the UE 5.8 editor).
 
     python tools/ue/ue_py.py tools/ue/ue_build.py <step> [<step> ...]
 
@@ -70,6 +70,27 @@ def models(only=None):
     EAL.save_directory(PKG + "/Characters")
 
 
+def abp_asset():
+    """The Animation Blueprint ASSET on the shared skeleton (its graphs are build_abp.py's). The Mixamo project's was made
+    by hand once; the Epic twin needs it scripted (2026-10-05)."""
+    path = PKG + "/Blueprints/ABP_UndeadSkeleton"
+    if EAL.does_asset_exist(path):
+        log("ABP_UndeadSkeleton exists"); return
+    f = unreal.AnimBlueprintFactory()
+    f.set_editor_property("target_skeleton", unreal.load_asset(SKEL))
+    f.set_editor_property("parent_class", unreal.AnimInstance)
+    bp = unreal.AssetToolsHelpers.get_asset_tools().create_asset("ABP_UndeadSkeleton", PKG + "/Blueprints", unreal.AnimBlueprint, f)
+    EAL.save_loaded_asset(bp, False)
+    log("ABP_UndeadSkeleton created on " + SKEL)
+
+
+def save_all():
+    """Save every dirty asset under the pack: the MCP-built widgets and graphs stay unsaved in memory (WBP_DemoHeader was missing
+    from the Epic project on disk after a complete build, 2026-10-05) and an editor restart would lose them."""
+    ok = EAL.save_directory(PKG, only_if_is_dirty=True, recursive=True)
+    log("save_all: %s" % ok)
+
+
 def _check_skeleton(mesh, skel):
     if mesh is None:
         return
@@ -94,8 +115,8 @@ def measure():
     skel = unreal.load_asset(SKEL)
     ref = X.get_reference_pose(skel)
     names = list(X.get_bone_names(ref))
-    hips = X.get_bone_pose(ref, "Hips", unreal.AnimPoseSpaces.WORLD).translation
-    lh = X.get_bone_pose(ref, "LeftHand", unreal.AnimPoseSpaces.WORLD).translation
+    hips = X.get_bone_pose(ref, bn("Hips"), unreal.AnimPoseSpaces.WORLD).translation
+    lh = X.get_bone_pose(ref, bn("LeftHand"), unreal.AnimPoseSpaces.WORLD).translation
     log("skeleton: %d bones, root %s, Hips at (%.2f, %.2f, %.2f) cm, LeftHand x %.1f" % (len(names), names[0], hips.x, hips.y, hips.z, lh.x))
     for c in CHARACTERS:
         m = unreal.load_asset("%s/Characters/%s/SK_%s" % (PKG, c, c))
@@ -107,7 +128,7 @@ def measure():
         log("%-20s z %.2f..%.2f  x %.1f..%.1f  y %.1f..%.1f  modules %d" % (c, lo.z, hi.z, lo.x, hi.x, lo.y, hi.y, len(mods)))
 
 
-STEPS = {"models": models, "textures": textures, "weapons": weapons, "materials": materials, "clips": clips, "montages": montages, "measure": measure, "measure_clips": measure_clips, "sockets": sockets, "weapon_blueprints": weapon_blueprints,
+STEPS = {"models": models, "abp_asset": abp_asset, "save_all": save_all, "textures": textures, "weapons": weapons, "materials": materials, "clips": clips, "montages": montages, "measure": measure, "measure_clips": measure_clips, "sockets": sockets, "weapon_blueprints": weapon_blueprints,
          "character": character, "character_children": character_children,
          "demo_vars": demo_vars, "demo_data": demo_data, "demo_actors": demo_actors, "eyes": eyes, "showreel_director": showreel_director, "showreel_bow": showreel_bow}
 

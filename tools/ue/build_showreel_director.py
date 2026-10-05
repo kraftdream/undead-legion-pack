@@ -21,6 +21,7 @@ the recording camera, the Unity recorder's step loop re-cut:
 """
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from ue_common import bn
 from mcp import bp
 
 BPP = "/Game/UndeadLegion/Demo/Blueprints/BP_ShowreelDirector"
@@ -146,7 +147,7 @@ FUNCS = {
     (bind c (%(V)sGetCharacter))
     (bind cam (%(V)sGetCam))
     (bind loc (Transformation|GetActorLocation :self c))
-    (bind hips (Transformation|GetSocketLocation :self (Class|Character|GetMesh :self c) :InSocketName "Hips"))
+    (bind hips (Transformation|GetSocketLocation :self (Class|Character|GetMesh :self c) :InSocketName "%(HIPS)s"))
     (bind fh (%(V)sGetFollowHips))
     (bind anchor (Math|Vector|MakeVector :X (select fh (.x hips) (.x loc)) :Y (select fh (.y hips) (.y loc))
                    :Z (select fh (- (.z loc) (%(V)sGetDeathDrop)) (.z loc))))
@@ -178,7 +179,7 @@ EVENTS = """
 
 
 def fill(code):
-    return code % {"V": V, "C": C}
+    return code % {"V": V, "C": C, "HIPS": bn("Hips")}
 
 
 def graph(name):

@@ -7,7 +7,7 @@ Metallic = R, Roughness = 1 - A, so both engines shade from the same data.
 """
 import os
 import unreal
-from ue_common import (PKG, UNITY, EXPORT, CHARACTERS, WEAPONS, RIGGED_WEAPONS, EAL, log, pipeline, interchange)
+from ue_common import (PKG, UNITY, EXPORT, WEAPONS_EXPORT, CHARACTERS, WEAPONS, RIGGED_WEAPONS, EAL, log, pipeline, interchange)
 
 MASTER = PKG + "/Materials/M_UndeadLegion_Master"
 MEL = unreal.MaterialEditingLibrary
@@ -187,7 +187,7 @@ def weapons():
     stat = pipeline("IP_Weapon_Static", None, statics=True)
     rigged = pipeline("IP_Weapon_Rigged", None)
     for w in WEAPONS:
-        f = os.path.join(EXPORT, "Weapons", "SM_%s.fbx" % w)
+        f = os.path.join(WEAPONS_EXPORT, "SM_%s.fbx" % w)
         m = interchange(f, PKG + "/Weapons", ("SK_" if w in RIGGED_WEAPONS else "SM_") + w,
                         rigged if w in RIGGED_WEAPONS else stat)
         if m is not None:

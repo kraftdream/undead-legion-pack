@@ -492,18 +492,19 @@ SHOWCASE_EVENTS = """
 """
 
 
-def actor_bp(name, funcs, events):
-    B = {"refPath": "%s/%s.%s" % (D, name, name)}
+def actor_bp(name, funcs, events, folder=None):
+    folder = folder or D
+    B = {"refPath": "%s/%s.%s" % (folder, name, name)}
     have = [g["refPath"].split(":")[-1] for g in bp("list_graphs", blueprint=B)]
     for fn, (params, code) in funcs.items():
         if fn not in have:
             g = bp("add_function_graph", blueprint=B, graph_name=fn)
             for pn, t, inp in params:
                 bp("add_object_function_param", graph=g, param_name=pn, object_class={"refPath": t}, input_param=inp)
-        g = {"refPath": "%s/%s.%s:%s" % (D, name, name, fn)}
+        g = {"refPath": "%s/%s.%s:%s" % (folder, name, name, fn)}
         clear(g)
         bp("write_graph_dsl", graph=g, code=fill(code))
-    g = {"refPath": "%s/%s.%s:EventGraph" % (D, name, name)}
+    g = {"refPath": "%s/%s.%s:EventGraph" % (folder, name, name)}
     clear(g)
     bp("write_graph_dsl", graph=g, code=fill(events))
     bp("compile_blueprint", blueprint=B, warnings_as_errors=False)
@@ -518,9 +519,29 @@ def showcase(only):
     actor_bp("BP_DemoShowcase", {}, SHOWCASE_EVENTS)
 
 
+UETEST_EVENTS = SHOWCASE_EVENTS.replace("/Game/UndeadLegion/Demo/UI/WBP_AnimBrowser.WBP_AnimBrowser_C",
+                                        "/Game/Dev/UI/WBP_UETestBrowser.WBP_UETestBrowser_C").replace(
+    "  (UserInterface|Viewport|AddtoViewport :self w :ZOrder 0)",
+    "  (Variables|Demo|SetBrowser w)" + chr(10) + "  (UserInterface|Viewport|AddtoViewport :self w :ZOrder 0)")
+
+
+def uetest(only):
+    """The dev test map's showcase (tools/ue/ue_uetest.py, skeletons_ue_epic only): a child of BP_DemoShowcase under /Game/Dev
+    whose BeginPlay opens the child browser WBP_UETestBrowser (the pack's clips + the UE5 mannequin's)."""
+    actor_bp("BP_UETestShowcase", {}, UETEST_EVENTS, folder="/Game/Dev/Blueprints")
+    # the child widget needs the parent's EventGraph as its OWN: UMG decides whether a widget CLASS ticks from that class's
+    # graphs (a child with an empty EventGraph never ticks, so the parent's Tick - the orbit pawn's target, the death hold,
+    # the turntable - never ran: the camera stayed on the player start, 2026-10-05)
+    g = {"refPath": "/Game/Dev/UI/WBP_UETestBrowser.WBP_UETestBrowser:EventGraph"}
+    clear(g)
+    bp("write_graph_dsl", graph=g, code=fill(BROWSER_EVENTS))
+    print("wrote WBP_UETestBrowser EventGraph (the parent's)")
+    print("WBP_UETestBrowser", umg("CompileWidgetBlueprint", widgetBlueprint={"refPath": "/Game/Dev/UI/WBP_UETestBrowser.WBP_UETestBrowser"}))
+
+
 if __name__ == "__main__":
     args = sys.argv[1:]
-    KINDS = ("button", "header", "browser", "pawn", "showcase")
+    KINDS = ("button", "header", "browser", "pawn", "showcase", "uetest")
     which = [a for a in args if a in KINDS] or ["header", "pawn", "browser", "button", "showcase"]
     only = [a for a in args if a not in KINDS]
     for w in which:
