@@ -726,6 +726,12 @@ of a wand cast turned the transform and the player camera with it; manifest **`b
 `loopBlendOrientation 1`): measured on the Knight, root yaw 0.00° through every clip, the chest still turns 30–41° in the casts, the
 staggers still travel 0.667 m back, the others' few cm of XZ unchanged. Extended *Build All (1-5)* re-run (the `PFX_` prefabs serialise
 the modules). Rule: **every one-shot bakes its root rotation; only turn clips may drive the heading.**
+**The locomotion's own arms while moving (2026-10-05, "the upper body is not animated during the run; in the showcase it plays fine with
+the staff, in the demo it feels stuck in the combat animation").** `SkeletonNavController` crossfaded the weapon idle onto `UpperBody` while
+moving (Idle_Staff / Idle_Bow / Idle_1H_Combat / Idle_TwoHanded), freezing the torso and arms over every walk and run. Now only the idles in
+**`upperHoldWhileMoving`** (default `Idle_TwoHanded`: both hands stay on the shaft) are held; everything else runs on the clip's own upper
+body. Probed in the player demo at run speed: Necromancer + staff and Knight + sword and shield, `UpperBody` Empty, the left hand swinging
+39 / 29 cm fore-aft. Extended *Build All (1-5)* re-run.
 **Extended browser layout (2026-09-30, "move the new UI panel under the animations panel, make that one shorter; the physics hit is
 weak, 2x"):** the PHYSICS panel is anchored bottom-right at the ANIMATIONS panel's right edge and width (−20 / 280 px, 78 px above the
 bottom), and `ExtendedShowcase.FitUnderAnimations` shortens the browser's `AnimationPanel` at runtime to end 10 px above it (measured
