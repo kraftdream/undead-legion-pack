@@ -26,6 +26,10 @@ namespace UndeadLegion.Extended
         public bool dropWeapons = true;
         [Tooltip("Seconds the pose blends from the ragdoll back to the animation.")]
         public float blendTime = 0.6f;
+        [Tooltip("Angular damping of the bodies while ragdolled (higher settles a limp body sooner).")]
+        public float angularDamping = 0.6f;
+        [Tooltip("Angular damping of the head: an unsupported head otherwise swings on its joint like a pendulum for many seconds.")]
+        public float headAngularDamping = 5f;
         public List<Part> parts = new List<Part>();
 
         public bool IsRagdoll { get; private set; }
@@ -46,6 +50,7 @@ namespace UndeadLegion.Extended
         {
             _animator = GetComponent<Animator>();
             if (parts.Count == 0) Build();
+            IgnoreSelfCollisions();   // not serialised: a prefab built in the editor loses it, so it is set again at runtime
             SetKinematic(true);
             foreach (var t in GetComponentsInChildren<Transform>()) _bones.Add(t);
         }
@@ -132,8 +137,14 @@ namespace UndeadLegion.Extended
             Joint(an, map, HumanBodyBones.RightUpperArm, chestKey, -up, fwd, -70, 10, 50);
             Joint(an, map, HumanBodyBones.LeftLowerArm, HumanBodyBones.LeftUpperArm, fwd, up, -90, 0, 0);
             Joint(an, map, HumanBodyBones.RightLowerArm, HumanBodyBones.RightUpperArm, -fwd, up, -90, 0, 0);
-            // a body's parts never collide with each other
-            for (int i = 0; i < parts.Count; i++) for (int j = i + 1; j < parts.Count; j++) Physics.IgnoreCollision(parts[i].collider, parts[j].collider, true);
+            IgnoreSelfCollisions();
+        }
+
+        /// <summary>A body's parts never collide with each other (Physics.IgnoreCollision is runtime state, never saved).</summary>
+        void IgnoreSelfCollisions()
+        {
+            for (int i = 0; i < parts.Count; i++) for (int j = i + 1; j < parts.Count; j++)
+                if (parts[i].collider != null && parts[j].collider != null) Physics.IgnoreCollision(parts[i].collider, parts[j].collider, true);
         }
 
         static Vector3 Local(Transform t, Vector3 worldSize, Vector3 right, Vector3 up, Vector3 fwd)
@@ -231,6 +242,7 @@ namespace UndeadLegion.Extended
             foreach (var p in parts)
             {
                 if (p.body == null) continue;
+                p.body.angularDamping = p.bone == HumanBodyBones.Head ? headAngularDamping : angularDamping;
                 Vector3 pp; Quaternion pr;
                 if (_prevPos.TryGetValue(p.body, out pp)) p.body.linearVelocity = (p.body.transform.position - pp) / dt;
                 if (_prevRot.TryGetValue(p.body, out pr))

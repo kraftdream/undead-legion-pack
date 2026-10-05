@@ -47,7 +47,7 @@ namespace UndeadLegion.Extended
         /// <summary>A hit at a world point with a force (N·s, an impulse). The nearest reacting bone and its parents respond.</summary>
         public void Hit(Vector3 point, Vector3 impulse)
         {
-            if (!enabled || _candidates.Count == 0) return;
+            if (!enabled || _candidates.Count == 0 || !_animator.enabled) return;   // a ragdoll (Animator off) takes the hit physically
             Transform nearest = null; float bd = float.MaxValue;
             foreach (var t in _candidates) { float d = (t.position - point).sqrMagnitude; if (d < bd) { bd = d; nearest = t; } }
             float share = 1f;
@@ -66,6 +66,8 @@ namespace UndeadLegion.Extended
         void LateUpdate()
         {
             if (_springs.Count == 0) return;
+            // the Animator is off under a ragdoll: nothing restores the pose each frame, so an offset would pile up on the bones
+            if (!_animator.enabled) { _springs.Clear(); return; }
             float dt = Time.deltaTime; if (dt <= 0f) return;
             float c = 2f * damping * Mathf.Sqrt(stiffness);
             List<Transform> done = null;
