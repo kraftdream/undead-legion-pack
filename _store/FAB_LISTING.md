@@ -6,12 +6,14 @@ maps' `flip_green_channel`). The description and the additional-information box 
 files beside this one; paste those, not this file. Edit the `.txt`, then re-check the figures here —
 the creatures pack was rejected once for a description that did not match the pack.
 
-⚠ **What the shipped package must NOT contain** (the figures below exclude it): the showreel map
-`Demo/Maps/UndeadLegion_Showreel`, the 25 `Demo/Showreel/LS_*` level sequences, `Demo/Blueprints/
-BP_ShowreelDirector`, the 5 `Pipelines/IP_*` Interchange pipelines (import settings, not content —
-Fab's "no unused assets" rule, the creatures pack's rejection #2), `Developers`, `Collections`. The
-production copy for Fab is not scripted yet (`tools/ue/README.md`, "Not done yet"); strip by hand or
-port `production_branch.sh` from the creatures pack, and re-run the counts after.
+**The package to upload** is built by `python tools/ue/make_production_ue.py --verify` (after
+`python tools/make_documentation.py ue`, which prints the manual into the project): `../undead-legion-
+production-ue/UndeadLegion_UE58.zip` (top folder `UndeadLegion/`: `Config/`, `Content/UndeadLegion/`,
+`UndeadLegion.uproject`; 291 files, 95 MB). It strips the showreel map, the 25 `LS_*` level sequences,
+`BP_ShowreelDirector`, the 5 `Pipelines/IP_*` Interchange pipelines (import settings, not content —
+Fab's "no unused assets" rule, the creatures pack's rejection #2), `Developers`, `Collections`, all seven
+editor plugins and the dev config lines, audits the result and compiles every Blueprint headlessly on 5.8
+(29 compiled, 0 errors, 0 warnings on 2026-10-05). The figures below are the stripped package's.
 
 ---
 
@@ -55,7 +57,7 @@ creatures pack went under Creatures & Monsters)
 | Triangles | 191 – 7,588 | per mesh: `SK_SkeletonMage_Greave_L` → `SK_SkeletonAssassin` body |
 | Vertices | 134 – 5,031 | the same two meshes |
 | Pack of multiple assets | Yes | |
-| Assets | ~ 290 | 55 skeletal meshes, 11 static meshes, 2 skeletons, 1 physics asset, 67 textures, 2 materials, 25 instances, 59 sequences, 33 montages, 1 Animation Blueprint, 2 notifies, 22 Blueprints, 3 widgets, 2 maps — recount on the stripped package |
+| Assets | 286 | 55 skeletal meshes, 11 static meshes, 2 skeletons, 1 physics asset, 67 textures, 2 materials, 25 instances, 59 sequences, 33 montages, 1 Animation Blueprint, 2 notifies, 23 Blueprints, 3 widgets, 2 maps (counted in the stripped package) |
 | Unique meshes | 66 | 55 skeletal (6 bodies, 48 modules, 1 bow) + 11 static (weapons) |
 | Includes LODs | No | every skeletal and static mesh has 1 LOD |
 | Bounding box size | 170 | the dressed characters, cm |
@@ -102,7 +104,7 @@ creatures pack went under Creatures & Monsters)
 |---|---|---|
 | Contains scripted logic | Yes | the character Blueprint (armour, weapons, grips, eyes, the layer stack), the demo browser |
 | Event triggers and interactions | Yes | |
-| Blueprints | 22 (+ 1 Animation Blueprint, 3 widgets, 2 notifies) | `BP_UndeadSkeleton`, 6 `BP_<Class>`, 12 `BP_Weapon_*`, `BP_ArrowProjectile`, `BP_DemoGameMode`, `BP_DemoShowcase`, `BP_OrbitPawn` — `BP_ShowreelDirector` is dev-only and must be stripped |
+| Blueprints | 23 (+ 1 Animation Blueprint, 3 widgets, 2 notifies) | `BP_UndeadSkeleton`, 6 `BP_<Class>`, 12 `BP_Weapon_*`, `BP_ArrowProjectile`, `BP_DemoGameMode`, `BP_DemoShowcase`, `BP_OrbitPawn` (`BP_ShowreelDirector` is stripped by the packaging script) |
 | Input methods | Keyboard, Mouse | the browser is clicked, the orbit camera dragged |
 | Contains C++ source code | No | |
 | Scripting language | Blueprint | |
@@ -125,13 +127,16 @@ creatures pack went under Creatures & Monsters)
 | Supported engine version | 5.8 |
 | Supported target platforms | Windows, macOS, Linux |
 | Distribution method | Asset package |
-| Documentation | `Content/UndeadLegion/Documentation.pdf` — copy the Unity manual's PDF into the package (the Unreal manual is not written yet; the clip list, speed table, sockets and grips sections apply as they are, the Unity-specific sections do not) |
+| Documentation | `Content/UndeadLegion/Documentation.pdf` — the Unreal manual (10 A4 pages: setup, folders, characters, armour API, weapons and loadouts, sockets, the bow, the clip list with lengths, the Animation Blueprint layers, root motion and speeds in cm/s, the Blueprint API, the demo map, own animations, technical details), printed from `tools/docs/UndeadLegion_UE_Documentation.html` by `python tools/make_documentation.py ue` |
 
 ---
 
 ## Checks still open before submitting
 
-- The Fab production copy (stripped as above) and a cook on 5.8 with 0 errors / 0 warnings.
+- The package compiles clean headlessly; a full cook on 5.8 and an interactive open of the zip on a
+  clean machine have not been done.
+- The demo browser does not drive the bow string or fire the arrow (the weapon Blueprint has the poseable
+  bow and `BP_ArrowProjectile` ships; the manual and the description say so).
 - The physics asset `PA_UndeadLegion` is the one the Knight's import generated, not a tuned ragdoll:
   the description does not claim a ragdoll. Tune it or leave the claim out.
 - The Unity manual's weapon triangle counts (498 – 5,074) do not match the Unreal assets (344 –

@@ -90,7 +90,11 @@ is in `tools/ue/README.md`; read it before touching the Unreal side. Synced with
 **The full showreel rendered by Unreal (2026-10-02)**: `python tools/ue/showreel_unreal_all.py` (the Unity recorder's three stages
 ported shot by shot, `BP_ShowreelDirector`, 64-sample Movie Render Queue, ~4 h on this machine) → `Showreel/unreal/
 undead_legion_showreel_unreal.mp4` (3:59, the same cards and music as the Unity cut) + `youtube_description.txt`; details in
-`tools/ue/README.md` "The full showreel".
+`tools/ue/README.md` "The full showreel". **The Fab package (2026-10-05)**: `python tools/make_documentation.py ue` (the Unreal
+manual, `tools/docs/UndeadLegion_UE_Documentation.html` → `skeletons_ue/Content/UndeadLegion/Documentation.pdf`, tracked) then
+`python tools/ue/make_production_ue.py --verify` → `../undead-legion-production-ue/UndeadLegion_UE58.zip` (showreel, level
+sequences, import pipelines, all plugins and the dev config stripped; audited; every Blueprint compiled headlessly on the copy);
+`tools/ue/README.md` "The Fab package"; the store texts in `_store/FAB_*`.
 
 ### Known gaps
 

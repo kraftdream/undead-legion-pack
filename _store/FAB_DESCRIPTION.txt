@@ -25,8 +25,9 @@ the Warrior, at runtime, through WearModule / RemoveModule / SetDefaultModulesWo
 Sword, axe, mace, dagger, wand, heater shield, round shield, longsword, battle axe, staff,
 recurve bow and arrow, each a Blueprint spawned on the hand socket at its grip. Loadouts
 from sword and shield to two daggers (EquipLoadout). The fingers close on a held weapon and
-relax on an empty hand. The recurve bow is skinned: its string follows the draw hand and
-the limbs bend with the pull, and the shot fires an arrow.
+relax on an empty hand. The recurve bow is skinned, with string and limb bones you can drive
+from the draw hand; the shot carries attach and release notifies, and an arrow projectile
+Blueprint is included.
 
 58 ANIMATIONS, ONE SET FOR ALL SIX
 - Idles: three general idles, a one-handed combat stance, two-handed, bow and staff idles
