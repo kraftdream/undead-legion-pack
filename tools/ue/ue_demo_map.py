@@ -48,6 +48,20 @@ def open_map(path):
         raise RuntimeError("could not create " + path)
 
 
+def sky_dome():
+    """The engine's sky dome (SM_SkySphere x 400 with M_SimpleSkyDome, as the default template level has it): on desktop
+    the SkyAtmosphere draws the sky by itself, but the MOBILE renderer (ES3.1 / Vulkan mobile) only shows the atmosphere
+    through a sky mesh whose material is tagged IsSky and reads the SkyAtmosphere nodes - without one the sky is black and a
+    development build prints "SkyAtmosphere component needs a mesh ..." (seen in the ES3.1 mobile preview, 2026-10-06)."""
+    dome = EAS.spawn_actor_from_object(unreal.load_asset("/Engine/EngineSky/SM_SkySphere"), unreal.Vector(0, 0, 0))
+    dome.set_actor_label("SkyDome")
+    dome.set_actor_scale3d(unreal.Vector(400, 400, 400))
+    c = dome.static_mesh_component
+    c.set_material(0, unreal.load_asset("/Engine/EngineSky/M_SimpleSkyDome"))
+    c.set_editor_property("cast_shadow", False)
+    return dome
+
+
 def stage(size=60):
     """Floor + key / fill / rim + sky light + atmosphere, on an emptied level."""
     for a in EAS.get_all_level_actors():
@@ -73,6 +87,7 @@ def stage(size=60):
     k.set_intensity(2.0)
     k.set_editor_property("real_time_capture", True)
     EAS.spawn_actor_from_class(unreal.SkyAtmosphere, unreal.Vector(0, 0, 0)).set_actor_label("SkyAtmosphere")
+    sky_dome()
     # Unity's Demo_Volume (2026-10-01, the glowing eyes): Bloom only, threshold 1, so the lit scene stays under it and
     # only the HDR eyes bloom
     pp = EAS.spawn_actor_from_class(unreal.PostProcessVolume, unreal.Vector(0, 0, 0))

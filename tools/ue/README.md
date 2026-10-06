@@ -287,6 +287,35 @@ anything stripped, no redirectors; the 33 `AM_` montages are referenced by nothi
 runtime) and ship as buyer content; `BP_ArrowProjectile` was referenced only by the director and ships as a ready actor.
 The description and the manual say what the demo does NOT do: drive the bow string or fire the arrow.
 
+## The mobile check (2026-10-06, "I don't think there are parts that would make it not work on mobile platforms, right?")
+
+The Fab form's platform boxes are a promise, so the claim was measured instead of reasoned. An Android cook
+(`UnrealEditor-Cmd <prod>.uproject -run=cook -targetplatform=Android_ASTC`) is NOT possible on this machine: the target
+platform refuses to set up without the Android SDK / NDK r27c ("Invalid target platform specified (Android_ASTC).
+Available = { Windows, ... }"). What works without an SDK is Unreal's own Mobile Preview, the shipped copy launched as a game at
+the ES3.1 feature level:
+
+    UnrealEditor.exe <prod>/UndeadLegion.uproject /Game/UndeadLegion/Demo/Maps/UndeadLegion_Demo -game -featureleveles31 -faketouches -windowed -resx=1280 -resy=720 -log
+
+(`Saved/Logs/UndeadLegion.log` says `Using Forced Feature Level in Editor: ES3_1`, shader platform `PCD3D_ES3_1`; the mobile
+shaders of every material compile on the first run, ~2 min; the dev editor may stay open, a `-game` process is what the
+editor's Mobile Preview launches too; a window capture by PrintWindow with PW_RENDERFULLCONTENT works while the window is
+covered; the log file stays locked until the process is really gone - `Stop-Process -Force`, `taskkill` left it running once;
+then delete `Saved/` from the copy before the next package build, which refuses to clear a folder with an open handle).
+Measured: the whole pack renders under ES3.1 with no shader or material error - skinned bodies and armor with their normal
+and packed metallic / smoothness maps, the two-sided armor, the glowing eyes, the weapons on their sockets, the browser UI.
+Two things the check found: (1) **the Warrior's armor color texture was 1254 x 1254**, the only non-power-of-two texture
+in the pack (desktop never minds; mobile compression and mips do): the source `SkeletonWarrior/armor_color.png` resized to
+1024 (Lanczos), re-packed into Unity by `tools/pack_textures.py -- SkeletonWarrior` and reimported into the Epic project
+(`T_SkeletonWarrior_Armor_C`); every texture is a power of two now. (2) **The demo map's sky was black on mobile** with a
+development-build notice "SkyAtmosphere component needs a mesh with a material tagged as IsSky and using the SkyAtmosphere
+nodes": on desktop the SkyAtmosphere draws the sky itself, the mobile renderer only shows it through a sky dome mesh.
+`ue_demo_map.sky_dome()` (called by `stage()`, so the demo, the overview and the dev test map have it) adds what the engine's
+default template level has: `/Engine/EngineSky/SM_SkySphere` at scale 400 with `M_SimpleSkyDome` (IsSky, unlit, reads the
+atmosphere); the desktop look is unchanged. The content figures behind the claim: 16.7k - 18.9k triangles per dressed
+character in ~10 draw calls, 93 bones (each section far fewer), 8 influences, 1024 / 512 textures (~50 MB compressed), one
+Lit master material with default-mobile features, Blueprint only. Still not done: a real Android / iOS cook and a device run.
+
 ## The Epic-skeleton twin: `skeletons_ue_epic/` (2026-10-05)
 
 User: "let's start with the full transition [to the Epic skeleton], as it makes it look like the asset was actually made for
@@ -394,5 +423,5 @@ reloads them (`demo_data() got an unexpected keyword argument` was the stale mod
 The recurve bow's string pull and the fired arrow in the DEMO (the showreel director does both; the notifies exist on Shoot_01
 but `AN_BowAttach` / `AN_BowRelease` have no Received_Notify graph yet); the in-place locomotion blend space;
 the Unity "Specials return to the last idle" is implemented, the Cast_Staff_01 → Idle_Staff hand-off at frame 54 is a
-plain return; Unreal-side grounding measurement per clip; a full cook of the Fab package and an interactive open of the zip on
-a clean machine.
+plain return; Unreal-side grounding measurement per clip; a full cook of the Fab package (the production copy was opened
+and tested interactively on 2026-10-06; the ES3.1 mobile preview ran clean the same day; a mobile cook needs the Android SDK).

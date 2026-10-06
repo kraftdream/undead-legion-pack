@@ -71,7 +71,7 @@ creatures pack went under Creatures & Monsters)
 
 | Field | Value | |
 |---|---|---|
-| Texture resolution | 128 – 1,254 | 35 at 1024² (characters), 30 at 512² (weapons), 1 at 1254² (`T_SkeletonWarrior_Armor_C`), 1 at 128² (the arrow) |
+| Texture resolution | 128 – 1,024 | 36 at 1024² (characters), 30 at 512² (weapons), 1 at 128² (the arrow); every one a power of two (the Warrior's armor color was 1254², resized 2026-10-06) |
 | Materials | 27 | 2 `Material` (`M_UndeadLegion_Master`, `M_Eyes`) + 25 `MaterialInstanceConstant` (12 character, 12 weapon, 1 demo floor) |
 | Substrate materials | 0 | |
 | Custom shaders | No | |
@@ -134,6 +134,10 @@ creatures pack went under Creatures & Monsters)
 ---
 
 ## Checks still open before submitting
+
+- Mobile: the shipped copy renders clean in Unreal's ES3.1 mobile preview (2026-10-06: every material, the eyes, the UI; the
+  demo map got a sky dome for it, the one NPOT texture was resized). A real Android / iOS cook needs the SDK and was not run,
+  so a mobile platform claim is backed by the preview only.
 
 - The package compiles clean headlessly and the production copy was opened and tested interactively on 2026-10-06;
   a full cook on 5.8 has not been done (Fab's own validation cooks it).

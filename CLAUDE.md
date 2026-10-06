@@ -116,6 +116,12 @@ test map"; the mannequin content comes from `tools/ue/epic_mannequin_content.py`
 
 ### Known gaps
 
+- **Mobile (2026-10-06, "nothing that would make it not work on mobile, right?").** Measured with Unreal's ES3.1 mobile
+  preview on the shipped Epic copy (`tools/ue/README.md` "The mobile check"): every material renders, no shader error. Two
+  fixes: `SkeletonWarrior/armor_color.png` was 1254² (the only non-power-of-two texture; mobile compression and mips mind it),
+  resized to 1024² and re-packed into both engines; the Unreal demo maps got the engine's sky dome (`ue_demo_map.sky_dome()`),
+  because the mobile renderer shows a SkyAtmosphere only through an IsSky mesh (the sky was black). An Android cook needs the
+  SDK (NDK r27c) and was not run; the Unity side was not checked on mobile beyond the content figures.
 - `SkeletonMage`, `SkeletonNecromancer` and `SkeletonAssassin` have **no `armor_metallic.png`**;
   Knight, Archer and Warrior do. Either those armours are non-metallic by design (then
   the material must not sample a metallic map) or the bake was skipped.
