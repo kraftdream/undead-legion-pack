@@ -46,17 +46,17 @@
 <h2 style="margin-top:0">Contents</h2>
 <div class="toc">
   <div>1. Overview</div><div>2. Requirements and setup</div><div>3. Folder structure</div><div>4. Characters</div>
-  <div>5. Armour modules</div><div>6. Weapons</div><div>7. Animations</div><div>8. The Animator controller</div>
+  <div>5. Armor modules</div><div>6. Weapons</div><div>7. Animations</div><div>8. The Animator controller</div>
   <div>9. Root motion and speeds</div><div>10. Scripts</div><div>11. The demo scene</div><div>12. Using your own animations</div>
   <div>13. Technical details</div><div>14. Support</div>
 </div>
 
 <h2>1. Overview</h2>
-<p>Undead Legion is a skeleton army built on <b>one shared humanoid rig</b>. Six class presets, every armour piece and every animation use
-the same skeleton, so any armour piece can be worn by any skeleton and every animation plays on every character.</p>
+<p>Undead Legion is a skeleton army built on <b>one shared humanoid rig</b>. Six class presets, every armor piece and every animation use
+the same skeleton, so any armor piece can be worn by any skeleton and every animation plays on every character.</p>
 <ul>
   <li><b>6 skeleton classes</b>: Knight, Warrior, Archer, Assassin, Mage, Necromancer, each a ready prefab.</li>
-  <li><b>48 armour modules</b> as separate prefabs: helms, chests, gloves, greaves, boots, skirts, robes and pants.</li>
+  <li><b>48 armor modules</b> as separate prefabs: helms, chests, gloves, greaves, boots, skirts, robes and pants.</li>
   <li><b>12 weapon prefabs</b> with adjustable grip points, including a skinned recurve bow whose string follows the draw hand.</li>
   <li><b>58 animation clips</b> plus grip pose data: idles, two locomotion sets with root motion, one- and two-handed attacks, a held block, a bow shot,
       spell casts, class specials, two hit and two stagger reactions, four deaths, additive twitches and empty-hand finger idles.</li>
@@ -71,7 +71,7 @@ the same skeleton, so any armour piece can be worn by any skeleton and every ani
 </ul>
 <p>Import the package, then open <code>UndeadLegion/Demo/Scenes/UndeadLegion_Demo.unity</code> and press Play. To use a character in
 your own scene, drag a prefab from <code>UndeadLegion/Prefabs/Characters</code> into it. Each prefab already carries its Animator with
-the shared controller, its default armour, and the weapon and armour components described below.</p>
+the shared controller, its default armor, and the weapon and armor components described below.</p>
 <div class="note">If the materials appear pink, the project is not using URP: install the Universal RP package and assign a URP asset in
 <i>Project Settings &gt; Graphics</i> and <i>Quality</i>.</div>
 
@@ -81,14 +81,14 @@ the shared controller, its default armour, and the weapon and armour components 
   <tr><td><code>Animations</code></td><td>The clips (<code>Skeleton@&lt;Clip&gt;.fbx</code>), the controller <code>AC_Skeleton</code> and its avatar masks.</td></tr>
   <tr><td><code>Demo</code></td><td>The demo scene and its scripts (namespace <code>UndeadLegion.Demo</code>).</td></tr>
   <tr><td><code>Documentation</code></td><td>This file.</td></tr>
-  <tr><td><code>Materials/URP</code></td><td>A body and an armour material per character, a material per weapon, the demo floor.</td></tr>
+  <tr><td><code>Materials/URP</code></td><td>A body and an armor material per character, a material per weapon, the demo floor.</td></tr>
   <tr><td><code>Models/&lt;Character&gt;</code></td><td><code>SK_&lt;Character&gt;.fbx</code>: the skeleton and its bare body, the avatar source.</td></tr>
-  <tr><td><code>Models/Armor/&lt;Character&gt;</code></td><td><code>SK_&lt;Character&gt;_&lt;Module&gt;.fbx</code>: one skinned armour piece each.</td></tr>
+  <tr><td><code>Models/Armor/&lt;Character&gt;</code></td><td><code>SK_&lt;Character&gt;_&lt;Module&gt;.fbx</code>: one skinned armor piece each.</td></tr>
   <tr><td><code>Models/Weapons</code></td><td><code>SM_&lt;Weapon&gt;.fbx</code>.</td></tr>
   <tr><td><code>Prefabs/Characters</code></td><td><code>PF_&lt;Character&gt;</code>: the dressed, ready-to-use characters.</td></tr>
-  <tr><td><code>Prefabs/Armor/&lt;Character&gt;</code></td><td><code>A_&lt;Character&gt;_&lt;Module&gt;</code>: the armour modules.</td></tr>
+  <tr><td><code>Prefabs/Armor/&lt;Character&gt;</code></td><td><code>A_&lt;Character&gt;_&lt;Module&gt;</code>: the armor modules.</td></tr>
   <tr><td><code>Prefabs/Weapons</code></td><td><code>W_&lt;Weapon&gt;</code>: the weapons, each with a child <code>Grip</code>.</td></tr>
-  <tr><td><code>Textures</code></td><td>Colour, normal and packed metallic/smoothness maps per character and weapon.</td></tr>
+  <tr><td><code>Textures</code></td><td>Color, normal and packed metallic/smoothness maps per character and weapon.</td></tr>
 </table>
 
 <h2>4. Characters</h2>
@@ -96,7 +96,7 @@ the shared controller, its default armour, and the weapon and armour components 
 LeftArm, LeftForeArm, LeftHand, …</code>, full fingers, and two weapon socket bones <code>LeftWeaponSocket</code> / <code>RightWeaponSocket</code>
 under the hands). Characters stand 1.7 m to the top of the skull, with the hips at 0.98 m.</p>
 <table>
-  <tr><th>Prefab</th><th>Default armour</th><th class="n">Body tris</th><th class="n">Armour tris</th><th class="n">Total tris</th></tr>
+  <tr><th>Prefab</th><th>Default armor</th><th class="n">Body tris</th><th class="n">Armor tris</th><th class="n">Total tris</th></tr>
   <tr><td>PF_SkeletonKnight</td><td>Helm, Chest, Gloves, Greaves, Boots, Skirt</td><td class="n">7,011</td><td class="n">9,717</td><td class="n">16,728</td></tr>
   <tr><td>PF_SkeletonWarrior</td><td>Chest, Gloves, Greaves, Boots, Skirt</td><td class="n">7,588</td><td class="n">9,391</td><td class="n">16,979</td></tr>
   <tr><td>PF_SkeletonArcher</td><td>Helm, Chest, Gloves, Boots, Skirt</td><td class="n">6,364</td><td class="n">10,992</td><td class="n">17,356</td></tr>
@@ -105,10 +105,10 @@ under the hands). Characters stand 1.7 m to the top of the skull, with the hips 
   <tr><td>PF_SkeletonNecromancer</td><td>Helm, Robe, Gloves, Greaves, Boots</td><td class="n">7,502</td><td class="n">9,882</td><td class="n">17,384</td></tr>
 </table>
 <p>Each character has two materials, <code>M_&lt;Character&gt;_Body</code> and <code>M_&lt;Character&gt;_Armor</code>, with 1024×1024
-colour, normal and metallic/smoothness maps. Armour materials render both faces, so torn cloth and open hoods read correctly from behind.</p>
+color, normal and metallic/smoothness maps. Armor materials render both faces, so torn cloth and open hoods read correctly from behind.</p>
 
-<h2>5. Armour modules</h2>
-<p>Every armour piece is its own prefab in <code>Prefabs/Armor/&lt;Character&gt;</code>. A piece is skinned to the shared skeleton and
+<h2>5. Armor modules</h2>
+<p>Every armor piece is its own prefab in <code>Prefabs/Armor/&lt;Character&gt;</code>. A piece is skinned to the shared skeleton and
 binds to <b>any</b> character by bone name, so a Warrior can wear the Knight's helm or the Mage's robe.</p>
 <table>
   <tr><th>Set</th><th>Modules</th></tr>
@@ -234,20 +234,20 @@ casters. With <i>Apply Root Motion</i> off every clip plays in place, which suit
 <p>All scripts are in <code>Demo/Scripts</code>, namespace <code>UndeadLegion.Demo</code>. The character-side ones are usable in a game as they are.</p>
 <table>
   <tr><th>Script</th><th>On</th><th>Does</th></tr>
-  <tr><td>SkeletonModules</td><td>character</td><td>Toggles the default armour set; wears and removes any module prefab.</td></tr>
-  <tr><td>ArmorModule / ArmorPiece</td><td>armour prefab / attached piece</td><td>Binds a piece to a character by bone name; marks where an attached piece came from.</td></tr>
+  <tr><td>SkeletonModules</td><td>character</td><td>Toggles the default armor set; wears and removes any module prefab.</td></tr>
+  <tr><td>ArmorModule / ArmorPiece</td><td>armor prefab / attached piece</td><td>Binds a piece to a character by bone name; marks where an attached piece came from.</td></tr>
   <tr><td>SkeletonWeapon</td><td>character</td><td>Loadouts, hand slots, the grip pose, finger idles, the attack speed per weapon, the bow events and the fired arrow.</td></tr>
   <tr><td>BowString</td><td>bow prefab</td><td>Pulls the string to the draw hand and bends the limbs.</td></tr>
   <tr><td>ArrowProjectile</td><td>spawned arrow</td><td>A straight flight that removes itself after its lifetime.</td></tr>
   <tr><td>SkeletonGripState</td><td>Animator states</td><td>Closes the second hand on a two-handed weapon during the state.</td></tr>
   <tr><td>SkeletonFootLock</td><td>character</td><td>Holds the feet still on their IK goals while a looping idle plays (needs IK Pass on the Base layer, already set).</td></tr>
-  <tr><td>SkeletonEyes</td><td>character</td><td>Two small glowing spheres in the eye sockets, seated on each skull's own socket and following the head; red by default. The colour is HDR (values above 1 glow with Bloom); <code>SetColor()</code> and <code>SetVisible()</code> at runtime; <code>addLight</code> adds a faint light at the face (off by default).</td></tr>
+  <tr><td>SkeletonEyes</td><td>character</td><td>Two small glowing spheres in the eye sockets, seated on each skull's own socket and following the head; red by default. The color is HDR (values above 1 glow with Bloom); <code>SetColor()</code> and <code>SetVisible()</code> at runtime; <code>addLight</code> adds a faint light at the face (off by default).</td></tr>
   <tr><td>SkeletonTwitch</td><td>character</td><td>Random additive head and jaw twitches, for a crowd that never quite stands still.</td></tr>
   <tr><td>SkeletonShowcase, DemoUI, DemoTurntable, DemoEventSystemBootstrap</td><td>demo scene</td><td>The demo browser, its interface and camera.</td></tr>
 </table>
 
 <h2>11. The demo scene</h2>
-<p><code>UndeadLegion_Demo</code> lists the characters (top left), the armour modules of the current character and the sets to borrow from
+<p><code>UndeadLegion_Demo</code> lists the characters (top left), the armor modules of the current character and the sets to borrow from
 (left) and the animations by section (right). Click a clip to play it; the arm attacks go on their arm layer when a locomotion loop is
 running, and the block button holds the block until clicked again. The twitch and finger-idle entries are toggles. The scene's global Volume (<code>Demo_Volume</code>) adds Bloom above an HDR value of 1, so only the eyes glow. The footer switches
 the glowing eyes, root motion and the turntable and recenters the character. Drag to orbit the camera, scroll to zoom.</p>
@@ -263,8 +263,8 @@ on another Humanoid character, assign that character's avatar to the Animator an
   <tr><td>Scale</td><td>1 unit = 1 m; import scale 1; characters 1.70 m to the skull top</td></tr>
   <tr><td>Skinning</td><td>up to 4 influences per vertex</td></tr>
   <tr><td>Characters</td><td>16.7k–18.9k triangles fully dressed (table in section 4)</td></tr>
-  <tr><td>Textures</td><td>1024×1024 colour, normal, metallic/smoothness (R = metallic, A = smoothness)</td></tr>
-  <tr><td>Materials</td><td>URP/Lit; armour double-sided</td></tr>
+  <tr><td>Textures</td><td>1024×1024 color, normal, metallic/smoothness (R = metallic, A = smoothness)</td></tr>
+  <tr><td>Materials</td><td>URP/Lit; armor double-sided</td></tr>
   <tr><td>Animations</td><td>58 clips + grip pose data, 30 fps, Humanoid</td></tr>
 </table>
 

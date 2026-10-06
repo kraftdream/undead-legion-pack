@@ -8,7 +8,7 @@ The full Undead Legion skeleton pack plus ragdolls, hit reactions, cloth, rise a
 
 Raise an undead army, then send it to battle.
 
-Undead Legion Extended contains everything in Undead Legion - Modular Skeleton Army (six skeleton classes on one shared rig, 48 swappable armour pieces, 12 weapons and 58 Humanoid animations) and adds the systems that make the skeletons playable: physics, movement, combat and whole armies. Owners of Undead Legion can upgrade at a discount.
+Undead Legion Extended contains everything in Undead Legion - Modular Skeleton Army (six skeleton classes on one shared rig, 48 swappable armor pieces, 12 weapons and 58 Humanoid animations) and adds the systems that make the skeletons playable: physics, movement, combat and whole armies. Owners of Undead Legion can upgrade at a discount.
 
 **Full-body ragdolls**
 Every skeleton carries an 11-body ragdoll. While it animates, the bodies are hitboxes that tell you which part was struck. On death it falls with the impact of the killing blow and drops its weapons, and it can blend back to the animation for revives and get-ups.
@@ -29,7 +29,7 @@ A NavMeshAgent drives directional locomotion blend trees built from the pack's m
 Skeletons find the nearest enemy, close in and attack with the moves that suit their weapon, from attack modules attached by the weapon held: regular one-handed attacks for swords and daggers, regular and heavy attacks for axes and maces, left-hand attacks with a second dagger, regular and heavy two-handed swings, bow shots, homing wand and staff bolts, and an area cast. Damage lands when the blow connects. Assassins fight with quick regular attacks only. Add your own modules or change the moves per weapon in the inspector. Teams, health, damage and death events are ready to connect to your game.
 
 **Army spawner**
-Spawn formations of varied skeletons: random classes, mixed armour borrowed across classes under dressing rules (casters always robed and hooded, the melee ranks in plate and leather with pieces missing), loadouts that suit each class, subtle colour variation and team-coloured eyes, rising from the ground one by one.
+Spawn formations of varied skeletons: random classes, mixed armor borrowed across classes under dressing rules (casters always robed and hooded, the melee ranks in plate and leather with pieces missing), loadouts that suit each class, subtle color variation and team-colored eyes, rising from the ground one by one.
 
 **Arena demo**
 Two armies on a NavMesh arena. Raise them, start the battle, take control of any skeleton, strike or kill with the mouse, and switch cloth, death modes and corpse dissolving on the fly.
@@ -38,7 +38,7 @@ Two armies on a NavMesh arena. Raise them, start the battle, take control of any
 Take a skeleton yourself: WASD to walk, Shift to run, the mouse to turn, click to attack through the weapon's moves, hold the right button to block with a shield, and fight waves of AI skeletons. Esc pauses and lets you switch class and weapon.
 
 **Extended animation browser**
-The character browser with the extended skeletons and a physics panel: switch cloth on and off, hit a skeleton by clicking it, kill it into a ragdoll, revive it, raise it from the ground or turn it to dust, alongside every animation, armour piece and weapon.
+The character browser with the extended skeletons and a physics panel: switch cloth on and off, hit a skeleton by clicking it, kill it into a ragdoll, revive it, raise it from the ground or turn it to dust, alongside every animation, armor piece and weapon.
 
 Everything from the base pack is included unchanged: the character browser demo, the layered Animator controller, the root-motion speed table and the documentation. Full documentation for the extended systems (PDF) is included.
 
@@ -46,7 +46,7 @@ Everything from the base pack is included unchanged: the character browser demo,
 
 **Everything in Undead Legion - Modular Skeleton Army**
 - 6 characters on one 68-bone Humanoid rig, 16,728 - 18,870 triangles fully dressed
-- 48 armour modules, 12 weapons (a rigged recurve bow), 58 animations at 30 fps
+- 48 armor modules, 12 weapons (a rigged recurve bow), 58 animations at 30 fps
 - URP/Lit materials, 1024x1024 character maps
 - See that listing for the full breakdown
 

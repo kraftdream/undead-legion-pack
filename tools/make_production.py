@@ -230,12 +230,12 @@ def main():
                 k = scrub_fbx(os.path.join(dp, f)); nf += 1; nfix += k
     gi = os.path.join(dest, ".gitignore")
     if not os.path.exists(gi):
-        open(gi, "w").write("/Library/\n/Temp/\n/Obj/\n/Logs/\n/UserSettings/\n/Build/\n/Builds/\n*.csproj\n*.sln\n.vs/\n.idea/\n")
+        open(gi, "w").write("/Library/\n/Temp/\n/Obj/\n/Logs/\n/UserSettings/\n/Build/\n/Builds/\n*.csproj\n*.sln\n.vs/\n.vscode/\n.idea/\n")
     print("production project (%s): %s\n  %d scripts cleaned, %d FBX scanned, %d embedded source paths blanked" % (a.edition, dest, nscripts, nf, nfix), flush=True)
     # the leftover scan: every text file in the copy
     left = []
     for dp, dn, fn in os.walk(dest):
-        if any(x in dp for x in (os.sep + "Library", os.sep + "Temp", os.sep + "Logs", "asset-store-tools")): continue
+        if any(x in dp for x in (os.sep + "Library", os.sep + "Temp", os.sep + "Logs", os.sep + ".vscode", "asset-store-tools")): continue   # .vscode: written by Unity's VS Code package on the verify open, not shipped
         for f in fn:
             p = os.path.join(dp, f)
             if f.lower().endswith((".cs", ".meta", ".unity", ".prefab", ".asset", ".controller", ".mask", ".mat", ".json", ".txt", ".inputactions")):

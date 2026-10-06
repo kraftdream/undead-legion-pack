@@ -46,17 +46,17 @@
 <h2 style="margin-top:0">Contents</h2>
 <div class="toc">
   <div>1. Overview</div><div>2. Requirements and setup</div><div>3. Folder structure</div><div>4. Characters</div>
-  <div>5. Armour modules</div><div>6. Weapons and loadouts</div><div>7. Animations</div><div>8. The Animation Blueprint</div>
+  <div>5. Armor modules</div><div>6. Weapons and loadouts</div><div>7. Animations</div><div>8. The Animation Blueprint</div>
   <div>9. Root motion and speeds</div><div>10. The character Blueprint API</div><div>11. The demo map</div><div>12. Using your own animations</div>
   <div>13. Technical details</div><div>14. Support</div>
 </div>
 
 <h2>1. Overview</h2>
-<p>Undead Legion is a skeleton army built on <b>one shared skeleton</b>. Six class presets, every armour piece and every animation use
-the same skeleton asset, so any armour piece can be worn by any skeleton and every animation plays on every character.</p>
+<p>Undead Legion is a skeleton army built on <b>one shared skeleton</b>. Six class presets, every armor piece and every animation use
+the same skeleton asset, so any armor piece can be worn by any skeleton and every animation plays on every character.</p>
 <ul>
   <li><b>6 skeleton classes</b>: Knight, Warrior, Archer, Assassin, Mage, Necromancer, each a ready Blueprint Character.</li>
-  <li><b>48 armour modules</b> as separate skeletal meshes: helms, hoods, chests, gloves, greaves, boots, skirts, robes and pants.</li>
+  <li><b>48 armor modules</b> as separate skeletal meshes: helms, hoods, chests, gloves, greaves, boots, skirts, robes and pants.</li>
   <li><b>12 weapons</b> as Blueprints spawned on the hand sockets, with adjustable grips; the recurve bow is skinned.</li>
   <li><b>58 animations</b> at 30 fps: idles, two locomotion sets with root motion, one- and two-handed attacks with heavy variants,
       a held block, a bow shot, casts, specials, hit reactions, staggers, deaths, additive twitches and finger idles. A montage
@@ -99,7 +99,7 @@ proportions, plus four extra bones: <code>jaw_01</code> / <code>jaw_02</code> un
 pelvis — 93 bones in all. Characters stand 170 cm to the top of the skull with the pelvis at 98 cm, feet on Z 0, facing +Y in the mesh
 (the Blueprint turns the mesh so the character faces its +X, exactly like the mannequin).</p>
 <table>
-<tr><th>Blueprint</th><th>Default armour</th><th>Default loadout</th><th class="n">Body tris</th><th class="n">Armour tris</th><th class="n">Total</th></tr>
+<tr><th>Blueprint</th><th>Default armor</th><th>Default loadout</th><th class="n">Body tris</th><th class="n">Armor tris</th><th class="n">Total</th></tr>
 <tr><td>BP_SkeletonKnight</td><td>Helm, Chest, Gloves, Greaves, Boots, Skirt</td><td>Sword + shield</td><td class="n">7,011</td><td class="n">9,717</td><td class="n">16,728</td></tr>
 <tr><td>BP_SkeletonWarrior</td><td>Chest, Gloves, Greaves, Boots, Skirt</td><td>Axe + round shield</td><td class="n">7,588</td><td class="n">9,391</td><td class="n">16,979</td></tr>
 <tr><td>BP_SkeletonArcher</td><td>Helm, Chest, Gloves, Boots, Skirt</td><td>Recurve bow</td><td class="n">6,364</td><td class="n">10,992</td><td class="n">17,356</td></tr>
@@ -108,18 +108,18 @@ pelvis — 93 bones in all. Characters stand 170 cm to the top of the skull with
 <tr><td>BP_SkeletonNecromancer</td><td>Hood, Robe, Gloves, Greaves, Boots</td><td>Staff</td><td class="n">7,502</td><td class="n">9,882</td><td class="n">17,384</td></tr>
 </table>
 <p>Each class is a child of <code>BP_UndeadSkeleton</code> (a Character: capsule, Character Movement, the Animation Blueprint, the eyes)
-and sets only its own data: <code>DefaultModules</code> (the armour set above), <code>StartLoadout</code> and <code>DisplayName</code>.
+and sets only its own data: <code>DefaultModules</code> (the armor set above), <code>StartLoadout</code> and <code>DisplayName</code>.
 Drop one into a level and it plays its idle; a spawned character is auto-possessed by an AI controller so that Character Movement
 runs (root motion needs it).</p>
 <p>Each character has two material instances, <code>MI_&lt;Class&gt;_Body</code> and <code>MI_&lt;Class&gt;_Armor</code>, on the master
-material, with 1024×1024 base colour, normal and packed metallic / roughness maps. Armour instances are two-sided, so torn cloth and
+material, with 1024×1024 base color, normal and packed metallic / roughness maps. Armor instances are two-sided, so torn cloth and
 open hoods read correctly from behind.</p>
 <p><b>Eyes.</b> Two small emissive spheres sit in the eye sockets (sockets <code>EyeL</code> / <code>EyeR</code> on the head bone).
 <code>EyeColor</code> (HDR, default a glowing red) and <code>EyesVisible</code> are variables on the character; <code>TintEyes(Color)</code>
-and <code>ShowEyes(On)</code> change them at runtime, for example for an army's team colour.</p>
+and <code>ShowEyes(On)</code> change them at runtime, for example for an army's team color.</p>
 
-<h2>5. Armour modules</h2>
-<p>Every armour piece is its own skeletal mesh on the shared skeleton, in <code>Characters/Skeleton&lt;Class&gt;/Armor</code>. A piece
+<h2>5. Armor modules</h2>
+<p>Every armor piece is its own skeletal mesh on the shared skeleton, in <code>Characters/Skeleton&lt;Class&gt;/Armor</code>. A piece
 worn by a character is a skeletal mesh component that follows the body as its leader pose, so a Warrior can wear the Knight's helm
 or the Mage's robe, on any animation.</p>
 <table>
@@ -270,7 +270,7 @@ characters.</p>
 <tr><td><code>SetTwitch(Index, Weight)</code></td><td>weight of twitch loop 1..3 (0 off, 1 full)</td></tr>
 <tr><td><code>SetRootMotion(On)</code></td><td>root motion drives the capsule, or every clip plays in place</td></tr>
 <tr><td><code>EquipLoadout(Index)</code>, <code>GetLoadout</code></td><td>the loadouts of section 6</td></tr>
-<tr><td><code>WearModule</code>, <code>RemoveModule</code>, <code>IsModuleWorn</code>, <code>SetDefaultModulesWorn</code></td><td>the armour of section 5</td></tr>
+<tr><td><code>WearModule</code>, <code>RemoveModule</code>, <code>IsModuleWorn</code>, <code>SetDefaultModulesWorn</code></td><td>the armor of section 5</td></tr>
 <tr><td><code>SetClipHold(Left, Right)</code></td><td>close a hand that holds nothing while a two-handed clip plays</td></tr>
 <tr><td><code>SetFingerIdle(Left, On)</code>, <code>GetFingerIdle</code>, <code>SetFingersSuspended(Suspended)</code></td><td>the relaxed finger idle per hand; suspend both (the demo does so for a death)</td></tr>
 <tr><td><code>ShowEyes(On)</code>, <code>TintEyes(Color)</code></td><td>the glowing eyes</td></tr>
@@ -280,7 +280,7 @@ characters.</p>
 with and how it spaces its first actions).</p>
 
 <h2>11. The demo map</h2>
-<p><code>Demo/Maps/UndeadLegion_Demo</code> is the startup map, an animation browser: pick a class at the top left; the armour panel
+<p><code>Demo/Maps/UndeadLegion_Demo</code> is the startup map, an animation browser: pick a class at the top left; the armor panel
 lists the character's own set as toggles with <i>All</i> / <i>None</i> and every other class's set to borrow from; the weapons panel the
 eleven loadouts; the animation list is grouped as in section 7. A masked clip (right arm, left arm, upper body) clicked while a
 locomotion loop plays goes to its slot over the walk; otherwise it plays full body and the list's idle returns after it. The block,
@@ -305,7 +305,7 @@ Three ways to use them, pick one:</p>
 <p>The twist bones carry a share of the limb weights, so a mannequin clip twists the forearms and thighs the way it does on the
 mannequin; the pack's own clips carry their twist on the limb bones.</p>
 <p><b>Your own clips.</b> Import animation FBX files against <code>Characters/SKEL_UndeadLegion</code> (set it as the skeleton in the import
-dialog) and they play on every character and every armour module. Clips you add are played by the same functions:
+dialog) and they play on every character and every armor module. Clips you add are played by the same functions:
 <code>PlayLoop</code> for loops, <code>PlayAction</code> with a slot for one-shots. To use the pack's clips in your own Animation Blueprint,
 the montages in <code>Animations/Montages</code> are already in the right slots.</p>
 <p>Weapon-specific clips expect the matching loadout: the two-handed attacks and idle hold the second hand on the shaft, the bow shot
@@ -320,7 +320,7 @@ needs the bow in the left hand and the arrow in the right, the staff cast both h
   <li><b>Meshes</b>: 55 skeletal meshes (6 bodies, 48 modules, the bow) and 11 static meshes, one LOD each, triangulated. Bodies
       6,364–7,588 triangles, modules 191–6,582, a dressed character 16,728–18,870, weapons 344–1,495 (the bow 3,869).</li>
   <li><b>Materials</b>: <code>M_UndeadLegion_Master</code> with 25 instances (12 character, 12 weapon, 1 demo floor) and <code>M_Eyes</code>
-      (unlit emissive). 67 textures: base colour (sRGB), normal (DirectX, Y−) and a packed map with metallic in R and roughness in A;
+      (unlit emissive). 67 textures: base color (sRGB), normal (DirectX, Y−) and a packed map with metallic in R and roughness in A;
       1024² for the characters, 512² for the weapons, 128² for the arrow.</li>
   <li><b>Collision</b>: the characters collide through their capsule; <code>PA_UndeadLegion</code> is the import's physics asset on every
       body (a capsule per bone, not a tuned ragdoll). The weapon static meshes carry no collision primitives.</li>

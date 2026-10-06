@@ -112,7 +112,7 @@ def card_features(bg):
     text(d, (cx, 190), "WHAT'S INSIDE", font("Cinzel.ttf", 70, b"Bold"), GOLD_HI)
     rule(d, cx, 262, 300)
     items = [("6 skeleton classes", "Knight, Warrior, Archer, Assassin, Mage, Necromancer"),
-             ("48 armour modules", "every piece fits every skeleton"),
+             ("48 armor modules", "every piece fits every skeleton"),
              ("12 weapons", "swords, axes, shields, bow, staff, wand, daggers"),
              ("40+ animations", "idles, locomotion, attacks, casts, taunts, deaths"),
              ("One shared humanoid rig", "Unity Humanoid avatar  |  Unreal Engine skeleton")]
@@ -137,7 +137,7 @@ def card_outro(bg):
     rule(d, cx, 470, 400)
     text(d, (cx, 540), "Modular Skeleton Army", font("Cinzel.ttf", 58, b"Regular"), BONE)
     text(d, (cx, 680), "Unity   |   Unreal Engine", font("Cinzel.ttf", 52, b"Bold"), GOLD)
-    text(d, (cx, 770), "one rig  ·  modular armour  ·  shared animation set", font("EBGaramond.ttf", 40, b"Regular"), DIM)
+    text(d, (cx, 770), "one rig  ·  modular armor  ·  shared animation set", font("EBGaramond.ttf", 40, b"Regular"), DIM)
     return im
 
 
@@ -187,7 +187,7 @@ def main():
     print("cards ...", flush=True)
     segs = [card_clip(card_intro(s_knight), 6.0, "c_intro"),
             card_clip(card_features(s_mod), 8.5, "c_features", 0.02),
-            card_clip(card_stage(s_mod, "MODULAR", "Any armour piece and any weapon on any skeleton"), 3.2, "c_modular"),
+            card_clip(card_stage(s_mod, "MODULAR", "Any armor piece and any weapon on any skeleton"), 3.2, "c_modular"),
             stage_clip(mod, "s_modular"),
             card_clip(card_stage(s_mov, "MOVEMENT", "Two locomotion sets with root motion"), 3.2, "c_movement"),
             stage_clip(mov, "s_movement"),

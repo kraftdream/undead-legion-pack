@@ -52,7 +52,7 @@
 </div>
 
 <h2>1. Overview</h2>
-<p>The Extended Edition contains the complete Undead Legion pack (characters, armour modules, weapons, animations and the browser demo,
+<p>The Extended Edition contains the complete Undead Legion pack (characters, armor modules, weapons, animations and the browser demo,
 described in <code>UndeadLegion/Documentation/UndeadLegion_Documentation.pdf</code>) and adds the systems that turn the skeletons into
 a playable army. Everything new lives in <code>UndeadLegion/Extended</code>; the base assets are used as they are.</p>
 <ul>
@@ -60,10 +60,10 @@ a playable army. Everything new lives in <code>UndeadLegion/Extended</code>; the
       and a blend back to the animation for revives and get-ups.</li>
   <li><b>Hit reactions</b>: physical flinches layered over any clip, so a struck skeleton recoils while it keeps walking or attacking.</li>
   <li><b>Cloth</b>: robes, skirts and pants simulate, pinned at the waist and colliding with the legs.</li>
-  <li><b>Rise and dissolve effects</b>: skeletons rise out of the ground and turn to dust, with a glowing edge. <b>Glowing eyes</b> in any colour.</li>
+  <li><b>Rise and dissolve effects</b>: skeletons rise out of the ground and turn to dust, with a glowing edge. <b>Glowing eyes</b> in any color.</li>
   <li><b>NavMesh movement</b>: an agent drives directional locomotion blend trees built from the pack's measured walk, run, back and strafe clips.</li>
   <li><b>Combat AI</b>: finds the nearest enemy, closes in and attacks with the moves that suit the equipped weapon: melee, arrows, spells and an area cast.</li>
-  <li><b>Army spawner</b>: formations of varied skeletons with mixed armour, suitable loadouts, tints and team colours.</li>
+  <li><b>Army spawner</b>: formations of varied skeletons with mixed armor, suitable loadouts, tints and team colors.</li>
   <li>An <b>arena demo</b>: two armies, a battle, and a skeleton you can take over; and the <b>animation browser</b> with the extended characters, cloth, hits, ragdolls and the effects.</li>
 </ul>
 
@@ -76,7 +76,7 @@ a playable army. Everything new lives in <code>UndeadLegion/Extended</code>; the
 <p>Open <code>UndeadLegion/Extended/Scenes/UndeadLegion_Extended_Demo.unity</code> and press Play. To use the extended skeletons in your own
 scene, bake a NavMesh there (add a <i>NavMesh Surface</i> to your level and press <i>Bake</i>), then drag a prefab from
 <code>UndeadLegion/Extended/Prefabs</code> onto it, or add an <code>ArmySpawner</code>.</p>
-<div class="note">The extended prefabs are prefab variants of the base characters: changes to a base prefab (its armour set, its hand slots)
+<div class="note">The extended prefabs are prefab variants of the base characters: changes to a base prefab (its armor set, its hand slots)
 carry over to its extended variant.</div>
 
 <h2>3. Folder structure</h2>
@@ -103,7 +103,7 @@ carry over to its extended variant.</div>
   <tr><td><code>NavMeshAgent</code> + <code>SkeletonNavController</code></td><td>movement on the NavMesh (radius 0.32 m, height 1.8 m)</td></tr>
   <tr><td><code>SkeletonAI</code></td><td>the combat behaviour; disable it to drive the skeleton yourself</td></tr>
 </table>
-<p>The base components stay: <code>SkeletonModules</code> (armour), <code>SkeletonWeapon</code> (loadouts), <code>SkeletonTwitch</code> and
+<p>The base components stay: <code>SkeletonModules</code> (armor), <code>SkeletonWeapon</code> (loadouts), <code>SkeletonTwitch</code> and
 <code>SkeletonFootLock</code>. Every component is independent: remove the ones you do not need (for example the AI in a player character,
 or the cloth in a large crowd).</p>
 
@@ -143,19 +143,19 @@ every hit, so you rarely need to call it directly.</p>
 <code>SkeletonHealth.All</code> lists every living and dead skeleton in the scene.</p>
 
 <h2>8. Cloth</h2>
-<p><code>SkeletonCloth</code> adds Unity Cloth to the worn armour pieces named in its <code>rules</code> (Skirt, Robe and Pants by default). Each
+<p><code>SkeletonCloth</code> adds Unity Cloth to the worn armor pieces named in its <code>rules</code> (Skirt, Robe and Pants by default). Each
 cloth is pinned at the waist and frees gradually towards the hem: <code>pinnedBand</code> metres below the waist stay fixed, the hem may move up
 to <code>maxDistance</code> from its skinned position. The legs' ragdoll capsules are the colliders, so a robe swings around the legs instead of
-through them. The Knight's set is plate (<code>rigidSets</code>): its pieces never simulate, also when another skeleton wears them. Call <code>Refresh()</code> after changing the worn armour, and <code>SetSimulate(false)</code> to switch cloth off. Beyond
+through them. The Knight's set is plate (<code>rigidSets</code>): its pieces never simulate, also when another skeleton wears them. Call <code>Refresh()</code> after changing the worn armor, and <code>SetSimulate(false)</code> to switch cloth off. Beyond
 <code>cullDistance</code> from the main camera the cloth stops simulating.</p>
 
 <h2>9. Rise and dissolve effects, glowing eyes</h2>
 <p><code>SkeletonDissolve.DissolveIn()</code> raises a skeleton out of the ground; <code>DissolveOut(destroyAfter)</code> turns it to dust from the top
-down. For the duration of an effect each renderer (body, armour, held and dropped weapons) uses a copy of its material on the
+down. For the duration of an effect each renderer (body, armor, held and dropped weapons) uses a copy of its material on the
 <code>UndeadLegion/Lit Dissolve</code> shader, a URP Lit shader with a cut height, noise and a glowing band; the original materials come back
-when a rise ends, and per-renderer colours (tints) are kept. Set <code>duration</code>, <code>edgeColor</code> (HDR), <code>edgeWidth</code> and
+when a rise ends, and per-renderer colors (tints) are kept. Set <code>duration</code>, <code>edgeColor</code> (HDR), <code>edgeWidth</code> and
 <code>noiseScale</code> to taste; <code>dissolveInOnEnable</code> plays the rise whenever the object is enabled (useful with object pools).</p>
-<p><code>SkeletonEyes</code> (a base-pack script, on every character prefab) places two small glowing spheres in the eye sockets and follows the head. The colour is HDR: values above 1 glow
+<p><code>SkeletonEyes</code> (a base-pack script, on every character prefab) places two small glowing spheres in the eye sockets and follows the head. The color is HDR: values above 1 glow
 with Bloom (the arena uses URP's Bloom post effect). <code>SetColor()</code> changes it at runtime; <code>addLight</code> adds a faint light at the
 face, off by default because every light costs in a crowd.</p>
 
@@ -202,19 +202,19 @@ The defaults:</p>
 second dagger adds the left-hand attacks. The weapon's pace comes from the base pack (the controller's <code>AttackSpeed</code>, set by <code>SkeletonWeapon</code>: sword 30 % faster, dagger 70 % faster), the same in every scene; a move's own <code>speed</code> and the component's <code>attackSpeed</code> multiply on top. A heavy module is skipped when <code>allowHeavy</code> is off, which it is on the assassin: it fights with regular
 attacks whatever it holds. Add a module, or change one's weapons and moves, in the inspector to give a weapon its own set.</p>
 <p><code>damageScale</code> and <code>attackSpeed</code> tune difficulty; <code>wanderRadius</code> lets idle skeletons roam around their start point;
-<code>magicColor</code> colours the spells. Disable the component to take control of a skeleton (the arena demo does this when you select one).</p>
+<code>magicColor</code> colors the spells. Disable the component to take control of a skeleton (the arena demo does this when you select one).</p>
 
 <h2>12. Army spawner</h2>
 <p><code>ArmySpawner</code> places <code>count</code> skeletons in a formation of <code>columns</code> × rows, <code>spacing</code> metres apart, snapped
 to the NavMesh and facing the spawner's forward. Each one gets:</p>
 <ul>
   <li>a random character from <code>characters</code>;</li>
-  <li>a mixed armour set from <code>armourCatalogue</code>: each slot keeps the class's own piece or borrows another class's
-      (<code>mixChance</code>), within the dressing rules of <code>ArmourRules</code>: the mage and the necromancer always wear a robe
+  <li>a mixed armor set from <code>armorCatalogue</code>: each slot keeps the class's own piece or borrows another class's
+      (<code>mixChance</code>), within the dressing rules of <code>ArmorRules</code>: the mage and the necromancer always wear a robe
       and a hood (the robe replaces chest, skirt and pants); the melee classes never wear a robe or a hood, except the assassin, who may
       wear the mage's hood; a melee skeleton always keeps a chest piece and leaves any other slot empty more often
       (<code>meleeBareChance</code>, 0.3) than a caster (<code>bareChance</code>, 0.1);</li>
-  <li>a loadout that suits its class (<code>randomLoadout</code>), a subtle colour variation (<code>tintStrength</code>), the team's
+  <li>a loadout that suits its class (<code>randomLoadout</code>), a subtle color variation (<code>tintStrength</code>), the team's
       <code>eyeColor</code> and <code>team</code>;</li>
   <li>the upright gait for casters and the heavy gait for the rest (<code>gaitByClass</code>);</li>
   <li>a rise from the ground with a random delay (<code>riseFromGround</code>, <code>riseStagger</code>), the AI switching on when it has risen.</li>
@@ -241,7 +241,7 @@ characters and a <b>PHYSICS</b> panel: cloth on or off, a physical hit, a ragdol
 Click the skeleton to hit it where you click; Shift + click kills it into a ragdoll pushed from that point, and clicks on the fallen body
 push it around. Picking any clip, or Revive, stands a fallen skeleton back up. The browser shows one character at a time, so the
 component <code>ExtendedShowcase</code> removes its navigation and AI when it spawns; the <code>Hit_01</code> and <code>Stagger_01</code>
-clips are in the Reactions section, and armour pieces put on from the modules panel get cloth.</p>
+clips are in the Reactions section, and armor pieces put on from the modules panel get cloth.</p>
 
 <h2>15. The player demo</h2>
 <p><code>UndeadLegion/Extended/Scenes/UndeadLegion_Extended_Player.unity</code>: control one skeleton against waves of AI skeletons on the arena.</p>

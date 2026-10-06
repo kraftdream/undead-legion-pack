@@ -1,6 +1,7 @@
 # Fab listing copy — Undead Legion, Modular Skeleton Army (Unreal Engine 5.8)
 
-Every figure below was measured on 2026-10-05 off `skeletons_ue` through the editor's asset registry
+Every figure below was measured on 2026-10-05 through the editor's asset registry (the meshes, textures and clips of
+`skeletons_ue_epic` are the same exports as `skeletons_ue`'s, re-skinned to the Epic skeleton; the asset counts are the Epic package's)
 (`ue_py` inventory: classes, the `Triangles` / `Vertices` tags, LOD counts, texture sizes, the normal
 maps' `flip_green_channel`). The description and the additional-information box are the two `.txt`
 files beside this one; paste those, not this file. Edit the `.txt`, then re-check the figures here —
@@ -52,7 +53,7 @@ creatures pack went under Creatures & Monsters)
 
 | Field | Value | |
 |---|---|---|
-| Total triangles | 16,728 – 18,870 | per class, body + its default armour (Knight → Assassin) |
+| Total triangles | 16,728 – 18,870 | per class, body + its default armor (Knight → Assassin) |
 | Quads | 0 – 0 | triangulated on export |
 | Polygons | 191 – 7,588 | = triangles per mesh |
 | Triangles | 191 – 7,588 | per mesh: `SK_SkeletonMage_Greave_L` → `SK_SkeletonAssassin` body |
@@ -74,7 +75,7 @@ creatures pack went under Creatures & Monsters)
 | Materials | 27 | 2 `Material` (`M_UndeadLegion_Master`, `M_Eyes`) + 25 `MaterialInstanceConstant` (12 character, 12 weapon, 1 demo floor) |
 | Substrate materials | 0 | |
 | Custom shaders | No | |
-| Textures | 67 | base colour, normal and packed metallic / smoothness per character body and armour and per weapon |
+| Textures | 67 | base color, normal and packed metallic / smoothness per character body and armor and per weapon |
 | Normal map orientation | DirectX (Y-) | `flip_green_channel` on at import (the sources are OpenGL) |
 | UV channels | 1 | |
 | Clean UV | No | mirrored left / right pieces share UV space |
@@ -103,7 +104,7 @@ creatures pack went under Creatures & Monsters)
 
 | Field | Value | |
 |---|---|---|
-| Contains scripted logic | Yes | the character Blueprint (armour, weapons, grips, eyes, the layer stack), the demo browser |
+| Contains scripted logic | Yes | the character Blueprint (armor, weapons, grips, eyes, the layer stack), the demo browser |
 | Event triggers and interactions | Yes | |
 | Blueprints | 23 (+ 1 Animation Blueprint, 3 widgets, 2 notifies) | `BP_UndeadSkeleton`, 6 `BP_<Class>`, 12 `BP_Weapon_*`, `BP_ArrowProjectile`, `BP_DemoGameMode`, `BP_DemoShowcase`, `BP_OrbitPawn` (`BP_ShowreelDirector` is stripped by the packaging script) |
 | Input methods | Keyboard, Mouse | the browser is clicked, the orbit camera dragged |
@@ -128,14 +129,14 @@ creatures pack went under Creatures & Monsters)
 | Supported engine version | 5.8 |
 | Supported target platforms | Windows, macOS, Linux |
 | Distribution method | Asset package |
-| Documentation | `Content/UndeadLegion/Documentation.pdf` — the Unreal manual (11 A4 pages: setup, folders, characters, armour API, weapons and loadouts, sockets, the bow, the clip list with lengths, the Animation Blueprint layers, root motion and speeds in cm/s, the Blueprint API, the demo map, mannequin animations and own animations, technical details), printed from `tools/docs/UndeadLegion_UE_Documentation.html` by `python tools/make_documentation.py ue` |
+| Documentation | `Content/UndeadLegion/Documentation.pdf` — the Unreal manual (11 A4 pages: setup, folders, characters, armor API, weapons and loadouts, sockets, the bow, the clip list with lengths, the Animation Blueprint layers, root motion and speeds in cm/s, the Blueprint API, the demo map, mannequin animations and own animations, technical details), printed from `tools/docs/UndeadLegion_UE_Documentation.html` by `python tools/make_documentation.py ue` |
 
 ---
 
 ## Checks still open before submitting
 
-- The package compiles clean headlessly; a full cook on 5.8 and an interactive open of the zip on a
-  clean machine have not been done.
+- The package compiles clean headlessly and the production copy was opened and tested interactively on 2026-10-06;
+  a full cook on 5.8 has not been done (Fab's own validation cooks it).
 - The demo browser does not drive the bow string or fire the arrow (the weapon Blueprint has the poseable
   bow and `BP_ArrowProjectile` ships; the manual and the description say so).
 - The physics asset `PA_UndeadLegion` is the one the Knight's import generated, not a tuned ragdoll:
@@ -143,5 +144,6 @@ creatures pack went under Creatures & Monsters)
 - The Unity manual's weapon triangle counts (498 – 5,074) do not match the Unreal assets (344 –
   1,495, the bow 3,869); the character and module counts match exactly. Check the Unity figure
   before the next manual print (2026-10-05).
-- The showreel videos were rendered from the dev project; the Fab page video is
-  `Showreel/unreal/undead_legion_showreel_unreal.mp4` (4:17) with its `youtube_description.txt`.
+- The showreel videos were rendered from `skeletons_ue` (the Mixamo-named twin) and are NOT re-recorded for the Epic
+  package (user decision 2026-10-06: the clips are the same actions bone for bone, nothing on screen differs); the Fab page
+  video is `Showreel/unreal/undead_legion_showreel_unreal.mp4` (4:17) with its `youtube_description.txt`.
