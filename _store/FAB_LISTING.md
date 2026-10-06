@@ -75,7 +75,7 @@ creatures pack went under Creatures & Monsters)
 | Materials | 27 | 2 `Material` (`M_UndeadLegion_Master`, `M_Eyes`) + 25 `MaterialInstanceConstant` (12 character, 12 weapon, 1 demo floor) |
 | Substrate materials | 0 | |
 | Custom shaders | No | |
-| Textures | 67 | base color, normal and packed metallic / smoothness per character body and armor and per weapon |
+| Textures | 67 | base color, normal and packed metallic / smoothness per character body and armor and per weapon; every one a power of two (2026-10-06) |
 | Normal map orientation | DirectX (Y-) | `flip_green_channel` on at import (the sources are OpenGL) |
 | UV channels | 1 | |
 | Clean UV | No | mirrored left / right pieces share UV space |

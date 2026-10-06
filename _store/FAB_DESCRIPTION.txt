@@ -45,7 +45,7 @@ Characters: 6 Blueprint Characters on 1 shared skeleton; 55 skeletal meshes (6 b
 Animation Blueprints 1, Montages 33
 Triangles (fully dressed): Assassin 18,870 / Mage 17,649 / Necromancer 17,384 / Archer 17,356 / Warrior 16,979 / Knight 16,728. Bare bodies 6,364 - 7,588; armor modules 191 - 6,582 each; weapons 344 - 1,495 each (the skinned bow 3,869). 119,248 triangles in total. Max 8 bone influences per vertex.
 Materials: 2 master materials plus 25 material instances - 12 character (body and armor per class, armor two-sided), 12 weapon, 1 demo floor; the eyes an unlit emissive
-Textures: 67. Resolutions 1024x1024 characters (base color, normal, packed metallic / smoothness), 512x512 weapons, 128x128 arrow
+Textures: 67, every one a power of two. Resolutions 1024x1024 characters (base color, normal, packed metallic / smoothness), 512x512 weapons, 128x128 arrow
 Normal maps are DirectX (Y-) oriented
 Scale: 1 uu = 1 cm, feet at Z 0, facing +Y
 Supported engine version: 5.8
