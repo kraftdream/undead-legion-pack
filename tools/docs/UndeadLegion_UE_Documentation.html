@@ -321,13 +321,16 @@ needs the bow in the left hand and the arrow in the right, the staff cast both h
       6,364–7,588 triangles, modules 191–6,582, a dressed character 16,728–18,870, weapons 344–1,495 (the bow 3,869).</li>
   <li><b>Materials</b>: <code>M_UndeadLegion_Master</code> with 25 instances (12 character, 12 weapon, 1 demo floor) and <code>M_Eyes</code>
       (unlit emissive). 67 textures: base color (sRGB), normal (DirectX, Y−) and a packed map with metallic in R and roughness in A;
-      1024² for the characters, 512² for the weapons, 128² for the arrow.</li>
+      1024² for the characters, 512² for the weapons, 128² for the arrow, every one a power of two.</li>
   <li><b>Collision</b>: the characters collide through their capsule; <code>PA_UndeadLegion</code> is the import's physics asset on every
       body (a capsule per bone, not a tuned ragdoll). The weapon static meshes carry no collision primitives.</li>
   <li><b>Root motion</b>: on the root bone for the loops and staggers; locked root (in place) on everything else. Twitches and hits
       are additive against their own first frame.</li>
   <li><b>Project</b>: Blueprint only, no C++, no plugins. Startup and default map <code>UndeadLegion_Demo</code>; the renderer settings
       in <code>Config/DefaultEngine.ini</code> are the demo's (no static lighting, Lumen and virtual shadow maps off, DX12 SM6).</li>
+  <li><b>Mobile</b>: the pack renders under the ES3.1 feature level (Unreal's Mobile Preview): the master material uses default
+      mobile features, every texture is a power of two, and the demo maps carry a sky dome, which the mobile renderer needs to
+      show the SkyAtmosphere. It has not been cooked for or run on a device.</li>
 </ul>
 
 <h2>14. Support</h2>
