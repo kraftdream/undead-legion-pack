@@ -11,7 +11,7 @@ the recording camera, the Unity recorder's step loop re-cut:
     6 PlayOverlay(clip)         7 root motion on/off (CmdInt) + the follow offset re-based
     8 RecenterSeamless          9 follow the hips (CmdInt: the death camera)  10 SetClipHold(left = CmdInt)
     11 PauseActions (a death's corpse)  12 bow string attached (CmdInt; finds the bow)  13 fire the arrow
-    14 show the held arrow again
+    14 held arrow visibility (CmdInt: 1 visible, 0 hidden)
   FollowCamera (Unity FollowCamera): with root motion the camera's POSITION closes on the character + its offset at
   FollowDamping 1/s; during a death it follows the hips horizontally and sinks DeathDrop cm; its rotation never changes.
   Recenter (Unity RecenterSeamless): the character back on the spawn point (X/Y only: the Z stays the capsule's current
@@ -56,7 +56,7 @@ FUNCS = {
       (CallFunction|FindBow)
       (%(V)sSetBowAttached (== n 1)))
     (:13 (CallFunction|FireArrow))
-    (:14 (Rendering|SetActorHiddenInGame :self (%(V)sGetHeldArrow) :bNewHidden false))
+    (:14 (Rendering|SetActorHiddenInGame :self (%(V)sGetHeldArrow) :bNewHidden (== n 0)))
     (:15
       (%(C)sSetTwitch :self c :Index 1 :Weight (select (== n 1) 1.0 0.0))
       (%(C)sSetTwitch :self c :Index 2 :Weight (select (== n 1) 1.0 0.0))

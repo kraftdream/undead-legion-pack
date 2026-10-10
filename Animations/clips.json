@@ -50,11 +50,11 @@
    "mode": "idle",
    "hand_edited": true,
    "lift": 0.0036,
-   "_note": "2026-10-10: replaced from Pro Melee Axe Pack/standing idle.fbx. Reference staggered guard: left foot forward, right foot back; 56 frames at 30 fps (55-frame loop period). Source torso/arm sway, anatomical palm alignment, fixed feet and exact loop endpoints. Use Idle_1H_Combat frame 1 as the shared start/end stance for future one-handed attack revisions. Existing combat-idle/attack-return state references retained. Authored action in skeleton_anim.blend; export only, do not regenerate from an older idle source."
+   "_note": "2026-10-10: replaced from Pro Melee Axe Pack/standing idle.fbx. Reference staggered guard: left foot forward, right foot back; 56 frames at 30 fps (55-frame loop period). Subtle skeleton motion at 25% of reference amplitude (reduced torso bob and arm/weapon sway), anatomical palm alignment, fixed feet and exact loop endpoints. Use Idle_1H_Combat frame 1 as the shared start/end stance for future one-handed attack revisions. Existing combat-idle/attack-return state references retained. Authored action in skeleton_anim.blend; export only, do not regenerate from an older idle source."
   },
   {
    "name": "Idle_TwoHanded",
-   "lift": 0,
+   "lift": 0.0036,
    "prompt": "A person stands relaxed with a heavy two-handed axe resting on the right shoulder, holding its handle with both hands, slowly shifting weight from foot to foot.",
    "glb": "attack_ref6_arm",
    "src_ext": "blend",
@@ -70,9 +70,10 @@
    "blend": 20,
    "src_start": 20,
    "gate": "0.03,0.11",
-   "_note": "left hand closed with the Grip fist by anim_nla_bake --hand-grip L (2026-09-23: the left hand rides the shaft but holds no item, so the engine gives it no grip pose). ground_fit (2026-09-23, 'in Unity the feet drift up/down slightly': Humanoid bobs the whole body 6 mm with the hips sway on top of the 15 mm lift; both boots track together so the per-frame Root fit lands them). hand_edited (2026-09-23): the user's Idle_TwoHanded_Fix (right forearm/hand FK, left hand IK + elbow pole, one held key each, Combine over the strip) baked in with the longsword attached as reference. 2026-09-23: the user's frame numbers count at 24 fps (the recording is 30 fps): 77-150 / 170-235 / 236-281 / 284-330 x1.25 -> 213-294 (measured: the two attacks' hand speed peaks at 304-327 and 368-412, nothing moves in 236-281). 2026-09-23: attack_ref6 frames 170-235; the performer still stands propped until ~200 and raises the two-hander by 206, so the loop uses 206-235 slowed 2x; the left hand rides the shaft through the gate. Replaces the Kimodo axe-on-the-shoulder build | earlier:  2026-10-04: the user's edited action re-exported VERBATIM (lift 0, no ground_fit: 'all clips are fine-tuned to avoid this'); the fit curve deleted.",
+   "_note": "2026-10-10: Staggered combat stance from Idle_1H_Combat: left foot forward, right foot back. Existing two-handed upper-body idle adapted to that stance, subtle motion, exact loop, both palm centres aligned to the shaft at 0.12 rig-m spacing. Evaluated left-arm IK pose converted to FK for consistent authoring. Authored in skeleton_anim.blend at 30 fps with integer keys. Unity FBX sampled at 120 fps to preserve contacts between frames; same playback duration. Re-export with tools/export_authored_animations.py. Do not regenerate or mirror automatically.",
    "hand_edited": true,
-   "grip_hands": "L"
+   "grip_hands": "L",
+   "unity_export_fps": 120
   },
   {
    "name": "Idle_Bow",
@@ -86,10 +87,11 @@
    "still_joints": "RightHand",
    "hand_clear": "R",
    "prompt": "(not Kimodo) video mocap 'bow idle_default.glb' from the P: drive, 52-joint *_JNT skeleton with fingers, 280 frames at 30 fps; bow in the left hand (the extended one), arrow in the right",
-   "_note": "user-recorded 2026-09-22, replaces the Kimodo idle_bow build with the authored bow_side arm pose. still_joints RightHand: the tracker jittered the arrow hand (93 deg/s, a 43 deg step at source frame 83). hand_clear R: the right hand sank into the torso at source frames 42-56 ('right hand slightly overlaps with body'), pushed out to the chest outline through IK on those frames. The right foot lifts 4-5 cm in the source from frame 200 on; idle mode keeps the legs on IK at rest, so it never leaves the floor; slowed 2.5x on request (280 source frames -> 698 resampled; loop/blend/src_start in resampled frames); stance L:0.06,R:-0.06 (archer: left foot forward, right back; shared with the shots so the transitions do not slide the feet) 2026-09-27: hand-edited by anim_nla_bake from Idle_Bow_base (the retarget's build). First round widened the knees 12 cm with a 2 cm torso drop (user: 'shoot_01's knees ~15 cm wider than idle_bow's; widen idle_bow ~10 cm'); then (user: 'knees too far apart for both, 15 cm less, maybe torso 8 cm up') --knees-in 0.017 at the ORIGINAL height: knees 39-45 cm apart in the engine (were 53-60), hips 0.507-0.523 rig m. The 8 cm raise is not available: +1 cm above this height locks the right (rear) knee at 170-177 deg on the sway's peak frames (the legs are fully extended; Humanoid floats the feet), so the torso is 2 cm up from the previous round, at the retarget's own reach limit.",
+   "_note": "user-recorded 2026-09-22, replaces the Kimodo idle_bow build with the authored bow_side arm pose. still_joints RightHand: the tracker jittered the arrow hand (93 deg/s, a 43 deg step at source frame 83). hand_clear R: the right hand sank into the torso at source frames 42-56 ('right hand slightly overlaps with body'), pushed out to the chest outline through IK on those frames. The right foot lifts 4-5 cm in the source from frame 200 on; idle mode keeps the legs on IK at rest, so it never leaves the floor; slowed 2.5x on request (280 source frames -> 698 resampled; loop/blend/src_start in resampled frames); stance L:0.06,R:-0.06 (archer: left foot forward, right back; shared with the shots so the transitions do not slide the feet) 2026-09-27: hand-edited by anim_nla_bake from Idle_Bow_base (the retarget's build). First round widened the knees 12 cm with a 2 cm torso drop (user: 'shoot_01's knees ~15 cm wider than idle_bow's; widen idle_bow ~10 cm'); then (user: 'knees too far apart for both, 15 cm less, maybe torso 8 cm up') --knees-in 0.017 at the ORIGINAL height: knees 39-45 cm apart in the engine (were 53-60), hips 0.507-0.523 rig m. The 8 cm raise is not available: +1 cm above this height locks the right (rear) knee at 170-177 deg on the sway's peak frames (the legs are fully extended; Humanoid floats the feet), so the torso is 2 cm up from the previous round, at the retarget's own reach limit. 2026-10-10: authoring only; use Idle_1H_Combat for bow idle in both engines.",
    "time_scale": 2.5,
    "stance": "L:0.06,R:-0.06",
-   "hand_edited": true
+   "hand_edited": true,
+   "disabled": true
   },
   {
    "name": "Idle_Staff",
@@ -106,8 +108,10 @@
    "arm_pose": "staff_side",
    "arm_pose_reach": 0.9,
    "prompt": "(not Kimodo) the user's video-mocap idle (idle_mocap.glb, as Idle_03) with the staff_side arm pose",
-   "_note": "hand_edited (2026-09-24): the user's Idle_Staff_Fix baked by anim_nla_bake. 2026-09-24: rebuilt on the user's own idle mocap (Idle_03's source: hips sway 39 mm, head 15 deg/s, free hand ~80 mm of motion) instead of the Kimodo generation (11-15 mm, 1-4 deg/s: 'too static'); the pinned hand follows the torso sway, the other hand and the fingers are the capture's; arm_pose_reach 0.9 pulls the authored hand to 90 %% of the arm (the wand hand sat at 99 %%, elbow locked: 'extends too far'). Previous: {\"glb\": \"idle_staff\", \"mode\": \"idle\", \"seed\": 13, \"frames\": 300, \"loop\": 240, \"blend\": 40, \"src_start\": 40, \"time_scale\": 2.0, \"smooth\": 2, \"fist\": 0.8, \"prompt\": \"A person stands holding a long staff upright in the right hand beside the body, left arm relaxed, swaying slowly.\", \"arm_pose\": \"staff_side\"}. ",
-   "hand_edited": true
+   "_note": "hand_edited (2026-09-24): the user's Idle_Staff_Fix baked by anim_nla_bake. 2026-09-24: rebuilt on the user's own idle mocap (Idle_03's source: hips sway 39 mm, head 15 deg/s, free hand ~80 mm of motion) instead of the Kimodo generation (11-15 mm, 1-4 deg/s: 'too static'); the pinned hand follows the torso sway, the other hand and the fingers are the capture's; arm_pose_reach 0.9 pulls the authored hand to 90 %% of the arm (the wand hand sat at 99 %%, elbow locked: 'extends too far'). Previous: {\"glb\": \"idle_staff\", \"mode\": \"idle\", \"seed\": 13, \"frames\": 300, \"loop\": 240, \"blend\": 40, \"src_start\": 40, \"time_scale\": 2.0, \"smooth\": 2, \"fist\": 0.8, \"prompt\": \"A person stands holding a long staff upright in the right hand beside the body, left arm relaxed, swaying slowly.\", \"arm_pose\": \"staff_side\"}.  2026-10-10: Leg stance updated to the staggered Idle_1H_Combat placement: left foot forward, right back, both planted. Pelvis weight shift recentered on the combat stance; original upper-body rotations, hand/weapon aim and clip timing preserved. Matches the cast foot anchors for entry/return transitions; loop retained. Current Unity export helper: tools/export_authored_animations.py (120 fps sampling, unchanged duration).",
+   "hand_edited": true,
+   "lift": 0.0036,
+   "unity_export_fps": 120
   },
   {
    "name": "Walk_Fwd_01",
@@ -463,156 +467,174 @@
    "layer": "right",
    "mode": "action",
    "hand_edited": true,
-   "lift": 0,
-   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+   "lift": 0.0036,
+   "_note": "2026-10-10: right-handed combat-stance revision. Exact start/end pose from Idle_1H_Combat frame 1, smooth entry/recovery, stationary root, planted stance contacts and integer-frame keys. Retains the authored upper-body strike and timing. Both feet remain planted in the staggered combat stance. Left-handed mirrored actions intentionally unchanged pending review. Hand-edited source: export only, do not regenerate or mirror automatically."
   },
   {
    "name": "Attack_R_01_Stab_Heavy",
    "layer": "right",
    "mode": "action",
    "hand_edited": true,
-   "lift": 0,
-   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+   "lift": 0.0036,
+   "_note": "2026-10-10: right-handed combat-stance revision. Exact start/end pose from Idle_1H_Combat frame 1, smooth entry/recovery, stationary root, planted stance contacts and integer-frame keys. Retains the authored upper-body strike and timing. Lower-body footwork replaced from Standing Melee Combo Attack Ver. 2.fbx frames 52-115: left foot steps back, right foot steps forward and turns toward the attack, then both reset. Retimed to the existing strike; chest, arm and hand animation curves and clip duration unchanged. Foot sole alignment calibrated to the source idle and fast ankle turns smoothed. Left-handed mirrored actions intentionally unchanged pending review. Hand-edited source: export only, do not regenerate or mirror automatically."
   },
   {
    "name": "Attack_R_02_Swing",
    "layer": "right",
    "mode": "action",
    "hand_edited": true,
-   "lift": 0,
-   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge 2026-10-07: crooked right wrist corrected, bend limited to 45 degrees; twist distributed into forearm, original hand path, body and steps preserved."
+   "lift": 0.0036,
+   "_note": "2026-10-10: right-handed combat-stance revision. Exact start/end pose from Idle_1H_Combat frame 1, smooth entry/recovery, stationary root, planted stance contacts and integer-frame keys. Rebuilt from Standing Melee Attack Downward.fbx, 69 frames at 30 fps, reference torso/arm arc and anatomical wrist alignment. Both feet remain planted in the staggered combat stance. Left-handed mirrored actions intentionally unchanged pending review. Hand-edited source: export only, do not regenerate or mirror automatically."
   },
   {
    "name": "Attack_R_02_Swing_Heavy",
    "layer": "right",
    "mode": "action",
    "hand_edited": true,
-   "lift": 0,
-   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge 2026-10-07: crooked right wrist corrected, bend limited to 45 degrees; twist distributed into forearm, original hand path, body and steps preserved."
+   "lift": 0.0036,
+   "_note": "2026-10-10: right-handed combat-stance revision. Exact start/end pose from Idle_1H_Combat frame 1, smooth entry/recovery, stationary root, planted stance contacts and integer-frame keys. Rebuilt from Standing Melee Attack Downward.fbx, 69 frames at 30 fps, reference torso/arm arc and anatomical wrist alignment. Lower-body footwork replaced from Standing Melee Combo Attack Ver. 2.fbx frames 52-115: left foot steps back, right foot steps forward and turns toward the attack, then both reset. Retimed to the existing strike; chest, arm and hand animation curves and clip duration unchanged. Foot sole alignment calibrated to the source idle and fast ankle turns smoothed. Left-handed mirrored actions intentionally unchanged pending review. Hand-edited source: export only, do not regenerate or mirror automatically. Final knee-pole reset eased over frames 59-69 to remove the last-frame knee twist; feet, upper-body curves and clip duration preserved."
   },
   {
    "name": "Attack_R_03_Swing",
    "layer": "right",
    "mode": "action",
    "hand_edited": true,
-   "lift": 0,
-   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+   "lift": 0.0036,
+   "_note": "2026-10-10: Regular action restored exactly from the pre-backhand version (59 frames), including its combat-stance transitions. Attack_R_03_Swing_Heavy retains the new backhand reference. Authoring uses integer keys at 30 fps; Unity exports are sampled at 120 fps with unchanged playback duration. Re-export these clips using tools/export_authored_animations.py.",
+   "unity_export_fps": 120
   },
   {
    "name": "Attack_R_03_Swing_Heavy",
    "layer": "right",
    "mode": "action",
    "hand_edited": true,
-   "lift": 0,
-   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+   "lift": 0.0036,
+   "_note": "2026-10-10: Rebuilt from Standing Melee Attack Backhand.fbx, retimed to 79 frames at 30 fps. Anatomical forearm/palm alignment; smooth start and return to Idle_1H_Combat. Reference right-leg step, body turn, and reset retained. Authored in skeleton_anim.blend at 30 fps with integer keys. Unity FBX sampled at 120 fps to preserve contacts between frames; same playback duration. Re-export with tools/export_authored_animations.py. Do not regenerate or mirror automatically.",
+   "unity_export_fps": 120
   },
   {
    "name": "Attack_L_01_Stab",
    "layer": "left",
    "mode": "action",
    "hand_edited": true,
-   "lift": 0,
-   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+   "lift": 0.0036,
+   "_note": "2026-10-10: Left-handed adaptation of the updated right attack. Starts and ends on Idle_1H_Combat frame 1 without swapping feet; body and shoulders adapted around the shared guard. Planted feet. Authored in skeleton_anim.blend at 30 fps with integer keys. Unity FBX sampled at 120 fps to preserve contacts between frames; same playback duration. Re-export with tools/export_authored_animations.py. Do not regenerate or mirror automatically.",
+   "unity_export_fps": 120
   },
   {
    "name": "Attack_L_01_Stab_Heavy",
    "layer": "left",
    "mode": "action",
    "hand_edited": true,
-   "lift": 0,
-   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+   "lift": 0.0036,
+   "_note": "2026-10-10: Retired from Unity and Unreal production at user request. Preserve the action in skeleton_anim.blend for authoring only.",
+   "disabled": true
   },
   {
    "name": "Attack_L_02_Swing",
    "layer": "left",
    "mode": "action",
    "hand_edited": true,
-   "lift": 0,
-   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+   "lift": 0.0036,
+   "_note": "2026-10-10: Left-handed adaptation of the updated right attack. Starts and ends on Idle_1H_Combat frame 1 without swapping feet; body and shoulders adapted around the shared guard. Planted feet. Authored in skeleton_anim.blend at 30 fps with integer keys. Unity FBX sampled at 120 fps to preserve contacts between frames; same playback duration. Re-export with tools/export_authored_animations.py. Do not regenerate or mirror automatically.",
+   "unity_export_fps": 120
   },
   {
    "name": "Attack_L_02_Swing_Heavy",
    "layer": "left",
    "mode": "action",
    "hand_edited": true,
-   "lift": 0,
-   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+   "lift": 0.0036,
+   "_note": "2026-10-10: Retired from Unity and Unreal production at user request. Preserve the action in skeleton_anim.blend for authoring only.",
+   "disabled": true
   },
   {
    "name": "Attack_L_03_Swing",
    "layer": "left",
    "mode": "action",
    "hand_edited": true,
-   "lift": 0,
-   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+   "lift": 0.0036,
+   "_note": "2026-10-10: Left-handed adaptation of the updated right attack. Starts and ends on Idle_1H_Combat frame 1 without swapping feet; body and shoulders adapted around the shared guard. Planted feet. Authored in skeleton_anim.blend at 30 fps with integer keys. Unity FBX sampled at 120 fps to preserve contacts between frames; same playback duration. Re-export with tools/export_authored_animations.py. Do not regenerate or mirror automatically.",
+   "unity_export_fps": 120
   },
   {
    "name": "Attack_L_03_Swing_Heavy",
    "layer": "left",
    "mode": "action",
    "hand_edited": true,
-   "lift": 0,
-   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+   "lift": 0.0036,
+   "_note": "2026-10-10: Retired from Unity and Unreal production at user request. Preserve the action in skeleton_anim.blend for authoring only.",
+   "disabled": true
   },
   {
    "name": "Attack_2H_01_Swing",
    "layer": "full",
    "mode": "action",
    "hand_edited": true,
-   "lift": 0,
+   "lift": 0.0036,
    "grip_hands": "L",
-   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+   "_note": "2026-10-10: Rebuilt from Great Sword Slash (1).fbx. Reference swing timing and stepping pattern adapted to the combat stance, with six frames added at either end for shared Idle_TwoHanded guard transitions. Source hip height and landing stance transferred around the support foot to avoid excess crouch; foot contacts anchored and both palms follow the handle. Only regular two-handed attacks ship; heavy actions are authoring-only. Authoring uses integer keys at 30 fps; Unity exports are sampled at 120 fps with unchanged playback duration. Re-export these clips using tools/export_authored_animations.py. 2026-10-10: Playback reduced to approximately 70% (72 integer frames / 2.3667 seconds at 30 fps, previously 51 frames / 1.6667 seconds). Existing poses, contacts and two-hand grip retained. Current Unity export helper: tools/export_authored_animations.py (120 fps sampling, unchanged duration).",
+   "unity_export_fps": 120
   },
   {
    "name": "Attack_2H_01_Swing_Heavy",
    "layer": "full",
    "mode": "action",
    "hand_edited": true,
-   "lift": 0,
+   "lift": 0.0036,
    "grip_hands": "L",
-   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+   "_note": "2026-10-10: Retired from Unity and Unreal production at user request. Preserve the action in skeleton_anim.blend for authoring only.",
+   "disabled": true
   },
   {
    "name": "Attack_2H_02_Swing",
    "layer": "full",
    "mode": "action",
    "hand_edited": true,
-   "lift": 0,
+   "lift": 0.0036,
    "grip_hands": "L",
-   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+   "_note": "2026-10-10: Rebuilt from Great Sword Slash (2).fbx. Reference swing timing and stepping pattern adapted to the combat stance, with six frames added at either end for shared Idle_TwoHanded guard transitions. Source hip height and landing stance transferred around the support foot to avoid excess crouch; foot contacts anchored and both palms follow the handle. Only regular two-handed attacks ship; heavy actions are authoring-only. Authoring uses integer keys at 30 fps; Unity exports are sampled at 480 fps with unchanged playback duration. Re-export these clips using tools/export_authored_animations.py.",
+   "unity_export_fps": 480
   },
   {
    "name": "Attack_2H_02_Swing_Heavy",
    "layer": "full",
    "mode": "action",
    "hand_edited": true,
-   "lift": 0,
+   "lift": 0.0036,
    "grip_hands": "L",
-   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+   "_note": "2026-10-10: Retired from Unity and Unreal production at user request. Preserve the action in skeleton_anim.blend for authoring only.",
+   "disabled": true
   },
   {
    "name": "Shoot_01",
-   "glb": "aoe_shoot_ref_arm",
-   "src_ext": "blend",
-   "rename": "ue5",
-   "fist": 0.9,
-   "heading": "feet",
    "mode": "action",
-   "src_begin": 163,
-   "src_end": 221,
-   "time_scale": 1.0,
-   "smooth": 1,
    "layer": "upper",
-   "plant_feet": 0.001,
-   "unwind_yaw": true,
-   "unwind_ref": "body",
-   "lift": 0.015,
-   "_note": "2026-09-28: root held at its frame-1 transform (anim_nla_bake --root-hold): the take's 1 cm root drift moved both feet with it; feet frozen now. 2026-09-25: the user's mannequin recording 'aoe cast shoot.glb' (224 frames at 30 fps; the user's frame numbers are 24 fps, x1.25), plain transfer like the arm attacks. Frames 130-177: raise 163-180, draw 180-200 (the RIGHT hand at the head, 0.24 m from its shoulder; the LEFT hand the bow, extended 0.54 m: no mirror), release ~200-208, lowered by 221. Replaces the video-mocap build and its aim / anchor / bow-square / head-aim / pose-ref passes (kept in the retarget). Previous: {\"glb\": \"shoot_mocap_3\", \"mode\": \"upper\", \"rename\": \"jnt\", \"mirror\": true, \"still_joints\": \"LeftHand\", \"smooth\": 1, \"blend_from\": \"Idle_Bow:1\", \"blend_in\": 10, \"blend_to\": \"Idle_Bow:1\", \"blend_out\": 20, \"layer\": \"upper\", \"prompt\": \"(not Kimodo) video mocap 'bow attacks 2_default.glb' from the P: drive, *_JNT skeleton, 80 frames at 30 fps: the one shoot clip (user 2026-09-22: 'let's do only 1 shoot animation')\", \"stance\": \"L:0.06,R:-0.06\", \"aim_forward\": \"L\", \"hips_drop\": 0.056, \"aim_body\": 0.0, \"aim_line\": \"sight\", \"aim_offset\": 10, \"anchor\": 1.0, \"anchor_gap\": 0.083, \"bow_square\": true, \"head_aim\": true, \"head_smooth\": 3, \"time_warp\": \"22:11\", \"pose_ref\": \"Fire_Base:1@37\"}.  heading feet (new; user: 'in my Blender the shoot direction is the same as the feet; you imported it incorrectly, the model shoots diagonally compared to the feet'): NO aim passes - measured in the source the feet stand at +38 deg and the shot at full draw goes +51 (along the front foot); the aim build had held the hips and twisted the spine to put the arrow at 0 while the feet pointed +12, 25 deg off the front foot. Now the feet's mean direction is the heading (the idle's facing) and the shot follows them as recorded, 13 deg left of the mean; the hips turn ~40 deg side-on as the performer's do. 2026-09-27: the user's Shoot_01_Fix (both arms, hands, left shoulder; Combine over 1-17) baked; bow string attach / release events at frames 15 / 21 (manifest events -> the clip importer's AnimationEvents, received by SkeletonWeapon.BowAttach/BowRelease). 2026-09-27 (user: 'the fired arrow's direction depends on the animation frame; make it GO transform based'): drift root dropped, so the clip imports IN PLACE (root rotation and XZ baked into the pose): with root motion on the Animator was turning the character's root with the archer's side-on body (hips -34 deg at the draw) and transform.forward at the release frame pointed 25-30 deg off; the take's own root travel was 2 cm / 0.6 deg, nothing is lost. 2026-09-27 (user: 'change the legs animation for shoot_01 with the legs animation from idle_bow'): anim_nla_bake --legs-from Idle_Bow:1 (the bow idle's 28 leg controls are constant over its loop: IK feet at rest in the archer's stance, so frame 1 IS its leg animation; the legs react to the take's hips): knees 115-140 deg. Then (user: 'a noticeable snap between idle and shoot, both start and end'): measured against Idle_Bow frame 1 the clip's ends sat 33 mm rig lower at the hips (6 cm engine), the chest 27-37 deg off, the bow hand 16-17 cm / 73 deg off; anim_nla_bake --start-blend Idle_Bow:1:10 --end-blend Idle_Bow:1:12 (frame 1 and frame 59 ARE the idle's pose now, the attach at 15 untouched), lift 0.015 = the idle's default and no ground_fit, so the clip sits in Unity exactly where Idle_Bow sits (the feet are the idle's constant controls on every frame). Then rebuilt on the FINAL Idle_Bow (restored from the pre-legs commit c571ad9, one run: --torso-drop -0.02 --legs-from Idle_Bow:1 --keep-poles --start-blend Idle_Bow:1:10 --end-blend Idle_Bow:1:12): the take's hips raised 3.6 cm (0.500-0.533 rig m, level with the idle's), knees 39-46 cm apart (were 57-69), 129-159 deg, both seams 0.0 mm on the idle's pose.",
    "hand_edited": true,
+   "lift": 0.0036,
    "events": {
-    "BowAttach": 15,
-    "BowRelease": 21
-   }
+    "BowReset": 1,
+    "BowDraw": 10,
+    "BowAttach": 20,
+    "BowRelease": 33
+   },
+   "_note": "2026-10-10 revision: full draw + recoil reference, reference pelvis rotation/crouch and weight shift fitted to planted Idle_1H_Combat feet; exact combat idle entry/return. 63 frames at 30 fps, Unity sampled at 120 fps. Shaft-only arrow extension. Re-export via tools/export_authored_animations.py.",
+   "unity_export_fps": 120
+  },
+  {
+   "name": "Shoot_02",
+   "mode": "action",
+   "layer": "upper",
+   "hand_edited": true,
+   "lift": 0.0036,
+   "events": {
+    "BowReset": 1,
+    "BowDraw": 7,
+    "BowAttach": 9,
+    "BowRelease": 22
+   },
+   "_note": "2026-10-10: six transition intervals from Idle_1H_Combat to draw reference frame 18 (action frame 7), then draw frames 19..32, recoil frames 2..22, and ten recovery intervals to combat idle. 52 frames at 30 fps. Arrow appears when transition completes (7), string attach 9, release 22. Re-export via tools/export_authored_animations.py.",
+   "unity_export_fps": 120
   },
   {
    "name": "Cast_Wand_01",
@@ -631,9 +653,11 @@
    "unwind_yaw": true,
    "unwind_ref": "body",
    "lift": 0.0036,
-   "_note": "2026-09-25: the user's mannequin recording (magic_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 1-54 of 'magic attacks.glb'. Previous (Kimodo build): {\"glb\": \"cast_wand_flick\", \"mode\": \"action\", \"seed\": 29, \"frames\": 120, \"time_scale\": 1.0, \"smooth\": 1, \"fist\": 0.8, \"prompt\": \"A person points a short wand forward with the right hand and flicks it sharply, casting a spell.\", \"layer\": \"upper\"}.  hand_edited (2026-09-25): the user's Cast_Wand_01_Fix baked by anim_nla_bake (the transfer kept as Cast_Wand_01_base). 2026-10-07: step and root travel removed; planted Idle_01 stance, forward wand release and gaze, filtered capture motion and idle entry/recovery.",
+   "_note": "2026-09-25: the user's mannequin recording (magic_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 1-54 of 'magic attacks.glb'. Previous (Kimodo build): {\"glb\": \"cast_wand_flick\", \"mode\": \"action\", \"seed\": 29, \"frames\": 120, \"time_scale\": 1.0, \"smooth\": 1, \"fist\": 0.8, \"prompt\": \"A person points a short wand forward with the right hand and flicks it sharply, casting a spell.\", \"layer\": \"upper\"}.  hand_edited (2026-09-25): the user's Cast_Wand_01_Fix baked by anim_nla_bake (the transfer kept as Cast_Wand_01_base). 2026-10-07: step and root travel removed; planted Idle_01 stance, forward wand release and gaze, filtered capture motion and idle entry/recovery. 2026-10-10: Leg stance updated to the staggered Idle_1H_Combat placement: left foot forward, right back, both planted. Pelvis weight shift recentered on the combat stance; original upper-body rotations, hand/weapon aim and clip timing preserved. Unity blends the last eight authoring frames into Idle_Staff. Current Unity export helper: tools/export_authored_animations.py (120 fps sampling, unchanged duration).",
    "hand_edited": true,
-   "next": "Idle_01"
+   "next": "Idle_Staff",
+   "next_at": 60,
+   "unity_export_fps": 120
   },
   {
    "name": "Cast_Wand_02",
@@ -652,9 +676,11 @@
    "unwind_yaw": true,
    "unwind_ref": "body",
    "lift": 0.0036,
-   "_note": "2026-09-25: the user's mannequin recording (magic_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 55-98. Previous (Kimodo build): {\"glb\": \"cast_wand_raise\", \"mode\": \"action\", \"seed\": 31, \"frames\": 120, \"time_scale\": 1.0, \"smooth\": 1, \"fist\": 0.8, \"prompt\": \"A person raises a short wand overhead with the right hand and thrusts it forward, casting a spell.\", \"layer\": \"upper\"}.  hand_edited (2026-09-25): the user's Cast_Wand_02_Fix baked by anim_nla_bake (the transfer kept as Cast_Wand_02_base). 2026-10-07: step and root travel removed; planted Idle_01 stance, forward wand release and gaze, filtered capture motion and idle entry/recovery.",
+   "_note": "2026-09-25: the user's mannequin recording (magic_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 55-98. Previous (Kimodo build): {\"glb\": \"cast_wand_raise\", \"mode\": \"action\", \"seed\": 31, \"frames\": 120, \"time_scale\": 1.0, \"smooth\": 1, \"fist\": 0.8, \"prompt\": \"A person raises a short wand overhead with the right hand and thrusts it forward, casting a spell.\", \"layer\": \"upper\"}.  hand_edited (2026-09-25): the user's Cast_Wand_02_Fix baked by anim_nla_bake (the transfer kept as Cast_Wand_02_base). 2026-10-07: step and root travel removed; planted Idle_01 stance, forward wand release and gaze, filtered capture motion and idle entry/recovery. 2026-10-10: Leg stance updated to the staggered Idle_1H_Combat placement: left foot forward, right back, both planted. Pelvis weight shift recentered on the combat stance; original upper-body rotations, hand/weapon aim and clip timing preserved. Unity blends the last eight authoring frames into Idle_Staff. Current Unity export helper: tools/export_authored_animations.py (120 fps sampling, unchanged duration).",
    "hand_edited": true,
-   "next": "Idle_01"
+   "next": "Idle_Staff",
+   "next_at": 47,
+   "unity_export_fps": 120
   },
   {
    "name": "Cast_Wand_03",
@@ -662,9 +688,11 @@
    "layer": "upper",
    "hand_edited": true,
    "lift": 0.0036,
-   "next": "Idle_01",
+   "next": "Idle_Staff",
    "source_fbx": "C:\\Users\\vadym\\Downloads\\Standing 1H Magic Attack 01.fbx",
-   "_note": "2026-10-07: Mixamo Standing 1H Magic Attack 01, 70 frames at 30 fps. Reference upper-body gesture with a planted Idle_01 stance, forward release/gaze, neutral wrist grip and eased idle endpoints."
+   "_note": "2026-10-07: Mixamo Standing 1H Magic Attack 01, 70 frames at 30 fps. Reference upper-body gesture with a planted Idle_01 stance, forward release/gaze, neutral wrist grip and eased idle endpoints. 2026-10-10: Staggered, planted combat stance; original main casting gesture and total duration retained. Pelvis returns to the Idle_Staff orientation over frames 54-68, followed by a baked idle recovery over frames 64-76 to prevent Humanoid crossfade foot slide. Unity blends the last eight authoring frames into Idle_Staff. Current Unity export helper: tools/export_authored_animations.py (120 fps sampling, unchanged duration).",
+   "next_at": 68,
+   "unity_export_fps": 120
   },
   {
    "name": "Cast_Staff_01",
@@ -682,15 +710,16 @@
    "plant_feet": 0.001,
    "unwind_yaw": true,
    "unwind_ref": "body",
-   "lift": 0.004,
+   "lift": 0.0036,
    "ground_fit": true,
    "hand_grip": "L",
-   "_note": "2026-09-27 (user: 'new recording of cast_staff, P:/cast staff.glb, use frames 70 to 124, freeze both feet'): the mannequin app again (157 frames at 30 fps = the user's 124 x 1.25), cast_staff_ref_mocap.glb -> cast_staff_ref_arm.blend; 88-155 (30 fps). Plain transfer (arms within 1 deg of the recording) with staff_line R,L instead of the gate: this capture's right-hand hilt axis sits ~90 deg off the hand-to-hand line (the left hand 0.17-0.38 rig m OFF the right hand's axis, projection ~0), so the gate dragged the left arm 76-109 deg off the recording and my grip-follow put the left hand ABOVE the right (user: 'looks different from the original; the left hand should be below the right during the cast'). Now both hands stay where the capture has them (the left below the right on every frame) and both wrists are turned so the hilt axes lie on the left-to-right line, the top of the staff beyond the right hand. Then anim_nla_bake --pin-foot L,R (both feet at their frame-1 transforms) -> hand_edited. Previous entry (magic_ref_arm 124-200, drift root, gate -0.35,-0.15, the arm-pole-fk / grip-follow bakes). 2026-09-27 (user: 'added cast_staff_01_fix, bake it; the left hand does not follow the staff handle from 14 to 43; use idle_staff after the cast, transitioning from frame 54'): the fix (right arm: upper_arm_fk.R, forearm_fk.R, forearm_tweak.R, hand_fk.R; Combine) flattened, then anim_nla_bake --shaft-hand L:0:14:43 --shaft-clamp -0.27,-0.08 --grip-pull --grip-reach 0.96 --fk-arm R: the left SLOT seated on the right slot's hilt axis over 14-43 (eased 6 frames), its distance along the shaft clamped to the staff's 0.52 m below the grip, so the fist is on the handle where the performer held it past the foot (frames 36-43 slide up the shaft); next Idle_Staff, next_at 54: the controller's Base state Cast_Staff_01 has an exit-time transition into Idle_Staff at frame 54 lasting the remaining 14 frames, and the showcase adopts the loop it lands in. 2026-10-07: head yaw corrected to face forward throughout casting; staff grip and original body/feet motion retained.",
+   "_note": "2026-09-27 (user: 'new recording of cast_staff, P:/cast staff.glb, use frames 70 to 124, freeze both feet'): the mannequin app again (157 frames at 30 fps = the user's 124 x 1.25), cast_staff_ref_mocap.glb -> cast_staff_ref_arm.blend; 88-155 (30 fps). Plain transfer (arms within 1 deg of the recording) with staff_line R,L instead of the gate: this capture's right-hand hilt axis sits ~90 deg off the hand-to-hand line (the left hand 0.17-0.38 rig m OFF the right hand's axis, projection ~0), so the gate dragged the left arm 76-109 deg off the recording and my grip-follow put the left hand ABOVE the right (user: 'looks different from the original; the left hand should be below the right during the cast'). Now both hands stay where the capture has them (the left below the right on every frame) and both wrists are turned so the hilt axes lie on the left-to-right line, the top of the staff beyond the right hand. Then anim_nla_bake --pin-foot L,R (both feet at their frame-1 transforms) -> hand_edited. Previous entry (magic_ref_arm 124-200, drift root, gate -0.35,-0.15, the arm-pole-fk / grip-follow bakes). 2026-09-27 (user: 'added cast_staff_01_fix, bake it; the left hand does not follow the staff handle from 14 to 43; use idle_staff after the cast, transitioning from frame 54'): the fix (right arm: upper_arm_fk.R, forearm_fk.R, forearm_tweak.R, hand_fk.R; Combine) flattened, then anim_nla_bake --shaft-hand L:0:14:43 --shaft-clamp -0.27,-0.08 --grip-pull --grip-reach 0.96 --fk-arm R: the left SLOT seated on the right slot's hilt axis over 14-43 (eased 6 frames), its distance along the shaft clamped to the staff's 0.52 m below the grip, so the fist is on the handle where the performer held it past the foot (frames 36-43 slide up the shaft); next Idle_Staff, next_at 54: the controller's Base state Cast_Staff_01 has an exit-time transition into Idle_Staff at frame 54 lasting the remaining 14 frames, and the showcase adopts the loop it lands in. 2026-10-07: head yaw corrected to face forward throughout casting; staff grip and original body/feet motion retained. 2026-10-10: Leg stance updated to the staggered Idle_1H_Combat placement: left foot forward, right back, both planted. Pelvis weight shift recentered on the combat stance; original upper-body rotations, hand/weapon aim and clip timing preserved. Current Unity export helper: tools/export_authored_animations.py (120 fps sampling, unchanged duration).",
    "grip_hands": "L",
    "staff_line": "R,L",
    "hand_edited": true,
    "next": "Idle_Staff",
-   "next_at": 54
+   "next_at": 54,
+   "unity_export_fps": 120
   },
   {
    "name": "Summon",

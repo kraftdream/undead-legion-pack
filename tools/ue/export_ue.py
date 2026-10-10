@@ -42,6 +42,9 @@ def clips(names=None):
                   glob.glob(os.path.join(ROOT, "skeletons", "Assets", "UndeadLegion", "Animations", "Skeleton@*.fbx")))
     bad = []
     for n in (names or have):
+        if manifest.get(n, {}).get("disabled"):
+            print("skip", n, "(disabled in Animations/clips.json)")
+            continue
         args = UNREAL_ARGS + ["--clip", n]
         if "lift" in manifest.get(n, {}):
             args += ["--lift", str(manifest[n]["lift"])]

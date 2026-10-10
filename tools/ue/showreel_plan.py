@@ -20,8 +20,8 @@ HOLD_BEFORE, HOLD_AFTER, DEATH_HOLD, MOVEMENT_SECONDS, CROSSFADE = 0.8, 0.9, 1.6
 LENGTH = json.load(open(os.path.join(OUTDIR, "clip_lengths.json")))
 K = dict(loop=0, action=1, equip=2, wear=3, remove=4, block=5, overlay=6, rootmotion=7, recenter=8, hips=9, hold=10, pause=11,
          bow=12, fire=13, arrow=14, twitch=15)
-BOW_EVENTS = {"Shoot_01": (15, 21)}      # manifest events BowAttach / BowRelease (clip frames, 1-based)
-ARROW_HIDE = 1.2                         # SkeletonWeapon.arrowHideSeconds
+BOW_EVENTS = {c["name"]: c["events"] for c in json.load(open(os.path.join(ROOT, "Animations", "clips.json")))["clips"]
+              if not c.get("disabled") and "BowDraw" in c.get("events", {})}
 LOADOUTS = ["Sword + shield", "Sword", "Axe + round shield", "Mace", "Dagger", "Two daggers", "Longsword (2H)",
             "Battle axe (2H)", "Recurve bow", "Staff", "Wand"]
 MODULES = {"Knight": ["Boot_L", "Boot_R", "Chest", "Glove_L", "Glove_R", "Greave_L", "Greave_R", "Helm", "Skirt"],
@@ -35,12 +35,12 @@ MODULES = {"Knight": ["Boot_L", "Boot_R", "Chest", "Glove_L", "Glove_R", "Greave
 # the character stays framed, while a recenter TELEPORT of camera + character pops the cascaded shadow map (it is camera-
 # relative) for a frame - measured 2026-10-04 on the Warrior's taunt: a 3.5 frame-diff spike at the recenter, none without it.
 RECENTER = {"Stagger_01", "Stagger_02"}
-GRIP_L = {"Idle_TwoHanded", "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_01_Swing_Heavy", "Attack_2H_02_Swing_Heavy", "Cast_Staff_01"}          # manifest grip_hands L
-RETURN = {**{"Attack_%s_0%d_%s%s" % (sd, i, k, h): "Idle_1H_Combat" for sd in "RL" for i, k in ((1, "Stab"), (2, "Swing"), (3, "Swing")) for h in ("", "_Heavy")},
-          **{"Attack_2H_0%d_Swing%s" % (i, h): "Idle_TwoHanded" for i in (1, 2) for h in ("", "_Heavy")},
+GRIP_L = {"Idle_TwoHanded", "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Cast_Staff_01"}          # manifest grip_hands L
+RETURN = {**{"Attack_%s_0%d_%s%s" % (sd, i, k, h): "Idle_1H_Combat" for sd in "RL" for i, k in ((1, "Stab"), (2, "Swing"), (3, "Swing")) for h in ("",)},
+          **{"Attack_2H_0%d_Swing%s" % (i, h): "Idle_TwoHanded" for i in (1, 2) for h in ("",)},
           "Attack_R_01_Stab": "Idle_1H_Combat", "Attack_R_02_Swing": "Idle_1H_Combat", "Attack_L_01_Stab": "Idle_1H_Combat",
           "Attack_L_02_Swing": "Idle_1H_Combat", "Attack_2H_01_Swing": "Idle_TwoHanded", "Attack_2H_02_Swing": "Idle_TwoHanded",
-          "Shoot_01": "Idle_Bow", "Cast_Wand_01": "Idle_Staff", "Cast_Wand_02": "Idle_Staff", "Cast_Staff_01": "Idle_Staff"}
+          "Shoot_01": "Idle_1H_Combat", "Shoot_02": "Idle_1H_Combat", "Cast_Wand_01": "Idle_Staff", "Cast_Wand_02": "Idle_Staff", "Cast_Staff_01": "Idle_Staff"}
 # everything else returns to the running idle (Specials / Reactions: returnToLastIdle); deaths hold; hits are overlays
 
 
@@ -83,7 +83,7 @@ def modular():
            S("Knight", "Mace", "Idle_01", 3, "Mace", slots),
            S("Knight", "Longsword (2H)", "Idle_TwoHanded", 3, "Longsword", "Two-handed idle: the second hand rides the handle"),
            S("Knight", "Battle axe (2H)", "Idle_TwoHanded", 3, "Battle axe", "The same two-handed grip on every long weapon"),
-           S("Archer", "Recurve bow", "Idle_Bow", 3.5, "Recurve bow", "Bow idle; the bow is a skinned model whose string follows the draw hand"),
+           S("Archer", "Recurve bow", "Idle_1H_Combat", 3.5, "Recurve bow", "Bow idle; the bow is a skinned model whose string follows the draw hand"),
            S("Necromancer", "Staff", "Idle_Staff", 3.5, "Staff", "Staff idle"),
            S("Mage", "Wand", "Idle_03", 3.5, "Wand", "Short staff, one-handed")]
     return dict(name="modular", title="MODULAR", text="six class presets  |  one shared rig  |  every armour piece and weapon on any skeleton",
@@ -95,8 +95,8 @@ def weapons():
     # SkeletonWeapon.AttackSpeedFor (sword / sword + shield 1.3, dagger / two daggers 1.7, else 1) instead of a step override
     SWORD, DAGGER = 1.3, 1.7
     st = [A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Taunt", "Taunt_01"),
-          A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Two-handed idle; the second hand rides the handle", "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_01_Swing_Heavy"),
-          A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "The same two-handed grip and attacks on every long weapon", "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_02_Swing_Heavy"),
+          A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Two-handed idle; the second hand rides the handle", "Attack_2H_01_Swing", "Attack_2H_02_Swing"),
+          A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "The same two-handed grip and attacks on every long weapon", "Attack_2H_01_Swing", "Attack_2H_02_Swing"),
           death(A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "Death", "Death_01")),
           A("Knight", "Axe + round shield", "Idle_1H_Combat", "Skeleton Knight  |  Axe + round shield", "Taunt and rally", "Taunt_02", "Rally"),
           A("Knight", "Axe + round shield", "Idle_1H_Combat", "Skeleton Knight  |  Axe + round shield", "Left-arm block HELD on its own layer; the right arm attacks under it", "Attack_R_02_Swing", "Attack_R_02_Swing_Heavy", hold_on="Block_L_Idle"),
@@ -108,7 +108,7 @@ def weapons():
           A("Assassin", "Dagger", "Idle_1H_Combat", "Skeleton Assassin  |  Dagger", "Right-arm attacks; a dagger strikes 70% faster", "Attack_R_01_Stab", "Attack_R_02_Swing", speed=DAGGER),
           A("Assassin", "Two daggers", "Idle_1H_Combat", "Skeleton Assassin  |  Two daggers", "Left-arm attacks with the second dagger", "Attack_L_01_Stab", "Attack_L_02_Swing", speed=DAGGER),
           death(A("Assassin", "Two daggers", "Idle_1H_Combat", "Skeleton Assassin  |  Two daggers", "Death", "Death_03")),
-          A("Archer", "Recurve bow", "Idle_Bow", "Skeleton Archer  |  Recurve bow", "The string follows the draw hand; an arrow is fired on release", "Shoot_01"),
+          A("Archer", "Recurve bow", "Idle_1H_Combat", "Skeleton Archer  |  Recurve bow", "The string follows the draw hand; full draw and quick shot", "Shoot_01", "Shoot_02"),
           A("Mage", "Wand", "Idle_03", "Skeleton Mage  |  Wand", "Two wand casts", "Cast_Wand_01", "Cast_Wand_02"),
           A("Necromancer", "Staff", "Idle_Staff", "Skeleton Necromancer  |  Staff", "Summon", "Summon"),
           A("Necromancer", "Staff", "Idle_Staff", "Skeleton Necromancer  |  Staff", "The wand casts on the staff, then the two-handed staff cast", "Cast_Wand_01", "Cast_Wand_02", "Cast_Staff_01"),
@@ -164,6 +164,9 @@ def shots(stage):
         if step["loadout"] != s["loadout"]:
             cmd(cur, t0, "equip", n=LOADOUTS.index(step["loadout"]) if step["loadout"] else -1)
             s["loadout"] = step["loadout"]
+            if step["loadout"] == "Recurve bow":
+                cmd(cur, t0, "bow", n=0)
+                cmd(cur, t0, "arrow", n=0)
         if step["hold_off"] and s["block"]:
             cmd(cur, t0, "block", n=0); s["block"] = False
         if step["hold_on"] and not s["block"]:
@@ -188,11 +191,13 @@ def shots(stage):
                     cmd(cur, f, "loop", clip=ret); s["idle"] = ret
                 hold(cur, f, a in GRIP_L or (s["idle"] in GRIP_L and False))
             if a in BOW_EVENTS:
-                fa, fr = BOW_EVENTS[a]
+                ev = BOW_EVENTS[a]; fd, fa, fr = ev["BowDraw"], ev["BowAttach"], ev["BowRelease"]
+                cmd(cur, f, "bow", n=0)
+                cmd(cur, f, "arrow", n=0)
+                cmd(cur, f + round((fd - 1) / sp), "arrow", n=1)
                 cmd(cur, f + round((fa - 1) / sp), "bow", n=1)
                 cmd(cur, f + round((fr - 1) / sp), "bow", n=0)
                 cmd(cur, f + round((fr - 1) / sp), "fire")
-                cmd(cur, f + round((fr - 1) / sp + ARROW_HIDE * FPS), "arrow")
             length = LENGTH[a] / sp
             if a.startswith("Death_"):
                 cmd(cur, f + round((length - 0.3) * FPS), "pause")       # hold the corpse before the montage blends out

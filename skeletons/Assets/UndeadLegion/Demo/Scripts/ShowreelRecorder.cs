@@ -201,7 +201,7 @@ namespace UndeadLegion.Demo
             steps.Add(S("Knight", "Longsword (2H)", "Idle_TwoHanded", 3f, "Longsword", "Two-handed idle: the second hand rides the handle"));
             steps.Add(S("Knight", "Battle axe (2H)", "Idle_TwoHanded", 3f, "Battle axe", "The same two-handed grip on every long weapon"));
             // the class weapons on their presets
-            steps.Add(S("Archer", "Recurve bow", "Idle_Bow", 3.5f, "Recurve bow", "Bow idle; the bow is a skinned model whose string follows the draw hand"));
+            steps.Add(S("Archer", "Recurve bow", "Idle_1H_Combat", 3.5f, "Recurve bow", "Bow idle; the bow is a skinned model whose string follows the draw hand"));
             steps.Add(S("Necromancer", "Staff", "Idle_Staff", 3.5f, "Staff", "Staff idle"));
             steps.Add(S("Mage", "Wand", "Idle_03", 3.5f, "Wand", "Short staff, one-handed"));
             return steps;
@@ -244,7 +244,7 @@ namespace UndeadLegion.Demo
         /// <summary>"Combat", the user's script (2026-09-29): Warrior on Idle_TwoHanded - longsword then battle axe, both two-handed
         /// attacks each; Knight on Idle_03 - axe + round shield (right stab), sword + heater shield (right slice), then the left block
         /// HELD with both right attacks, then the mace with the block released and both right attacks; Assassin on Idle_02 - one dagger
-        /// (both right attacks), two daggers (both left attacks), all at 1.6x; Archer on Idle_Bow - the shot; Mage on Idle_03 - the two
+        /// (both right attacks), two daggers (both left attacks), all at 1.6x; Archer on Idle_1H_Combat - the shot; Mage on Idle_03 - the two
         /// wand casts; Necromancer on Idle_Staff - the two wand casts and the staff cast.</summary>
         public List<Step> BuildAttacks()
         {
@@ -252,8 +252,8 @@ namespace UndeadLegion.Demo
             var steps = new List<Step>();
             steps.Add(new Step { titleCard = true, title = "WEAPONS & UTILS", text = "every weapon with its idle and attacks  |  taunts, specials, deaths", seconds = titleCardSeconds });
             steps.Add(A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Taunt", "Taunt_01"));
-            steps.Add(A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Two-handed idle; the second hand rides the handle", "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_01_Swing_Heavy"));
-            steps.Add(A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "The same two-handed grip and attacks on every long weapon", "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_02_Swing_Heavy"));
+            steps.Add(A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Two-handed idle; the second hand rides the handle", "Attack_2H_01_Swing", "Attack_2H_02_Swing"));
+            steps.Add(A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "The same two-handed grip and attacks on every long weapon", "Attack_2H_01_Swing", "Attack_2H_02_Swing"));
             steps.Add(Death(A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "Death", "Death_01")));
             // Knight: taunt and rally, then the combat idle with the left block HELD; axe + round shield swing; sword + heater shield
             // with both right attacks under the block; the sword alone with the block released and both attacks; then the death
@@ -270,7 +270,7 @@ namespace UndeadLegion.Demo
             var d1 = A("Assassin", "Dagger", "Idle_1H_Combat", "Skeleton Assassin  |  Dagger", "Right-arm attacks; a dagger strikes 70% faster", "Attack_R_01_Stab", "Attack_R_02_Swing"); steps.Add(d1);
             var d2 = A("Assassin", "Two daggers", "Idle_1H_Combat", "Skeleton Assassin  |  Two daggers", "Left-arm attacks with the second dagger", "Attack_L_01_Stab", "Attack_L_02_Swing"); steps.Add(d2);
             steps.Add(Death(A("Assassin", "Two daggers", "Idle_1H_Combat", "Skeleton Assassin  |  Two daggers", "Death", "Death_03")));
-            steps.Add(A("Archer", "Recurve bow", "Idle_Bow", "Skeleton Archer  |  Recurve bow", "The string follows the draw hand; an arrow is fired on release", "Shoot_01"));
+            steps.Add(A("Archer", "Recurve bow", "Idle_1H_Combat", "Skeleton Archer  |  Recurve bow", "The string follows the draw hand; full draw and quick shot", "Shoot_01", "Shoot_02"));
             steps.Add(A("Mage", "Wand", "Idle_03", "Skeleton Mage  |  Wand", "Two wand casts", "Cast_Wand_01", "Cast_Wand_02"));
             // Necromancer: summon, the casts, the area cast, the death
             steps.Add(A("Necromancer", "Staff", "Idle_Staff", "Skeleton Necromancer  |  Staff", "Summon", "Summon"));

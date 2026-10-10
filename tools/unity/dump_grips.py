@@ -27,7 +27,8 @@ foreach (var guid in AssetDatabase.FindAssets("t:Prefab", new string[]{"Assets/U
   Transform g = null; foreach (var t in wp.GetComponentsInChildren<Transform>(true)) if (t.name == "Grip") g = t;
   if (g == null) continue;
   if (!first) sb.Append(","); first = false;
-  sb.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "\"{0}\":{{\"pos\":[{1},{2},{3}],\"rot\":[{4},{5},{6},{7}]}}", wp.name.Substring(2), g.localPosition.x, g.localPosition.y, g.localPosition.z, g.localRotation.x, g.localRotation.y, g.localRotation.z, g.localRotation.w));
+  var mesh = wp.transform.Find("Mesh"); var scale = mesh != null ? mesh.localScale : Vector3.one;
+  sb.Append(string.Format(System.Globalization.CultureInfo.InvariantCulture, "\"{0}\":{{\"pos\":[{1},{2},{3}],\"rot\":[{4},{5},{6},{7}],\"mesh_scale\":[{8},{9},{10}]}}", wp.name.Substring(2), g.localPosition.x, g.localPosition.y, g.localPosition.z, g.localRotation.x, g.localRotation.y, g.localRotation.z, g.localRotation.w, scale.x, scale.y, scale.z));
 }
 sb.Append("}}"); return sb.ToString();
 '''

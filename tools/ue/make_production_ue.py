@@ -41,6 +41,12 @@ EXCLUDE = [                                   # relative to the project, files o
 ]
 if EPIC:
     EXCLUDE += ["Content/_EpicTest", "Content/Characters/Mannequins"]
+# Retired authoring actions may still have older imported sequences or montages.
+with open(os.path.join(ROOT, "Animations", "clips.json"), encoding="utf-8") as _manifest:
+    EXCLUDE += [PRODUCT + path + c["name"] + suffix
+                for c in json.load(_manifest)["clips"] if c.get("disabled")
+                for path in ("/Animations/A_", "/Animations/Montages/AM_")
+                for suffix in (".uasset", ".uexp", ".ubulk")]
 CONFIG_DROP = ["DefaultEditorPerProjectUserSettings.ini", "DefaultEditor.ini"]   # the MCP auto-start; an empty file
 # a shipped asset must not import a module of a plugin the package does not enable
 DROPPED_MODULES = [b"/Script/PythonScriptPlugin", b"/Script/ModelContextProtocol", b"/Script/MCPClientToolset", b"/Script/AllToolsets",

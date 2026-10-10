@@ -103,7 +103,7 @@ namespace UndeadLegion.Extended
             if (!string.IsNullOrEmpty(idleState)) return idleState;
             string lo = _weapon != null && _weapon.Current >= 0 ? _weapon.NameAt(_weapon.Current) : "";
             if (lo.Contains("(2H)")) return "Idle_TwoHanded";
-            if (lo.Contains("bow")) return "Idle_Bow";
+            if (lo.Contains("bow")) return "Idle_1H_Combat";
             if (lo == "Staff") return "Idle_Staff";
             if (lo.Length > 0) return "Idle_1H_Combat";
             return "Idle_01";

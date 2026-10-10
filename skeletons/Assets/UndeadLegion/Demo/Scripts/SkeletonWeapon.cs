@@ -122,7 +122,17 @@ namespace UndeadLegion.Demo
             ApplyFingerLayers();
         }
 
-        /// <summary>Animation event on a bow clip (manifest `events`, e.g. Shoot_01 frame 15): the string
+        /// <summary>Begin or cancel a shot: leave the string at rest and hide the un-drawn arrow.</summary>
+        public void BowReset()
+        {
+            foreach (var go in _spawned) if (go != null) foreach (var b in go.GetComponentsInChildren<BowString>(true)) b.attached = false;
+            SetArrowVisible(false);
+        }
+
+        /// <summary>Animation event when the hand takes an arrow (Shoot_01 draw frame 10).</summary>
+        public void BowDraw() { SetArrowVisible(true); }
+
+        /// <summary>Animation event on a bow clip (manifest `events`): the string
         /// takes the draw hand from here on.</summary>
         public void BowAttach()
         {
@@ -130,13 +140,12 @@ namespace UndeadLegion.Demo
             SetArrowVisible(true);
         }
 
-        /// <summary>Animation event (e.g. Shoot_01 frame 21): the string is let go, and for the demo the arrow in
-        /// the draw hand is hidden for a moment so the shot reads (it comes back after `arrowHideSeconds`).</summary>
+        /// <summary>Release the string and fire the held arrow. It stays hidden until the next BowDraw event.</summary>
         public void BowRelease()
         {
             bool any = false;
             foreach (var go in _spawned) if (go != null) foreach (var b in go.GetComponentsInChildren<BowString>(true)) { b.attached = false; any = true; }
-            if (any && arrowHideSeconds > 0f) { SetArrowVisible(false); _arrowShowAt = Time.time + arrowHideSeconds; }
+            if (any) SetArrowVisible(false);
             if (any && fireProjectile) FireArrow();
         }
 
@@ -176,20 +185,11 @@ namespace UndeadLegion.Demo
             p.Launch(dir);
         }
 
-        [Tooltip("After BowRelease the arrow in the draw hand is hidden this long (seconds) so the shot reads in the demo; 0 = never hidden.")]
-        public float arrowHideSeconds = 1.2f;
-        float _arrowShowAt = -1f;
-
         void SetArrowVisible(bool on)
         {
             foreach (var go in _spawned)
                 if (go != null && go.name.StartsWith("W_Arrow"))
                     foreach (var r in go.GetComponentsInChildren<Renderer>(true)) r.enabled = on;
-        }
-
-        void Update()
-        {
-            if (_arrowShowAt > 0f && Time.time >= _arrowShowAt) { _arrowShowAt = -1f; SetArrowVisible(true); }
         }
 
         [Tooltip("Seconds the empty-hand finger layers take to fade in or out (matches the demo's crossfade).")]
@@ -355,6 +355,7 @@ namespace UndeadLegion.Demo
                 var bow = go.GetComponentInChildren<BowString>(true);
                 if (bow != null) { bow.drawHand = it.hand == Hand.Left ? _right : _left; bow.attached = false; bow.Resolve(); }
             }
+            BowReset();
             ApplyFingerLayers();
             ApplyAttackSpeed();
         }

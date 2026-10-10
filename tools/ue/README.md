@@ -4,6 +4,78 @@ The Unreal twin of the Unity development project `skeletons/`, built entirely by
 Ported from the creatures pack's proven pipeline (`smp-10-rgp-creatures/tools/ue/README.md`: units, the stripped
 `Armature` node, Interchange pipeline assets, the MCP Blueprint DSL and its traps).
 
+## Combat animation update — 2026-10-10
+
+`Animations/clips.json` now disables the three `Attack_L_*_Heavy` actions and both
+`Attack_2H_*_Swing_Heavy` actions. They remain in the Blender source. Direct exports,
+the UE export batch, the sequence/montage importer, and both production copy scripts
+honor `disabled`; the five stale Epic FBX exports have been removed from the export folder.
+
+The Blender source now restores the previous regular `Attack_R_03_Swing` (59 frames),
+keeps its backhand Heavy unchanged, and replaces the two regular two-handed attacks
+with `Great Sword Slash (1).fbx` (now 72 frames after slowing playback to about 70%) and `(2).fbx` (68 frames). Their steps come
+from the references; both return to `Idle_TwoHanded`. Unity is already updated and
+verified. The source and preview reports are in `Animations/preview/combat_revision_20261010/`.
+
+For the separate Unreal production pass, export/import those three changed actions,
+refresh their montages, and run `demo_data` before packaging so the existing browser
+asset drops its retired clip references. The browser and showreel source lists are
+already updated. Existing Unreal `.uasset` files have not been rebuilt in this pass;
+the production copy excludes retired sequences and montages even if they remain in
+the development project. Do not package the old browser without updating its data.
+
+The subsequent stance pass also updates `Cast_Wand_01`, `Cast_Wand_02`, `Cast_Wand_03`,
+`Cast_Staff_01`, and `Idle_Staff` to the shared left-forward/right-back foot placement.
+Their casting gestures and durations are preserved; `Cast_Wand_03` now blends its
+last twelve recovery frames into `Idle_Staff` to avoid foot slide during Humanoid
+crossfades. Include these five clips and
+the slower `Attack_2H_01_Swing` in the next Unreal export/import pass. The authoring
+timeline remains 30 fps; `next_at` values in the manifest refer to that timeline.
+Unity previews and verification are in `Animations/preview/cast_combat_stance_20261010/`;
+`tools/export_authored_animations.py` now exports from the main Blender source,
+using the manifest's `unity_export_fps` to preserve duration while sampling the
+Unity FBX files at 120 fps. Local preview artifacts are not required to export.
+
+## Ranged animation update — 2026-10-10
+
+`Idle_Bow` is now disabled in `Animations/clips.json`, retained only in the Blender
+source. Both export pipelines and production filters exclude it. The Unity
+controllers, bow idle selection, Unreal browser data source and showreel plan use
+`Idle_1H_Combat` instead (supersedes the initial `Idle_02` replacement). Refresh
+`demo_data` before packaging existing Unreal assets.
+
+`Shoot_01` combines `Standing Draw Arrow.fbx` and `Standing Aim Recoil.fbx`, with
+the reference's pelvis rotation, crouch and weight shift fitted to planted
+`Idle_1H_Combat` feet and matching combat-idle entry/exit poses: frames 1–63 at 30 fps
+(2.066667 seconds). The Unity and Epic FBX files are already exported; source
+authoring and checks are in `Animations/preview/ranged_adjust_20261010/`.
+Events are `BowReset` at frame 1, `BowDraw` at 10 (show arrow), `BowAttach` at 20,
+and `BowRelease` at 33 (hide held arrow, release string and fire). Unity handles
+interruption/restart through `SkeletonBowState`, which must remain with the demo
+scripts. `Shoot_02` reaches draw reference frame 18 on action frame 7, after six
+transition intervals from combat idle, then continues the draw and recoil and
+returns to combat idle. Its 52 frames last 1.7 seconds; reset/draw/attach/release
+events are at frames 1/7/9/22. Both clips are available in the browser and attack
+modules.
+
+The arrow remains 1.8 times its original total length, but this is now a
+**shaft-only mesh edit** in `Weapons/prod.blend`: the arrowhead, nock and feathers
+retain their original dimensions. Unity Grip Y remains 0.8352 m. Prefab mesh
+scale and the `unity_grips.json` `mesh_scale` entry are now **(1,1,1)**; import
+the updated `Export_UE_Epic/Weapons/SM_Arrow.fbx` and reset the existing weapon
+and projectile scales through the helpers below. Do not reapply the old 1.8 scale.
+
+For the separate Unreal production agent: import `weapons:Arrow` and
+`clips:Shoot_01,Shoot_02`, refresh `montages:Shoot_01,Shoot_02`, apply
+`weapon_blueprints:Arrow`, run `showreel_bow`, and
+refresh `demo_data`. The clip importer writes all four notify markers from the
+manifest. The existing demo's notify receiver graphs still need the visibility
+and string handlers described below under **Not done yet**, including the new
+`BowReset`/`BowDraw` events; this pass does not claim those runtime graphs are
+implemented. If rendering the showreel, rebuild its director (`RunCommand` 14
+now accepts 0=hide / 1=show) and regenerate its plan after measuring clip lengths.
+No live Unreal assets or production packages were rebuilt in this pass.
+
 ## Rebuild from scratch
 
     python tools/ue/export_ue.py                     # Blender -> Export_UE/ (models, 48 modules, weapons, 45 clips)
@@ -46,7 +118,7 @@ is the authored clip: the Unity export evaluates identically.
 |---|---|
 | `Models/<C>/SK_<C>.fbx`, `Models/Armor/<C>/SK_<C>_<M>.fbx` | `Characters/<C>/SK_<C>`, `Characters/<C>/Armor/SK_<C>_<M>`, one `Characters/SKEL_UndeadLegion` |
 | `M_<C>_{Body,Armor}` (URP/Lit, MS map) | `Materials/M_UndeadLegion_Master` + `MI_<C>_{Body,Armor}` (armour two-sided), the same PNGs; normal green flipped |
-| `Skeleton@<Clip>.fbx` | `Animations/A_<Clip>` (root motion on the locomotion loops; twitches additive vs own frame 0; `AN_BowAttach` / `AN_BowRelease` on Shoot_01 at frames 15 / 21), `Animations/Montages/AM_<Clip>` |
+| `Skeleton@<Clip>.fbx` | `Animations/A_<Clip>` (root motion on the locomotion loops; twitches additive vs own frame 0; Shoot_01 bow notifies at frames 1 / 10 / 20 / 33 from the manifest), `Animations/Montages/AM_<Clip>` |
 | hand slots on `PF_<C>` | sockets `RightHandSlot` / `LeftHandSlot` on every body: (−x, −y, z)·100 of the Unity slot, Rz(180)·rotation |
 | `W_<Weapon>` + `Grip` | `Weapons/Blueprints/BP_Weapon_<Name>`: mesh component at `Grip⁻¹·C·S` (Unreal mesh axes → Unity mesh axes) |
 | `AC_Skeleton` (8 layers) | `Blueprints/ABP_UndeadSkeleton` (below) |

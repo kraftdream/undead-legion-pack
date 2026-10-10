@@ -311,7 +311,7 @@ namespace UndeadLegion.Demo
             new ClipSection { title = "Idle", idlePreference = new[] { "Idle_01" },
                 members = new[] { "Idle_01", "Idle_02", "Idle_03", "Idle_1H_Combat" } },
             new ClipSection { title = "Weapon idles", idlePreference = new[] { "Idle_01" },
-                members = new[] { "Idle_TwoHanded", "Idle_Bow", "Idle_Staff" } },   // Idle_Propped removed 2026-09-25 with the "Staff (propped)" loadout
+                members = new[] { "Idle_TwoHanded", "Idle_Staff" } },   // Idle_Propped removed 2026-09-25 with the "Staff (propped)" loadout
             // impaled: kneeling with the sword in the belly (loop), then pull it out and rise (one-shot,
             // ends on the neutral standing pose so the crossfade lands on whichever idle follows)
             new ClipSection { title = "Impaled", idlePreference = new[] { "Idle_01" },
@@ -328,13 +328,13 @@ namespace UndeadLegion.Demo
             new ClipSection { title = "Right arm", idlePreference = new[] { "Idle_1H_Combat", "Idle_01" },
                 members = new[] { "Attack_R_01_Stab", "Attack_R_02_Swing", "Attack_R_03_Swing", "Attack_R_01_Stab_Heavy", "Attack_R_02_Swing_Heavy", "Attack_R_03_Swing_Heavy" } },
             new ClipSection { title = "Left arm (block = hold)", idlePreference = new[] { "Idle_1H_Combat", "Idle_01" },
-                members = new[] { "Attack_L_01_Stab", "Attack_L_02_Swing", "Attack_L_03_Swing", "Attack_L_01_Stab_Heavy", "Attack_L_02_Swing_Heavy", "Attack_L_03_Swing_Heavy", "Block_L_Idle" } },
+                members = new[] { "Attack_L_01_Stab", "Attack_L_02_Swing", "Attack_L_03_Swing", "Block_L_Idle" } },
             new ClipSection { title = "Two-handed", idlePreference = new[] { "Idle_TwoHanded", "Idle_01" },
-                members = new[] { "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_01_Swing_Heavy", "Attack_2H_02_Swing_Heavy" } },
-            new ClipSection { title = "Bow", idlePreference = new[] { "Idle_Bow", "Idle_01" },
-                members = new[] { "Shoot_01" } },
+                members = new[] { "Attack_2H_01_Swing", "Attack_2H_02_Swing" } },
+            new ClipSection { title = "Bow", idlePreference = new[] { "Idle_1H_Combat", "Idle_01" },
+                members = new[] { "Shoot_01", "Shoot_02" } },
             new ClipSection { title = "Magic", idlePreference = new[] { "Idle_Staff", "Idle_01" },
-                members = new[] { "Cast_Wand_01", "Cast_Wand_02", "Cast_Staff_01" } },   // Cast_Staff_02 retired 2026-09-25 (the recorded set)
+                members = new[] { "Cast_Wand_01", "Cast_Wand_02", "Cast_Wand_03", "Cast_Staff_01" } },   // Cast_Staff_02 retired 2026-09-25 (the recorded set)
             new ClipSection { title = "Specials", idlePreference = new[] { "Idle_01" }, returnToLastIdle = true,
                 members = new[] { "Taunt_01", "Taunt_02", "Taunt_03", "Rally", "Cutthroat", "Summon", "AOE_Cast" } },   // the user's recordings, 2026-09-25 (Taunt -> Taunt_01..03)
             new ClipSection { title = "Reactions", idlePreference = new[] { "Idle_01" }, returnToLastIdle = true,

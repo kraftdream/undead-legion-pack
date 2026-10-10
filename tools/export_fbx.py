@@ -445,7 +445,17 @@ def export_model(out_dir, bst, legacy=False):
     log(character, "- body-only model + %d armour modules in %s" % (len(meshes) - 1, os.path.relpath(armor_dir, ROOT)))
 
 
+def clip_enabled(clip):
+    """Authoring-only actions remain in Blender but must not enter either engine."""
+    with open(os.path.join(ROOT, "Animations", "clips.json"), encoding="utf-8") as f:
+        entries = json.load(f)["clips"]
+    return not any(c["name"] == clip and c.get("disabled") for c in entries)
+
+
 def export_clip(clip, out_dir, bst, lift=0.0, lift_curve=None):
+    if not clip_enabled(clip):
+        log("skipped %s: disabled in Animations/clips.json" % clip)
+        return
     out_dir = out_dir or os.path.join(UNREAL_OUT if UNREAL else UNITY, "Animations")
     scene = bpy.context.scene
     assert abs(scene.render.fps / scene.render.fps_base - FPS) < 1e-6, \

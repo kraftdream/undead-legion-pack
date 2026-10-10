@@ -726,6 +726,8 @@ MonoBehaviour:
   totalMass: 35
   dropWeapons: 1
   blendTime: 0.6
+  angularDamping: 0.6
+  headAngularDamping: 5
   parts:
   - bone: 0
     body: {fileID: 6583149645630262364}
@@ -1159,38 +1161,23 @@ MonoBehaviour:
       area: 0
       arrow: 0
       speed: 1
-  - name: Two-handed, heavy
-    weapons:
-    - Battle axe (2H)
-    heavy: 1
-    engageRange: 1.5
-    moves:
-    - clip: Attack_2H_01_Swing_Heavy
-      hitAt: 0.54
-      range: 2.2
-      damage: 45
-      impulse: 150
-      ranged: 0
-      area: 0
-      arrow: 0
-      speed: 1
-    - clip: Attack_2H_02_Swing_Heavy
-      hitAt: 0.41
-      range: 2.3
-      damage: 40
-      impulse: 140
-      ranged: 0
-      area: 0
-      arrow: 0
-      speed: 1
   - name: Bow
     weapons:
     - Recurve bow
     heavy: 0
     engageRange: 0
     moves:
+    - clip: Shoot_02
+      hitAt: 0.4117647
+      range: 16
+      damage: 28
+      impulse: 50
+      ranged: 1
+      area: 0
+      arrow: 1
+      speed: 1
     - clip: Shoot_01
-      hitAt: 0.3559322
+      hitAt: 0.516129
       range: 16
       damage: 28
       impulse: 50
@@ -1278,6 +1265,8 @@ MonoBehaviour:
   wanderRadius: 0
   walkWithin: 0.8
   meleeRange: 1.1
+  engageSlack: 0.3
+  blockedAttackAfter: 0.4
   target: {fileID: 0}
   magicColor: {r: 0.4, g: 2.2, b: 1.1, a: 1}
 --- !u!1 &6313521198565120841 stripped

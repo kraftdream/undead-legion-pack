@@ -25,7 +25,9 @@ ROOT_MOTION_ONESHOTS = {"Stagger_01", "Stagger_02"}
 
 
 def clip_names():
-    return sorted(os.path.basename(p)[len("Skeleton@"):-4] for p in glob.glob(os.path.join(EXPORT, "Animations", "Skeleton@*.fbx")))
+    man = clips_manifest()
+    return sorted(n for p in glob.glob(os.path.join(EXPORT, "Animations", "Skeleton@*.fbx"))
+                  for n in [os.path.basename(p)[len("Skeleton@"):-4]] if not man.get(n, {}).get("disabled"))
 
 
 def is_loop(name, man):

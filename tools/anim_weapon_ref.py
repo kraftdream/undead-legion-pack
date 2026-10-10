@@ -85,6 +85,8 @@ if ATTACH:
     for name, side in ATTACH:
         src_ob = appended[name]
         me = export_weapons.export_local_mesh(src_ob, name, log=lambda s: print("[weapon-ref]", s))
+        sx, sy, sz = grips["grips"][name].get("mesh_scale", [1, 1, 1])
+        me.transform(Matrix.Diagonal((sx, sz, sy, 1)))  # Unity mesh Y is Blender export-local Z.
         me.name = "Ref_" + name
         ob = bpy.data.objects.new("Ref_" + name, me)
         coll.objects.link(ob)

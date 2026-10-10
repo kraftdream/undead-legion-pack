@@ -53,7 +53,7 @@ namespace UndeadLegion.ExtendedEditor
             if (upper >= 0)
             {
                 var sm = ac.layers[upper].stateMachine;
-                foreach (var idle in new[] { "Idle_1H_Combat", "Idle_TwoHanded", "Idle_Bow", "Idle_Staff" })
+                foreach (var idle in new[] { "Idle_1H_Combat", "Idle_TwoHanded", "Idle_02", "Idle_Staff" })
                 {
                     bool exists = false; foreach (var s in sm.states) if (s.state.name == idle) exists = true;
                     if (exists) continue;

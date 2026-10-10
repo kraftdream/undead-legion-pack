@@ -240,6 +240,9 @@ def yaw_matrix(m):
 
 
 def export_clip(clip, lift):
+    if not X.clip_enabled(clip):
+        log("skipped %s: disabled in Animations/clips.json" % clip)
+        return
     scene = bpy.context.scene
     assert abs(scene.render.fps / scene.render.fps_base - X.FPS) < 1e-6
     src, meta = X.source_rig()
