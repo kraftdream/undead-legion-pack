@@ -3120,6 +3120,33 @@ source first tried, has closed), faded and normalised to −14 LUFS (measured �
 (ignored). The in-scene captions stay in the demo's built-in font; putting Cinzel in them means importing the font into the project and
 re-recording the stages.
 
+**The Extended edition's showreel (2026-10-09/10, "the extended functionality should be included into the new showreel; the audio
+clip ends before the video, make it repeat; high enough graphics settings").** Two more recorder stages, both headless through
+`showreel_headless.py --stage physics | army` (the launcher picks the scene: the Extended browser scene for `physics`, the arena for `army`;
+`--arena-seconds N` caps a test run), the same max-quality path (8x MSAA, 2x supersample, SMAA high, 4096 shadow map; the arena gets
+`arenaShadowDistance` 40 m in TWO cascades). **`physics`** (40 s) runs in the Extended browser through the step machinery with extended
+ACTIONS: `pre` actions before the cut (`cloth:off` / `cloth:on`) and `actions` after the idle (`hit:N` through `SkeletonHealth.TakeDamage`
+- the spring flinch plus the additive Hit clip -, `ragdoll`, `death:S` = a death clip handing over to the ragdoll after S s, `revive`,
+`dust`, `rise`): the Necromancer's robe skinned then simulated on the walk and run, the Mage's on a strafe, four hits on the walking Knight,
+the Warrior's ragdoll death and revive, the Knight's clip-then-ragdoll, the Assassin to dust and back. Found on the first take: the ragdoll
+impulse of 120 (Die applies 1.5x) threw the body metres away (55 now); after the revive the camera stayed sunk by `deathCameraDrop` and
+cropped the head (`_followDrop` goes to 0 on a revive; `FollowCamera` runs for `followHips` without root motion). **`army`** (38 s) runs in
+the arena: `ExtendedDemo.Raise(perSide, columns)` / `SetBattle` / `ClearAll` are public now (the only change in a shipped script), 12 v 12 on
+`Random.InitState(arenaSeed)`, the battle at 5.5 s, the stage ends `arenaEndHold` 6 s after one side falls (~30 s) or at `arenaSeconds`; a
+scripted camera (`ArenaShots`, hard cuts, smoothstep pushes: a wide from the east for the raise, the west flank as the lines close, a 65°
+orbit of radius 8 m at 5.5 m over the melee, a high north-east shot for the last stand and the dissolving corpses) with one caption per shot.
+Three things measured on the way: (1) the arena's own grade (ACES + vignette, ambient 1.4) rendered the ground at 36/255 against the
+browser stage's 72 - the recording adds a top-priority Volume (`arenaExposure` +0.7 EV, vignette 0) and `arenaAmbient` 2.0, never the
+scene; (2) a camera at head height behind a team's line stands among its casters (they stop at their 9-12 m range and never move), who
+filled the frame - every arena camera is above 2.6 m and on a flank, and the orbit at 9 m / 4.2 m still had their heads bobbing along the
+bottom edge, hence 8 m / 5.5 m; (3) `Camera.main` is disabled during the arena stage (RtsCamera off), which also disables the cloth's
+distance culling. **The cut**: `showreel_youtube.py --extended` -> `Showreel/undead_legion_showreel_extended.mp4` (the three base stages +
+PHYSICS + ARMIES cards and stages, Extended intro / feature / outro cards, Unity only) and the **music now loops**: `music_chain` repeats
+the two tracks with 4 s crossfades until they cover the cut, the fade-out on the real end (the 4:22 base cut had gone silent 13 s before
+its end; rebuilt too, same chapter times); the script prints the chapter list for the description (`youtube_description_extended.txt`).
+Both new stage videos are tracked like the others (`.gitignore`). Rule: **a recording camera in a crowd scene sits above head height,
+and a scene's grade is corrected for the recording with a stacked volume, not by editing the scene.**
+
 **Shoot_01's feet frozen (2026-09-28, "update shoot_01, freeze the feet position").** The legs are the bow idle's
 constant controls, yet both feet drifted 1 cm over the clip, identically: the ROOT control moved (the take's own
 travel, up to 11 mm rig, left on `root` when the clip went in place; the feet are its children). `anim_nla_bake

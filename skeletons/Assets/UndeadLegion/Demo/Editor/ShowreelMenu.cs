@@ -12,7 +12,8 @@ namespace UndeadLegion.Demo
     /// HEADLESS (2026-09-29): with the interactive editor closed,
     ///   Unity.exe -batchmode -projectPath skeletons -executeMethod UndeadLegion.Demo.ShowreelMenu.RecordHeadless -logFile ...
     /// reads the settings from environment variables (SHOWREEL_STAGE, SHOWREEL_AZIMUTH, _WIDTH, _HEIGHT, _SUPERSAMPLE, _MAXLOADOUTS,
-    /// _OUT, _DISTANCE, _LOOKHEIGHT, _FOV, _SCENE), opens the demo scene, enters play mode and, after the domain reload,
+    /// _OUT, _DISTANCE, _LOOKHEIGHT, _FOV, _SCENE), opens the demo scene (SHOWREEL_SCENE: the Extended browser scene for the
+    /// "physics" stage, the arena for "army" - tools/unity/showreel_headless.py picks it), enters play mode and, after the domain reload,
     /// starts the recorder and exits the process when it is done (tools/unity/showreel_headless.py drives this). Batch
     /// mode keeps the GPU (no -nographics), so the offscreen render is the same; the editor UI is not loaded.
     /// </summary>
@@ -29,6 +30,7 @@ namespace UndeadLegion.Demo
             public int width = 1920, height = 1080, supersample = 2, maxLoadouts = 0, fps = 30, msaa = 8;
             public string outputDir = "";
             public string stage = "weapons";
+            public float arenaSeconds = 0f;      // army stage: a cap for test runs (0 = the recorder's default)
         }
 
         static bool _pending;
@@ -80,6 +82,7 @@ namespace UndeadLegion.Demo
             cfg.fps = int.Parse(Env("SHOWREEL_FPS", "30")); cfg.msaa = int.Parse(Env("SHOWREEL_MSAA", "8"));
             cfg.outputDir = Env("SHOWREEL_OUT", "");
             cfg.stage = Env("SHOWREEL_STAGE", "weapons");
+            cfg.arenaSeconds = float.Parse(Env("SHOWREEL_ARENA_SECONDS", "0"), System.Globalization.CultureInfo.InvariantCulture);
             SessionState.SetString(KeyConfig, JsonUtility.ToJson(cfg));
             SessionState.SetBool(KeyPending, true);
             var scene = Env("SHOWREEL_SCENE", DefaultScene);
@@ -103,13 +106,15 @@ namespace UndeadLegion.Demo
             if (!EditorApplication.isPlaying) return;
             if (_rec == null)
             {
-                var sc = Object.FindFirstObjectByType<SkeletonShowcase>();
-                if (sc == null) return;                          // the scene is still loading
                 var cfg = JsonUtility.FromJson<Config>(SessionState.GetString(KeyConfig, "{}"));
+                // the scene is still loading until its driver exists: the browser's showcase, or the arena's demo for the "army" stage
+                if (cfg.stage == "army") { if (Object.FindFirstObjectByType<UndeadLegion.Extended.ExtendedDemo>() == null) return; }
+                else if (Object.FindFirstObjectByType<SkeletonShowcase>() == null) return;
                 _rec = new GameObject("ShowreelRecorder").AddComponent<ShowreelRecorder>();
                 _rec.azimuth = cfg.azimuth; _rec.elevation = cfg.elevation; _rec.distance = cfg.distance; _rec.lookHeight = cfg.lookHeight; _rec.fieldOfView = cfg.fieldOfView;
                 _rec.width = cfg.width; _rec.height = cfg.height; _rec.supersample = cfg.supersample; _rec.targetMsaa = cfg.msaa; _rec.maxLoadouts = cfg.maxLoadouts; _rec.fps = cfg.fps;
                 _rec.outputDir = cfg.outputDir; _rec.maxQuality = true; _rec.stage = cfg.stage;
+                if (cfg.arenaSeconds > 0f) _rec.arenaSeconds = cfg.arenaSeconds;
                 _rec.Begin();
                 Debug.Log("Showreel headless: recorder started");
                 return;

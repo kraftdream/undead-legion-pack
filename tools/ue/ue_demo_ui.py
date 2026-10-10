@@ -30,7 +30,7 @@ SECTIONS = [
                                                   "Attack_L_01_Stab_Heavy", "Attack_L_02_Swing_Heavy", "Attack_L_03_Swing_Heavy")] + [("Block_L_Idle", 5)]),
     ("Two-handed", [(n, 1) for n in ("Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_01_Swing_Heavy", "Attack_2H_02_Swing_Heavy")]),
     ("Bow", [("Shoot_01", 2)]),
-    ("Magic", [("Cast_Wand_01", 2), ("Cast_Wand_02", 2), ("Cast_Staff_01", 1)]),
+    ("Magic", [("Cast_Wand_01", 2), ("Cast_Wand_02", 2), ("Cast_Wand_03", 2), ("Cast_Staff_01", 1)]),
     ("Specials", [("Taunt_01", 1), ("Taunt_02", 1), ("Taunt_03", 1), ("Rally", 2), ("Cutthroat", 1), ("Summon", 1), ("AOE_Cast", 1)]),
     ("Reactions", [("Hit_01", 9), ("Hit_02", 9), ("Stagger_01", 1), ("Stagger_02", 1)]),   # hits: additive overlays
     ("Death", [("Death_01", 8), ("Death_02", 8), ("Death_03", 8), ("Death_04", 8)]),
@@ -115,7 +115,8 @@ def demo_data(widget=None, sections=None, paths=None, returns=None, loco=None):
             names.append(n); clips.append(a); modes.append(mode); secs.append(si)
             loco.append(sec in loco_secs); grip.append(n in GRIP_L)
             if mode in (1, 2, 3, 4):
-                args.append(order.index(returns[sec]) if sec in returns else -1)
+                return_idle = "Idle_01" if n.startswith("Cast_Wand_") else returns.get(sec)
+                args.append(order.index(return_idle) if return_idle in order else -1)
             elif mode == 6:
                 args.append(int(n[-2:]))
             elif mode == 7:

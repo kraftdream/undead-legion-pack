@@ -47,11 +47,10 @@
   },
   {
    "name": "Idle_1H_Combat",
-   "glb": "idle_s42",
    "mode": "idle",
    "hand_edited": true,
    "lift": 0.0036,
-   "_note": "2026-09-29, user: 'idle_{type}_combat for each weapon type: body pose from idle_01, hands placement from the first attack for that weapon type' (the crossfade from Idle_01 into an attack was too big for its 0.15 s). Built by anim_nla_bake --action Idle_01 --result Idle_1H_Combat --arms-from Attack_R_Slice:1: Idle_01's flattened clip (240 frames, the sway, legs, head) with one-handed weapon, with or without a shield: the arms of Attack_R_Slice's first frame (right hand at 0.97 m, elbow 96 deg, the left hand chest-high) held on every frame. Not reproducible from the entry alone (hand_edited); re-run that command after an Idle_01 or attack change. 2026-09-29, second round ('we only keep idle_1h_combat, the only different animation when the skeleton enters the combat state; other weapon types use their respective idles; the left arm stance is not as ready for left-hand attacks as the right'): rebuilt with --arms-from Attack_R_Slice:1:R,Attack_L_Slice:1:L (each arm from its own attack's first frame, the left the mirror stance of the right). Idle_2H_Combat / Idle_Staff_Combat / Idle_Bow_Combat removed."
+   "_note": "2026-10-10: replaced from Pro Melee Axe Pack/standing idle.fbx. Reference staggered guard: left foot forward, right foot back; 56 frames at 30 fps (55-frame loop period). Source torso/arm sway, anatomical palm alignment, fixed feet and exact loop endpoints. Use Idle_1H_Combat frame 1 as the shared start/end stance for future one-handed attack revisions. Existing combat-idle/attack-return state references retained. Authored action in skeleton_anim.blend; export only, do not regenerate from an older idle source."
   },
   {
    "name": "Idle_TwoHanded",
@@ -481,7 +480,7 @@
    "mode": "action",
    "hand_edited": true,
    "lift": 0,
-   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge 2026-10-07: crooked right wrist corrected, bend limited to 45 degrees; twist distributed into forearm, original hand path, body and steps preserved."
   },
   {
    "name": "Attack_R_02_Swing_Heavy",
@@ -489,7 +488,7 @@
    "mode": "action",
    "hand_edited": true,
    "lift": 0,
-   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge"
+   "_note": "2026-10-04: the user's own set (hand-animated in the anim file, left = X-flipped mirror of the right by anim_nla_bake --mirror-to): exported verbatim - no retarget, lift 0, no ground fit (user: 'all clips are fine-tuned to avoid this'); in place (no root travel); the _Heavy variant carries a bigger body lunge 2026-10-07: crooked right wrist corrected, bend limited to 45 degrees; twist distributed into forearm, original hand path, body and steps preserved."
   },
   {
    "name": "Attack_R_03_Swing",
@@ -629,14 +628,12 @@
    "time_scale": 1.0,
    "smooth": 1,
    "layer": "upper",
-   "plant_feet": 0.001,
-   "drift": "root",
    "unwind_yaw": true,
    "unwind_ref": "body",
-   "lift": 0.004,
-   "ground_fit": true,
-   "_note": "2026-09-25: the user's mannequin recording (magic_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 1-54 of 'magic attacks.glb'. Previous (Kimodo build): {\"glb\": \"cast_wand_flick\", \"mode\": \"action\", \"seed\": 29, \"frames\": 120, \"time_scale\": 1.0, \"smooth\": 1, \"fist\": 0.8, \"prompt\": \"A person points a short wand forward with the right hand and flicks it sharply, casting a spell.\", \"layer\": \"upper\"}.  hand_edited (2026-09-25): the user's Cast_Wand_01_Fix baked by anim_nla_bake (the transfer kept as Cast_Wand_01_base).",
-   "hand_edited": true
+   "lift": 0.0036,
+   "_note": "2026-09-25: the user's mannequin recording (magic_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 1-54 of 'magic attacks.glb'. Previous (Kimodo build): {\"glb\": \"cast_wand_flick\", \"mode\": \"action\", \"seed\": 29, \"frames\": 120, \"time_scale\": 1.0, \"smooth\": 1, \"fist\": 0.8, \"prompt\": \"A person points a short wand forward with the right hand and flicks it sharply, casting a spell.\", \"layer\": \"upper\"}.  hand_edited (2026-09-25): the user's Cast_Wand_01_Fix baked by anim_nla_bake (the transfer kept as Cast_Wand_01_base). 2026-10-07: step and root travel removed; planted Idle_01 stance, forward wand release and gaze, filtered capture motion and idle entry/recovery.",
+   "hand_edited": true,
+   "next": "Idle_01"
   },
   {
    "name": "Cast_Wand_02",
@@ -652,14 +649,22 @@
    "time_scale": 1.0,
    "smooth": 1,
    "layer": "upper",
-   "plant_feet": 0.001,
-   "drift": "root",
    "unwind_yaw": true,
    "unwind_ref": "body",
-   "lift": 0.004,
-   "ground_fit": true,
-   "_note": "2026-09-25: the user's mannequin recording (magic_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 55-98. Previous (Kimodo build): {\"glb\": \"cast_wand_raise\", \"mode\": \"action\", \"seed\": 31, \"frames\": 120, \"time_scale\": 1.0, \"smooth\": 1, \"fist\": 0.8, \"prompt\": \"A person raises a short wand overhead with the right hand and thrusts it forward, casting a spell.\", \"layer\": \"upper\"}.  hand_edited (2026-09-25): the user's Cast_Wand_02_Fix baked by anim_nla_bake (the transfer kept as Cast_Wand_02_base).",
-   "hand_edited": true
+   "lift": 0.0036,
+   "_note": "2026-09-25: the user's mannequin recording (magic_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 55-98. Previous (Kimodo build): {\"glb\": \"cast_wand_raise\", \"mode\": \"action\", \"seed\": 31, \"frames\": 120, \"time_scale\": 1.0, \"smooth\": 1, \"fist\": 0.8, \"prompt\": \"A person raises a short wand overhead with the right hand and thrusts it forward, casting a spell.\", \"layer\": \"upper\"}.  hand_edited (2026-09-25): the user's Cast_Wand_02_Fix baked by anim_nla_bake (the transfer kept as Cast_Wand_02_base). 2026-10-07: step and root travel removed; planted Idle_01 stance, forward wand release and gaze, filtered capture motion and idle entry/recovery.",
+   "hand_edited": true,
+   "next": "Idle_01"
+  },
+  {
+   "name": "Cast_Wand_03",
+   "mode": "action",
+   "layer": "upper",
+   "hand_edited": true,
+   "lift": 0.0036,
+   "next": "Idle_01",
+   "source_fbx": "C:\\Users\\vadym\\Downloads\\Standing 1H Magic Attack 01.fbx",
+   "_note": "2026-10-07: Mixamo Standing 1H Magic Attack 01, 70 frames at 30 fps. Reference upper-body gesture with a planted Idle_01 stance, forward release/gaze, neutral wrist grip and eased idle endpoints."
   },
   {
    "name": "Cast_Staff_01",
@@ -680,7 +685,7 @@
    "lift": 0.004,
    "ground_fit": true,
    "hand_grip": "L",
-   "_note": "2026-09-27 (user: 'new recording of cast_staff, P:/cast staff.glb, use frames 70 to 124, freeze both feet'): the mannequin app again (157 frames at 30 fps = the user's 124 x 1.25), cast_staff_ref_mocap.glb -> cast_staff_ref_arm.blend; 88-155 (30 fps). Plain transfer (arms within 1 deg of the recording) with staff_line R,L instead of the gate: this capture's right-hand hilt axis sits ~90 deg off the hand-to-hand line (the left hand 0.17-0.38 rig m OFF the right hand's axis, projection ~0), so the gate dragged the left arm 76-109 deg off the recording and my grip-follow put the left hand ABOVE the right (user: 'looks different from the original; the left hand should be below the right during the cast'). Now both hands stay where the capture has them (the left below the right on every frame) and both wrists are turned so the hilt axes lie on the left-to-right line, the top of the staff beyond the right hand. Then anim_nla_bake --pin-foot L,R (both feet at their frame-1 transforms) -> hand_edited. Previous entry (magic_ref_arm 124-200, drift root, gate -0.35,-0.15, the arm-pole-fk / grip-follow bakes). 2026-09-27 (user: 'added cast_staff_01_fix, bake it; the left hand does not follow the staff handle from 14 to 43; use idle_staff after the cast, transitioning from frame 54'): the fix (right arm: upper_arm_fk.R, forearm_fk.R, forearm_tweak.R, hand_fk.R; Combine) flattened, then anim_nla_bake --shaft-hand L:0:14:43 --shaft-clamp -0.27,-0.08 --grip-pull --grip-reach 0.96 --fk-arm R: the left SLOT seated on the right slot's hilt axis over 14-43 (eased 6 frames), its distance along the shaft clamped to the staff's 0.52 m below the grip, so the fist is on the handle where the performer held it past the foot (frames 36-43 slide up the shaft); next Idle_Staff, next_at 54: the controller's Base state Cast_Staff_01 has an exit-time transition into Idle_Staff at frame 54 lasting the remaining 14 frames, and the showcase adopts the loop it lands in.",
+   "_note": "2026-09-27 (user: 'new recording of cast_staff, P:/cast staff.glb, use frames 70 to 124, freeze both feet'): the mannequin app again (157 frames at 30 fps = the user's 124 x 1.25), cast_staff_ref_mocap.glb -> cast_staff_ref_arm.blend; 88-155 (30 fps). Plain transfer (arms within 1 deg of the recording) with staff_line R,L instead of the gate: this capture's right-hand hilt axis sits ~90 deg off the hand-to-hand line (the left hand 0.17-0.38 rig m OFF the right hand's axis, projection ~0), so the gate dragged the left arm 76-109 deg off the recording and my grip-follow put the left hand ABOVE the right (user: 'looks different from the original; the left hand should be below the right during the cast'). Now both hands stay where the capture has them (the left below the right on every frame) and both wrists are turned so the hilt axes lie on the left-to-right line, the top of the staff beyond the right hand. Then anim_nla_bake --pin-foot L,R (both feet at their frame-1 transforms) -> hand_edited. Previous entry (magic_ref_arm 124-200, drift root, gate -0.35,-0.15, the arm-pole-fk / grip-follow bakes). 2026-09-27 (user: 'added cast_staff_01_fix, bake it; the left hand does not follow the staff handle from 14 to 43; use idle_staff after the cast, transitioning from frame 54'): the fix (right arm: upper_arm_fk.R, forearm_fk.R, forearm_tweak.R, hand_fk.R; Combine) flattened, then anim_nla_bake --shaft-hand L:0:14:43 --shaft-clamp -0.27,-0.08 --grip-pull --grip-reach 0.96 --fk-arm R: the left SLOT seated on the right slot's hilt axis over 14-43 (eased 6 frames), its distance along the shaft clamped to the staff's 0.52 m below the grip, so the fist is on the handle where the performer held it past the foot (frames 36-43 slide up the shaft); next Idle_Staff, next_at 54: the controller's Base state Cast_Staff_01 has an exit-time transition into Idle_Staff at frame 54 lasting the remaining 14 frames, and the showcase adopts the loop it lands in. 2026-10-07: head yaw corrected to face forward throughout casting; staff grip and original body/feet motion retained.",
    "grip_hands": "L",
    "staff_line": "R,L",
    "hand_edited": true,

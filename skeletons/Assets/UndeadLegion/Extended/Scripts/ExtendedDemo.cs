@@ -97,19 +97,20 @@ namespace UndeadLegion.Extended
             foreach (var sp in new[] { teamA, teamB }) if (sp != null) foreach (var g in sp.spawned) if (g != null) { var h = g.GetComponent<SkeletonHealth>(); if (h != null) yield return h; }
         }
 
-        void Raise(int perSide)
+        /// <summary>Clears the field and raises both armies with `perSide` skeletons each; `columns` 0 = 4 (8 or fewer per side) or 8.</summary>
+        public void Raise(int perSide, int columns = 0)
         {
             ClearAll();
             foreach (var sp in new[] { teamA, teamB })
             {
                 if (sp == null) continue;
-                sp.count = perSide; sp.columns = perSide > 8 ? 8 : 4; sp.enableAI = false;
+                sp.count = perSide; sp.columns = columns > 0 ? columns : (perSide > 8 ? 8 : 4); sp.enableAI = false;
                 sp.Spawn();
             }
             ApplyOptions();
         }
 
-        void ClearAll()
+        public void ClearAll()
         {
             Select(null);
             _battle = false;
@@ -117,6 +118,9 @@ namespace UndeadLegion.Extended
             if (teamB != null) teamB.Clear();
             RefreshButtons();
         }
+
+        /// <summary>Starts or stops the battle (every living skeleton's AI on or off; the possessed one stays under orders).</summary>
+        public void SetBattle(bool on) { if (_battle != on) ToggleBattle(); }
 
         void ToggleBattle()
         {
