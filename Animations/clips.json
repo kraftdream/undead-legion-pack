@@ -678,7 +678,7 @@
    "mode": "action",
    "layer": "upper",
    "lift": 0.0036,
-   "_note": "2026-10-11 timing/aim polish of FBX finger retarget. Old15-25 compressed to new15-20 (5frame span); old43-72 to new38-45 (7frame span), speed-continuous retiming. Attack upper body10degrees to model right, hips heading/feet held. Wand25degrees farther forward during extension, elevation about43degrees. Old80-109 replaced by one velocity-matched cubic return, new53-72, removing old96/97 settle/restart.72frames/2.3667s; release35 (old40/source63). Exact Idle_Combat endpoints. Export authored action only. Return accelerated about50percent (29 to19frame intervals), with a two-frame speed ramp at53; frames1-53 unchanged.",
+   "_note": "2026-10-11 timing/aim polish of FBX finger retarget. Old15-25 compressed to new15-20 (5frame span); old43-72 to new38-45 (7frame span), speed-continuous retiming. Attack upper body10degrees to model right, hips heading/feet held. Wand25degrees farther forward during extension, elevation about43degrees. Old80-109 replaced by one velocity-matched cubic return, new53-72, removing old96/97 settle/restart.72frames/2.3667s; release35 (old40/source63). Exact Idle_Combat endpoints. Export authored action only. Return accelerated about50percent (29 to19frame intervals), with a two-frame speed ramp at53; frames1-53 unchanged. Raised-hand grip adjusted on hand_fk.R only: smooth local-Z tilt from frame2 to6, held through20, blended out by32. Wand lifts clear of the head during the rise; release, arm path and recovery retained.",
    "hand_edited": true,
    "next": "Idle_Combat",
    "next_at": 72,
