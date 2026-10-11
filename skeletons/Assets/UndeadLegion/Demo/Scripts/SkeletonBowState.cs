@@ -5,7 +5,7 @@ namespace UndeadLegion.Demo
     /// <summary>Resets bow visibility and string attachment when a shot starts or is interrupted.</summary>
     public sealed class SkeletonBowState : StateMachineBehaviour
     {
-        static bool IsShot(AnimatorStateInfo state) { return state.IsName("Shoot_01") || state.IsName("Shoot_02"); }
+        static bool IsShot(AnimatorStateInfo state) { return state.IsName("Shoot_01"); }
         public override void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
         {
             var weapon = animator.GetComponent<SkeletonWeapon>();

@@ -10,8 +10,7 @@ the recording camera, the Unity recorder's step loop re-cut:
     3 WearModule(mesh)          4 RemoveModule(mesh)                          5 SetHeldBlock(CmdInt)
     6 PlayOverlay(clip)         7 root motion on/off (CmdInt) + the follow offset re-based
     8 RecenterSeamless          9 follow the hips (CmdInt: the death camera)  10 SetClipHold(left = CmdInt)
-    11 PauseActions (a death's corpse)  12 bow string attached (CmdInt; finds the bow)  13 fire the arrow
-    14 held arrow visibility (CmdInt: 1 visible, 0 hidden)
+    11 PauseActions (a death's corpse); 12-14 reserved (bow events now run on the character)
   FollowCamera (Unity FollowCamera): with root motion the camera's POSITION closes on the character + its offset at
   FollowDamping 1/s; during a death it follows the hips horizontally and sinks DeathDrop cm; its rotation never changes.
   Recenter (Unity RecenterSeamless): the character back on the spawn point (X/Y only: the Z stays the capsule's current
@@ -52,11 +51,8 @@ FUNCS = {
     (:9 (%(V)sSetFollowHips (== n 1)))
     (:10 (%(C)sSetClipHold :self c :Left (== n 1) :Right false))
     (:11 (%(C)sPauseActions :self c))
-    (:12
-      (CallFunction|FindBow)
-      (%(V)sSetBowAttached (== n 1)))
-    (:13 (CallFunction|FireArrow))
-    (:14 (Rendering|SetActorHiddenInGame :self (%(V)sGetHeldArrow) :bNewHidden (== n 0)))
+    ; Legacy bow command IDs 12-14 are ignored: the character's animation
+    ; notifies now own visibility, deformation and projectile release.
     (:15
       (%(C)sSetTwitch :self c :Index 1 :Weight (select (== n 1) 1.0 0.0))
       (%(C)sSetTwitch :self c :Index 2 :Weight (select (== n 1) 1.0 0.0))
@@ -172,9 +168,7 @@ EVENTS = """
                      :Max (- (Utilities|Array|Length :TargetArray (%(V)sGetCmdTime)) 1))) (%(V)sGetT)))
     (CallFunction|RunCommand :i (%(V)sGetCursor))
     (%(V)sSetCursor (+ (%(V)sGetCursor) 1)))
-  (CallFunction|FollowCamera :dt DeltaSeconds)
-  (if (%(V)sGetHasBow)
-    (CallFunction|UpdateBow :dt DeltaSeconds)))
+  (CallFunction|FollowCamera :dt DeltaSeconds))
 """
 
 

@@ -69,6 +69,15 @@ def _vars(bp):
         ("ActionMontage", L.get_object_reference_type(unreal.AnimMontage), False),
         ("HasWeaponLeft", L.get_basic_type_by_name("bool"), False),
         ("HasWeaponRight", L.get_basic_type_by_name("bool"), False),
+        ("BowMesh", L.get_object_reference_type(unreal.PoseableMeshComponent), False),
+        ("HeldArrow", L.get_object_reference_type(unreal.Actor), False),
+        ("HasBow", L.get_basic_type_by_name("bool"), False),
+        ("BowAttached", L.get_basic_type_by_name("bool"), False),
+        ("BowShotActive", L.get_basic_type_by_name("bool"), False),
+        ("BowClip", L.get_object_reference_type(unreal.AnimSequenceBase), False),
+        ("Draw", L.get_basic_type_by_name("real"), False),
+        ("Apex", L.get_struct_type(unreal.Vector.static_struct()), False),
+        ("ArrowClass", L.get_class_reference_type(unreal.Actor), True),
     ]
     for name, t, editable in spec:
         if name not in have:
@@ -117,6 +126,20 @@ def base():
     EAL.save_loaded_asset(bp, False)
     log("BP_UndeadSkeleton: %d loadouts" % len(LOADOUTS))
     return bp
+
+
+def bow_runtime():
+    """Add bow state without resetting existing character defaults."""
+    bp = unreal.load_asset(BP)
+    _vars(bp)
+    L.compile_blueprint(bp)
+    projectile = unreal.load_asset(PKG + "/Demo/Blueprints/BP_ArrowProjectile")
+    if projectile is None:
+        raise RuntimeError("Run ue_build.py showreel_bow before bow_runtime")
+    unreal.get_default_object(L.generated_class(bp)).set_editor_property("ArrowClass", L.generated_class(projectile))
+    L.compile_blueprint(bp)
+    EAL.save_loaded_asset(bp, False)
+    log("Character bow state and projectile configured")
 
 
 def children():

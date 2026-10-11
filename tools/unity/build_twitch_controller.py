@@ -81,9 +81,9 @@ foreach (var cl in idleClips) {
     if (cl.name.StartsWith("Shoot_")) vs.AddStateMachineBehaviour<UndeadLegion.Demo.SkeletonBowState>();
   if (gripL.Contains(cl.name)) { var gb = vs.AddStateMachineBehaviour<UndeadLegion.Demo.SkeletonGripState>(); gb.hand = UndeadLegion.Demo.SkeletonWeapon.Hand.Left; nGrip++; }
 }
-// manifest `next` + `next_at` (2026-09-27, Cast_Staff_01 -> Idle_Staff from frame 54): a one-shot's Base state gets an
+// manifest `next` + `next_at` (2026-09-27, Cast_Staff_01 -> Idle_TwoHanded from frame 54): a one-shot's Base state gets an
 // exit-time transition into the named loop state, starting at that 1-based frame and lasting the clip's remaining
-// frames; the showcase adopts the loop it lands in (SkeletonShowcase.AdoptFollowUp)
+// frames, unless next_blend specifies a duration in seconds. The showcase adopts the loop it lands in.
 string[] nextSpec = new string[]{ %NEXT% };
 int nNext = 0;
 foreach (var ns in nextSpec) {
@@ -92,6 +92,7 @@ foreach (var ns in nextSpec) {
   // next_at uses Blender's 30 fps authoring timeline, even when an FBX is oversampled at 120/480 fps.
   var clipN = from_.motion as AnimationClip; float nfrN = clipN.length * 30f; float atN = float.Parse(p3[2], System.Globalization.CultureInfo.InvariantCulture);
   var trN = from_.AddTransition(to_); trN.hasExitTime = true; trN.exitTime = (atN - 1f) / nfrN; trN.hasFixedDuration = true; trN.duration = (nfrN - (atN - 1f)) / 30f; trN.canTransitionToSelf = false;
+  if (p3.Length > 3) trN.duration = float.Parse(p3[3], System.Globalization.CultureInfo.InvariantCulture);
   nNext++;
 }
 sb.AppendLine("base layer: Idle + " + idleClips.Count + " more states (" + nGrip + " with a left-hand grip state, " + nNext + " with a follow-up transition, " + nSpeed + " on AttackSpeed)");
@@ -310,7 +311,8 @@ if __name__ == "__main__":
     tagged = lambda tag: [c["name"] for c in clips if c.get("layer") == tag]
     print("from the manifest: upper", ", ".join(tagged("upper")), "| left", ", ".join(tagged("left")), "| right", ", ".join(tagged("right")))
     grip_l = [c["name"] for c in clips if c.get("grip_hands") == "L"]
-    nexts = ["%s:%s:%s" % (c["name"], c["next"], c.get("next_at", 1)) for c in clips if c.get("next")]
+    nexts = ["%s:%s:%s" % (c["name"], c["next"], c.get("next_at", 1))
+             + (":%s" % c["next_blend"] if "next_blend" in c else "") for c in clips if c.get("next")]
     print("left hand on the weapon (grip_hands L):", ", ".join(grip_l))
     code = CODE.replace("%UPPER%", ", ".join('"%s"' % u for u in tagged("upper"))).replace("%LEFT%", ", ".join('"%s"' % u for u in tagged("left"))).replace("%RIGHT%", ", ".join('"%s"' % u for u in tagged("right"))).replace("%GRIPL%", ", ".join('"%s"' % u for u in grip_l)).replace("%NEXT%", ", ".join('"%s"' % u for u in nexts)).replace("%ADDITIVE%", ", ".join('"%s"' % u for u in tagged("additive")))
     c = Client()

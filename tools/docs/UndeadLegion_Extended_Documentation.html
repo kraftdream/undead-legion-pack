@@ -168,8 +168,8 @@ parameters (metres per second in the character's frame) and plays one of two 2D 
   <tr><td><b>Upright</b></td><td><code>Locomotion_Upright</code></td><td>the upright <code>_02</code> set</td><td class="n">1.28 / 1.87 m/s</td></tr>
 </table>
 <p>The agent plans the path and steers; the clips' own <b>root motion</b> moves and turns the body (the agent follows it and keeps it on the NavMesh), so the feet plant and the body turns with each step as authored. The blend-tree positions are the clips' measured speeds, so the wanted speed picks the matching clip. The agent's speed is set from the
-gait (walk or <code>run</code>). When the skeleton stops, it plays the idle that suits its weapon (<code>Idle_1H_Combat</code>,
-<code>Idle_TwoHanded</code>, <code>Idle_Bow</code>, <code>Idle_Staff</code>); while it moves, the same weapon pose plays on the UpperBody layer so a
+gait (walk or <code>run</code>). When the skeleton stops, it plays the idle that suits its weapon (<code>Idle_Combat</code>,
+<code>Idle_TwoHanded</code>); while it moves, the same weapon pose plays on the UpperBody layer so a
 two-hander or a bow is still held properly.</p>
 <pre>var nav = skeleton.GetComponent&lt;SkeletonNavController&gt;();
 nav.MoveTo(destination, running: true);
@@ -188,7 +188,7 @@ The defaults:</p>
   <tr><th>Module</th><th>Weapons</th><th>Attacks</th><th class="n">Range</th></tr>
   <tr><td>Sword</td><td>sword, sword + shield</td><td><code>Attack_R_01_Stab</code>, <code>Attack_R_02_Swing</code>, <code>Attack_R_03_Swing</code></td><td class="n">1.7–1.8 m</td></tr>
   <tr><td>Dagger</td><td>dagger, two daggers</td><td>the same three</td><td class="n">1.7–1.8 m</td></tr>
-  <tr><td>Dagger, left hand</td><td>two daggers</td><td><code>Attack_L_01_Stab</code>, <code>Attack_L_02_Swing</code>, <code>Attack_L_03_Swing</code></td><td class="n">1.5–1.6 m</td></tr>
+  <tr><td>Dagger, left hand</td><td>two daggers</td><td><code>Attack_L_01_Stab</code>, <code>Attack_L_02_Swing</code></td><td class="n">1.5–1.6 m</td></tr>
   <tr><td>Axe / Axe, heavy</td><td>axe + shield</td><td>the three right-hand attacks / their <code>_Heavy</code> variants: a bigger lunge, more damage</td><td class="n">1.7–1.9 m</td></tr>
   <tr><td>Mace / Mace, heavy</td><td>mace</td><td>the two swings / their <code>_Heavy</code> variants (no stab)</td><td class="n">1.7–1.8 m</td></tr>
   <tr><td>Two-handed</td><td>longsword, battle axe</td><td><code>Attack_2H_01_Swing</code>, <code>Attack_2H_02_Swing</code></td><td class="n">2.1–2.2 m</td></tr>

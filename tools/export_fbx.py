@@ -452,6 +452,14 @@ def clip_enabled(clip):
     return not any(c["name"] == clip and c.get("disabled") for c in entries)
 
 
+def source_action_name(clip):
+    """A shipping clip may intentionally use a differently named Blender action."""
+    with open(os.path.join(ROOT, "Animations", "clips.json"), encoding="utf-8") as f:
+        entries = json.load(f)["clips"]
+    entry = next((c for c in entries if c["name"] == clip), {})
+    return entry.get("source_action", clip)
+
+
 def export_clip(clip, out_dir, bst, lift=0.0, lift_curve=None):
     if not clip_enabled(clip):
         log("skipped %s: disabled in Animations/clips.json" % clip)
@@ -461,8 +469,9 @@ def export_clip(clip, out_dir, bst, lift=0.0, lift_curve=None):
     assert abs(scene.render.fps / scene.render.fps_base - FPS) < 1e-6, \
         "scene fps is %s, clips must be authored at %d" % (scene.render.fps, FPS)
     src, meta = source_rig()
-    act = bpy.data.actions.get(clip)
-    assert act is not None, "no action named %r (have %s)" % (clip, [a.name for a in bpy.data.actions])
+    source_name = source_action_name(clip)
+    act = bpy.data.actions.get(source_name)
+    assert act is not None, "no source action named %r for export %r" % (source_name, clip)
     name_report(src)
     for pb in src.pose.bones:          # rigid IK chains (see tools/rig_lib_no_stretch.py)
         pb.ik_stretch = 0.0

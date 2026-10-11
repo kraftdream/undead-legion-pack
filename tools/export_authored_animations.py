@@ -66,10 +66,11 @@ def main():
     for name in names:
         # The core exporter replaces scene data; reopen for every action.
         bpy.ops.wm.open_mainfile(filepath=str(SOURCE))
-        action = bpy.data.actions.get(name)
-        if action is None:
-            raise RuntimeError(f"Main animation file is missing {name}")
         entry = entries[name]
+        source_name = entry.get("source_action", name)
+        action = bpy.data.actions.get(source_name)
+        if action is None:
+            raise RuntimeError(f"Main animation file is missing source action {source_name} for {name}")
         fps = int(entry["unity_export_fps"])
         resample_timeline(action, fps)
         exporter = runpy.run_path(str(ROOT / "tools/export_fbx.py"), run_name="export_helper")

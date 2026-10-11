@@ -611,15 +611,6 @@ MonoBehaviour:
       area: 0
       arrow: 0
       speed: 1
-    - clip: Attack_L_03_Swing
-      hitAt: 0.5
-      range: 1.5
-      damage: 14
-      impulse: 55
-      ranged: 0
-      area: 0
-      arrow: 0
-      speed: 1
   - name: Axe
     weapons:
     - Axe + round shield
@@ -677,15 +668,6 @@ MonoBehaviour:
       area: 0
       arrow: 0
       speed: 1
-    - clip: Attack_R_03_Swing_Heavy
-      hitAt: 0.48
-      range: 1.8
-      damage: 26
-      impulse: 90
-      ranged: 0
-      area: 0
-      arrow: 0
-      speed: 1
   - name: Mace
     weapons:
     - Mace
@@ -725,15 +707,6 @@ MonoBehaviour:
       area: 0
       arrow: 0
       speed: 1
-    - clip: Attack_R_03_Swing_Heavy
-      hitAt: 0.48
-      range: 1.8
-      damage: 26
-      impulse: 90
-      ranged: 0
-      area: 0
-      arrow: 0
-      speed: 1
   - name: Two-handed
     weapons:
     - Longsword (2H)
@@ -742,7 +715,7 @@ MonoBehaviour:
     engageRange: 1.5
     moves:
     - clip: Attack_2H_01_Swing
-      hitAt: 0.54
+      hitAt: 0.5308642
       range: 2.1
       damage: 35
       impulse: 120
@@ -751,7 +724,7 @@ MonoBehaviour:
       arrow: 0
       speed: 1
     - clip: Attack_2H_02_Swing
-      hitAt: 0.43
+      hitAt: 0.41
       range: 2.2
       damage: 30
       impulse: 110
@@ -765,17 +738,8 @@ MonoBehaviour:
     heavy: 0
     engageRange: 0
     moves:
-    - clip: Shoot_02
-      hitAt: 0.4117647
-      range: 16
-      damage: 28
-      impulse: 50
-      ranged: 1
-      area: 0
-      arrow: 1
-      speed: 1
     - clip: Shoot_01
-      hitAt: 0.516129
+      hitAt: 0.41095892
       range: 16
       damage: 28
       impulse: 50
@@ -790,7 +754,7 @@ MonoBehaviour:
     engageRange: 0
     moves:
     - clip: Cast_Wand_01
-      hitAt: 0.45
+      hitAt: 0.7178571
       range: 11
       damage: 16
       impulse: 35
@@ -799,7 +763,7 @@ MonoBehaviour:
       arrow: 0
       speed: 1
     - clip: Cast_Wand_02
-      hitAt: 0.45
+      hitAt: 0.47887325
       range: 11
       damage: 16
       impulse: 35

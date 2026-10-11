@@ -161,17 +161,17 @@ do not overlap. A module placed in a level on its own is a prop in its rest pose
 (<code>GetLoadout</code> returns the current index). The eleven loadouts, right hand first:</p>
 <table>
 <tr><th class="n">Index</th><th>Loadout</th><th>Right hand</th><th>Left hand</th><th>Idle that fits</th></tr>
-<tr><td class="n">0</td><td>Sword + shield</td><td>Sword</td><td>Heater shield</td><td>Idle_1H_Combat</td></tr>
-<tr><td class="n">1</td><td>Sword</td><td>Sword</td><td>—</td><td>Idle_1H_Combat</td></tr>
-<tr><td class="n">2</td><td>Axe + round shield</td><td>Axe</td><td>Round shield</td><td>Idle_1H_Combat</td></tr>
-<tr><td class="n">3</td><td>Mace</td><td>Mace</td><td>—</td><td>Idle_1H_Combat</td></tr>
-<tr><td class="n">4</td><td>Dagger</td><td>Dagger</td><td>—</td><td>Idle_1H_Combat</td></tr>
-<tr><td class="n">5</td><td>Two daggers</td><td>Dagger</td><td>Dagger</td><td>Idle_1H_Combat</td></tr>
+<tr><td class="n">0</td><td>Sword + shield</td><td>Sword</td><td>Heater shield</td><td>Idle_Combat</td></tr>
+<tr><td class="n">1</td><td>Sword</td><td>Sword</td><td>—</td><td>Idle_Combat</td></tr>
+<tr><td class="n">2</td><td>Axe + round shield</td><td>Axe</td><td>Round shield</td><td>Idle_Combat</td></tr>
+<tr><td class="n">3</td><td>Mace</td><td>Mace</td><td>—</td><td>Idle_Combat</td></tr>
+<tr><td class="n">4</td><td>Dagger</td><td>Dagger</td><td>—</td><td>Idle_Combat</td></tr>
+<tr><td class="n">5</td><td>Two daggers</td><td>Dagger</td><td>Dagger</td><td>Idle_Combat</td></tr>
 <tr><td class="n">6</td><td>Longsword (2H)</td><td>Longsword</td><td>on the shaft</td><td>Idle_TwoHanded</td></tr>
 <tr><td class="n">7</td><td>Battle axe (2H)</td><td>Battle axe</td><td>on the shaft</td><td>Idle_TwoHanded</td></tr>
 <tr><td class="n">8</td><td>Recurve bow</td><td>Arrow</td><td>Recurve bow</td><td>Idle_Bow</td></tr>
-<tr><td class="n">9</td><td>Staff</td><td>Staff</td><td>—</td><td>Idle_Staff</td></tr>
-<tr><td class="n">10</td><td>Wand</td><td>Wand</td><td>—</td><td>Idle_03 / Idle_Staff</td></tr>
+<tr><td class="n">9</td><td>Staff</td><td>Staff</td><td>—</td><td>Idle_TwoHanded</td></tr>
+<tr><td class="n">10</td><td>Wand</td><td>Wand</td><td>—</td><td>Idle_03 / Idle_TwoHanded</td></tr>
 </table>
 <h3>Hand sockets and grips</h3>
 <p>Two transforms meet when a weapon is equipped: the body's socket <code>RightHandSlot</code> / <code>LeftHandSlot</code> (on
@@ -197,14 +197,14 @@ Clips marked root motion carry their travel on the root bone; played from a mont
 <table>
 <tr><th>Group</th><th>Clips (length in seconds)</th><th>Type</th></tr>
 <tr><td>Idles</td><td>Idle_01 (8.0), Idle_02 (12.0), Idle_03 (10.8)</td><td>loop</td></tr>
-<tr><td>Combat idle</td><td>Idle_1H_Combat (8.0): one-handed weapons and shields, both hands ready</td><td>loop</td></tr>
-<tr><td>Weapon idles</td><td>Idle_TwoHanded (4.67), Idle_Bow (19.87), Idle_Staff (10.8)</td><td>loop</td></tr>
+<tr><td>Combat idle</td><td>Idle_Combat (7.33): one-handed weapons and shields, both hands ready</td><td>loop</td></tr>
+<tr><td>Weapon idles</td><td>Idle_TwoHanded (4.67)</td><td>loop</td></tr>
 <tr><td>Locomotion, heavy set</td><td>Walk_Fwd_01 (1.40), Walk_Back_01 (1.97), Run_Fwd_01 (0.97), Strafe_Left_01 (1.47), Strafe_Right_01 (1.47)</td><td>loop, root motion</td></tr>
 <tr><td>Locomotion, upright set</td><td>Walk_Fwd_02 (1.13), Walk_Back_02 (1.47), Run_Fwd_02 (0.93), Strafe_Left_02 (1.30), Strafe_Right_02 (1.30)</td><td>loop, root motion</td></tr>
-<tr><td>Right arm</td><td>Attack_R_01_Stab (1.47), Attack_R_02_Swing (1.97), Attack_R_03_Swing (1.93) and Attack_R_01_Stab_Heavy, Attack_R_02_Swing_Heavy, Attack_R_03_Swing_Heavy (the same lengths; a bigger lunge of the body)</td><td>one-shot</td></tr>
-<tr><td>Left arm</td><td>Attack_L_01_Stab, Attack_L_02_Swing, Attack_L_03_Swing and their _Heavy variants (the mirrors of the right set); Block_L_Idle (6.0, the held shield block)</td><td>one-shot; the block loops</td></tr>
-<tr><td>Two-handed</td><td>Attack_2H_01_Swing (1.67, overhead chop), Attack_2H_02_Swing (1.70, sweep) and Attack_2H_01_Swing_Heavy, Attack_2H_02_Swing_Heavy</td><td>one-shot</td></tr>
-<tr><td>Bow</td><td>Shoot_01 (1.93: raise, draw, release, lower; notifies BowAttach / BowRelease)</td><td>one-shot</td></tr>
+<tr><td>Right arm</td><td>Attack_R_01_Stab (1.47), Attack_R_02_Swing (1.97), Attack_R_03_Swing (1.93) and Attack_R_01_Stab_Heavy, Attack_R_02_Swing_Heavy (a bigger lunge of the body)</td><td>one-shot</td></tr>
+<tr><td>Left arm</td><td>Attack_L_01_Stab, Attack_L_02_Swing; Block_L_Idle (6.0, the held shield block)</td><td>one-shot; the block loops</td></tr>
+<tr><td>Two-handed</td><td>Attack_2H_01_Swing (2.57), Attack_2H_02_Swing (2.43)</td><td>one-shot</td></tr>
+<tr><td>Bow</td><td>Shoot_01 (2.43: draw and release; notifies BowReset / BowDraw / BowAttach / BowRelease)</td><td>one-shot</td></tr>
 <tr><td>Magic</td><td>Cast_Wand_01 (2.23), Cast_Wand_02 (1.80), Cast_Staff_01 (2.23, both hands on the staff)</td><td>one-shot</td></tr>
 <tr><td>Specials</td><td>Taunt_01 (2.73), Taunt_02 (2.43), Taunt_03 (2.70), Rally (3.03), Cutthroat (3.10), Summon (3.77), AOE_Cast (4.77)</td><td>one-shot</td></tr>
 <tr><td>Reactions</td><td>Hit_01 (0.97, a head-and-shoulders recoil) and Hit_02 (0.97, a gut blow): additive, added over whatever plays; Stagger_01 / Stagger_02 (1.40 each: the hit while stepping back one walk cycle, 66 cm of root motion)</td><td>additive overlay / one-shot</td></tr>

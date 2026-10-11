@@ -74,8 +74,8 @@ namespace UndeadLegion.Extended
         /// <summary>
         /// The default modules, one set per weapon: the sword stabs and swings, regular attacks only; the dagger the same, and a
         /// second dagger adds the left-hand attacks; the axe mixes
-        /// regular and heavy attacks; the mace too, without the stabs; the battle axe mixes regular and heavy two-handed swings,
-        /// the longsword swings regular only. hitAt = the hand-speed peak measured on each clip (2026-10-04). The weapon's own
+        /// regular and heavy attacks; the mace too, without the stabs; both two-handed weapons use the two regular swings.
+        /// hitAt = the hand-speed peak measured on each clip (2026-10-04). The weapon's own
         /// pace (sword 1.3x, dagger 1.7x) is not here: SkeletonWeapon.AttackSpeedFor drives the controller's AttackSpeed
         /// parameter, so the same pace shows in every scene; a move's speed multiplies on top. engageRange = where the AI stops
         /// to attack: daggers and fists close in, swords / axes / maces at arm's length, the two-handers from further out.
@@ -87,19 +87,17 @@ namespace UndeadLegion.Extended
                 Make("Sword", false, 1.1f, Swords, Stab(), Swing2(), Swing3()),
                 Make("Dagger", false, 0.9f, Daggers, Stab(), Swing2(), Swing3()),
                 Make("Dagger, left hand (second dagger)", false, 0.9f, new[] { "Two daggers" },
-                     AttackMove.Melee("Attack_L_01_Stab", 0.30f, 1.6f, 14, 45), AttackMove.Melee("Attack_L_02_Swing", 0.46f, 1.5f, 14, 55),
-                     AttackMove.Melee("Attack_L_03_Swing", 0.50f, 1.5f, 14, 55)),
+                     AttackMove.Melee("Attack_L_01_Stab", 0.30f, 1.6f, 14, 45), AttackMove.Melee("Attack_L_02_Swing", 0.46f, 1.5f, 14, 55)),
                 Make("Axe", false, 1.2f, new[] { "Axe + round shield" }, Stab(), Swing2(), Swing3()),
                 Make("Axe, heavy", true, 1.2f, new[] { "Axe + round shield" },
-                     AttackMove.Melee("Attack_R_01_Stab_Heavy", 0.27f, 1.9f, 26, 85), AttackMove.Melee("Attack_R_02_Swing_Heavy", 0.46f, 1.8f, 26, 90),
-                     AttackMove.Melee("Attack_R_03_Swing_Heavy", 0.48f, 1.8f, 26, 90)),
+                     AttackMove.Melee("Attack_R_01_Stab_Heavy", 0.27f, 1.9f, 26, 85), AttackMove.Melee("Attack_R_02_Swing_Heavy", 0.46f, 1.8f, 26, 90)),
                 Make("Mace", false, 1.2f, new[] { "Mace" }, Swing2(), Swing3()),
                 Make("Mace, heavy", true, 1.2f, new[] { "Mace" },
-                     AttackMove.Melee("Attack_R_02_Swing_Heavy", 0.46f, 1.8f, 26, 90), AttackMove.Melee("Attack_R_03_Swing_Heavy", 0.48f, 1.8f, 26, 90)),
+                     AttackMove.Melee("Attack_R_02_Swing_Heavy", 0.46f, 1.8f, 26, 90)),
                 Make("Two-handed", false, 1.5f, new[] { "Longsword (2H)", "Battle axe (2H)" },
-                     AttackMove.Melee("Attack_2H_01_Swing", 0.54f, 2.1f, 35, 120), AttackMove.Melee("Attack_2H_02_Swing", 0.43f, 2.2f, 30, 110)),
-                Make("Bow", false, 0f, new[] { "Recurve bow" }, AttackMove.Arrow("Shoot_01", 32f / 62f, 16f, 28, 50), AttackMove.Arrow("Shoot_02", 21f / 51f, 16f, 28, 50)),
-                Make("Wand", false, 0f, new[] { "Wand" }, AttackMove.Bolt("Cast_Wand_01", 0.45f, 11f, 16, 35), AttackMove.Bolt("Cast_Wand_02", 0.45f, 11f, 16, 35)),
+                     AttackMove.Melee("Attack_2H_01_Swing", 43f / 81f, 2.1f, 35, 120), AttackMove.Melee("Attack_2H_02_Swing", 0.41f, 2.2f, 30, 110)),
+                Make("Bow", false, 0f, new[] { "Recurve bow" }, AttackMove.Arrow("Shoot_01", 30f / 73f, 16f, 28, 50)),
+                Make("Wand", false, 0f, new[] { "Wand" }, AttackMove.Bolt("Cast_Wand_01", 30.15f / 42f, 11f, 16, 35), AttackMove.Bolt("Cast_Wand_02", 34f / 71f, 11f, 16, 35)),
                 Make("Staff", false, 0f, new[] { "Staff" }, AttackMove.Bolt("Cast_Staff_01", 0.55f, 12f, 24, 45), AttackMove.Area("AOE_Cast", 0.62f, 9f, 30, 90)),
                 Make("Unarmed", false, 0.8f, new string[0], AttackMove.Melee("Attack_R_02_Swing", 0.46f, 1.4f, 8, 40), AttackMove.Melee("Attack_L_02_Swing", 0.46f, 1.4f, 8, 40)),
             };

@@ -87,6 +87,8 @@ FUNCS = {
 """),
     "EquipLoadout": ([("Index", "int", True)], """
 (fn EquipLoadout (Index)
+  (%(V)sSetBowShotActive false)
+  (CallFunction|BowReset)
   (for a (%(V)sGetWeaponActors)
     (Actor|DestroyActor :self a))
   (Utilities|Array|Clear :TargetArray (%(V)sGetWeaponActors))
@@ -96,6 +98,8 @@ FUNCS = {
   (if (Utilities|Array|IsValidIndex :TargetArray (%(V)sGetLoadoutRight) :IndexToTest Index)
     (CallFunction|SpawnWeapon :Index Index :Left false)
     (CallFunction|SpawnWeapon :Index Index :Left true))
+  (CallFunction|FindBow)
+  (CallFunction|BowReset)
   (CallFunction|UpdateHands))
 """),
     "UpdateHands": ([], """
@@ -127,6 +131,8 @@ FUNCS = {
 (fn PlayAction (Clip Slot BlendIn BlendOut Rate)
   ; the previous one-shot stops in the action slots only; the loop montage in Base keeps playing under it
   (CallFunction|StopActions :BlendOut BlendOut)
+  (%(V)sSetBowClip Clip)
+  (%(V)sSetBowShotActive true)
   (bind anim (Components|SkeletalMesh|GetAnimInstance :self (Variables|Character|GetMesh)))
   (bind m (Animation|CreateSlotAnimationasDynamicMontagewithBlendSettings :Asset Clip :SlotNodeName Slot
              :BlendInSettings (Utilities|Struct|MakeMontageBlendSettings :Blend (Utilities|Struct|MakeAlphaBlendArgs :BlendTime BlendIn)) :BlendOutSettings (Utilities|Struct|MakeMontageBlendSettings :Blend (Utilities|Struct|MakeAlphaBlendArgs :BlendTime BlendOut)) :InPlayRate Rate :LoopCount 1))
@@ -136,6 +142,8 @@ FUNCS = {
 """),
     "StopActions": ([("BlendOut", "float", True)], """
 (fn StopActions (BlendOut)
+  (%(V)sSetBowShotActive false)
+  (CallFunction|BowReset)
   (bind anim (Components|SkeletalMesh|GetAnimInstance :self (Variables|Character|GetMesh)))
   (Animation|Montage|StopSlotAnimation :self anim :InBlendOutTime BlendOut :SlotNodeName "DefaultSlot")
   (Animation|Montage|StopSlotAnimation :self anim :InBlendOutTime BlendOut :SlotNodeName "UpperBody")
@@ -248,7 +256,67 @@ FUNCS = {
        :Time (+ len (%(V)sGetStartActionGap)) :bLooping false)))
 """),
 }
+# The bow uses the same proven deformation math as the cinematic preview, but
+# owns its state on each character so animation notifies also work in the demo.
+from build_showreel_director import FUNCS as _SHOWREEL_FUNCS
+_bow_update = _SHOWREEL_FUNCS["UpdateBow"][1].replace(
+    "(Class|Character|GetMesh :self (%(V)sGetCharacter))", "(Variables|Character|GetMesh)")
+FUNCS.update({
+    "FindBow": ([], """
+(fn FindBow ()
+  (%(V)sSetHasBow false)
+  (for a (%(V)sGetWeaponActors)
+    (bind pm (Utilities|Casting|CastToPoseableMeshComponent
+      :Object (Actor|GetComponentbyClass :self a :ComponentClass "/Script/Engine.PoseableMeshComponent"))
+      (:then (%(V)sSetBowMesh pm) (%(V)sSetHasBow true))
+      (:CastFailed
+        (bind arrow (Utilities|Casting|CastToBP_Weapon_Arrow :Object a)
+          (:then (%(V)sSetHeldArrow arrow)) (:CastFailed))))))
+"""),
+    "UpdateBow": (_SHOWREEL_FUNCS["UpdateBow"][0], _bow_update),
+    "BowReset": ([], """
+(fn BowReset ()
+  (%(V)sSetBowAttached false)
+  (%(V)sSetDraw 0.0)
+  (%(V)sSetApex (Math|Vector|MakeVector :X 0.0 :Y 0.0 :Z 0.0))
+  (Utilities|IsValid (%(V)sGetHeldArrow)
+    (:"Is Valid" (Rendering|SetActorHiddenInGame :self (%(V)sGetHeldArrow) :bNewHidden true))
+    (:"Is Not Valid")))
+"""),
+    "BowDraw": ([], """
+(fn BowDraw ()
+  (if (%(V)sGetHasBow)
+    (Utilities|IsValid (%(V)sGetHeldArrow)
+      (:"Is Valid" (Rendering|SetActorHiddenInGame :self (%(V)sGetHeldArrow) :bNewHidden false))
+      (:"Is Not Valid"))))
+"""),
+    "BowAttach": ([], """
+(fn BowAttach ()
+  (if (%(V)sGetHasBow)
+    (CallFunction|BowDraw)
+    (%(V)sSetBowAttached true)))
+"""),
+    "BowRelease": ([], """
+(fn BowRelease ()
+  (if (and (%(V)sGetHasBow) (%(V)sGetBowAttached))
+    (%(V)sSetBowAttached false)
+    (Utilities|IsValid (%(V)sGetHeldArrow)
+      (:"Is Valid"
+        (bind sm (Utilities|Casting|CastToStaticMeshComponent
+          :Object (Actor|GetComponentbyClass :self (%(V)sGetHeldArrow) :ComponentClass "/Script/Engine.StaticMeshComponent"))
+          (:then
+            (Game|SpawnActorfromClass :Class (%(V)sGetArrowClass)
+              :SpawnTransform (Math|Transform|MakeTransform
+                :Location (Transformation|GetSocketLocation :self sm :InSocketName "None")
+                :Rotation (Transformation|GetActorRotation))
+              :CollisionHandlingOverride "AlwaysSpawn")
+            (Rendering|SetActorHiddenInGame :self (%(V)sGetHeldArrow) :bNewHidden true))
+          (:CastFailed)))
+      (:"Is Not Valid"))))
+"""),
+})
 ORDER = ["ShowEyes", "TintEyes", "ApplyEyes", "AddModuleComponent", "ApplyDefaultModules", "WearModule", "RemoveModule", "IsModuleWorn", "SetDefaultModulesWorn",
+         "FindBow", "UpdateBow", "BowReset", "BowDraw", "BowAttach", "BowRelease",
          "UpdateHands", "SpawnWeapon", "EquipLoadout", "PlayLoop", "PlayAction", "StopActions", "SetHeldBlock", "SetTwitch",
          "SetRootMotion", "SetClipHold", "SetFingersSuspended", "SetFingerIdle", "GetFingerIdle", "GetLoadout", "PauseActions", "PlayOverlay", "NextStartAction"]
 
@@ -266,6 +334,11 @@ EVENTS = """
   (for a (%(V)sGetWeaponActors)
     (Actor|DestroyActor :self a))
   (Utilities|Array|Clear :TargetArray (%(V)sGetWeaponActors)))
+
+(event EventTick (DeltaSeconds)
+  (if (%(V)sGetHasBow)
+    (Utilities|IsValid (%(V)sGetBowMesh)
+      (:"Is Valid" (CallFunction|UpdateBow :dt DeltaSeconds)) (:"Is Not Valid"))))
 """
 
 

@@ -6,6 +6,39 @@ Ported from the creatures pack's proven pipeline (`smp-10-rgp-creatures/tools/ue
 
 ## Combat animation update — 2026-10-10
 
+Latest follow-up: `Idle_Combat` now loops over 221 frames (7.333 s), with 2 cm
+asynchronous shoulder travel. `Attack_L_01_Stab` thrusts forward, and
+`Attack_2H_01_Swing` returns to `Idle_TwoHanded` over frames 70-82, ending at 82
+(2.7 s); its impact remains frame 44. All exported attack, ranged and casting
+actions, held block and `Idle_TwoHanded` now use the closer `Idle_Combat` foot
+anchors, while stepping attacks retain their authored travel. `Attack_L_02_Swing`
+strikes forward. The held arrow in `Shoot_01` is aligned with forward release
+by moving the upper body and both hands together during the draw.
+`Attack_L_03_Swing`, `Idle_Staff`, and the separately named `Shoot_02` export are
+disabled. Staff idle selections use `Idle_TwoHanded`. `Cast_Wand_01/02` recover
+and return to `Idle_Combat`, with matching entry poses and lower-body recovery
+completed before the runtime crossfade to keep feet planted. `Cast_Wand_03` is
+retained in Blender but disabled in exports, browsers and attack modules.
+Staff 01 still returns to `Idle_TwoHanded`.
+The wand returns now begin at source-action frames 31 and 33 respectively,
+with twelve-frame recoveries ending at frames 43 and 45. The Unity idle handoff
+follows the baked recovery; the projectile moments remain at 1.005 s and 0.81 s.
+The shipping `Shoot_01` now maps to Blender action `Shoot_02` via manifest
+`source_action`; the original `Shoot_01` action is retained but never selected by
+the exporters. The replacement is 74 frames / 2.433 s (70% of its previous speed),
+with BowReset/Draw/Attach/Release on frames 1/10/12/31. All three Blender export
+entry points honor the source-action mapping, and both bow runtimes use the new
+event times. Development browsers are updated; production packages are not built.
+
+2026-10-11 follow-up: `Idle_1H_Combat` is now `Idle_Combat` in Blender,
+Unity and the Epic development project. Its loop is 3.667 seconds (2x slower),
+with 15 cm less total foot separation and asynchronous 5 cm shoulder movement.
+Attack stances are unchanged pending the next stance pass. Both Swing 02 variants
+have a smaller left-arm backswing and a 5-degree rightward attack-angle adjustment;
+their timing and leg curves are unchanged. `Attack_R_03_Swing_Heavy` is retained
+in Blender but disabled in the manifest and removed from engine exports, selectors
+and attack modules. No production packages were built for this pass.
+
 `Animations/clips.json` now disables the three `Attack_L_*_Heavy` actions and both
 `Attack_2H_*_Swing_Heavy` actions. They remain in the Blender source. Direct exports,
 the UE export batch, the sequence/montage importer, and both production copy scripts
@@ -13,23 +46,24 @@ honor `disabled`; the five stale Epic FBX exports have been removed from the exp
 
 The Blender source now restores the previous regular `Attack_R_03_Swing` (59 frames),
 keeps its backhand Heavy unchanged, and replaces the two regular two-handed attacks
-with `Great Sword Slash (1).fbx` (now 72 frames after slowing playback to about 70%) and `(2).fbx` (68 frames). Their steps come
-from the references; both return to `Idle_TwoHanded`. Unity is already updated and
-verified. The source and preview reports are in `Animations/preview/combat_revision_20261010/`.
+with `Heavy Weapon Swing (1).fbx` (reference frames 40–116, 101 output frames) and
+the mirrored `Two Hand Sword Combo.fbx` (reference frames 44–99, 74 output frames).
+Each has six entry frames from `Idle_TwoHanded` and returns to that exact guard.
+The first keeps the idle feet planted; the second retracts its right-foot step
+starting at source frame 79 / output frame 42. Preview and validation artifacts
+are in `Animations/preview/twohand_rebuild_20261011/`.
 
-For the separate Unreal production pass, export/import those three changed actions,
-refresh their montages, and run `demo_data` before packaging so the existing browser
-asset drops its retired clip references. The browser and showreel source lists are
-already updated. Existing Unreal `.uasset` files have not been rebuilt in this pass;
-the production copy excludes retired sequences and montages even if they remain in
-the development project. Do not package the old browser without updating its data.
+The Epic development project now has the updated sequences, montages and browser
+data. Montages update in place, including their segment ends and playable lengths,
+so references survive timing changes. Retired actions are excluded from the browser
+and production filters even if their old authoring assets remain in the project.
 
 The subsequent stance pass also updates `Cast_Wand_01`, `Cast_Wand_02`, `Cast_Wand_03`,
 `Cast_Staff_01`, and `Idle_Staff` to the shared left-forward/right-back foot placement.
 Their casting gestures and durations are preserved; `Cast_Wand_03` now blends its
 last twelve recovery frames into `Idle_Staff` to avoid foot slide during Humanoid
-crossfades. Include these five clips and
-the slower `Attack_2H_01_Swing` in the next Unreal export/import pass. The authoring
+crossfades. These five clips and the rebuilt two-handed attacks are now imported
+in the Epic development project. The authoring
 timeline remains 30 fps; `next_at` values in the manifest refer to that timeline.
 Unity previews and verification are in `Animations/preview/cast_combat_stance_20261010/`;
 `tools/export_authored_animations.py` now exports from the main Blender source,
@@ -65,16 +99,20 @@ scale and the `unity_grips.json` `mesh_scale` entry are now **(1,1,1)**; import
 the updated `Export_UE_Epic/Weapons/SM_Arrow.fbx` and reset the existing weapon
 and projectile scales through the helpers below. Do not reapply the old 1.8 scale.
 
-For the separate Unreal production agent: import `weapons:Arrow` and
-`clips:Shoot_01,Shoot_02`, refresh `montages:Shoot_01,Shoot_02`, apply
-`weapon_blueprints:Arrow`, run `showreel_bow`, and
-refresh `demo_data`. The clip importer writes all four notify markers from the
-manifest. The existing demo's notify receiver graphs still need the visibility
-and string handlers described below under **Not done yet**, including the new
-`BowReset`/`BowDraw` events; this pass does not claim those runtime graphs are
-implemented. If rendering the showreel, rebuild its director (`RunCommand` 14
-now accepts 0=hide / 1=show) and regenerate its plan after measuring clip lengths.
-No live Unreal assets or production packages were rebuilt in this pass.
+The Epic development project now includes both clips/montages, the shaft-only arrow
+mesh, unit weapon/projectile scales and updated browser data. The four notify
+Blueprints call the character's bow functions: reset/hide, show, attach the string,
+then detach/hide/fire. `StopActions` and equipment changes reset the bow. Notify
+receivers check the active clip and its current montage time so an outgoing shot
+cannot show or fire an arrow during cancellation or a restart.
+
+For future rebuilds, run `ue_build.py showreel_bow bow_runtime` after character and
+weapon setup, then `build_character.py`, `build_bow_notifies.py`, and
+`ue_build.py save_all`. `epic_build_all.sh` includes these steps. The character now
+owns bow deformation and projectile release in both the browser and cinematics;
+showreel command IDs 12-14 are reserved and no longer emitted. Rebuild the director
+and regenerate the plan from fresh clip lengths before rendering an old showreel.
+Production packages remain the separate production workflow.
 
 ## Rebuild from scratch
 
@@ -84,8 +122,9 @@ No live Unreal assets or production packages were rebuilt in this pass.
     python tools/ue/ue_weapons.py                    # hand-slot sockets on every body (MCP), then:
     python tools/ue/ue_py.py tools/ue/ue_build.py sockets weapon_blueprints materials
     python tools/ue/build_abp.py                     # ABP_UndeadSkeleton graphs
-    python tools/ue/ue_py.py tools/ue/ue_build.py character
+    python tools/ue/ue_py.py tools/ue/ue_build.py character showreel_bow bow_runtime
     python tools/ue/build_character.py               # BP_UndeadSkeleton graphs
+    python tools/ue/build_bow_notifies.py             # timed bow events, cancellation and restart guards
     python tools/ue/ue_py.py tools/ue/ue_build.py character_children
     python tools/ue/build_demo_ui.py trees
     python tools/ue/ue_py.py tools/ue/ue_build.py demo_vars demo_data demo_actors
@@ -492,8 +531,7 @@ reloads them (`demo_data() got an unexpected keyword argument` was the stale mod
 
 ## Not done yet
 
-The recurve bow's string pull and the fired arrow in the DEMO (the showreel director does both; the notifies exist on Shoot_01
-but `AN_BowAttach` / `AN_BowRelease` have no Received_Notify graph yet); the in-place locomotion blend space;
+The in-place locomotion blend space;
 the Unity "Specials return to the last idle" is implemented, the Cast_Staff_01 → Idle_Staff hand-off at frame 54 is a
 plain return; Unreal-side grounding measurement per clip; a full cook of the Fab package (the production copy was opened
 and tested interactively on 2026-10-06; the ES3.1 mobile preview ran clean the same day; a mobile cook needs the Android SDK).

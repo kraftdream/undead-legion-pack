@@ -201,8 +201,8 @@ namespace UndeadLegion.Demo
             steps.Add(S("Knight", "Longsword (2H)", "Idle_TwoHanded", 3f, "Longsword", "Two-handed idle: the second hand rides the handle"));
             steps.Add(S("Knight", "Battle axe (2H)", "Idle_TwoHanded", 3f, "Battle axe", "The same two-handed grip on every long weapon"));
             // the class weapons on their presets
-            steps.Add(S("Archer", "Recurve bow", "Idle_1H_Combat", 3.5f, "Recurve bow", "Bow idle; the bow is a skinned model whose string follows the draw hand"));
-            steps.Add(S("Necromancer", "Staff", "Idle_Staff", 3.5f, "Staff", "Staff idle"));
+            steps.Add(S("Archer", "Recurve bow", "Idle_Combat", 3.5f, "Recurve bow", "Bow idle; the bow is a skinned model whose string follows the draw hand"));
+            steps.Add(S("Necromancer", "Staff", "Idle_TwoHanded", 3.5f, "Staff", "Staff idle"));
             steps.Add(S("Mage", "Wand", "Idle_03", 3.5f, "Wand", "Short staff, one-handed"));
             return steps;
         }
@@ -228,8 +228,8 @@ namespace UndeadLegion.Demo
             }
             // 2026-10-01 ("include hit/staggers at the end of the movement stage"): the Warrior again, the two additive hits over its
             // combat idle, then the two staggers with root motion on (the camera follows the step back, recentred after each)
-            steps.Add(A("Warrior", "Axe + round shield", "Idle_1H_Combat", "Skeleton Warrior  |  Hit reactions", "Additive: blended over whatever the skeleton is playing", "Hit_01", "Hit_02"));
-            var stg = A("Warrior", "Axe + round shield", "Idle_1H_Combat", "Skeleton Warrior  |  Staggers", "A hit with one step back, on root motion", "Stagger_01", "Stagger_02");
+            steps.Add(A("Warrior", "Axe + round shield", "Idle_Combat", "Skeleton Warrior  |  Hit reactions", "Additive: blended over whatever the skeleton is playing", "Hit_01", "Hit_02"));
+            var stg = A("Warrior", "Axe + round shield", "Idle_Combat", "Skeleton Warrior  |  Staggers", "A hit with one step back, on root motion", "Stagger_01", "Stagger_02");
             stg.rootMotion = true; steps.Add(stg);
             return steps;
         }
@@ -244,8 +244,8 @@ namespace UndeadLegion.Demo
         /// <summary>"Combat", the user's script (2026-09-29): Warrior on Idle_TwoHanded - longsword then battle axe, both two-handed
         /// attacks each; Knight on Idle_03 - axe + round shield (right stab), sword + heater shield (right slice), then the left block
         /// HELD with both right attacks, then the mace with the block released and both right attacks; Assassin on Idle_02 - one dagger
-        /// (both right attacks), two daggers (both left attacks), all at 1.6x; Archer on Idle_1H_Combat - the shot; Mage on Idle_03 - the two
-        /// wand casts; Necromancer on Idle_Staff - the two wand casts and the staff cast.</summary>
+        /// (both right attacks), two daggers (both left attacks), all at 1.6x; Archer on Idle_Combat - the shot; Mage on Idle_03 - the two
+        /// wand casts; Necromancer on Idle_TwoHanded - the two wand casts and the staff cast.</summary>
         public List<Step> BuildAttacks()
         {
             // "Weapons & utils" (2026-09-29): the attacks script, plus each class's utility one-shots before its attacks and a death after
@@ -257,26 +257,26 @@ namespace UndeadLegion.Demo
             steps.Add(Death(A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "Death", "Death_01")));
             // Knight: taunt and rally, then the combat idle with the left block HELD; axe + round shield swing; sword + heater shield
             // with both right attacks under the block; the sword alone with the block released and both attacks; then the death
-            steps.Add(A("Knight", "Axe + round shield", "Idle_1H_Combat", "Skeleton Knight  |  Axe + round shield", "Taunt and rally", "Taunt_02", "Rally"));
-            var axe = A("Knight", "Axe + round shield", "Idle_1H_Combat", "Skeleton Knight  |  Axe + round shield", "Left-arm block HELD on its own layer; the right arm attacks under it", "Attack_R_02_Swing", "Attack_R_02_Swing_Heavy");
+            steps.Add(A("Knight", "Axe + round shield", "Idle_Combat", "Skeleton Knight  |  Axe + round shield", "Taunt and rally", "Taunt_02", "Rally"));
+            var axe = A("Knight", "Axe + round shield", "Idle_Combat", "Skeleton Knight  |  Axe + round shield", "Left-arm block HELD on its own layer; the right arm attacks under it", "Attack_R_02_Swing", "Attack_R_02_Swing_Heavy");
             axe.holdOn = "Block_L_Idle"; steps.Add(axe);
-            steps.Add(A("Knight", "Sword + shield", "Idle_1H_Combat", "Skeleton Knight  |  Sword + heater shield", "Any one-handed weapon, any shield; the block still held", "Attack_R_01_Stab", "Attack_R_02_Swing"));
-            var sw = A("Knight", "Sword", "Idle_1H_Combat", "Skeleton Knight  |  Sword", "Block released; the same attacks with the free hand", "Attack_R_01_Stab", "Attack_R_02_Swing", "Attack_R_01_Stab_Heavy");
+            steps.Add(A("Knight", "Sword + shield", "Idle_Combat", "Skeleton Knight  |  Sword + heater shield", "Any one-handed weapon, any shield; the block still held", "Attack_R_01_Stab", "Attack_R_02_Swing"));
+            var sw = A("Knight", "Sword", "Idle_Combat", "Skeleton Knight  |  Sword", "Block released; the same attacks with the free hand", "Attack_R_01_Stab", "Attack_R_02_Swing", "Attack_R_01_Stab_Heavy");
             sw.holdOff = "Block_L_Idle"; steps.Add(sw);
-            steps.Add(A("Knight", "Mace", "Idle_1H_Combat", "Skeleton Knight  |  Mace", "A swing, then its heavy variant: a bigger lunge", "Attack_R_03_Swing", "Attack_R_03_Swing_Heavy"));
-            steps.Add(Death(A("Knight", "Mace", "Idle_1H_Combat", "Skeleton Knight  |  Mace", "Death", "Death_02")));
+            steps.Add(A("Knight", "Mace", "Idle_Combat", "Skeleton Knight  |  Mace", "A swing, then its heavy variant: a bigger lunge", "Attack_R_02_Swing", "Attack_R_02_Swing_Heavy"));
+            steps.Add(Death(A("Knight", "Mace", "Idle_Combat", "Skeleton Knight  |  Mace", "Death", "Death_02")));
             // Assassin: the cutthroat at normal speed, the attacks at 1.6x, the death at normal speed
-            steps.Add(A("Assassin", "Dagger", "Idle_1H_Combat", "Skeleton Assassin  |  Dagger", "Cutthroat", "Cutthroat"));
-            var d1 = A("Assassin", "Dagger", "Idle_1H_Combat", "Skeleton Assassin  |  Dagger", "Right-arm attacks; a dagger strikes 70% faster", "Attack_R_01_Stab", "Attack_R_02_Swing"); steps.Add(d1);
-            var d2 = A("Assassin", "Two daggers", "Idle_1H_Combat", "Skeleton Assassin  |  Two daggers", "Left-arm attacks with the second dagger", "Attack_L_01_Stab", "Attack_L_02_Swing"); steps.Add(d2);
-            steps.Add(Death(A("Assassin", "Two daggers", "Idle_1H_Combat", "Skeleton Assassin  |  Two daggers", "Death", "Death_03")));
-            steps.Add(A("Archer", "Recurve bow", "Idle_1H_Combat", "Skeleton Archer  |  Recurve bow", "The string follows the draw hand; full draw and quick shot", "Shoot_01", "Shoot_02"));
+            steps.Add(A("Assassin", "Dagger", "Idle_Combat", "Skeleton Assassin  |  Dagger", "Cutthroat", "Cutthroat"));
+            var d1 = A("Assassin", "Dagger", "Idle_Combat", "Skeleton Assassin  |  Dagger", "Right-arm attacks; a dagger strikes 70% faster", "Attack_R_01_Stab", "Attack_R_02_Swing"); steps.Add(d1);
+            var d2 = A("Assassin", "Two daggers", "Idle_Combat", "Skeleton Assassin  |  Two daggers", "Left-arm attacks with the second dagger", "Attack_L_01_Stab", "Attack_L_02_Swing"); steps.Add(d2);
+            steps.Add(Death(A("Assassin", "Two daggers", "Idle_Combat", "Skeleton Assassin  |  Two daggers", "Death", "Death_03")));
+            steps.Add(A("Archer", "Recurve bow", "Idle_Combat", "Skeleton Archer  |  Recurve bow", "The string follows the draw hand; draw and release", "Shoot_01"));
             steps.Add(A("Mage", "Wand", "Idle_03", "Skeleton Mage  |  Wand", "Two wand casts", "Cast_Wand_01", "Cast_Wand_02"));
             // Necromancer: summon, the casts, the area cast, the death
-            steps.Add(A("Necromancer", "Staff", "Idle_Staff", "Skeleton Necromancer  |  Staff", "Summon", "Summon"));
-            steps.Add(A("Necromancer", "Staff", "Idle_Staff", "Skeleton Necromancer  |  Staff", "The wand casts on the staff, then the two-handed staff cast", "Cast_Wand_01", "Cast_Wand_02", "Cast_Staff_01"));
-            steps.Add(A("Necromancer", "Staff", "Idle_Staff", "Skeleton Necromancer  |  Staff", "Area cast", "AOE_Cast"));
-            steps.Add(Death(A("Necromancer", "Staff", "Idle_Staff", "Skeleton Necromancer  |  Staff", "Death", "Death_04")));
+            steps.Add(A("Necromancer", "Staff", "Idle_TwoHanded", "Skeleton Necromancer  |  Staff", "Summon", "Summon"));
+            steps.Add(A("Necromancer", "Staff", "Idle_TwoHanded", "Skeleton Necromancer  |  Staff", "The wand casts on the staff, then the two-handed staff cast", "Cast_Wand_01", "Cast_Wand_02", "Cast_Staff_01"));
+            steps.Add(A("Necromancer", "Staff", "Idle_TwoHanded", "Skeleton Necromancer  |  Staff", "Area cast", "AOE_Cast"));
+            steps.Add(Death(A("Necromancer", "Staff", "Idle_TwoHanded", "Skeleton Necromancer  |  Staff", "Death", "Death_04")));
             return steps;
         }
 
@@ -305,7 +305,7 @@ namespace UndeadLegion.Demo
             hits.afterSeconds = 1.6f; steps.Add(hits);
             var rag = X("Warrior", "Battle axe (2H)", "Idle_TwoHanded", 1.2f, "Ragdoll death", "11 bodies and joints; the fall carries the blow, the weapon drops", "ragdoll", "revive");
             rag.afterSeconds = 3.0f; rag.followHips = true; steps.Add(rag);
-            var dc = X("Knight", "Mace", "Idle_1H_Combat", 1.0f, "Death clip, then ragdoll", "A death animation hands over to physics mid-fall", "death:0.6");
+            var dc = X("Knight", "Mace", "Idle_Combat", 1.0f, "Death clip, then ragdoll", "A death animation hands over to physics mid-fall", "death:0.6");
             dc.afterSeconds = 3.5f; dc.followHips = true; steps.Add(dc);
             var dust = X("Assassin", "Two daggers", "Idle_02", 1.0f, "Turn to dust  |  Rise", "A URP Lit dissolve shader with a glowing edge, on every material", "dust", "rise");
             dust.afterSeconds = 2.6f; steps.Add(dust);

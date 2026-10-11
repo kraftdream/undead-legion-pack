@@ -19,8 +19,9 @@ ModelImporter:
     animationImportErrors: 
     animationImportWarnings: "\nClip 'Attack_R_01_Stab_Heavy' has import animation
       warnings that might lower retargeting quality:\nNote: Activate translation
-      DOF on avatar to improve retargeting quality.\n\t'Neck1' is inbetween humanoid
-      transforms and has rotation animation that will be discarded.\n"
+      DOF on avatar to improve retargeting quality.\n\t'Hips' has scale animation
+      that will be discarded.\n\t'Neck1' is inbetween humanoid transforms and has
+      rotation animation that will be discarded.\n"
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
     importAnimatedCustomProperties: 0
@@ -38,7 +39,7 @@ ModelImporter:
       takeName: Attack_R_01_Stab_Heavy
       internalID: 4396427431198048773
       firstFrame: 1
-      lastFrame: 45
+      lastFrame: 177
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
