@@ -67,16 +67,17 @@ namespace UndeadLegion.Extended
         static readonly string[] Swords = { "Sword + shield", "Sword" };
         static readonly string[] Daggers = { "Dagger", "Two daggers" };
 
-        static AttackMove Stab() { return AttackMove.Melee("Attack_R_01_Stab", 0.30f, 1.8f, 18, 55); }
-        static AttackMove Swing2() { return AttackMove.Melee("Attack_R_02_Swing", 0.46f, 1.7f, 20, 70); }
-        static AttackMove Swing3() { return AttackMove.Melee("Attack_R_03_Swing", 0.50f, 1.7f, 20, 70); }
+        static AttackMove Stab() { return AttackMove.Melee("Attack_R_01_Stab", 0.28f, 1.8f, 18, 55); }
+        static AttackMove Swing2() { return AttackMove.Melee("Attack_R_02_Swing", 0.36f, 1.7f, 20, 70); }
+        static AttackMove Swing3() { return AttackMove.Melee("Attack_R_03_Swing", 0.48f, 1.7f, 20, 70); }
 
         /// <summary>
         /// The default modules, one set per weapon: the sword stabs and swings, regular attacks only; the dagger the same, and a
         /// second dagger adds the left-hand attacks; the axe mixes
         /// regular and heavy attacks; the mace too, without the stabs; both two-handed weapons use the two regular swings.
-        /// hitAt = the hand-speed peak measured on each clip (2026-10-04). The weapon's own
-        /// pace (sword 1.3x, dagger 1.7x) is not here: SkeletonWeapon.AttackSpeedFor drives the controller's AttackSpeed
+        /// One-handed hit times follow the current exports' strike-speed peaks (2026-10-12); two-handed 01 and ranged moves
+        /// retain their authored impact/release times. The weapon's own pace (sword/wand 1.3x, dagger 1.7x) is not here:
+        /// SkeletonWeapon.AttackSpeedFor drives the controller's AttackSpeed
         /// parameter, so the same pace shows in every scene; a move's speed multiplies on top. engageRange = where the AI stops
         /// to attack: daggers and fists close in, swords / axes / maces at arm's length, the two-handers from further out.
         /// </summary>
@@ -87,19 +88,19 @@ namespace UndeadLegion.Extended
                 Make("Sword", false, 1.1f, Swords, Stab(), Swing2(), Swing3()),
                 Make("Dagger", false, 0.9f, Daggers, Stab(), Swing2(), Swing3()),
                 Make("Dagger, left hand (second dagger)", false, 0.9f, new[] { "Two daggers" },
-                     AttackMove.Melee("Attack_L_01_Stab", 0.30f, 1.6f, 14, 45), AttackMove.Melee("Attack_L_02_Swing", 0.46f, 1.5f, 14, 55)),
+                     AttackMove.Melee("Attack_L_01_Stab", 0.29f, 1.6f, 14, 45), AttackMove.Melee("Attack_L_02_Swing", 0.36f, 1.5f, 14, 55)),
                 Make("Axe", false, 1.2f, new[] { "Axe + round shield" }, Stab(), Swing2(), Swing3()),
                 Make("Axe, heavy", true, 1.2f, new[] { "Axe + round shield" },
-                     AttackMove.Melee("Attack_R_01_Stab_Heavy", 0.27f, 1.9f, 26, 85), AttackMove.Melee("Attack_R_02_Swing_Heavy", 0.46f, 1.8f, 26, 90)),
+                     AttackMove.Melee("Attack_R_01_Stab_Heavy", 0.28f, 1.9f, 26, 85), AttackMove.Melee("Attack_R_02_Swing_Heavy", 0.36f, 1.8f, 26, 90)),
                 Make("Mace", false, 1.2f, new[] { "Mace" }, Swing2(), Swing3()),
                 Make("Mace, heavy", true, 1.2f, new[] { "Mace" },
-                     AttackMove.Melee("Attack_R_02_Swing_Heavy", 0.46f, 1.8f, 26, 90)),
+                     AttackMove.Melee("Attack_R_02_Swing_Heavy", 0.36f, 1.8f, 26, 90)),
                 Make("Two-handed", false, 1.5f, new[] { "Longsword (2H)", "Battle axe (2H)" },
-                     AttackMove.Melee("Attack_2H_01_Swing", 43f / 81f, 2.1f, 35, 120), AttackMove.Melee("Attack_2H_02_Swing", 0.41f, 2.2f, 30, 110)),
+                     AttackMove.Melee("Attack_2H_01_Swing", 43f / 81f, 2.1f, 35, 120), AttackMove.Melee("Attack_2H_02_Swing", 0.42f, 2.2f, 30, 110)),
                 Make("Bow", false, 0f, new[] { "Recurve bow" }, AttackMove.Arrow("Shoot_01", 30f / 73f, 16f, 28, 50)),
                 Make("Wand", false, 0f, new[] { "Wand" }, AttackMove.Bolt("Cast_Wand_01", 24f / 63f, 11f, 16, 35), AttackMove.Bolt("Cast_Wand_02", 52f / 99f, 11f, 16, 35)),
                 Make("Staff", false, 0f, new[] { "Staff" }, AttackMove.Bolt("Cast_Staff_01", 0.55f, 12f, 24, 45), AttackMove.Area("AOE_Cast", 0.62f, 9f, 30, 90)),
-                Make("Unarmed", false, 0.8f, new string[0], AttackMove.Melee("Attack_R_02_Swing", 0.46f, 1.4f, 8, 40), AttackMove.Melee("Attack_L_02_Swing", 0.46f, 1.4f, 8, 40)),
+                Make("Unarmed", false, 0.8f, new string[0], AttackMove.Melee("Attack_R_02_Swing", 0.36f, 1.4f, 8, 40), AttackMove.Melee("Attack_L_02_Swing", 0.36f, 1.4f, 8, 40)),
             };
         }
     }
