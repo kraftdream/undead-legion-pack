@@ -582,7 +582,7 @@
    "hand_edited": true,
    "lift": 0.0036,
    "grip_hands": "L",
-   "_note": "2026-10-10: Replaced from Heavy Weapon Swing (1).fbx, source frames 40-116 at native 30 fps. Six added entry frames from Idle_TwoHanded, planted idle feet throughout, eighteen recovery frames back to the exact idle pose. 101 integer frames / 3.3333 seconds. Continuous shared two-hand grip and forearm roll. Authored in skeleton_anim.blend; export with tools/export_authored_animations.py. Follow-up: frames 1-72 retained; six-frame recovery to exact Idle_TwoHanded completes at frame 78 (2.5667 s). Two-hand grip maintained. 2026-10-11: Combat stance narrowed to current Idle_Combat foot anchors. Authored footwork and stepping preserved; resting feet meet the shared staggered stance. Hand-edited Blender source; export, do not regenerate. Recovery starts at frame 72 and reaches Idle_TwoHanded at frame 84 (12 frames). Impact remains frame 44. 2026-10-11: Recovery now begins at frame 70, reaches Idle_TwoHanded at frame 82 (12 frames); impact stays frame 44.",
+   "_note": "2026-10-10: Replaced from Heavy Weapon Swing (1).fbx, source frames 40-116 at native 30 fps. Six added entry frames from Idle_TwoHanded, planted idle feet throughout, eighteen recovery frames back to the exact idle pose. 101 integer frames / 3.3333 seconds. Continuous shared two-hand grip and forearm roll. Authored in skeleton_anim.blend; export with tools/export_authored_animations.py. Follow-up: frames 1-72 retained; six-frame recovery to exact Idle_TwoHanded completes at frame 78 (2.5667 s). Two-hand grip maintained. 2026-10-11: Combat stance narrowed to current Idle_Combat foot anchors. Authored footwork and stepping preserved; resting feet meet the shared staggered stance. Hand-edited Blender source; export, do not regenerate. Recovery starts at frame 72 and reaches Idle_TwoHanded at frame 84 (12 frames). Impact remains frame 44. 2026-10-11: Recovery now begins at frame 70, reaches Idle_TwoHanded at frame 82 (12 frames); impact stays frame 44. 2026-10-12: Reworked frames 56-82 into one continuous recovery, carrying the swing into the lift back to guard without the separate frame-70 stop/blend. Frames 1-56 and impact at 44 preserved exactly. Shared two-hand grip, planted feet and exact Idle_TwoHanded endpoint maintained. Duration remains 82 frames / 2.7 seconds. Unity export and all six Humanoid characters validated.",
    "unity_export_fps": 120
   },
   {
@@ -781,12 +781,10 @@
    "smooth": 1,
    "layer": "full",
    "plant_feet": 0.001,
-   "drift": "root",
    "unwind_yaw": true,
    "unwind_ref": "body",
-   "lift": 0.004,
-   "ground_fit": true,
-   "_note": "2026-09-25: the user's mannequin recording (taunts_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 277-351. Previous (Kimodo build): {\"glb\": \"special_cutthroat\", \"mode\": \"action\", \"seed\": 43, \"frames\": 150, \"time_scale\": 1.0, \"smooth\": 1, \"fist\": 0.9, \"prompt\": \"A person grabs an enemy from behind with the left arm and slices across the throat with a dagger in the right hand.\", \"layer\": \"full\"}.  2026-10-11: Combat stance narrowed to current Idle_Combat foot anchors. Authored footwork and stepping preserved; resting feet meet the shared staggered stance. Hand-edited Blender source; export, do not regenerate.",
+   "lift": 0.0036,
+   "_note": "2026-09-25: the user's mannequin recording (taunts_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 277-351. Previous (Kimodo build): {\"glb\": \"special_cutthroat\", \"mode\": \"action\", \"seed\": 43, \"frames\": 150, \"time_scale\": 1.0, \"smooth\": 1, \"fist\": 0.9, \"prompt\": \"A person grabs an enemy from behind with the left arm and slices across the throat with a dagger in the right hand.\", \"layer\": \"full\"}.  2026-10-11: Combat stance narrowed to current Idle_Combat foot anchors. Authored footwork and stepping preserved; resting feet meet the shared staggered stance. Hand-edited Blender source; export, do not regenerate. 2026-10-12: Idle_Combat pelvis and staggered stance; both feet planted. Original upper-body gestures, hand angles and duration retained. Unity sampled at 120 fps with compression off and root XZ baked into pose. Hand-edited source: export via export_authored_animations.py; do not regenerate or apply ground_fit.",
    "hand_edited": true,
    "unity_export_fps": 120
   },
@@ -805,12 +803,12 @@
    "smooth": 1,
    "layer": "full",
    "plant_feet": 0.001,
-   "drift": "root",
    "unwind_yaw": true,
    "unwind_ref": "body",
-   "lift": 0.004,
-   "ground_fit": true,
-   "_note": "2026-09-25: the user's mannequin recording (taunts_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 1-66 of 'taunts.glb' (replaces the Kimodo Taunt). "
+   "lift": 0.0036,
+   "_note": "2026-09-25: the user's mannequin recording (taunts_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 1-66 of 'taunts.glb' (replaces the Kimodo Taunt).  2026-10-12: Original stance width and forward right-foot step retained. Feet leveled using grounded sole alignment; left support foot held throughout, right foot locked during each contact, with smooth lifts and landings into the forward placement and reset. Root drift removed. A small constant pelvis lowering keeps the knees safely bent. Original upper-body gestures, hand angles and duration retained. Unity sampled at 120 fps with compression off and root XZ baked into pose. Hand-edited source: export via export_authored_animations.py; do not regenerate or apply ground_fit.",
+   "hand_edited": true,
+   "unity_export_fps": 120
   },
   {
    "name": "Taunt_02",
@@ -827,12 +825,12 @@
    "smooth": 1,
    "layer": "full",
    "plant_feet": 0.001,
-   "drift": "root",
    "unwind_yaw": true,
    "unwind_ref": "body",
-   "lift": 0.004,
-   "ground_fit": true,
-   "_note": "2026-09-25: the user's mannequin recording (taunts_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 69-127. "
+   "lift": 0.0036,
+   "_note": "2026-09-25: the user's mannequin recording (taunts_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 69-127.  2026-10-12: Original stance width and forward right-foot step retained. Feet leveled using grounded sole alignment; left support foot held throughout, right foot locked during each contact, with smooth lifts and landings into the forward placement and reset. Root drift removed. A small constant pelvis lowering keeps the knees safely bent. Original upper-body gestures, hand angles and duration retained. Unity sampled at 120 fps with compression off and root XZ baked into pose. Hand-edited source: export via export_authored_animations.py; do not regenerate or apply ground_fit.",
+   "hand_edited": true,
+   "unity_export_fps": 120
   },
   {
    "name": "Taunt_03",
@@ -849,12 +847,12 @@
    "smooth": 1,
    "layer": "full",
    "plant_feet": 0.001,
-   "drift": "root",
    "unwind_yaw": true,
    "unwind_ref": "body",
-   "lift": 0.004,
-   "ground_fit": true,
-   "_note": "2026-09-25: the user's mannequin recording (taunts_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 128-193. "
+   "lift": 0.0036,
+   "_note": "2026-09-25: the user's mannequin recording (taunts_ref, the app's skinless GLB converted by glb_nodes_to_armature; the user's frame numbers count at 24 fps, the file is 30 fps, so the range is theirs x1.25), plain transfer like the arm attacks: legs planted, the take's net travel on Root, the body's net yaw unwound. Frames 128-193.  2026-10-12: Original stance width and forward right-foot step retained. Feet leveled using grounded sole alignment; left support foot held throughout, right foot locked during each contact, with smooth lifts and landings into the forward placement and reset. Root drift removed. A small constant pelvis lowering keeps the knees safely bent. Original upper-body gestures, hand angles and duration retained. Unity sampled at 120 fps with compression off and root XZ baked into pose. Hand-edited source: export via export_authored_animations.py; do not regenerate or apply ground_fit.",
+   "hand_edited": true,
+   "unity_export_fps": 120
   },
   {
    "name": "Rally",
