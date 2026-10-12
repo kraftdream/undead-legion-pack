@@ -20,44 +20,8 @@ ModelImporter:
     animationImportWarnings: "\nClip 'Attack_2H_02_Swing' has import animation warnings
       that might lower retargeting quality:\nNote: Activate translation DOF on avatar
       to improve retargeting quality.\n\t'Hips' has scale animation that will be
-      discarded.\n\t'Spine' has scale animation that will be discarded.\n\t'Neck'
-      has scale animation that will be discarded.\n\t'Neck1' is inbetween humanoid
-      transforms and has rotation animation that will be discarded.\n\t'Head' has
-      scale animation that will be discarded.\n\t'LeftArm' has scale animation that
-      will be discarded.\n\t'LeftForeArm' has scale animation that will be discarded.\n\t'LeftHand'
-      has scale animation that will be discarded.\n\t'LeftHandIndex1' has scale animation
-      that will be discarded.\n\t'LeftHandIndex2' has scale animation that will be
-      discarded.\n\t'LeftHandIndex3' has scale animation that will be discarded.\n\t'LeftHandThumb1'
-      has scale animation that will be discarded.\n\t'LeftHandThumb2' has scale animation
-      that will be discarded.\n\t'LeftHandMiddle1' has scale animation that will
-      be discarded.\n\t'LeftHandMiddle3' has scale animation that will be discarded.\n\t'LeftHandPalm3'
-      is inbetween humanoid transforms and has rotation animation that will be discarded.\n\t'LeftHandRing1'
-      has scale animation that will be discarded.\n\t'LeftHandRing2' has scale animation
-      that will be discarded.\n\t'LeftHandPalm4' has scale animation that will be
-      discarded.\n\t'LeftHandPinky1' has scale animation that will be discarded.\n\t'LeftHandPinky2'
-      has scale animation that will be discarded.\n\t'LeftHandPinky3' has scale animation
-      that will be discarded.\n\t'RightShoulder' has scale animation that will be
-      discarded.\n\t'RightArm' has scale animation that will be discarded.\n\t'RightForeArm'
-      has scale animation that will be discarded.\n\t'RightHand' has scale animation
-      that will be discarded.\n\t'RightHandPalm1' is inbetween humanoid transforms
-      and has rotation animation that will be discarded.\n\t'RightHandIndex2' has
-      scale animation that will be discarded.\n\t'RightHandIndex3' has scale animation
-      that will be discarded.\n\t'RightHandPalm2' is inbetween humanoid transforms
-      and has rotation animation that will be discarded.\n\t'RightHandPalm2' has
-      scale animation that will be discarded.\n\t'RightHandMiddle1' has scale animation
-      that will be discarded.\n\t'RightHandMiddle2' has scale animation that will
-      be discarded.\n\t'RightHandPalm3' is inbetween humanoid transforms and has
-      rotation animation that will be discarded.\n\t'RightHandRing1' has scale animation
-      that will be discarded.\n\t'RightHandRing3' has scale animation that will be
-      discarded.\n\t'RightHandPalm4' has scale animation that will be discarded.\n\t'RightHandPinky1'
-      has scale animation that will be discarded.\n\t'RightHandPinky2' has scale
-      animation that will be discarded.\n\t'LeftUpLeg' has scale animation that will
-      be discarded.\n\t'LeftLeg' has scale animation that will be discarded.\n\t'LeftFoot'
-      has scale animation that will be discarded.\n\t'LeftToeBase' has scale animation
-      that will be discarded.\n\t'RightUpLeg' has scale animation that will be discarded.\n\t'RightLeg'
-      has scale animation that will be discarded.\n\t'RightFoot' has scale animation
-      that will be discarded.\n\t'RightToeBase' has scale animation that will be
-      discarded.\n"
+      discarded.\n\t'Neck1' is inbetween humanoid transforms and has rotation animation
+      that will be discarded.\n"
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
     importAnimatedCustomProperties: 0
@@ -75,7 +39,7 @@ ModelImporter:
       takeName: Attack_2H_02_Swing
       internalID: -5212935308536760725
       firstFrame: 1
-      lastFrame: 1169
+      lastFrame: 201
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -933,7 +897,7 @@ ModelImporter:
       rotation: {x: 0, y: -0, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
     armTwist: 0.5
-    foreArmTwist: 0.5
+    foreArmTwist: 1
     upperLegTwist: 0.5
     legTwist: 0.5
     armStretch: 0.05

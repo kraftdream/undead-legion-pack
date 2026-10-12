@@ -252,8 +252,8 @@ namespace UndeadLegion.Demo
             var steps = new List<Step>();
             steps.Add(new Step { titleCard = true, title = "WEAPONS & UTILS", text = "every weapon with its idle and attacks  |  taunts, specials, deaths", seconds = titleCardSeconds });
             steps.Add(A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Taunt", "Taunt_01"));
-            steps.Add(A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Two-handed idle; the second hand rides the handle", "Attack_2H_01_Swing", "Attack_2H_02_Swing"));
-            steps.Add(A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "The same two-handed grip and attacks on every long weapon", "Attack_2H_01_Swing", "Attack_2H_02_Swing"));
+            steps.Add(A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Two-handed idle; the second hand rides the handle", "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_03_Swing"));
+            steps.Add(A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "The same two-handed grip and attacks on every long weapon", "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_03_Swing"));
             steps.Add(Death(A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "Death", "Death_01")));
             // Knight: taunt and rally, then the combat idle with the left block HELD; axe + round shield swing; sword + heater shield
             // with both right attacks under the block; the sword alone with the block released and both attacks; then the death

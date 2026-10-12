@@ -1484,7 +1484,16 @@ MonoBehaviour:
       arrow: 0
       speed: 1
     - clip: Attack_2H_02_Swing
-      hitAt: 0.42
+      hitAt: 0.56
+      range: 2.2
+      damage: 30
+      impulse: 110
+      ranged: 0
+      area: 0
+      arrow: 0
+      speed: 1
+    - clip: Attack_2H_03_Swing
+      hitAt: 0.49019608
       range: 2.2
       damage: 30
       impulse: 110

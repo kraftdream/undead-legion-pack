@@ -74,7 +74,7 @@ namespace UndeadLegion.Extended
         /// <summary>
         /// The default modules, one set per weapon: the sword stabs and swings, regular attacks only; the dagger the same, and a
         /// second dagger adds the left-hand attacks; the axe mixes
-        /// regular and heavy attacks; the mace too, without the stabs; both two-handed weapons use the two regular swings.
+        /// regular and heavy attacks; the mace too, without the stabs; both two-handed weapons use three regular swings.
         /// One-handed hit times follow the current exports' strike-speed peaks (2026-10-12); two-handed 01 and ranged moves
         /// retain their authored impact/release times. The weapon's own pace (sword/wand 1.3x, dagger 1.7x) is not here:
         /// SkeletonWeapon.AttackSpeedFor drives the controller's AttackSpeed
@@ -96,7 +96,10 @@ namespace UndeadLegion.Extended
                 Make("Mace, heavy", true, 1.2f, new[] { "Mace" },
                      AttackMove.Melee("Attack_R_02_Swing_Heavy", 0.36f, 1.8f, 26, 90)),
                 Make("Two-handed", false, 1.5f, new[] { "Longsword (2H)", "Battle axe (2H)" },
-                     AttackMove.Melee("Attack_2H_01_Swing", 43f / 81f, 2.1f, 35, 120), AttackMove.Melee("Attack_2H_02_Swing", 0.42f, 2.2f, 30, 110)),
+                     AttackMove.Melee("Attack_2H_01_Swing", 43f / 81f, 2.1f, 35, 120),
+                     // Restored showreel attacks: contact on frames 29/51 and 26/52.
+                     AttackMove.Melee("Attack_2H_02_Swing", 28f / 50f, 2.2f, 30, 110),
+                     AttackMove.Melee("Attack_2H_03_Swing", 25f / 51f, 2.2f, 30, 110)),
                 Make("Bow", false, 0f, new[] { "Recurve bow" }, AttackMove.Arrow("Shoot_01", 30f / 73f, 16f, 28, 50)),
                 Make("Wand", false, 0f, new[] { "Wand" }, AttackMove.Bolt("Cast_Wand_01", 24f / 63f, 11f, 16, 35), AttackMove.Bolt("Cast_Wand_02", 52f / 99f, 11f, 16, 35)),
                 Make("Staff", false, 0f, new[] { "Staff" }, AttackMove.Bolt("Cast_Staff_01", 0.55f, 12f, 24, 45), AttackMove.Area("AOE_Cast", 0.62f, 9f, 30, 90)),

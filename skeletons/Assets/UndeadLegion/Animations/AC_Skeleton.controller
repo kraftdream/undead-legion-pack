@@ -665,6 +665,19 @@ AnimatorState:
   m_MirrorParameter: 
   m_CycleOffsetParameter: 
   m_TimeParameter: 
+--- !u!114 &-3437891383615760409
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a14974dd36b9808408e66299ea2a63d1, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::UndeadLegion.Demo.SkeletonGripState
+  hand: 1
 --- !u!1102 &-3363745281759460306
 AnimatorState:
   serializedVersion: 6
@@ -1629,6 +1642,9 @@ AnimatorStateMachine:
   - serializedVersion: 1
     m_State: {fileID: -1766689594712318333}
     m_Position: {x: 1950, y: 3250, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: 6072891282937668294}
+    m_Position: {x: 1985, y: 3315, z: 0}
   m_ChildStateMachines: []
   m_AnyStateTransitions: []
   m_EntryTransitions: []
@@ -2610,6 +2626,33 @@ AnimatorState:
   m_MirrorParameter: 
   m_CycleOffsetParameter: 
   m_TimeParameter: 
+--- !u!1102 &6072891282937668294
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Attack_2H_03_Swing
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours:
+  - {fileID: -3437891383615760409}
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 1
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 2137269090633695447, guid: 5763157a7c97083478a49dd4c6c2a11a, type: 3}
+  m_Tag:
+  m_SpeedParameter: AttackSpeed
+  m_MirrorParameter:
+  m_CycleOffsetParameter:
+  m_TimeParameter:
 --- !u!1102 &6104645724629583991
 AnimatorState:
   serializedVersion: 6

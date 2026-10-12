@@ -602,8 +602,8 @@
    "hand_edited": true,
    "lift": 0.0036,
    "grip_hands": "L",
-   "_note": "2026-10-10: Replaced from Two Hand Sword Combo.fbx, mirrored source frames 44-99 at native 30 fps. Six added entry frames from Idle_TwoHanded; left foot remains planted and right foot steps forward. Step retracts starting at original reference frame 79 (output frame 42), returning to the left-forward/right-back idle stance. Twelve tail frames; 74 integer frames / 2.4333 seconds. Shared grip preserves right hand above left after mirroring. Authored in skeleton_anim.blend; export with tools/export_authored_animations.py. 2026-10-11: Combat stance narrowed to current Idle_Combat foot anchors. Authored footwork and stepping preserved; resting feet meet the shared staggered stance. Hand-edited Blender source; export, do not regenerate.",
-   "unity_export_fps": 480
+   "_note": "2026-10-12: Restored Attack_2H_01_Swing from 27afbd8 (same Blender blob as Oct 5 showreel commit c4267ae), matching showreel_weapons.mp4 at 6-11 seconds. Historical swing motion/timing retained; feet planted at current narrowed Idle_TwoHanded stance. Entry blends frames 1-9; return 38-51 to exact Idle_TwoHanded. 51 integer frames at 30 fps. Hand-edited source; use export_authored_animations.py. Existing Attack_2H_01_Swing unchanged.",
+   "unity_export_fps": 120
   },
   {
    "name": "Attack_2H_02_Swing_Heavy",
@@ -614,6 +614,16 @@
    "grip_hands": "L",
    "_note": "2026-10-10: Retired from Unity and Unreal production at user request. Preserve the action in skeleton_anim.blend for authoring only.",
    "disabled": true
+  },
+  {
+   "name": "Attack_2H_03_Swing",
+   "layer": "full",
+   "mode": "action",
+   "hand_edited": true,
+   "lift": 0.0036,
+   "grip_hands": "L",
+   "unity_export_fps": 120,
+   "_note": "2026-10-12: Restored Attack_2H_02_Swing from 27afbd8 (same Blender blob as Oct 5 showreel commit c4267ae), matching showreel_weapons.mp4 at 6-11 seconds. Historical swing motion/timing retained; feet planted at current narrowed Idle_TwoHanded stance. Entry blends frames 1-9; return 40-52 to exact Idle_TwoHanded. 52 integer frames at 30 fps. Hand-edited source; use export_authored_animations.py. Existing Attack_2H_01_Swing unchanged."
   },
   {
    "name": "Shoot_01",
