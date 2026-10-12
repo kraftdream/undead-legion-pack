@@ -97,7 +97,7 @@ namespace UndeadLegion.Extended
                 Make("Two-handed", false, 1.5f, new[] { "Longsword (2H)", "Battle axe (2H)" },
                      AttackMove.Melee("Attack_2H_01_Swing", 43f / 81f, 2.1f, 35, 120), AttackMove.Melee("Attack_2H_02_Swing", 0.41f, 2.2f, 30, 110)),
                 Make("Bow", false, 0f, new[] { "Recurve bow" }, AttackMove.Arrow("Shoot_01", 30f / 73f, 16f, 28, 50)),
-                Make("Wand", false, 0f, new[] { "Wand" }, AttackMove.Bolt("Cast_Wand_01", 30.15f / 42f, 11f, 16, 35), AttackMove.Bolt("Cast_Wand_02", 34f / 71f, 11f, 16, 35)),
+                Make("Wand", false, 0f, new[] { "Wand" }, AttackMove.Bolt("Cast_Wand_01", 24f / 63f, 11f, 16, 35), AttackMove.Bolt("Cast_Wand_02", 52f / 99f, 11f, 16, 35)),
                 Make("Staff", false, 0f, new[] { "Staff" }, AttackMove.Bolt("Cast_Staff_01", 0.55f, 12f, 24, 45), AttackMove.Area("AOE_Cast", 0.62f, 9f, 30, 90)),
                 Make("Unarmed", false, 0.8f, new string[0], AttackMove.Melee("Attack_R_02_Swing", 0.46f, 1.4f, 8, 40), AttackMove.Melee("Attack_L_02_Swing", 0.46f, 1.4f, 8, 40)),
             };

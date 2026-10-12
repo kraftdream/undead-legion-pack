@@ -244,19 +244,26 @@ namespace UndeadLegion.Demo
 
         // ------------------------------------------------------------- attack speed per weapon
 
-        /// <summary>Animator float that every Attack_* state of AC_Skeleton plays at.</summary>
+        /// <summary>Animator float used by melee attack and wand cast states.</summary>
         public const string AttackSpeedParameter = "AttackSpeed";
 
         /// <summary>
-        /// Clip speed of the attack animations per loadout: a sword's attacks play 30 % faster, a dagger's 70 % faster
+        /// Clip speed of the attack animations per loadout: sword and wand attacks play 30 % faster, a dagger's 70 % faster
         /// (both hands with two daggers), every other weapon as authored. Edit the table to retune a weapon.
         /// </summary>
         public static float AttackSpeedFor(string loadout)
         {
             if (string.IsNullOrEmpty(loadout)) return 1f;
-            if (loadout == "Sword" || loadout == "Sword + shield") return 1.3f;
+            if (loadout == "Sword" || loadout == "Sword + shield" || loadout == "Wand") return 1.3f;
             if (loadout == "Dagger" || loadout == "Two daggers") return 1.7f;
             return 1f;
+        }
+
+        /// <summary>States whose duration includes the equipped weapon's attack speed multiplier.</summary>
+        public static bool UsesAttackSpeed(string clipName)
+        {
+            return !string.IsNullOrEmpty(clipName) &&
+                (clipName.StartsWith("Attack_") || clipName.StartsWith("Cast_Wand_"));
         }
 
         /// <summary>The attack clip speed of the equipped loadout.</summary>

@@ -416,11 +416,12 @@ namespace UndeadLegion.Demo
                     var attack = FindClip(_animator, an_);
                     if (attack == null) { Debug.LogWarning("Showreel: no attack clip '" + an_ + "'"); continue; }
                     float sp = step.attackSpeed > 0f ? step.attackSpeed : 1f;
-                    ShowCaption(step.title, step.text + "  |  " + attack.name + (sp != 1f ? string.Format("  ({0:0.0}x)", sp) : ""));
+                    float effectiveSpeed = sp * (SkeletonWeapon.UsesAttackSpeed(attack.name) && _weapon != null ? _weapon.AttackSpeed : 1f);
+                    ShowCaption(step.title, step.text + "  |  " + attack.name + (effectiveSpeed != 1f ? string.Format("  ({0:0.0}x)", effectiveSpeed) : ""));
                     _animator.speed = sp;
                     _showcase.Play(attack);
-                    if (Application.isBatchMode) Debug.Log("Showreel: attack " + attack.name + " playing at " + sp + "x");
-                    yield return Capture(Mathf.RoundToInt((attack.length / sp + _showcase.crossFade) * fps) + 2);
+                    if (Application.isBatchMode) Debug.Log("Showreel: attack " + attack.name + " playing at " + effectiveSpeed + "x");
+                    yield return Capture(Mathf.RoundToInt((attack.length / effectiveSpeed + _showcase.crossFade) * fps) + 2);
                     _animator.speed = 1f;
                     yield return Capture(Mathf.RoundToInt((step.afterSeconds >= 0f ? step.afterSeconds : holdAfter) * fps));
                     if (_rootMotion) RecenterSeamless();
