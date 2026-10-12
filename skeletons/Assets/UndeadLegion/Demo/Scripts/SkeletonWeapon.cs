@@ -248,13 +248,15 @@ namespace UndeadLegion.Demo
         public const string AttackSpeedParameter = "AttackSpeed";
 
         /// <summary>
-        /// Clip speed of the attack animations per loadout: sword and wand attacks play 30 % faster, a dagger's 70 % faster
-        /// (both hands with two daggers), every other weapon as authored. Edit the table to retune a weapon.
+        /// Clip speed of the attack animations per loadout: one-handed sword and wand attacks play 30 % faster,
+        /// two-handed sword attacks 20 % faster, and dagger attacks 70 % faster (both hands with two daggers).
+        /// Every other weapon plays as authored. Edit the table to retune a weapon.
         /// </summary>
         public static float AttackSpeedFor(string loadout)
         {
             if (string.IsNullOrEmpty(loadout)) return 1f;
             if (loadout == "Sword" || loadout == "Sword + shield" || loadout == "Wand") return 1.3f;
+            if (loadout == "Longsword (2H)") return 1.2f;
             if (loadout == "Dagger" || loadout == "Two daggers") return 1.7f;
             return 1f;
         }
