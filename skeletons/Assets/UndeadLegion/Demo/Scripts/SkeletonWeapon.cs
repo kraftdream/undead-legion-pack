@@ -122,7 +122,17 @@ namespace UndeadLegion.Demo
             ApplyFingerLayers();
         }
 
-        /// <summary>Animation event on a bow clip (manifest `events`, e.g. Shoot_01 frame 15): the string
+        /// <summary>Begin or cancel a shot: leave the string at rest and hide the un-drawn arrow.</summary>
+        public void BowReset()
+        {
+            foreach (var go in _spawned) if (go != null) foreach (var b in go.GetComponentsInChildren<BowString>(true)) b.attached = false;
+            SetArrowVisible(false);
+        }
+
+        /// <summary>Animation event when the hand takes an arrow (Shoot_01 draw frame 10).</summary>
+        public void BowDraw() { SetArrowVisible(true); }
+
+        /// <summary>Animation event on a bow clip (manifest `events`): the string
         /// takes the draw hand from here on.</summary>
         public void BowAttach()
         {
@@ -130,13 +140,12 @@ namespace UndeadLegion.Demo
             SetArrowVisible(true);
         }
 
-        /// <summary>Animation event (e.g. Shoot_01 frame 21): the string is let go, and for the demo the arrow in
-        /// the draw hand is hidden for a moment so the shot reads (it comes back after `arrowHideSeconds`).</summary>
+        /// <summary>Release the string and fire the held arrow. It stays hidden until the next BowDraw event.</summary>
         public void BowRelease()
         {
             bool any = false;
             foreach (var go in _spawned) if (go != null) foreach (var b in go.GetComponentsInChildren<BowString>(true)) { b.attached = false; any = true; }
-            if (any && arrowHideSeconds > 0f) { SetArrowVisible(false); _arrowShowAt = Time.time + arrowHideSeconds; }
+            if (any) SetArrowVisible(false);
             if (any && fireProjectile) FireArrow();
         }
 
@@ -176,20 +185,11 @@ namespace UndeadLegion.Demo
             p.Launch(dir);
         }
 
-        [Tooltip("After BowRelease the arrow in the draw hand is hidden this long (seconds) so the shot reads in the demo; 0 = never hidden.")]
-        public float arrowHideSeconds = 1.2f;
-        float _arrowShowAt = -1f;
-
         void SetArrowVisible(bool on)
         {
             foreach (var go in _spawned)
                 if (go != null && go.name.StartsWith("W_Arrow"))
                     foreach (var r in go.GetComponentsInChildren<Renderer>(true)) r.enabled = on;
-        }
-
-        void Update()
-        {
-            if (_arrowShowAt > 0f && Time.time >= _arrowShowAt) { _arrowShowAt = -1f; SetArrowVisible(true); }
         }
 
         [Tooltip("Seconds the empty-hand finger layers take to fade in or out (matches the demo's crossfade).")]
@@ -244,19 +244,28 @@ namespace UndeadLegion.Demo
 
         // ------------------------------------------------------------- attack speed per weapon
 
-        /// <summary>Animator float that every Attack_* state of AC_Skeleton plays at.</summary>
+        /// <summary>Animator float used by melee attack and wand cast states.</summary>
         public const string AttackSpeedParameter = "AttackSpeed";
 
         /// <summary>
-        /// Clip speed of the attack animations per loadout: a sword's attacks play 30 % faster, a dagger's 70 % faster
-        /// (both hands with two daggers), every other weapon as authored. Edit the table to retune a weapon.
+        /// Clip speed of the attack animations per loadout: one-handed sword and wand attacks play 30 % faster,
+        /// two-handed sword attacks 20 % faster, and dagger attacks 70 % faster (both hands with two daggers).
+        /// Every other weapon plays as authored. Edit the table to retune a weapon.
         /// </summary>
         public static float AttackSpeedFor(string loadout)
         {
             if (string.IsNullOrEmpty(loadout)) return 1f;
-            if (loadout == "Sword" || loadout == "Sword + shield") return 1.3f;
+            if (loadout == "Sword" || loadout == "Sword + shield" || loadout == "Wand") return 1.3f;
+            if (loadout == "Longsword (2H)") return 1.2f;
             if (loadout == "Dagger" || loadout == "Two daggers") return 1.7f;
             return 1f;
+        }
+
+        /// <summary>States whose duration includes the equipped weapon's attack speed multiplier.</summary>
+        public static bool UsesAttackSpeed(string clipName)
+        {
+            return !string.IsNullOrEmpty(clipName) &&
+                (clipName.StartsWith("Attack_") || clipName.StartsWith("Cast_Wand_"));
         }
 
         /// <summary>The attack clip speed of the equipped loadout.</summary>
@@ -355,6 +364,7 @@ namespace UndeadLegion.Demo
                 var bow = go.GetComponentInChildren<BowString>(true);
                 if (bow != null) { bow.drawHand = it.hand == Hand.Left ? _right : _left; bow.attached = false; bow.Resolve(); }
             }
+            BowReset();
             ApplyFingerLayers();
             ApplyAttackSpeed();
         }

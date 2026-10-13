@@ -35,6 +35,7 @@ System.Func<string, AnimationClip> load = (name) => {
 var idle = load("Idle_01"); if (idle == null) return "no Idle clip";
 // manifest `layer: additive` (2026-09-30, Hit_01): an overlay played on the additive Hit layer over whatever runs, never a Base state
 var additiveSet = new System.Collections.Generic.HashSet<string>(new string[]{ %ADDITIVE% });
+var disabledSet = new System.Collections.Generic.HashSet<string>(new string[]{ %DISABLED% });
 // every Skeleton@*.fbx except the twitches becomes a base-layer state named after its clip
 // (Idle is the default; the browser plays states by clip name)
 var idleClips = new System.Collections.Generic.List<AnimationClip>();
@@ -42,6 +43,7 @@ foreach (var guid in AssetDatabase.FindAssets("Skeleton@ t:Model", new string[]{
   var p = AssetDatabase.GUIDToAssetPath(guid); var fn = System.IO.Path.GetFileNameWithoutExtension(p);
   if (!fn.StartsWith("Skeleton@")) continue;
   var nm = fn.Substring("Skeleton@".Length);
+  if (disabledSet.Contains(nm)) continue;
   if (nm == "Idle_01" || nm.StartsWith("Twitch_") || nm == "Grip" || nm.StartsWith("Hand_Idle_") || additiveSet.Contains(nm)) continue;   // additive overlays (Hit_01) live on the Hit layer only   // Grip: finger pose data, not a state; Hand_Idle_L/R: the finger layers' loops
   var cl = load(nm); if (cl != null) idleClips.Add(cl);
 }
@@ -56,8 +58,8 @@ while (ctrl.parameters.Length > 0) ctrl.RemoveParameter(0);
 ctrl.AddLayer("Base");
 ctrl.AddParameter("Twitch", AnimatorControllerParameterType.Trigger);
 ctrl.AddParameter("TwitchIndex", AnimatorControllerParameterType.Int);
-// AttackSpeed (2026-10-04): every Attack_* state plays at this multiplier; SkeletonWeapon sets it from the equipped loadout
-// (sword 1.3, dagger 1.7, else 1), so a weapon's attacks keep their pace in every demo scene and on any layer
+// AttackSpeed: melee attacks and wand casts use the equipped loadout's multiplier
+// (sword / wand 1.3, dagger 1.7, else 1), on both Base and masked layers.
 var asp = new AnimatorControllerParameter(); asp.name = "AttackSpeed"; asp.type = AnimatorControllerParameterType.Float; asp.defaultFloat = 1f;
 ctrl.AddParameter(asp);
 int nSpeed = 0;
@@ -75,19 +77,22 @@ var baseStates = new System.Collections.Generic.Dictionary<string, UnityEditor.A
 baseStates["Idle_01"] = idleState;
 foreach (var cl in idleClips) {
   var vs = baseSm.AddState(cl.name); vs.motion = cl; baseStates[cl.name] = vs;
-  if (cl.name.StartsWith("Attack_")) { vs.speedParameterActive = true; vs.speedParameter = "AttackSpeed"; nSpeed++; }
+    if (UndeadLegion.Demo.SkeletonWeapon.UsesAttackSpeed(cl.name)) { vs.speedParameterActive = true; vs.speedParameter = "AttackSpeed"; nSpeed++; }
+    if (cl.name.StartsWith("Shoot_")) vs.AddStateMachineBehaviour<UndeadLegion.Demo.SkeletonBowState>();
   if (gripL.Contains(cl.name)) { var gb = vs.AddStateMachineBehaviour<UndeadLegion.Demo.SkeletonGripState>(); gb.hand = UndeadLegion.Demo.SkeletonWeapon.Hand.Left; nGrip++; }
 }
-// manifest `next` + `next_at` (2026-09-27, Cast_Staff_01 -> Idle_Staff from frame 54): a one-shot's Base state gets an
+// manifest `next` + `next_at` (2026-09-27, Cast_Staff_01 -> Idle_TwoHanded from frame 54): a one-shot's Base state gets an
 // exit-time transition into the named loop state, starting at that 1-based frame and lasting the clip's remaining
-// frames; the showcase adopts the loop it lands in (SkeletonShowcase.AdoptFollowUp)
+// frames, unless next_blend specifies a duration in seconds. The showcase adopts the loop it lands in.
 string[] nextSpec = new string[]{ %NEXT% };
 int nNext = 0;
 foreach (var ns in nextSpec) {
   var p3 = ns.Split(':'); var from_ = baseStates.ContainsKey(p3[0]) ? baseStates[p3[0]] : null; var to_ = baseStates.ContainsKey(p3[1]) ? baseStates[p3[1]] : null;
   if (from_ == null || to_ == null) { sb.AppendLine("next: missing state for " + ns); continue; }
-  var clipN = from_.motion as AnimationClip; float nfrN = clipN.length * clipN.frameRate; float atN = float.Parse(p3[2], System.Globalization.CultureInfo.InvariantCulture);
-  var trN = from_.AddTransition(to_); trN.hasExitTime = true; trN.exitTime = (atN - 1f) / nfrN; trN.hasFixedDuration = true; trN.duration = (nfrN - (atN - 1f)) / clipN.frameRate; trN.canTransitionToSelf = false;
+  // next_at uses Blender's 30 fps authoring timeline, even when an FBX is oversampled at 120/480 fps.
+  var clipN = from_.motion as AnimationClip; float nfrN = clipN.length * 30f; float atN = float.Parse(p3[2], System.Globalization.CultureInfo.InvariantCulture);
+  var trN = from_.AddTransition(to_); trN.hasExitTime = true; trN.exitTime = (atN - 1f) / nfrN; trN.hasFixedDuration = true; trN.duration = (nfrN - (atN - 1f)) / 30f; trN.canTransitionToSelf = false;
+  if (p3.Length > 3) trN.duration = float.Parse(p3[3], System.Globalization.CultureInfo.InvariantCulture);
   nNext++;
 }
 sb.AppendLine("base layer: Idle + " + idleClips.Count + " more states (" + nGrip + " with a left-hand grip state, " + nNext + " with a follow-up transition, " + nSpeed + " on AttackSpeed)");
@@ -159,7 +164,8 @@ System.Action<int, string, string[]> fillLayer = (li, label, names) => {
   foreach (var nm_ in names) {
     var cl_ = load(nm_); if (cl_ == null) { sb.AppendLine("missing " + label + " clip " + nm_); continue; }
     var st_ = lsm_.AddState(nm_); st_.motion = cl_;
-    if (nm_.StartsWith("Attack_")) { st_.speedParameterActive = true; st_.speedParameter = "AttackSpeed"; }
+      if (UndeadLegion.Demo.SkeletonWeapon.UsesAttackSpeed(nm_)) { st_.speedParameterActive = true; st_.speedParameter = "AttackSpeed"; }
+      if (nm_.StartsWith("Shoot_")) st_.AddStateMachineBehaviour<UndeadLegion.Demo.SkeletonBowState>();
     if (gripL.Contains(nm_)) { var gb_ = st_.AddStateMachineBehaviour<UndeadLegion.Demo.SkeletonGripState>(); gb_.hand = UndeadLegion.Demo.SkeletonWeapon.Hand.Left; }
     if (cl_.isLooping) held_++;
     else { var back_ = st_.AddTransition(empty_); back_.hasExitTime = true; back_.exitTime = 1f; back_.duration = 0.25f; back_.hasFixedDuration = true; }   // 0.25 s: the arm clips end mid-action and the Animator carries the return
@@ -300,14 +306,17 @@ return sb.ToString();
 
 if __name__ == "__main__":
     manifest = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "Animations", "clips.json")
-    clips = json.load(open(manifest))["clips"]
+    all_clips = json.load(open(manifest))["clips"]
+    clips = [c for c in all_clips if not c.get("disabled")]
     tagged = lambda tag: [c["name"] for c in clips if c.get("layer") == tag]
     print("from the manifest: upper", ", ".join(tagged("upper")), "| left", ", ".join(tagged("left")), "| right", ", ".join(tagged("right")))
     grip_l = [c["name"] for c in clips if c.get("grip_hands") == "L"]
-    nexts = ["%s:%s:%s" % (c["name"], c["next"], c.get("next_at", 1)) for c in clips if c.get("next")]
+    nexts = ["%s:%s:%s" % (c["name"], c["next"], c.get("next_at", 1))
+             + (":%s" % c["next_blend"] if "next_blend" in c else "") for c in clips if c.get("next")]
     print("left hand on the weapon (grip_hands L):", ", ".join(grip_l))
     code = CODE.replace("%UPPER%", ", ".join('"%s"' % u for u in tagged("upper"))).replace("%LEFT%", ", ".join('"%s"' % u for u in tagged("left"))).replace("%RIGHT%", ", ".join('"%s"' % u for u in tagged("right"))).replace("%GRIPL%", ", ".join('"%s"' % u for u in grip_l)).replace("%NEXT%", ", ".join('"%s"' % u for u in nexts)).replace("%ADDITIVE%", ", ".join('"%s"' % u for u in tagged("additive")))
     c = Client()
+    code = code.replace("%DISABLED%", ", ".join('"%s"' % c["name"] for c in all_clips if c.get("disabled")))
     try:
         c.call("refresh_unity", {"mode": "force", "scope": "all", "compile": "request", "wait_for_ready": True}, timeout=600)
         r = c.call("execute_code", {"action": "execute", "code": code}, timeout=900)

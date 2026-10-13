@@ -183,10 +183,12 @@ def materials():
     log("weapon materials: %d" % len(WEAPONS))
 
 
-def weapons():
+def weapons(only=None):
     stat = pipeline("IP_Weapon_Static", None, statics=True)
     rigged = pipeline("IP_Weapon_Rigged", None)
     for w in WEAPONS:
+        if only and w not in only:
+            continue
         f = os.path.join(WEAPONS_EXPORT, "SM_%s.fbx" % w)
         m = interchange(f, PKG + "/Weapons", ("SK_" if w in RIGGED_WEAPONS else "SM_") + w,
                         rigged if w in RIGGED_WEAPONS else stat)

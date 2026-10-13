@@ -225,6 +225,8 @@ MonoBehaviour:
   totalMass: 35
   dropWeapons: 1
   blendTime: 0.6
+  angularDamping: 0.6
+  headAngularDamping: 5
   parts:
   - bone: 0
     body: {fileID: 7515717460948876944}
@@ -426,7 +428,7 @@ MonoBehaviour:
     engageRange: 1.1
     moves:
     - clip: Attack_R_01_Stab
-      hitAt: 0.3
+      hitAt: 0.28
       range: 1.8
       damage: 18
       impulse: 55
@@ -435,7 +437,7 @@ MonoBehaviour:
       arrow: 0
       speed: 1
     - clip: Attack_R_02_Swing
-      hitAt: 0.46
+      hitAt: 0.36
       range: 1.7
       damage: 20
       impulse: 70
@@ -444,7 +446,7 @@ MonoBehaviour:
       arrow: 0
       speed: 1
     - clip: Attack_R_03_Swing
-      hitAt: 0.5
+      hitAt: 0.48
       range: 1.7
       damage: 20
       impulse: 70
@@ -460,7 +462,7 @@ MonoBehaviour:
     engageRange: 0.9
     moves:
     - clip: Attack_R_01_Stab
-      hitAt: 0.3
+      hitAt: 0.28
       range: 1.8
       damage: 18
       impulse: 55
@@ -469,7 +471,7 @@ MonoBehaviour:
       arrow: 0
       speed: 1
     - clip: Attack_R_02_Swing
-      hitAt: 0.46
+      hitAt: 0.36
       range: 1.7
       damage: 20
       impulse: 70
@@ -478,7 +480,7 @@ MonoBehaviour:
       arrow: 0
       speed: 1
     - clip: Attack_R_03_Swing
-      hitAt: 0.5
+      hitAt: 0.48
       range: 1.7
       damage: 20
       impulse: 70
@@ -493,7 +495,7 @@ MonoBehaviour:
     engageRange: 0.9
     moves:
     - clip: Attack_L_01_Stab
-      hitAt: 0.3
+      hitAt: 0.29
       range: 1.6
       damage: 14
       impulse: 45
@@ -502,16 +504,7 @@ MonoBehaviour:
       arrow: 0
       speed: 1
     - clip: Attack_L_02_Swing
-      hitAt: 0.46
-      range: 1.5
-      damage: 14
-      impulse: 55
-      ranged: 0
-      area: 0
-      arrow: 0
-      speed: 1
-    - clip: Attack_L_03_Swing
-      hitAt: 0.5
+      hitAt: 0.36
       range: 1.5
       damage: 14
       impulse: 55
@@ -526,7 +519,7 @@ MonoBehaviour:
     engageRange: 1.2
     moves:
     - clip: Attack_R_01_Stab
-      hitAt: 0.3
+      hitAt: 0.28
       range: 1.8
       damage: 18
       impulse: 55
@@ -535,7 +528,7 @@ MonoBehaviour:
       arrow: 0
       speed: 1
     - clip: Attack_R_02_Swing
-      hitAt: 0.46
+      hitAt: 0.36
       range: 1.7
       damage: 20
       impulse: 70
@@ -544,7 +537,7 @@ MonoBehaviour:
       arrow: 0
       speed: 1
     - clip: Attack_R_03_Swing
-      hitAt: 0.5
+      hitAt: 0.48
       range: 1.7
       damage: 20
       impulse: 70
@@ -559,7 +552,7 @@ MonoBehaviour:
     engageRange: 1.2
     moves:
     - clip: Attack_R_01_Stab_Heavy
-      hitAt: 0.27
+      hitAt: 0.28
       range: 1.9
       damage: 26
       impulse: 85
@@ -568,16 +561,7 @@ MonoBehaviour:
       arrow: 0
       speed: 1
     - clip: Attack_R_02_Swing_Heavy
-      hitAt: 0.46
-      range: 1.8
-      damage: 26
-      impulse: 90
-      ranged: 0
-      area: 0
-      arrow: 0
-      speed: 1
-    - clip: Attack_R_03_Swing_Heavy
-      hitAt: 0.48
+      hitAt: 0.36
       range: 1.8
       damage: 26
       impulse: 90
@@ -592,7 +576,7 @@ MonoBehaviour:
     engageRange: 1.2
     moves:
     - clip: Attack_R_02_Swing
-      hitAt: 0.46
+      hitAt: 0.36
       range: 1.7
       damage: 20
       impulse: 70
@@ -601,7 +585,7 @@ MonoBehaviour:
       arrow: 0
       speed: 1
     - clip: Attack_R_03_Swing
-      hitAt: 0.5
+      hitAt: 0.48
       range: 1.7
       damage: 20
       impulse: 70
@@ -616,16 +600,7 @@ MonoBehaviour:
     engageRange: 1.2
     moves:
     - clip: Attack_R_02_Swing_Heavy
-      hitAt: 0.46
-      range: 1.8
-      damage: 26
-      impulse: 90
-      ranged: 0
-      area: 0
-      arrow: 0
-      speed: 1
-    - clip: Attack_R_03_Swing_Heavy
-      hitAt: 0.48
+      hitAt: 0.36
       range: 1.8
       damage: 26
       impulse: 90
@@ -641,7 +616,7 @@ MonoBehaviour:
     engageRange: 1.5
     moves:
     - clip: Attack_2H_01_Swing
-      hitAt: 0.54
+      hitAt: 0.5319149
       range: 2.1
       damage: 35
       impulse: 120
@@ -650,7 +625,7 @@ MonoBehaviour:
       arrow: 0
       speed: 1
     - clip: Attack_2H_02_Swing
-      hitAt: 0.43
+      hitAt: 0.56
       range: 2.2
       damage: 30
       impulse: 110
@@ -658,26 +633,11 @@ MonoBehaviour:
       area: 0
       arrow: 0
       speed: 1
-  - name: Two-handed, heavy
-    weapons:
-    - Battle axe (2H)
-    heavy: 1
-    engageRange: 1.5
-    moves:
-    - clip: Attack_2H_01_Swing_Heavy
-      hitAt: 0.54
+    - clip: Attack_2H_03_Swing
+      hitAt: 0.49019608
       range: 2.2
-      damage: 45
-      impulse: 150
-      ranged: 0
-      area: 0
-      arrow: 0
-      speed: 1
-    - clip: Attack_2H_02_Swing_Heavy
-      hitAt: 0.41
-      range: 2.3
-      damage: 40
-      impulse: 140
+      damage: 30
+      impulse: 110
       ranged: 0
       area: 0
       arrow: 0
@@ -689,7 +649,7 @@ MonoBehaviour:
     engageRange: 0
     moves:
     - clip: Shoot_01
-      hitAt: 0.3559322
+      hitAt: 0.41095892
       range: 16
       damage: 28
       impulse: 50
@@ -704,7 +664,7 @@ MonoBehaviour:
     engageRange: 0
     moves:
     - clip: Cast_Wand_01
-      hitAt: 0.45
+      hitAt: 0.3809524
       range: 11
       damage: 16
       impulse: 35
@@ -713,7 +673,7 @@ MonoBehaviour:
       arrow: 0
       speed: 1
     - clip: Cast_Wand_02
-      hitAt: 0.45
+      hitAt: 0.5252525
       range: 11
       damage: 16
       impulse: 35
@@ -751,7 +711,7 @@ MonoBehaviour:
     engageRange: 0.8
     moves:
     - clip: Attack_R_02_Swing
-      hitAt: 0.46
+      hitAt: 0.36
       range: 1.4
       damage: 8
       impulse: 40
@@ -760,10 +720,34 @@ MonoBehaviour:
       arrow: 0
       speed: 1
     - clip: Attack_L_02_Swing
-      hitAt: 0.46
+      hitAt: 0.36
       range: 1.4
       damage: 8
       impulse: 40
+      ranged: 0
+      area: 0
+      arrow: 0
+      speed: 1
+  - name: Two-handed, heavy
+    weapons:
+    - Battle axe (2H)
+    heavy: 1
+    engageRange: 1.5
+    moves:
+    - clip: Attack_2H_02_Swing_Heavy
+      hitAt: 0.46666667
+      range: 2.5
+      damage: 40
+      impulse: 150
+      ranged: 0
+      area: 0
+      arrow: 0
+      speed: 1
+    - clip: Attack_2H_03_Swing_Heavy
+      hitAt: 0.40983605
+      range: 2.5
+      damage: 40
+      impulse: 150
       ranged: 0
       area: 0
       arrow: 0
@@ -777,6 +761,8 @@ MonoBehaviour:
   wanderRadius: 0
   walkWithin: 0.8
   meleeRange: 1.1
+  engageSlack: 0.3
+  blockedAttackAfter: 0.4
   target: {fileID: 0}
   magicColor: {r: 0.4, g: 2.2, b: 1.1, a: 1}
 --- !u!1 &2678483816391560272 stripped

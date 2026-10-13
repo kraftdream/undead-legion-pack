@@ -41,6 +41,12 @@ EXCLUDE = [                                   # relative to the project, files o
 ]
 if EPIC:
     EXCLUDE += ["Content/_EpicTest", "Content/Characters/Mannequins"]
+# Retired authoring actions may still have older imported sequences or montages.
+with open(os.path.join(ROOT, "Animations", "clips.json"), encoding="utf-8") as _manifest:
+    EXCLUDE += [PRODUCT + path + c["name"] + suffix
+                for c in json.load(_manifest)["clips"] if c.get("disabled")
+                for path in ("/Animations/A_", "/Animations/Montages/AM_")
+                for suffix in (".uasset", ".uexp", ".ubulk")]
 CONFIG_DROP = ["DefaultEditorPerProjectUserSettings.ini", "DefaultEditor.ini"]   # the MCP auto-start; an empty file
 # a shipped asset must not import a module of a plugin the package does not enable
 DROPPED_MODULES = [b"/Script/PythonScriptPlugin", b"/Script/ModelContextProtocol", b"/Script/MCPClientToolset", b"/Script/AllToolsets",
@@ -91,7 +97,9 @@ def src_uproject():
 def write_uproject():
     d = json.load(open(os.path.join(SRC, src_uproject()), encoding="utf-8"))
     d["EngineAssociation"] = ENGINE
-    d["Description"] = "Undead Legion - Modular Skeleton Army: six skeleton classes on one shared skeleton, 48 armour modules, 12 weapons, 58 animations."
+    animation_dir = os.path.join(OUT, PRODUCT, "Animations")
+    animation_count = sum(f.startswith("A_") and f.endswith(".uasset") for f in os.listdir(animation_dir))
+    d["Description"] = "Undead Legion - Modular Skeleton Army: six skeleton classes on one shared skeleton, 48 armour modules, 12 weapons, %d animations." % animation_count
     dropped = [p["Name"] for p in d.get("Plugins", [])]
     d["Plugins"] = []
     p = os.path.join(OUT, SHIP + ".uproject")

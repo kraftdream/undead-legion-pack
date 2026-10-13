@@ -4,6 +4,116 @@ The Unreal twin of the Unity development project `skeletons/`, built entirely by
 Ported from the creatures pack's proven pipeline (`smp-10-rgp-creatures/tools/ue/README.md`: units, the stripped
 `Armature` node, Interchange pipeline assets, the MCP Blueprint DSL and its traps).
 
+## Combat animation update — 2026-10-10
+
+Latest follow-up: `Idle_Combat` now loops over 221 frames (7.333 s), with 2 cm
+asynchronous shoulder travel. `Attack_L_01_Stab` thrusts forward, and
+`Attack_2H_01_Swing` returns to `Idle_TwoHanded` over frames 70-82, ending at 82
+(2.7 s); its impact remains frame 44. All exported attack, ranged and casting
+actions, held block and `Idle_TwoHanded` now use the closer `Idle_Combat` foot
+anchors, while stepping attacks retain their authored travel. `Attack_L_02_Swing`
+strikes forward. The held arrow in `Shoot_01` is aligned with forward release
+by moving the upper body and both hands together during the draw.
+`Attack_L_03_Swing`, `Idle_Staff`, and the separately named `Shoot_02` export are
+disabled. Staff idle selections use `Idle_TwoHanded`. `Cast_Wand_01/02` recover
+and return to `Idle_Combat`, with matching entry poses and lower-body recovery
+completed before the runtime crossfade to keep feet planted. `Cast_Wand_03` is
+retained in Blender but disabled in exports, browsers and attack modules.
+Staff 01 still returns to `Idle_TwoHanded`.
+The wand returns now begin at source-action frames 31 and 33 respectively,
+with twelve-frame recoveries ending at frames 43 and 45. The Unity idle handoff
+follows the baked recovery; the projectile moments remain at 1.005 s and 0.81 s.
+The shipping `Shoot_01` now maps to Blender action `Shoot_02` via manifest
+`source_action`; the original `Shoot_01` action is retained but never selected by
+the exporters. The replacement is 74 frames / 2.433 s (70% of its previous speed),
+with BowReset/Draw/Attach/Release on frames 1/10/12/31. All three Blender export
+entry points honor the source-action mapping, and both bow runtimes use the new
+event times. Development browsers are updated; production packages are not built.
+
+2026-10-11 follow-up: `Idle_1H_Combat` is now `Idle_Combat` in Blender,
+Unity and the Epic development project. Its loop is 3.667 seconds (2x slower),
+with 15 cm less total foot separation and asynchronous 5 cm shoulder movement.
+Attack stances are unchanged pending the next stance pass. Both Swing 02 variants
+have a smaller left-arm backswing and a 5-degree rightward attack-angle adjustment;
+their timing and leg curves are unchanged. `Attack_R_03_Swing_Heavy` is retained
+in Blender but disabled in the manifest and removed from engine exports, selectors
+and attack modules. No production packages were built for this pass.
+
+`Animations/clips.json` now disables the three `Attack_L_*_Heavy` actions and both
+`Attack_2H_*_Swing_Heavy` actions. They remain in the Blender source. Direct exports,
+the UE export batch, the sequence/montage importer, and both production copy scripts
+honor `disabled`; the five stale Epic FBX exports have been removed from the export folder.
+
+The Blender source now restores the previous regular `Attack_R_03_Swing` (59 frames),
+keeps its backhand Heavy unchanged, and replaces the two regular two-handed attacks
+with `Heavy Weapon Swing (1).fbx` (reference frames 40–116, 101 output frames) and
+the mirrored `Two Hand Sword Combo.fbx` (reference frames 44–99, 74 output frames).
+Each has six entry frames from `Idle_TwoHanded` and returns to that exact guard.
+The first keeps the idle feet planted; the second retracts its right-foot step
+starting at source frame 79 / output frame 42. Preview and validation artifacts
+are in `Animations/preview/twohand_rebuild_20261011/`.
+
+The Epic development project now has the updated sequences, montages and browser
+data. Montages update in place, including their segment ends and playable lengths,
+so references survive timing changes. Retired actions are excluded from the browser
+and production filters even if their old authoring assets remain in the project.
+
+The subsequent stance pass also updates `Cast_Wand_01`, `Cast_Wand_02`, `Cast_Wand_03`,
+`Cast_Staff_01`, and `Idle_Staff` to the shared left-forward/right-back foot placement.
+Their casting gestures and durations are preserved; `Cast_Wand_03` now blends its
+last twelve recovery frames into `Idle_Staff` to avoid foot slide during Humanoid
+crossfades. These five clips and the rebuilt two-handed attacks are now imported
+in the Epic development project. The authoring
+timeline remains 30 fps; `next_at` values in the manifest refer to that timeline.
+Unity previews and verification are in `Animations/preview/cast_combat_stance_20261010/`;
+`tools/export_authored_animations.py` now exports from the main Blender source,
+using the manifest's `unity_export_fps` to preserve duration while sampling the
+Unity FBX files at 120 fps. Local preview artifacts are not required to export.
+
+## Ranged animation update — 2026-10-10
+
+`Idle_Bow` is now disabled in `Animations/clips.json`, retained only in the Blender
+source. Both export pipelines and production filters exclude it. The Unity
+controllers, bow idle selection, Unreal browser data source and showreel plan use
+`Idle_1H_Combat` instead (supersedes the initial `Idle_02` replacement). Refresh
+`demo_data` before packaging existing Unreal assets.
+
+`Shoot_01` combines `Standing Draw Arrow.fbx` and `Standing Aim Recoil.fbx`, with
+the reference's pelvis rotation, crouch and weight shift fitted to planted
+`Idle_1H_Combat` feet and matching combat-idle entry/exit poses: frames 1–63 at 30 fps
+(2.066667 seconds). The Unity and Epic FBX files are already exported; source
+authoring and checks are in `Animations/preview/ranged_adjust_20261010/`.
+Events are `BowReset` at frame 1, `BowDraw` at 10 (show arrow), `BowAttach` at 20,
+and `BowRelease` at 33 (hide held arrow, release string and fire). Unity handles
+interruption/restart through `SkeletonBowState`, which must remain with the demo
+scripts. `Shoot_02` reaches draw reference frame 18 on action frame 7, after six
+transition intervals from combat idle, then continues the draw and recoil and
+returns to combat idle. Its 52 frames last 1.7 seconds; reset/draw/attach/release
+events are at frames 1/7/9/22. Both clips are available in the browser and attack
+modules.
+
+The arrow remains 1.8 times its original total length, but this is now a
+**shaft-only mesh edit** in `Weapons/prod.blend`: the arrowhead, nock and feathers
+retain their original dimensions. Unity Grip Y remains 0.8352 m. Prefab mesh
+scale and the `unity_grips.json` `mesh_scale` entry are now **(1,1,1)**; import
+the updated `Export_UE_Epic/Weapons/SM_Arrow.fbx` and reset the existing weapon
+and projectile scales through the helpers below. Do not reapply the old 1.8 scale.
+
+The Epic development project now includes both clips/montages, the shaft-only arrow
+mesh, unit weapon/projectile scales and updated browser data. The four notify
+Blueprints call the character's bow functions: reset/hide, show, attach the string,
+then detach/hide/fire. `StopActions` and equipment changes reset the bow. Notify
+receivers check the active clip and its current montage time so an outgoing shot
+cannot show or fire an arrow during cancellation or a restart.
+
+For future rebuilds, run `ue_build.py showreel_bow bow_runtime` after character and
+weapon setup, then `build_character.py`, `build_bow_notifies.py`, and
+`ue_build.py save_all`. `epic_build_all.sh` includes these steps. The character now
+owns bow deformation and projectile release in both the browser and cinematics;
+showreel command IDs 12-14 are reserved and no longer emitted. Rebuild the director
+and regenerate the plan from fresh clip lengths before rendering an old showreel.
+Production packages remain the separate production workflow.
+
 ## Rebuild from scratch
 
     python tools/ue/export_ue.py                     # Blender -> Export_UE/ (models, 48 modules, weapons, 45 clips)
@@ -12,8 +122,9 @@ Ported from the creatures pack's proven pipeline (`smp-10-rgp-creatures/tools/ue
     python tools/ue/ue_weapons.py                    # hand-slot sockets on every body (MCP), then:
     python tools/ue/ue_py.py tools/ue/ue_build.py sockets weapon_blueprints materials
     python tools/ue/build_abp.py                     # ABP_UndeadSkeleton graphs
-    python tools/ue/ue_py.py tools/ue/ue_build.py character
+    python tools/ue/ue_py.py tools/ue/ue_build.py character showreel_bow bow_runtime
     python tools/ue/build_character.py               # BP_UndeadSkeleton graphs
+    python tools/ue/build_bow_notifies.py             # timed bow events, cancellation and restart guards
     python tools/ue/ue_py.py tools/ue/ue_build.py character_children
     python tools/ue/build_demo_ui.py trees
     python tools/ue/ue_py.py tools/ue/ue_build.py demo_vars demo_data demo_actors
@@ -46,7 +157,7 @@ is the authored clip: the Unity export evaluates identically.
 |---|---|
 | `Models/<C>/SK_<C>.fbx`, `Models/Armor/<C>/SK_<C>_<M>.fbx` | `Characters/<C>/SK_<C>`, `Characters/<C>/Armor/SK_<C>_<M>`, one `Characters/SKEL_UndeadLegion` |
 | `M_<C>_{Body,Armor}` (URP/Lit, MS map) | `Materials/M_UndeadLegion_Master` + `MI_<C>_{Body,Armor}` (armour two-sided), the same PNGs; normal green flipped |
-| `Skeleton@<Clip>.fbx` | `Animations/A_<Clip>` (root motion on the locomotion loops; twitches additive vs own frame 0; `AN_BowAttach` / `AN_BowRelease` on Shoot_01 at frames 15 / 21), `Animations/Montages/AM_<Clip>` |
+| `Skeleton@<Clip>.fbx` | `Animations/A_<Clip>` (root motion on the locomotion loops; twitches additive vs own frame 0; Shoot_01 bow notifies at frames 1 / 10 / 20 / 33 from the manifest), `Animations/Montages/AM_<Clip>` |
 | hand slots on `PF_<C>` | sockets `RightHandSlot` / `LeftHandSlot` on every body: (−x, −y, z)·100 of the Unity slot, Rz(180)·rotation |
 | `W_<Weapon>` + `Grip` | `Weapons/Blueprints/BP_Weapon_<Name>`: mesh component at `Grip⁻¹·C·S` (Unreal mesh axes → Unity mesh axes) |
 | `AC_Skeleton` (8 layers) | `Blueprints/ABP_UndeadSkeleton` (below) |
@@ -287,6 +398,35 @@ anything stripped, no redirectors; the 33 `AM_` montages are referenced by nothi
 runtime) and ship as buyer content; `BP_ArrowProjectile` was referenced only by the director and ships as a ready actor.
 The description and the manual say what the demo does NOT do: drive the bow string or fire the arrow.
 
+## The mobile check (2026-10-06, "I don't think there are parts that would make it not work on mobile platforms, right?")
+
+The Fab form's platform boxes are a promise, so the claim was measured instead of reasoned. An Android cook
+(`UnrealEditor-Cmd <prod>.uproject -run=cook -targetplatform=Android_ASTC`) is NOT possible on this machine: the target
+platform refuses to set up without the Android SDK / NDK r27c ("Invalid target platform specified (Android_ASTC).
+Available = { Windows, ... }"). What works without an SDK is Unreal's own Mobile Preview, the shipped copy launched as a game at
+the ES3.1 feature level:
+
+    UnrealEditor.exe <prod>/UndeadLegion.uproject /Game/UndeadLegion/Demo/Maps/UndeadLegion_Demo -game -featureleveles31 -faketouches -windowed -resx=1280 -resy=720 -log
+
+(`Saved/Logs/UndeadLegion.log` says `Using Forced Feature Level in Editor: ES3_1`, shader platform `PCD3D_ES3_1`; the mobile
+shaders of every material compile on the first run, ~2 min; the dev editor may stay open, a `-game` process is what the
+editor's Mobile Preview launches too; a window capture by PrintWindow with PW_RENDERFULLCONTENT works while the window is
+covered; the log file stays locked until the process is really gone - `Stop-Process -Force`, `taskkill` left it running once;
+then delete `Saved/` from the copy before the next package build, which refuses to clear a folder with an open handle).
+Measured: the whole pack renders under ES3.1 with no shader or material error - skinned bodies and armor with their normal
+and packed metallic / smoothness maps, the two-sided armor, the glowing eyes, the weapons on their sockets, the browser UI.
+Two things the check found: (1) **the Warrior's armor color texture was 1254 x 1254**, the only non-power-of-two texture
+in the pack (desktop never minds; mobile compression and mips do): the source `SkeletonWarrior/armor_color.png` resized to
+1024 (Lanczos), re-packed into Unity by `tools/pack_textures.py -- SkeletonWarrior` and reimported into the Epic project
+(`T_SkeletonWarrior_Armor_C`); every texture is a power of two now. (2) **The demo map's sky was black on mobile** with a
+development-build notice "SkyAtmosphere component needs a mesh with a material tagged as IsSky and using the SkyAtmosphere
+nodes": on desktop the SkyAtmosphere draws the sky itself, the mobile renderer only shows it through a sky dome mesh.
+`ue_demo_map.sky_dome()` (called by `stage()`, so the demo, the overview and the dev test map have it) adds what the engine's
+default template level has: `/Engine/EngineSky/SM_SkySphere` at scale 400 with `M_SimpleSkyDome` (IsSky, unlit, reads the
+atmosphere); the desktop look is unchanged. The content figures behind the claim: 16.7k - 18.9k triangles per dressed
+character in ~10 draw calls, 93 bones (each section far fewer), 8 influences, 1024 / 512 textures (~50 MB compressed), one
+Lit master material with default-mobile features, Blueprint only. Still not done: a real Android / iOS cook and a device run.
+
 ## The Epic-skeleton twin: `skeletons_ue_epic/` (2026-10-05)
 
 User: "let's start with the full transition [to the Epic skeleton], as it makes it look like the asset was actually made for
@@ -359,6 +499,13 @@ in the manual's section 12 together with Assign Skeleton and the IK Retargeter).
 `build_character.py` (its graphs read `EyesVisible` / `EyeColor`): `epic_build_all.sh` has that order. The manual
 (`make_documentation.py ue`) prints into the Epic project since 2026-10-05 (11 pages: section 12 is the mannequin-animation
 recipe); `make_production_ue.py --epic --verify` → `../undead-legion-production-ue-epic/UndeadLegion_UE58_Epic.zip`.
+**"Only thing that isn't working is shield block" (2026-10-05):** `SetHeldBlock` set `BlockTarget` to 1 but `BlockAlpha` stayed 0 —
+and so did `FingerL` / `GripL` under their targets: every float of `ABP_UndeadSkeleton` was 0 on the class, `FadeSpeed` included, so the
+event graph's `FInterpToConstant` never moved. `build_abp.py variables` only ADDS the variables through the MCP (defaults 0); the
+Mixamo project's asset had its defaults set by hand once. Now `ue_common.ABP_FLOATS` is the one list, `ue_build.py abp_defaults`
+writes it onto the class (in `epic_build_all.sh` right after `build_abp.py`); measured after it: the block raises the hand to
+124 cm and the shield fist closes. Rule: **a variable added through the MCP has default 0; anything that divides or interpolates
+by it needs its default written in-editor.**
 ⚠ The MCP-built widgets and graphs stay UNSAVED in memory: after a complete build `WBP_DemoHeader` was missing on disk (the
 package audit counted 2 widgets) while the editor showed it — `ue_build.py save_all` (`EAL.save_directory(PKG, only_if_is_dirty)`)
 ends `epic_build_all.sh` now; run it before packaging or restarting the editor. `ue_build.py showreel_bow` builds the bow's
@@ -384,8 +531,7 @@ reloads them (`demo_data() got an unexpected keyword argument` was the stale mod
 
 ## Not done yet
 
-The recurve bow's string pull and the fired arrow in the DEMO (the showreel director does both; the notifies exist on Shoot_01
-but `AN_BowAttach` / `AN_BowRelease` have no Received_Notify graph yet); the in-place locomotion blend space;
+The in-place locomotion blend space;
 the Unity "Specials return to the last idle" is implemented, the Cast_Staff_01 → Idle_Staff hand-off at frame 54 is a
-plain return; Unreal-side grounding measurement per clip; a full cook of the Fab package and an interactive open of the zip on
-a clean machine.
+plain return; Unreal-side grounding measurement per clip; a full cook of the Fab package (the production copy was opened
+and tested interactively on 2026-10-06; the ES3.1 mobile preview ran clean the same day; a mobile cook needs the Android SDK).

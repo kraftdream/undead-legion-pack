@@ -240,11 +240,15 @@ def yaw_matrix(m):
 
 
 def export_clip(clip, lift):
+    if not X.clip_enabled(clip):
+        log("skipped %s: disabled in Animations/clips.json" % clip)
+        return
     scene = bpy.context.scene
     assert abs(scene.render.fps / scene.render.fps_base - X.FPS) < 1e-6
     src, meta = X.source_rig()
-    act = bpy.data.actions.get(clip)
-    assert act is not None, "no action named %r" % clip
+    source_name = X.source_action_name(clip)
+    act = bpy.data.actions.get(source_name)
+    assert act is not None, "no source action named %r for export %r" % (source_name, clip)
     for pb in src.pose.bones:
         pb.ik_stretch = 0.0
     src.animation_data_create()

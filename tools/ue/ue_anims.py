@@ -25,7 +25,9 @@ ROOT_MOTION_ONESHOTS = {"Stagger_01", "Stagger_02"}
 
 
 def clip_names():
-    return sorted(os.path.basename(p)[len("Skeleton@"):-4] for p in glob.glob(os.path.join(EXPORT, "Animations", "Skeleton@*.fbx")))
+    man = clips_manifest()
+    return sorted(n for p in glob.glob(os.path.join(EXPORT, "Animations", "Skeleton@*.fbx"))
+                  for n in [os.path.basename(p)[len("Skeleton@"):-4]] if not man.get(n, {}).get("disabled"))
 
 
 def is_loop(name, man):
@@ -77,6 +79,8 @@ def _notify_class(name):
 def notifies():
     AL = unreal.AnimationLibrary
     for n, c in clips_manifest().items():
+        if c.get("disabled"):
+            continue
         ev = c.get("events")
         a = unreal.load_asset(ANIMS + "/A_" + n) if ev and EAL.does_asset_exist(ANIMS + "/A_" + n) else None
         if a is None:
@@ -117,8 +121,7 @@ def measure_clips(only=None):
 def montages(only=None):
     """AM_<Clip> in DefaultSlot for every one-shot (the buyer's usual route; the demo plays sequences through
     slots directly with PlaySlotAnimationAsDynamicMontage). `montages:A,B` limits it to those clips. A montage
-    that cannot be deleted (still referenced by something loaded in the editor) is kept and logged instead of
-    crashing the step (2026-10-04: create_asset returned None on the first clip and nothing was built)."""
+    is updated in place so existing references survive changed clip lengths."""
     man = clips_manifest()
     for n in clip_names():
         if only and n not in only:
@@ -128,13 +131,28 @@ def montages(only=None):
         a = unreal.load_asset(ANIMS + "/A_" + n)
         path = PKG + "/Animations/Montages/AM_" + n
         if EAL.does_asset_exist(path):
-            EAL.delete_asset(path)
-            if EAL.does_asset_exist(path):
-                log("montage AM_%s: could not be deleted (still referenced), kept" % n)
-                continue
-        f = unreal.AnimMontageFactory()
-        f.set_editor_property("target_skeleton", a.get_editor_property("skeleton"))
-        f.set_editor_property("source_animation", a)
-        m = unreal.AssetToolsHelpers.get_asset_tools().create_asset("AM_" + n, PKG + "/Animations/Montages", unreal.AnimMontage, f)
+            m = unreal.load_asset(path)
+            tracks = m.get_editor_property("slot_anim_tracks")
+            if len(tracks) != 1 or len(tracks[0].anim_track.anim_segments) != 1:
+                raise RuntimeError("Expected one generated segment in " + path)
+            segment = unreal.AnimSegment()
+            segment.set_editor_property("anim_reference", a)
+            segment.set_editor_property("anim_end_time", a.get_play_length())
+            segment.set_editor_property("cached_play_length", a.get_play_length())
+            track = unreal.AnimTrack()
+            track.set_editor_property("anim_segments", [segment])
+            slot = unreal.SlotAnimationTrack()
+            slot.set_editor_property("slot_name", tracks[0].slot_name)
+            slot.set_editor_property("anim_track", track)
+            m.set_editor_property("slot_anim_tracks", [slot])
+            m.controller.set_frame_rate(unreal.FrameRate(int(FPS), 1), False)
+            m.controller.set_number_of_frames(unreal.FrameNumber(round(a.get_play_length() * FPS)), False)
+        else:
+            f = unreal.AnimMontageFactory()
+            f.set_editor_property("target_skeleton", a.get_editor_property("skeleton"))
+            f.set_editor_property("source_animation", a)
+            m = unreal.AssetToolsHelpers.get_asset_tools().create_asset("AM_" + n, PKG + "/Animations/Montages", unreal.AnimMontage, f)
+        if m is None or abs(m.get_play_length() - a.get_play_length()) > 1e-4:
+            raise RuntimeError("Montage duration does not match sequence: " + n)
         EAL.save_loaded_asset(m, False)
         log("montage AM_%s (%.3f s)" % (n, m.get_play_length()))

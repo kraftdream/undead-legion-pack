@@ -190,7 +190,9 @@ namespace UndeadLegion.DemoEditor
                 // import flips the handedness of that axis), so it points at the bow at full draw and
                 // hangs down the leg when the hand hangs (Shoot_01/02 aim the string hand's fingers at
                 // the bow; measured: the shot line reads (-1, 0, 0) in the slot frame at full draw)
-                grip.localRotation = Quaternion.Euler(0f, 0f, -90f);
+                grip.localRotation = Quaternion.Euler(0f, 0f, 90f);
+                grip.localPosition = new Vector3(0f, 0.8352f, 0f);
+                mesh.transform.localScale = Vector3.one; // Arrow shaft extension is authored in the mesh; head and feathers keep their size.
             }
             else if (name.Contains("Shield"))
             {

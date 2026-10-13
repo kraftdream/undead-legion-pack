@@ -15,20 +15,20 @@ parallel arrays on WBP_AnimBrowser's defaults so the graphs stay simple:
   ClipGrip    the clip holds the LEFT hand on the weapon (Unity's grip_hands: the grip fist on that hand)
 """
 import unreal
+import json
 from ue_common import PKG, CHARACTERS, EAL, log
 
 L = unreal.BlueprintEditorLibrary
 UI = PKG + "/Demo/UI"
 SECTIONS = [
-    ("Idle", [("Idle_01", 0), ("Idle_02", 0), ("Idle_03", 0), ("Idle_1H_Combat", 0)]),
-    ("Weapon idles", [("Idle_TwoHanded", 0), ("Idle_Bow", 0), ("Idle_Staff", 0)]),
+    ("Idle", [("Idle_01", 0), ("Idle_02", 0), ("Idle_03", 0), ("Idle_Combat", 0)]),
+    ("Weapon idles", [("Idle_TwoHanded", 0)]),
     ("Locomotion", [(n, 0) for n in ("Walk_Fwd_01", "Walk_Back_01", "Run_Fwd_01", "Strafe_Left_01", "Strafe_Right_01",
                                      "Walk_Fwd_02", "Walk_Back_02", "Run_Fwd_02", "Strafe_Left_02", "Strafe_Right_02")]),
     ("Right arm", [(n, 4) for n in ("Attack_R_01_Stab", "Attack_R_02_Swing", "Attack_R_03_Swing",
-                                    "Attack_R_01_Stab_Heavy", "Attack_R_02_Swing_Heavy", "Attack_R_03_Swing_Heavy")]),
-    ("Left arm (block = hold)", [(n, 3) for n in ("Attack_L_01_Stab", "Attack_L_02_Swing", "Attack_L_03_Swing",
-                                                  "Attack_L_01_Stab_Heavy", "Attack_L_02_Swing_Heavy", "Attack_L_03_Swing_Heavy")] + [("Block_L_Idle", 5)]),
-    ("Two-handed", [(n, 1) for n in ("Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_01_Swing_Heavy", "Attack_2H_02_Swing_Heavy")]),
+                                    "Attack_R_01_Stab_Heavy", "Attack_R_02_Swing_Heavy")]),
+    ("Left arm (block = hold)", [(n, 3) for n in ("Attack_L_01_Stab", "Attack_L_02_Swing")] + [("Block_L_Idle", 5)]),
+    ("Two-handed", [(n, 1) for n in ("Attack_2H_01_Swing", "Attack_2H_02_Swing")]),
     ("Bow", [("Shoot_01", 2)]),
     ("Magic", [("Cast_Wand_01", 2), ("Cast_Wand_02", 2), ("Cast_Staff_01", 1)]),
     ("Specials", [("Taunt_01", 1), ("Taunt_02", 1), ("Taunt_03", 1), ("Rally", 2), ("Cutthroat", 1), ("Summon", 1), ("AOE_Cast", 1)]),
@@ -37,9 +37,10 @@ SECTIONS = [
     ("Twitch (additive, toggle)", [("Twitch_01", 6), ("Twitch_02", 6), ("Twitch_03", 6)]),
     ("Hand idle (empty hand, toggle)", [("Hand_Idle_L", 7), ("Hand_Idle_R", 7)]),
 ]
-RETURN = {"Right arm": "Idle_1H_Combat", "Left arm (block = hold)": "Idle_1H_Combat", "Two-handed": "Idle_TwoHanded",
-          "Bow": "Idle_Bow", "Magic": "Idle_Staff"}                 # Unity: each section's idlePreference
-GRIP_L = {"Idle_TwoHanded", "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_01_Swing_Heavy", "Attack_2H_02_Swing_Heavy", "Cast_Staff_01"}   # manifest grip_hands "L"
+RETURN = {"Right arm": "Idle_Combat", "Left arm (block = hold)": "Idle_Combat", "Two-handed": "Idle_TwoHanded",
+          "Bow": "Idle_Combat", "Magic": "Idle_TwoHanded"}                 # Unity: each section's idlePreference
+CLIP_RETURN = {"Cast_Wand_01": "Idle_Combat", "Cast_Wand_02": "Idle_Combat"}
+GRIP_L = {"Idle_TwoHanded", "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Cast_Staff_01"}   # manifest grip_hands "L"
 
 
 def _t(kind, cls=None):
@@ -115,7 +116,8 @@ def demo_data(widget=None, sections=None, paths=None, returns=None, loco=None):
             names.append(n); clips.append(a); modes.append(mode); secs.append(si)
             loco.append(sec in loco_secs); grip.append(n in GRIP_L)
             if mode in (1, 2, 3, 4):
-                args.append(order.index(returns[sec]) if sec in returns else -1)
+                return_idle = CLIP_RETURN.get(n, returns.get(sec))
+                args.append(order.index(return_idle) if return_idle in order else -1)
             elif mode == 6:
                 args.append(int(n[-2:]))
             elif mode == 7:
@@ -261,6 +263,13 @@ def showreel_bow():
         unreal.get_default_object(L.generated_class(pbp)).set_editor_property("initial_life_span", 4.0)
         L.compile_blueprint(pbp)
         EAL.save_loaded_asset(pbp, False)
+    # Match the held arrow's longitudinal scale, including an existing projectile.
+    pbp = unreal.load_asset(path)
+    m = ue_weapons._component_object(pbp, "Mesh")
+    with open(ue_weapons.GRIPS, encoding="utf-8") as grip_file:
+        m.set_editor_property("relative_scale3d", ue_weapons.mesh_scale("Arrow", json.load(grip_file)))
+    L.compile_blueprint(pbp)
+    EAL.save_loaded_asset(pbp, False)
     # the poseable bow
     bow = unreal.load_asset(PKG + "/Weapons/Blueprints/BP_Weapon_H2Recurvebow")
     lib = unreal.SubobjectDataBlueprintFunctionLibrary

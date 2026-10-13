@@ -39,9 +39,15 @@ namespace UndeadLegion.ExtendedEditor
         public static string BuildController()
         {
             Directory.CreateDirectory(Root + "/Animations");
-            if (File.Exists(Controller)) AssetDatabase.DeleteAsset(Controller);
-            AssetDatabase.CopyAsset(BaseController, Controller);
+            // Keep the GUID so existing prefabs and scenes retain their controller reference.
+            if (File.Exists(Controller))
+            {
+                File.Copy(BaseController, Controller, true);
+                AssetDatabase.ImportAsset(Controller, ImportAssetOptions.ForceUpdate);
+            }
+            else AssetDatabase.CopyAsset(BaseController, Controller);
             var ac = AssetDatabase.LoadAssetAtPath<AnimatorController>(Controller);
+            ac.name = Path.GetFileNameWithoutExtension(Controller);
             ac.AddParameter("MoveX", AnimatorControllerParameterType.Float);
             ac.AddParameter("MoveZ", AnimatorControllerParameterType.Float);
             // measured speeds (m/s): walk forward, run, walk back, strafe
@@ -53,7 +59,7 @@ namespace UndeadLegion.ExtendedEditor
             if (upper >= 0)
             {
                 var sm = ac.layers[upper].stateMachine;
-                foreach (var idle in new[] { "Idle_1H_Combat", "Idle_TwoHanded", "Idle_Bow", "Idle_Staff" })
+                foreach (var idle in new[] { "Idle_Combat", "Idle_TwoHanded", "Idle_02" })
                 {
                     bool exists = false; foreach (var s in sm.states) if (s.state.name == idle) exists = true;
                     if (exists) continue;
@@ -86,11 +92,11 @@ namespace UndeadLegion.ExtendedEditor
             tree.useAutomaticThresholds = false;
             void Add(string clip, float x, float z) { var c = Clip(clip); if (c != null) tree.AddChild(c, new Vector2(x, z)); else Debug.LogWarning("[Extended] clip missing: " + clip); }
             Add(idle, 0f, 0f);
-            Add(walk, 0f, walkSpeed);
-            Add(run, 0f, runSpeed);
-            Add(back, 0f, -backSpeed);
-            Add(left, -strafeSpeed, 0f);
-            Add(right, strafeSpeed, 0f);
+            Add(walk, 0f, Extended.SkeletonNavController.MotionSpeed(Clip(walk), walkSpeed));
+            Add(run, 0f, Extended.SkeletonNavController.MotionSpeed(Clip(run), runSpeed));
+            Add(back, 0f, -Extended.SkeletonNavController.MotionSpeed(Clip(back), backSpeed));
+            Add(left, -Extended.SkeletonNavController.MotionSpeed(Clip(left), strafeSpeed), 0f);
+            Add(right, Extended.SkeletonNavController.MotionSpeed(Clip(right), strafeSpeed), 0f);
             st.writeDefaultValues = true;
         }
 
@@ -106,7 +112,6 @@ namespace UndeadLegion.ExtendedEditor
                 var basePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/UndeadLegion/Prefabs/Characters/PF_Skeleton" + ch + ".prefab");
                 if (basePrefab == null) { sb.AppendLine("missing base prefab " + ch); continue; }
                 string path = PrefabDir + "/PFX_Skeleton" + ch + ".prefab";
-                if (File.Exists(path)) AssetDatabase.DeleteAsset(path);
                 var go = (GameObject)PrefabUtility.InstantiatePrefab(basePrefab);
                 var an = go.GetComponent<Animator>(); if (controller != null) an.runtimeAnimatorController = controller;
                 var ragdoll = go.AddComponent<UndeadLegion.Extended.SkeletonRagdoll>(); ragdoll.Build();
@@ -120,11 +125,12 @@ namespace UndeadLegion.ExtendedEditor
                 agent.stoppingDistance = 0.1f; agent.obstacleAvoidanceType = ObstacleAvoidanceType.MedQualityObstacleAvoidance;
                 go.AddComponent<UndeadLegion.Extended.SkeletonNavController>();
                 var ai = go.AddComponent<UndeadLegion.Extended.SkeletonAI>();
+                ai.attackModules = UndeadLegion.Extended.AttackModule.Defaults();
                 ai.allowHeavy = ch != "Assassin";   // the assassin fights with regular attacks only
                 var twitch = go.GetComponent<SkeletonTwitch>(); if (twitch != null) twitch.enabled = true;
                 PrefabUtility.SaveAsPrefabAsset(go, path);
-                Object.DestroyImmediate(go);
                 sb.AppendLine(path + ": ragdoll " + ragdoll.parts.Count + " bodies, eyes " + eyes.offset.ToString("F3"));
+                Object.DestroyImmediate(go);
             }
             AssetDatabase.SaveAssets();
             return sb.ToString();
@@ -235,8 +241,18 @@ namespace UndeadLegion.ExtendedEditor
             surface.collectObjects = CollectObjects.Children; surface.useGeometry = NavMeshCollectGeometry.RenderMeshes;
             surface.buildHeightMesh = true;          // agents stand on the real ground, not on the coarse navmesh (8 cm above it)
             surface.BuildNavMesh();
-            if (File.Exists(navPath)) AssetDatabase.DeleteAsset(navPath);
-            AssetDatabase.CreateAsset(surface.navMeshData, navPath);
+            var previousNavMesh = AssetDatabase.LoadAssetAtPath<NavMeshData>(navPath);
+            if (previousNavMesh != null)
+            {
+                var rebuilt = surface.navMeshData;
+                surface.RemoveData();
+                EditorUtility.CopySerialized(rebuilt, previousNavMesh);
+                surface.navMeshData = previousNavMesh;
+                Object.DestroyImmediate(rebuilt);
+                EditorUtility.SetDirty(previousNavMesh);
+                surface.AddData();
+            }
+            else AssetDatabase.CreateAsset(surface.navMeshData, navPath);
 
             // camera with bloom (the glowing eyes and spells)
             var camGo = new GameObject("Main Camera"); camGo.tag = "MainCamera";
@@ -301,6 +317,22 @@ namespace UndeadLegion.ExtendedEditor
             var go = new GameObject(name); go.transform.rotation = Quaternion.Euler(euler);
             var l = go.AddComponent<Light>(); l.type = LightType.Directional; l.color = color; l.intensity = intensity; l.shadows = shadows;
             return l;
+        }
+
+        [MenuItem("Undead Legion/Extended/Rebuild Combat Demos")]
+        public static string RebuildCombatDemos()
+        {
+            // Resolve every default move before replacing the controller or scenes.
+            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(BaseController);
+            foreach (var module in Extended.AttackModule.Defaults())
+                foreach (var move in module.moves)
+                    if (Clip(move.clip) == null || controller == null || FindState(controller.layers[0].stateMachine, move.clip) == null)
+                        throw new System.InvalidOperationException("Missing exported combat animation: " + move.clip);
+            var r1 = BuildController();
+            var r2 = BuildPrefabs();
+            var r3 = BuildScene();
+            var r4 = BuildPlayerScene();
+            return r1 + "\n" + r2 + r3 + "\n" + r4;
         }
 
         [MenuItem("Undead Legion/Extended/Build All (1-5)")]

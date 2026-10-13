@@ -32,6 +32,10 @@ UNITY = r"C:\Program Files\Unity\Hub\Editor\6000.4.0f1\Editor\Unity.exe"
 
 EXCLUDE = ["Assets/UndeadLegion/Demo/Editor", "Assets/UndeadLegion/Demo/Editor.meta",
            "Assets/UndeadLegion/Demo/Scripts/ShowreelRecorder.cs", "Assets/UndeadLegion/Demo/Scripts/ShowreelRecorder.cs.meta"]
+# Also exclude stale exports if a retired authoring action was exported earlier.
+with open(os.path.join(ROOT, "Animations", "clips.json"), encoding="utf-8") as _manifest:
+    EXCLUDE += ["Assets/UndeadLegion/Animations/Skeleton@" + c["name"] + suffix
+                for c in json.load(_manifest)["clips"] if c.get("disabled") for suffix in (".fbx", ".fbx.meta")]
 COPY = ["Assets/UndeadLegion", "Assets/UndeadLegion.meta", "Assets/Settings", "Assets/Settings.meta",
         "Assets/InputSystem_Actions.inputactions", "Assets/InputSystem_Actions.inputactions.meta", "ProjectSettings",
         "Packages/com.unity.asset-store-tools"]
@@ -230,12 +234,12 @@ def main():
                 k = scrub_fbx(os.path.join(dp, f)); nf += 1; nfix += k
     gi = os.path.join(dest, ".gitignore")
     if not os.path.exists(gi):
-        open(gi, "w").write("/Library/\n/Temp/\n/Obj/\n/Logs/\n/UserSettings/\n/Build/\n/Builds/\n*.csproj\n*.sln\n.vs/\n.idea/\n")
+        open(gi, "w").write("/Library/\n/Temp/\n/Obj/\n/Logs/\n/UserSettings/\n/Build/\n/Builds/\n*.csproj\n*.sln\n.vs/\n.vscode/\n.idea/\n")
     print("production project (%s): %s\n  %d scripts cleaned, %d FBX scanned, %d embedded source paths blanked" % (a.edition, dest, nscripts, nf, nfix), flush=True)
     # the leftover scan: every text file in the copy
     left = []
     for dp, dn, fn in os.walk(dest):
-        if any(x in dp for x in (os.sep + "Library", os.sep + "Temp", os.sep + "Logs", "asset-store-tools")): continue
+        if any(x in dp for x in (os.sep + "Library", os.sep + "Temp", os.sep + "Logs", os.sep + ".vscode", "asset-store-tools")): continue   # .vscode: written by Unity's VS Code package on the verify open, not shipped
         for f in fn:
             p = os.path.join(dp, f)
             if f.lower().endswith((".cs", ".meta", ".unity", ".prefab", ".asset", ".controller", ".mask", ".mat", ".json", ".txt", ".inputactions")):

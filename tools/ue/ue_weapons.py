@@ -93,6 +93,11 @@ def grip_transform(name, grips):
     return unreal.Vector(*t), _rot(_matquat(R))
 
 
+def mesh_scale(name, grips):
+    x, y, z = grips["grips"][name].get("mesh_scale", [1, 1, 1])
+    return unreal.Vector(x, z, y)  # Unity mesh Y -> Unreal mesh Z.
+
+
 def sockets_create():
     """System-Python half: the MCP SkeletalMeshTools.add_socket creates the socket objects (their names are
     read-only to Python). Mesh sockets, on every body (Unity keeps the slots per prefab too, copied from one)."""
@@ -174,6 +179,7 @@ def weapon_blueprints(update=None):
                 loc, rot = grip_transform(w, grips)
                 comp.set_editor_property("relative_location", loc)
                 comp.set_editor_property("relative_rotation", rot)
+                comp.set_editor_property("relative_scale3d", mesh_scale(w, grips))
                 unreal.BlueprintEditorLibrary.compile_blueprint(bp)
                 EAL.save_loaded_asset(bp, False)
                 log("BP_Weapon_%-15s grip updated: (%.2f, %.2f, %.2f) %s" % (w, loc.x, loc.y, loc.z, rot))
@@ -194,6 +200,7 @@ def weapon_blueprints(update=None):
             comp.set_editor_property("static_mesh", unreal.load_asset(PKG + "/Weapons/SM_" + w))
         comp.set_editor_property("relative_location", loc)
         comp.set_editor_property("relative_rotation", rot)
+        comp.set_editor_property("relative_scale3d", mesh_scale(w, grips))
         comp.set_collision_profile_name("NoCollision")
         comp.set_editor_property("cast_shadow", True)
         unreal.BlueprintEditorLibrary.compile_blueprint(bp)

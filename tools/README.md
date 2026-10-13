@@ -5,6 +5,20 @@ All Blender scripts run with Blender 5.2 in background mode and never open a UI:
     B="C:/Program Files/Blender Foundation/Blender 5.2/blender.exe"
     "$B" -b <file.blend> -P tools/<script>.py [-- args]
 
+The approved combat/casting/ranged clips with `unity_export_fps` in
+`Animations/clips.json` can be re-exported from the main source with:
+
+    "$B" -b -P tools/export_authored_animations.py -- --clip Shoot_01,Shoot_02
+
+This replaces the temporary `Animations/preview/*/export.py` helpers. It reads
+`Animations/skeleton_anim.blend` and the manifest's lift and sampling rate, opens
+a fresh scene for each clip, and never saves the source. Sampling at 120 fps
+(480 for `Attack_2H_02_Swing`) preserves the approved playback duration and contacts;
+the Blender authoring timeline remains 30 fps. `--out DIR` permits an isolated
+export. Disabled actions are rejected. Other clips keep their existing pipeline.
+Unreal exports still use `export_epic.py`. Local preview videos and verification
+reports are optional review artifacts, not export dependencies.
+
 | Script | Input | What it does | Saves? |
 |---|---|---|---|
 | `rig_lib_build.py` | a character file | One-off: extracted the Rigify rig into `Rig/skeleton_rig.blend`, reset `bbone_segments` to 1 | writes `Rig/skeleton_rig.blend` |
@@ -82,7 +96,9 @@ Clip loop:
     python tools/kimodo_batch.py            # generate every missing GLB on the laptop (detach it: an hour+); manifest no_profile = plain human prompt (no undead body profile)
     python tools/anim_batch.py --wait       # retarget -> preview -> export -> Unity verify, as GLBs arrive
     python tools/anim_batch.py Walk_Fwd_01 --force   # rebuild one after editing its entry or the retarget
-    # manifest `disabled true` = the batch skips the entry (delete its FBX by hand); `hand_edited true` = never regenerated, --export-only exports the anim file's clip
+    # manifest `disabled true` = excluded by the batch, direct Unity/Epic exporters, UE importer and production copy scripts.
+    # Retiring an existing clip also requires removing its Unity asset/controller states and updating engine demo data.
+    # `hand_edited true` = never regenerated; --export-only exports the anim file's clip.
 
 Both log to `Animations/*.log`; `Animations/build_state.json` remembers what was built
 from which GLB and which manifest entry. Previews land in `Animations/preview/` (look at them).
@@ -168,3 +184,13 @@ prefab's `Grip` (`Prefabs/Weapons/W_*.prefab`).
   before appending or the library copy lands as `RIG-Meta-Rig.001`.
 - `is` on `bpy` RNA wrappers is never a valid identity test; use `==`.
 - `bake_space_transform=True` is what puts skinned mesh nodes at identity in Unity.
+- Unity Humanoid can import equivalent forearm poses on different full-turn branches.
+  `Attack_2H_01_Swing` imported its endpoint twist as -3.00163 muscle units while
+  `Idle_TwoHanded` used +0.99837: identical poses, but a 360-degree spin during each
+  crossfade. `Animations/Editor/TwoHandedSwingImport.cs` in the Unity asset folder
+  shifts that attack's entire right-forearm curve by four units on import (default
+  +/-90-degree limits, pack avatars use lower-arm twist 1). Keep this importer with
+  the animation assets, including production copies. The Blender action, FBX poses,
+  and 72-frame duration are unchanged. Verified 2026-10-10 across all six characters,
+  both controllers, 0.1/0.2/0.3-second blends and a repeated FBX reimport; preview and
+  measurements are in `Animations/preview/twohand_wrist_fix_20261010/`.

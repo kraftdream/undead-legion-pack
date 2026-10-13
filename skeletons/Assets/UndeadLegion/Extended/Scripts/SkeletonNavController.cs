@@ -33,9 +33,10 @@ namespace UndeadLegion.Extended
         /// <summary>In manual mode: the wanted velocity in the CHARACTER's frame (x right, z forward), m/s.</summary>
         public Vector3 ManualVelocity { get; set; }
 
-        // measured on the shipped clips (Unity, Humanoid, root motion): walk / run / back / strafe, m/s
+        // Fallbacks only; current exported root-motion speeds drive navigation and the blend trees.
         static readonly float[] HeavySpeeds = { 0.52f, 1.14f, 0.34f, 0.20f };
         static readonly float[] UprightSpeeds = { 1.28f, 1.87f, 0.77f, 0.64f };
+        readonly float[][] _clipSpeeds = { new float[4], new float[4] };
 
         static readonly int MoveX = Animator.StringToHash("MoveX");
         static readonly int MoveZ = Animator.StringToHash("MoveZ");
@@ -70,15 +71,43 @@ namespace UndeadLegion.Extended
                 _animator.applyRootMotion = false;
                 _upperLayer = _animator.GetLayerIndex("UpperBody");
             }
+            CacheMotionSpeeds();
         }
 
         void Start() { ApplyGait(); PlayIdle(true); }
 
-        public float WalkSpeed { get { return (gait == Gait.Heavy ? HeavySpeeds : UprightSpeeds)[0]; } }
-        public float RunSpeed { get { return (gait == Gait.Heavy ? HeavySpeeds : UprightSpeeds)[1]; } }
-        public float BackSpeed { get { return (gait == Gait.Heavy ? HeavySpeeds : UprightSpeeds)[2]; } }
-        public float StrafeSpeed { get { return (gait == Gait.Heavy ? HeavySpeeds : UprightSpeeds)[3]; } }
+        public float WalkSpeed { get { return _clipSpeeds[(int)gait][0]; } }
+        public float RunSpeed { get { return _clipSpeeds[(int)gait][1]; } }
+        public float BackSpeed { get { return _clipSpeeds[(int)gait][2]; } }
+        public float StrafeSpeed { get { return _clipSpeeds[(int)gait][3]; } }
         string LocomotionState { get { return gait == Gait.Heavy ? "Locomotion_Heavy" : "Locomotion_Upright"; } }
+
+        /// <summary>The current clip's horizontal root-motion speed, shared with the controller builder.</summary>
+        public static float MotionSpeed(AnimationClip clip, float fallback)
+        {
+            if (clip == null) return fallback;
+            var speed = new Vector2(clip.averageSpeed.x, clip.averageSpeed.z).magnitude;
+            return speed > 0.01f ? speed : fallback;
+        }
+
+        void CacheMotionSpeeds()
+        {
+            var clips = _animator != null && _animator.runtimeAnimatorController != null
+                ? _animator.runtimeAnimatorController.animationClips : new AnimationClip[0];
+            for (int g = 0; g < 2; g++)
+            {
+                string suffix = g == 0 ? "_01" : "_02";
+                var fallback = g == 0 ? HeavySpeeds : UprightSpeeds;
+                var names = new[] { "Walk_Fwd", "Run_Fwd", "Walk_Back", "Strafe_Left" };
+                for (int i = 0; i < names.Length; i++)
+                {
+                    string name = names[i] + suffix;
+                    _clipSpeeds[g][i] = MotionSpeed(System.Array.Find(clips, c => c != null && c.name == name), fallback[i]);
+                }
+                var right = System.Array.Find(clips, c => c != null && c.name == "Strafe_Right" + suffix);
+                _clipSpeeds[g][3] = (_clipSpeeds[g][3] + MotionSpeed(right, fallback[3])) * 0.5f;
+            }
+        }
 
         public void ApplyGait() { if (_agent != null) _agent.speed = run ? RunSpeed : WalkSpeed; }
 
@@ -103,9 +132,9 @@ namespace UndeadLegion.Extended
             if (!string.IsNullOrEmpty(idleState)) return idleState;
             string lo = _weapon != null && _weapon.Current >= 0 ? _weapon.NameAt(_weapon.Current) : "";
             if (lo.Contains("(2H)")) return "Idle_TwoHanded";
-            if (lo.Contains("bow")) return "Idle_Bow";
-            if (lo == "Staff") return "Idle_Staff";
-            if (lo.Length > 0) return "Idle_1H_Combat";
+            if (lo.Contains("bow")) return "Idle_Combat";
+            if (lo == "Staff") return "Idle_TwoHanded";
+            if (lo.Length > 0) return "Idle_Combat";
             return "Idle_01";
         }
 
@@ -130,8 +159,8 @@ namespace UndeadLegion.Extended
             if (_animator == null) return 0f;
             Stop();
             float len = ClipLength(state);
-            // Attack_* states also play at the controller's AttackSpeed (the weapon's pace, set by SkeletonWeapon)
-            if (state.StartsWith("Attack_") && _weapon != null) len /= Mathf.Max(0.01f, _weapon.AttackSpeed);
+            // Match the controller's weapon pace so busy time and projectile timing follow the visible action.
+            if (Demo.SkeletonWeapon.UsesAttackSpeed(state) && _weapon != null) len /= Mathf.Max(0.01f, _weapon.AttackSpeed);
             _animator.speed = speed;
             _animator.CrossFadeInFixedTime(state, 0.12f, 0); _basePlaying = state;
             if (_upperLayer >= 0 && _upperPlaying != "Empty") { _animator.CrossFadeInFixedTime("Empty", 0.12f, _upperLayer); _upperPlaying = "Empty"; }

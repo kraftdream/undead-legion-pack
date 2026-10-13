@@ -20,6 +20,14 @@ EPIC_FINGERS = {"Left": ["index_metacarpal_l", "middle_metacarpal_l", "ring_meta
                 "Right": ["index_metacarpal_r", "middle_metacarpal_r", "ring_metacarpal_r", "pinky_metacarpal_r", "thumb_01_r"]}
 
 
+# ABP_UndeadSkeleton's float variables and their class defaults (build_abp.py adds the variables through the MCP, ue_build.py
+# `abp_defaults` writes the defaults onto the class: the MCP add leaves every float at 0, and FadeSpeed 0 froze the held block, the
+# finger idles and the grip fists in the Epic project, 2026-10-05; the Mixamo project's asset had them set by hand once)
+ABP_FLOATS = {"BlockAlpha": 0.0, "BlockTarget": 0.0, "Twitch1": 1.0, "Twitch2": 1.0, "Twitch3": 1.0,
+              "FingerL": 1.0, "FingerR": 1.0, "FingerTargetL": 1.0, "FingerTargetR": 1.0,
+              "GripL": 0.0, "GripR": 0.0, "GripTargetL": 0.0, "GripTargetR": 0.0, "FadeSpeed": 6.6667}
+
+
 def bn(name):
     """A bone's name in the open project's skeleton."""
     return EPIC_NAMES.get(name, name) if EPIC else name
