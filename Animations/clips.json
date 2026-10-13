@@ -612,8 +612,8 @@
    "hand_edited": true,
    "lift": 0.0036,
    "grip_hands": "L",
-   "_note": "2026-10-10: Retired from Unity and Unreal production at user request. Preserve the action in skeleton_anim.blend for authoring only.",
-   "disabled": true
+   "_note": "2026-10-13: Restored the retired Attack_2H_01_Swing_Heavy under current numbering. The corresponding current Attack_2H_02_Swing supplies the same historical swing with corrected support-hand grip and return. Upper-body world rotations and forward strike direction preserved. Lower-body step adapted from Attack_R_02_Swing_Heavy: left reposition, right forward step, then reset; lateral/forward displacement scaled 0.65/0.8. Exact current Idle_TwoHanded endpoints. 61 integer authoring frames at 30 fps; Unity sampling 120 fps. Hand-edited; export with tools/export_authored_animations.py. No Unreal editor/export run in this pass.",
+   "unity_export_fps": 120
   },
   {
    "name": "Attack_2H_03_Swing",
@@ -624,6 +624,16 @@
    "grip_hands": "L",
    "unity_export_fps": 120,
    "_note": "2026-10-12: Restored Attack_2H_02_Swing from 27afbd8 (same Blender blob as Oct 5 showreel commit c4267ae), matching showreel_weapons.mp4 at 6-11 seconds. Historical swing motion/timing retained; feet planted at current narrowed Idle_TwoHanded stance. Entry blends frames 1-9; return 40-52 to exact Idle_TwoHanded. 52 integer frames at 30 fps. Hand-edited source; use export_authored_animations.py. Existing Attack_2H_01_Swing unchanged. 2026-10-12 follow-up: Corrected the left-arm recovery initialization to remove subframe elbow overshoot exposed by Unity sampling. Only left upper-arm, forearm and wrist return rotation curves changed; attack, timing, stance and right arm preserved. Validated in Unity at subframe intervals and re-exported at 120 fps."
+  },
+  {
+   "name": "Attack_2H_03_Swing_Heavy",
+   "layer": "full",
+   "mode": "action",
+   "hand_edited": true,
+   "lift": 0.0036,
+   "grip_hands": "L",
+   "unity_export_fps": 120,
+   "_note": "2026-10-13: Restored the retired Attack_2H_02_Swing_Heavy under current numbering. Uses the corrected Attack_2H_03_Swing upper-body motion, support-hand grip and return. Revised footwork: left foot steps 39.6 cm laterally during frames 8-23, holds through 43, and returns during 43-59; right foot stays planted. Left foot turns outward 8 degrees during the step. Pelvis follows the lateral swing, reaching approximately 18.4 cm leftward, then recenters. All upper-body rotation curves, attack direction and 62-frame timing preserved from the restored version; exact Idle_TwoHanded endpoints. Unity 120 fps, all six avatars verified; support/contact drift below 0.4 mm. Attack_2H_02_Swing_Heavy unchanged. Export via export_authored_animations.py. No Unreal export."
   },
   {
    "name": "Shoot_01",

@@ -1229,6 +1229,30 @@ MonoBehaviour:
       area: 0
       arrow: 0
       speed: 1
+  - name: Two-handed, heavy
+    weapons:
+    - Battle axe (2H)
+    heavy: 1
+    engageRange: 1.5
+    moves:
+    - clip: Attack_2H_02_Swing_Heavy
+      hitAt: 0.46666667
+      range: 2.5
+      damage: 40
+      impulse: 150
+      ranged: 0
+      area: 0
+      arrow: 0
+      speed: 1
+    - clip: Attack_2H_03_Swing_Heavy
+      hitAt: 0.40983605
+      range: 2.5
+      damage: 40
+      impulse: 150
+      ranged: 0
+      area: 0
+      arrow: 0
+      speed: 1
   allowHeavy: 1
   allowArea: 1
   sightRange: 18

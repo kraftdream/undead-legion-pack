@@ -330,7 +330,7 @@ namespace UndeadLegion.Demo
             new ClipSection { title = "Left arm (block = hold)", idlePreference = new[] { "Idle_Combat", "Idle_01" },
                 members = new[] { "Attack_L_01_Stab", "Attack_L_02_Swing", "Block_L_Idle" } },
             new ClipSection { title = "Two-handed", idlePreference = new[] { "Idle_TwoHanded", "Idle_01" },
-                members = new[] { "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_03_Swing" } },
+                members = new[] { "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_03_Swing", "Attack_2H_02_Swing_Heavy", "Attack_2H_03_Swing_Heavy" } },
             new ClipSection { title = "Bow", idlePreference = new[] { "Idle_Combat", "Idle_01" },
                 members = new[] { "Shoot_01" } },
             new ClipSection { title = "Magic", idlePreference = new[] { "Idle_TwoHanded", "Idle_01" },
