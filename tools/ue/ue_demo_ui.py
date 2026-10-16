@@ -53,6 +53,8 @@ def _t(kind, cls=None):
 
 
 def _add(bp, spec):
+    if not hasattr(L, "add_member_variable"):     # UE 5.4: the variables are pasted (tools/ue/ue54_compile.py + ue54_paste.py)
+        return
     have = set(str(n) for n in L.list_member_variable_names(bp))
     for name, kind, cls, array, editable in spec:
         if name in have:

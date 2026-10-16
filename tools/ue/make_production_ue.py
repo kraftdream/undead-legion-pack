@@ -24,13 +24,17 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 # --epic: the Epic-skeleton twin (skeletons_ue_epic, 2026-10-05) -> ../undead-legion-production-ue-epic/UndeadLegion_UE58_Epic.zip;
 # the template mannequin content it carries for testing (Content/Characters/Mannequins) and the test imports never ship
 EPIC = "--epic" in sys.argv
-SRC = os.path.join(ROOT, "skeletons_ue_epic" if EPIC else "skeletons_ue")
-OUT_ROOT = os.path.join(os.path.dirname(ROOT), "undead-legion-production-ue-epic" if EPIC else "undead-legion-production-ue")
+# --ue54: the UE 5.4 twin of the Epic project (skeletons_ue54, 2026-10-16: the same content rebuilt in 5.4, its graphs pasted from
+# tools/ue/ue54_compile.py) -> ../undead-legion-production-ue54/UndeadLegion_UE54.zip; a 5.4 package also opens in 5.5 - 5.8
+UE54 = "--ue54" in sys.argv
+SRC = os.path.join(ROOT, "skeletons_ue54" if UE54 else "skeletons_ue_epic" if EPIC else "skeletons_ue")
+OUT_ROOT = os.path.join(os.path.dirname(ROOT), "undead-legion-production-ue54" if UE54 else
+                        "undead-legion-production-ue-epic" if EPIC else "undead-legion-production-ue")
 SHIP = "UndeadLegion"
 OUT = os.path.join(OUT_ROOT, SHIP)
-ZIP = os.path.join(OUT_ROOT, SHIP + ("_UE58_Epic.zip" if EPIC else "_UE58.zip"))
-ENGINE = "5.8"
-UE_CMD = r"C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe"
+ZIP = os.path.join(OUT_ROOT, SHIP + ("_UE54.zip" if UE54 else "_UE58_Epic.zip" if EPIC else "_UE58.zip"))
+ENGINE = "5.4" if UE54 else "5.8"
+UE_CMD = r"C:\Program Files\Epic Games\UE_%s\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" % ENGINE
 
 PRODUCT = "Content/UndeadLegion"
 EXCLUDE = [                                   # relative to the project, files or directories
@@ -121,6 +125,8 @@ def fix_config():
     p = os.path.join(cfg, "DefaultEngine.ini")
     s = open(p, encoding="utf-8").read()
     s = re.sub(r"\[/Script/PythonScriptPlugin\.PythonScriptPluginSettings\]\s*\n(?:[^\[\n][^\n]*\n|\n)*", "", s)
+    # the 5.4 build's import switch (the FBX importer for the meshes and clips); a buyer's project keeps the engine default
+    s = re.sub(r"\[ConsoleVariables\]\s*\nInterchange\.FeatureFlags\.Import\.FBX=True\s*\n?", "", s)
     s = s.replace("/Script/" + os.path.splitext(src_uproject())[0], "/Script/" + SHIP)
     s = re.sub(r"\n{3,}", "\n\n", s).lstrip("\n")
     open(p, "w", encoding="utf-8", newline="\n").write(s)
@@ -248,6 +254,7 @@ def main():
     ap.add_argument("--verify", action="store_true", help="run CompileAllBlueprints on the copy with UnrealEditor-Cmd 5.8")
     ap.add_argument("--no-zip", action="store_true")
     ap.add_argument("--epic", action="store_true", help="package skeletons_ue_epic (the Epic-skeleton project)")
+    ap.add_argument("--ue54", action="store_true", help="package skeletons_ue54 (the UE 5.4 twin, verified with UnrealEditor-Cmd 5.4)")
     a = ap.parse_args()
     shutil.rmtree(OUT, ignore_errors=True)
     if os.path.exists(OUT):

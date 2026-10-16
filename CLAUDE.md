@@ -113,6 +113,13 @@ it was but everything generated from it is gone (its `Export_UE/` — the weapon
 printed manual, its production copy); `skeletons_ue_epic` is tracked, and it carries a dev-only test map
 `/Game/Dev/Maps/UE_AnimTest` (the browser with seven UE5-mannequin sections, `tools/ue/ue_uetest.py`, README "The UE-animation
 test map"; the mannequin content comes from `tools/ue/epic_mannequin_content.py`, never shipped).
+**The UE 5.4 twin `skeletons_ue54/` (2026-10-16, "also make production for 5.4, while manually controlling this PC").** This machine
+has UE 5.4 only. The Epic project rebuilt in 5.4: assets by the usual editor-Python steps (meshes and clips through the LEGACY FBX
+importer: 5.4's Interchange keeps `Armature` as a root bone), and every Blueprint graph, variable, socket and widget tree PASTED by
+driving the desktop, from paste text compiled out of the 5.8 build's own DSL (`tools/ue/ue54_compile.py`). Verified in Play in the
+editor (the browser, characters, armour, swings, the bow shot with string and arrow, the additive hits, the held block);
+`python tools/ue/make_production_ue.py --ue54 --verify` → `../undead-legion-production-ue54/UndeadLegion_UE54.zip`. Everything, with
+the traps, is in `tools/ue/README.md` "The UE 5.4 twin".
 
 ### Known gaps
 

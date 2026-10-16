@@ -18,7 +18,7 @@ Grip) to re-tune; the builder creates missing ones and never overwrites an exist
 import json, math, os, sys
 try:
     import unreal
-    from ue_common import PKG, REPO, SKEL, WEAPONS, RIGGED_WEAPONS, CHARACTERS, EAL, log, EPIC, bn
+    from ue_common import PKG, REPO, SKEL, WEAPONS, RIGGED_WEAPONS, CHARACTERS, EAL, log, EPIC, bn, set_socket
 except ImportError:          # system Python (sockets_create only)
     PKG, CHARACTERS = "/Game/UndeadLegion", ["SkeletonKnight", "SkeletonArcher", "SkeletonAssassin", "SkeletonMage", "SkeletonNecromancer", "SkeletonWarrior"]
     REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -134,7 +134,7 @@ def sockets(force=None):
             if cur.length() > 1e-4 and not force:
                 log("%s %s kept (tuned)" % (c, SOCKET[side]))
                 continue
-            sk.set_socket_local_transform(unreal.Transform(loc, rot, unreal.Vector(1, 1, 1)))
+            set_socket(sk, loc, rot)
             log("%s %s on %s at (%.2f, %.2f, %.2f) cm, rot %s" % (c, SOCKET[side], BONE[side], loc.x, loc.y, loc.z, rot))
         EAL.save_loaded_asset(mesh, False)
 

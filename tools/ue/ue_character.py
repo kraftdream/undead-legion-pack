@@ -40,6 +40,8 @@ DISPLAY = {c: c.replace("Skeleton", "Skeleton ") for c in CHARACTERS}
 
 
 def _vars(bp):
+    if not hasattr(L, "add_member_variable"):     # UE 5.4: the variables are pasted (tools/ue/ue54_compile.py + ue54_paste.py)
+        return
     have = set(str(n) for n in L.list_member_variable_names(bp))
     arr = L.get_array_type
     spec = [

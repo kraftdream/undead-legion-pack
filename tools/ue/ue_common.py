@@ -8,7 +8,10 @@ except ImportError:          # system Python (the MCP-driven builders) only need
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # the Epic-skeleton project (skeletons_ue_epic, 2026-10-05) is the one that is built; its exports live in Export_UE_Epic/
 # (the Mixamo project skeletons_ue is kept as it is, its Export_UE/ folder was cleared on 2026-10-05)
-EPIC = (unreal.Paths.project_dir().replace("\\", "/").rstrip("/").endswith("skeletons_ue_epic") if unreal
+_PROJ = unreal.Paths.project_dir().replace("\\", "/").rstrip("/") if unreal else ""
+# skeletons_ue54 (2026-10-16) is the UE 5.4 twin of the Epic project: the same skeleton and exports, built without the MCP
+UE54 = _PROJ.endswith("skeletons_ue54") or os.environ.get("UL_UE54") == "1"
+EPIC = ((_PROJ.endswith("skeletons_ue_epic") or UE54) if unreal
         else (os.environ.get("UL_EPIC") == "1" or "--epic" in sys.argv))      # system Python: UL_EPIC=1 or --epic
 EXPORT = os.path.join(REPO, "Export_UE_Epic" if EPIC else "Export_UE")
 WEAPONS_EXPORT = os.path.join(REPO, "Export_UE_Epic", "Weapons")
@@ -42,6 +45,16 @@ EAL = unreal.EditorAssetLibrary if unreal else None
 DEFAULT_PIPELINE = "/Interchange/Pipelines/DefaultAssetsPipeline"
 
 
+def set_socket(sk, loc, rot):
+    """A socket's local transform (5.8: set_socket_local_transform; 5.4 has no such function, the properties are editable)."""
+    if hasattr(sk, "set_socket_local_transform"):
+        sk.set_socket_local_transform(unreal.Transform(loc, rot, unreal.Vector(1, 1, 1)))
+    else:
+        sk.set_editor_property("relative_location", loc)
+        sk.set_editor_property("relative_rotation", rot)
+        sk.set_editor_property("relative_scale", unreal.Vector(1, 1, 1))
+
+
 def log(*a):
     print("[ue_build]", *a)
 
@@ -54,7 +67,10 @@ def clips_manifest():
 
 def pipeline(name, skeleton=None, meshes=True, anims=False, physics=False, statics=False):
     """A pipeline ASSET (Interchange's override_pipelines takes asset paths): the engine default duplicated
-    and configured. Rewritten on every call so a change here reaches the asset."""
+    and configured. Rewritten on every call so a change here reaches the asset.
+    UE 5.4: skeletal meshes and clips go through the legacy importer (legacy_import), so this returns its settings instead."""
+    if UE54 and not statics and name != "IP_Weapon_Rigged":
+        return {"skeleton": skeleton, "anims": anims and not meshes, "physics": physics}
     path = PKG + "/Pipelines/" + name
     if not EAL.does_asset_exist(path):
         EAL.duplicate_asset(DEFAULT_PIPELINE, path)
@@ -74,7 +90,7 @@ def pipeline(name, skeleton=None, meshes=True, anims=False, physics=False, stati
     mp.set_editor_property("create_physics_asset", physics)
     mp.set_editor_property("import_morph_targets", False)
     if statics:
-        mp.set_editor_property("collision", False)
+        mp.set_editor_property("import_collision" if UE54 else "collision", False)   # 5.4: bImportCollision
     ap = p.animation_pipeline
     ap.set_editor_property("import_animations", anims)
     ap.set_editor_property("import_bone_tracks", anims)
@@ -85,7 +101,52 @@ def pipeline(name, skeleton=None, meshes=True, anims=False, physics=False, stati
     return unreal.SoftObjectPath(path + "." + name)
 
 
+def legacy_import(fbx, dest, name, skeleton=None, anims=False, physics=False):
+    """UE 5.4: the legacy FBX importer for the character meshes and clips. 5.4's Interchange keeps Blender's `Armature`
+    node as an extra ROOT BONE (94 bones, `Armature` above `root`: root motion would come from a bone that never moves);
+    the legacy importer skips a root null named Armature (FbxMainImport.cpp, bIsBlenderArmatureBone), as 5.8's Interchange
+    does. Settings mirror pipeline(): no materials, no textures, the normals imported, tangents computed, no LODs, no morphs."""
+    ui = unreal.FbxImportUI()
+    ui.set_editor_property("import_materials", False)
+    ui.set_editor_property("import_textures", False)
+    ui.set_editor_property("import_as_skeletal", True)
+    ui.set_editor_property("mesh_type_to_import", unreal.FBXImportType.FBXIT_ANIMATION if anims else unreal.FBXImportType.FBXIT_SKELETAL_MESH)
+    ui.set_editor_property("import_mesh", not anims)
+    ui.set_editor_property("import_animations", anims)
+    ui.set_editor_property("create_physics_asset", physics)
+    ui.set_editor_property("automated_import_should_detect_type", False)
+    if skeleton is not None:
+        ui.set_editor_property("skeleton", skeleton)
+    sk = ui.skeletal_mesh_import_data
+    sk.set_editor_property("normal_import_method", unreal.FBXNormalImportMethod.FBXNIM_IMPORT_NORMALS)
+    sk.set_editor_property("import_morph_targets", False)
+    sk.set_editor_property("convert_scene", True)
+    sk.set_editor_property("force_front_x_axis", False)
+    ad = ui.anim_sequence_import_data
+    ad.set_editor_property("convert_scene", True)
+    ad.set_editor_property("force_front_x_axis", False)
+    ad.set_editor_property("animation_length", unreal.FBXAnimationLengthImportType.FBXALIT_EXPORTED_TIME)
+    ad.set_editor_property("import_bone_tracks", True)
+    ad.set_editor_property("remove_redundant_keys", False)
+    t = unreal.AssetImportTask()
+    t.set_editor_property("filename", fbx)
+    t.set_editor_property("destination_path", dest)
+    t.set_editor_property("destination_name", name)
+    t.set_editor_property("automated", True)
+    t.set_editor_property("replace_existing", True)
+    t.set_editor_property("save", False)
+    t.set_editor_property("options", ui)
+    unreal.SystemLibrary.execute_console_command(None, "Interchange.FeatureFlags.Import.FBX 0")
+    unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks([t])
+    a = unreal.load_asset(dest + "/" + name)
+    if a is None:
+        log("!! legacy import produced nothing:", fbx, list(t.get_editor_property("imported_object_paths")))
+    return a
+
+
 def interchange(fbx, dest, name, pipe):
+    if UE54 and isinstance(pipe, dict):
+        return legacy_import(fbx, dest, name, **pipe)
     mgr = unreal.InterchangeManager.get_interchange_manager_scripted()
     sd = unreal.InterchangeManager.create_source_data(fbx)
     p = unreal.ImportAssetParameters()
@@ -93,6 +154,9 @@ def interchange(fbx, dest, name, pipe):
     p.destination_name = name
     p.override_pipelines = [pipe]
     mgr.import_asset(dest, sd, p)
+    # 5.4's Interchange names an animation-only import <name>_Anim (5.8 uses the destination name as given)
+    if not EAL.does_asset_exist(dest + "/" + name) and EAL.does_asset_exist(dest + "/" + name + "_Anim"):
+        EAL.rename_asset(dest + "/" + name + "_Anim", dest + "/" + name)
     a = unreal.load_asset(dest + "/" + name)
     if a is None:
         log("!! import produced nothing:", fbx)

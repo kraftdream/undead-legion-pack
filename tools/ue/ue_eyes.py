@@ -12,7 +12,7 @@ character's right is -X (the BP yaws the mesh -90).
 """
 import os, re
 import unreal
-from ue_common import (PKG, UNITY, CHARACTERS, EAL, log, bn)
+from ue_common import (PKG, UNITY, CHARACTERS, EAL, log, bn, set_socket)
 
 MEL = unreal.MaterialEditingLibrary
 MAT = PKG + "/Materials/M_Eyes"
@@ -55,7 +55,7 @@ def sockets():
             # character frame (x right, y up, z fwd) -> mesh component space (right = -X, fwd = +Y, up = +Z), cm
             world = head.translation + unreal.Vector(-sx * ox * 100.0, oz * 100.0, oy * 100.0)
             local = head.inverse_transform_location(world)
-            sk.set_socket_local_transform(unreal.Transform(local, unreal.Rotator(), unreal.Vector(1, 1, 1)))
+            set_socket(sk, local, unreal.Rotator())
         EAL.save_loaded_asset(mesh, False)
         log("%-20s eyes at (±%.1f, fwd %.1f, up %.1f) cm from Head, size %.1f cm" % (c, ox * 100, oz * 100, oy * 100, size * 100))
 
@@ -74,9 +74,9 @@ def components():
         comp.set_collision_profile_name("NoCollision")
         comp.set_editor_property("cast_shadow", False)
     L = unreal.BlueprintEditorLibrary
-    have = set(str(v) for v in L.list_member_variable_names(bp))
-    for name, t in (("EyesVisible", L.get_basic_type_by_name("bool")),
-                    ("EyeColor", L.get_struct_type(unreal.LinearColor.static_struct()))):
+    have = set(str(v) for v in L.list_member_variable_names(bp)) if hasattr(L, "list_member_variable_names") else None
+    for name, t in ([] if have is None else (("EyesVisible", L.get_basic_type_by_name("bool")),
+                    ("EyeColor", L.get_struct_type(unreal.LinearColor.static_struct())))):
         if name not in have:
             L.add_member_variable(bp, name, t)
         L.set_blueprint_variable_category(bp, name, unreal.Text("Undead Legion"))
