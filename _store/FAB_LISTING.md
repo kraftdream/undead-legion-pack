@@ -13,8 +13,8 @@ one version").** `skeletons_ue54`, built by `python tools/make_documentation.py 
 `UndeadLegion/`; 277 files, 94 MB; the showreel, level sequences, import pipelines, plugins, dev config and the mannequin test content
 stripped; 31 Blueprints compiled headlessly on 5.4, 0 errors, 0 warnings). A 5.4 project opens in 5.5 – 5.8 too (the newer editor
 converts it on first open), so one zip covers 5.4 – 5.8. Its inventory (2026-10-19): 272 assets — 50 sequences (49 animations +
-`A_Grip`), 26 montages, 23 Blueprints, 4 notifies, 3 widgets, 2 maps, 1 Animation Blueprint, 1 skeleton, 1 physics asset,
-11 static meshes, 67 textures, 2 materials, 25 instances. The per-asset figures further down (triangles, LODs, texture sizes) were
+`A_Grip`), 26 montages, 23 Blueprints, 4 notifies, 3 widgets, 2 maps, 1 Animation Blueprint, 2 skeletons, 1 physics asset,
+55 skeletal meshes, 11 static meshes, 67 textures, 2 materials, 25 instances. The per-asset figures further down (triangles, LODs, texture sizes) were
 measured on the 5.8 Epic package on 2026-10-05; meshes and textures are the same exports in both, the clip and montage counts are not
 (the 5.8 figures were 59 / 33 before the manifest disabled `Idle_Bow`, `Idle_Staff`, `Shoot_02`, `Cast_Wand_03`, the L_03 swing and
 most heavy variants).
@@ -76,7 +76,7 @@ One version entry:
 | Triangles | 191 – 7,588 | per mesh: `SK_SkeletonMage_Greave_L` → `SK_SkeletonAssassin` body |
 | Vertices | 134 – 5,031 | the same two meshes |
 | Pack of multiple assets | Yes | |
-| Assets | 286 | 55 skeletal meshes, 11 static meshes, 2 skeletons, 1 physics asset, 67 textures, 2 materials, 25 instances, 59 sequences, 33 montages, 1 Animation Blueprint, 2 notifies, 23 Blueprints, 3 widgets, 2 maps (counted in the stripped Epic-skeleton package, 2026-10-05) |
+| Assets | 272 | 55 skeletal meshes, 11 static meshes, 2 skeletons (the characters' + the bow's), 1 physics asset, 67 textures, 2 materials, 25 instances, 50 sequences, 26 montages, 1 Animation Blueprint, 4 notifies, 23 Blueprints, 3 widgets, 2 maps (counted in the 5.4 zip, 2026-10-19) |
 | Unique meshes | 66 | 55 skeletal (6 bodies, 48 modules, 1 bow) + 11 static (weapons) |
 | Includes LODs | No | every skeletal and static mesh has 1 LOD |
 | Bounding box size | 170 | the dressed characters, cm |
@@ -108,7 +108,7 @@ One version entry:
 | Animated | Yes | |
 | Rigged animation | Yes | |
 | Rigged to | Epic skeleton | the UE5 mannequin's 89 bones (hierarchy, names, bone frames, ik bones) + jaw_01/02 + pelvis_l/r = 93, our proportions (`skeletons_ue_epic`, 2026-10-05) |
-| Animation tracks | 59 | 58 clips + the two-frame `A_Grip` finger-pose data |
+| Animation tracks | 49 | the 49 animations the description lists; the 50th sequence, `A_Grip`, is two-frame finger-pose data, not a clip (5.4 zip, 2026-10-19) |
 | Solid animation | No | |
 | Morph animation / blendshapes | No | |
 | Scale animation | No | |
