@@ -145,6 +145,9 @@ FUNCS = {
   (%(V)sSetBowShotActive false)
   (CallFunction|BowReset)
   (bind anim (Components|SkeletalMesh|GetAnimInstance :self (Variables|Character|GetMesh)))
+  ; StopSlotAnimation skips a PAUSED montage (AnimInstance.cpp: IsActive() && IsPlaying()), so a death held by
+  ; PauseActions stayed in DefaultSlot at full weight and blended with every later clip: resume it first
+  (Animation|Montage|MontageResume :self anim :Montage (%(V)sGetActionMontage))
   (Animation|Montage|StopSlotAnimation :self anim :InBlendOutTime BlendOut :SlotNodeName "DefaultSlot")
   (Animation|Montage|StopSlotAnimation :self anim :InBlendOutTime BlendOut :SlotNodeName "UpperBody")
   (Animation|Montage|StopSlotAnimation :self anim :InBlendOutTime BlendOut :SlotNodeName "LeftArm")

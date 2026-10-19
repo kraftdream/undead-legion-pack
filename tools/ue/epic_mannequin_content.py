@@ -11,8 +11,10 @@ before tools/ue/ue_uetest.py; then `ue_py.py tools/ue/epic_demo_probe.py compat`
 import os, shutil, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-SRC = r"C:\Program Files\Epic Games\UE_5.8\Templates\TemplateResources\High\Characters\Content\Mannequins"
-DST = os.path.join(ROOT, "skeletons_ue_epic", "Content", "Characters", "Mannequins")
+# --ue54: the UE 5.4 template's mannequin into skeletons_ue54 (2026-10-19, the same check on the 5.4 twin)
+UE54 = "--ue54" in sys.argv
+SRC = r"C:\Program Files\Epic Games\UE_%s\Templates\TemplateResources\High\Characters\Content\Mannequins" % ("5.4" if UE54 else "5.8")
+DST = os.path.join(ROOT, "skeletons_ue54" if UE54 else "skeletons_ue_epic", "Content", "Characters", "Mannequins")
 
 if os.path.isdir(DST):
     print("already there:", DST)

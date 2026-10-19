@@ -8,6 +8,10 @@
 2. Spawns two SkeletalMeshActors, SKM_Manny_Simple and that mesh, plays the clip on both at the same times and compares
    every shared bone's WORLD X axis (the bone direction) and the full rotation: with the mannequin's bone frames the
    world rotations must agree bone for bone whatever the proportions. Reports the worst bones per sample.
+
+`compat` (2026-10-19, the UE 5.4 twin; the manual's first route): no second import - SK_Mannequin lists SKEL_UndeadLegion as a
+COMPATIBLE skeleton and the clip plays on the shipped SK_SkeletonKnight itself. Each sample also reports how far the mannequin's
+pose moved from the first sample, so an unevaluated (rest-pose) comparison cannot pass as a match.
 """
 import math, os, sys
 import unreal
@@ -31,6 +35,17 @@ def ensure_mesh():
     return m
 
 
+def ensure_compat():
+    ours = unreal.load_asset("/Game/UndeadLegion/Characters/SKEL_UndeadLegion")
+    manny = unreal.load_asset(MANNY_SKEL)
+    for skel, other in ((manny, ours), (ours, manny)):
+        lst = list(skel.get_editor_property("compatible_skeletons"))
+        if other not in lst:
+            skel.set_editor_property("compatible_skeletons", lst + [other])
+    log("compatible: SK_Mannequin -> %s" % [x.get_name() for x in manny.get_editor_property("compatible_skeletons")])
+    return unreal.load_asset("/Game/UndeadLegion/Characters/SkeletonKnight/SK_SkeletonKnight")
+
+
 def frames(comp, names):
     out = {}
     for n in names:
@@ -40,8 +55,8 @@ def frames(comp, names):
     return out
 
 
-def main(anims):
-    ours = ensure_mesh()
+def main(anims, compat=False):
+    ours = ensure_compat() if compat else ensure_mesh()
     manny = unreal.load_asset(MANNY_MESH)
     a = unreal.EditorLevelLibrary.spawn_actor_from_class(unreal.SkeletalMeshActor, unreal.Vector(0, 0, 0))
     b = unreal.EditorLevelLibrary.spawn_actor_from_class(unreal.SkeletalMeshActor, unreal.Vector(0, 300, 0))
@@ -59,6 +74,7 @@ def main(anims):
             comp.set_animation(anim)
             comp.set_play_rate(0.0)
         worst = []
+        first = None
         for k in range(5):
             t = length * k / 4.0
             for comp in (ca, cb):
@@ -66,6 +82,8 @@ def main(anims):
                 comp.tick_animation(0.0, False)
                 comp.refresh_bone_transforms()
             fa, fb = frames(ca, names), frames(cb, names)
+            first = first or fa
+            moved = max(math.degrees(2 * math.acos(min(1.0, abs((first[n][0].inverse() * fa[n][0]).w)))) for n in names)
             bad = []
             for n in names:
                 qa, xa = fa[n]; qb, xb = fb[n]
@@ -75,12 +93,14 @@ def main(anims):
                 full = math.degrees(2 * math.acos(min(1.0, abs(qd.w))))
                 bad.append((ang, full, n))
             bad.sort(reverse=True)
-            worst.append((t, bad[:4]))
+            worst.append((t, moved, bad[:4]))
         log("%s (%.2f s): worst bone-direction / rotation differences per sample" % (os.path.basename(path), length))
-        for t, bad in worst:
-            log("  t %.2f: " % t + ", ".join("%s %.1f/%.1f" % (n, ang, full) for ang, full, n in bad))
+        for t, moved, bad in worst:
+            log("  t %.2f (pose moved %.0f deg since t 0): " % (t, moved) + ", ".join("%s %.2f/%.2f" % (n, ang, full) for ang, full, n in bad))
     a.destroy_actor(); b.destroy_actor()
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["/Game/Characters/Mannequins/Anims/Death/MM_Death_Front_01"])
+    # `compat` (or --compat when run inside the editor directly; ue_py.py's own parser rejects unknown --flags)
+    args = [a for a in sys.argv[1:] if a not in ("--compat", "compat")]
+    main(args or ["/Game/Characters/Mannequins/Anims/Death/MM_Death_Front_01"], bool(set(sys.argv) & {"--compat", "compat"}))

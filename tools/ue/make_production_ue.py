@@ -43,7 +43,7 @@ EXCLUDE = [                                   # relative to the project, files o
     PRODUCT + "/Demo/Blueprints/BP_ShowreelDirector.uasset",
     PRODUCT + "/Pipelines",
 ]
-if EPIC:
+if EPIC or UE54:   # the dev-only mannequin test content (tools/ue/epic_mannequin_content.py) never ships
     EXCLUDE += ["Content/_EpicTest", "Content/Characters/Mannequins"]
 # Retired authoring actions may still have older imported sequences or montages.
 with open(os.path.join(ROOT, "Animations", "clips.json"), encoding="utf-8") as _manifest:

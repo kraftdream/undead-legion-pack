@@ -58,7 +58,7 @@ the same skeleton asset, so any armor piece can be worn by any skeleton and ever
   <li><b>6 skeleton classes</b>: Knight, Warrior, Archer, Assassin, Mage, Necromancer, each a ready Blueprint Character.</li>
   <li><b>48 armor modules</b> as separate skeletal meshes: helms, hoods, chests, gloves, greaves, boots, skirts, robes and pants.</li>
   <li><b>12 weapons</b> as Blueprints spawned on the hand sockets, with adjustable grips; the recurve bow is skinned.</li>
-  <li><b>58 animations</b> at 30 fps: idles, two locomotion sets with root motion, one- and two-handed attacks with heavy variants,
+  <li><b>49 animations</b> at 30 fps: idles, two locomotion sets with root motion, one- and two-handed attacks (two with heavy variants),
       a held block, a bow shot, casts, specials, hit reactions, staggers, deaths, additive twitches and finger idles. A montage
       for every one-shot.</li>
   <li><b>One Animation Blueprint</b> with a layer stack: base loop, upper body, left arm, right arm, additive twitches, finger layers.</li>
@@ -81,7 +81,7 @@ under any renderer setting. The eyes are an unlit emissive material and glow thr
 <h2>3. Folder structure</h2>
 <table>
 <tr><th>Folder (<code>Content/UndeadLegion/</code>)</th><th>Contents</th></tr>
-<tr><td><code>Animations/</code></td><td>58 animation sequences <code>A_&lt;Clip&gt;</code> plus <code>A_Grip</code> (finger-pose data); <code>Montages/AM_&lt;Clip&gt;</code>, one per one-shot</td></tr>
+<tr><td><code>Animations/</code></td><td>49 animation sequences <code>A_&lt;Clip&gt;</code> plus <code>A_Grip</code> (finger-pose data); <code>Montages/AM_&lt;Clip&gt;</code>, one per one-shot</td></tr>
 <tr><td><code>Blueprints/</code></td><td><code>BP_UndeadSkeleton</code> (the base character), <code>ABP_UndeadSkeleton</code> (the Animation Blueprint), <code>Notifies/AN_BowAttach</code>, <code>AN_BowRelease</code></td></tr>
 <tr><td><code>Characters/</code></td><td><code>SKEL_UndeadLegion</code> (the shared skeleton), <code>PA_UndeadLegion</code> (physics asset); per class <code>Skeleton&lt;Class&gt;/</code>: the body <code>SK_</code>, <code>BP_Skeleton&lt;Class&gt;</code>, textures, material instances and <code>Armor/SK_Skeleton&lt;Class&gt;_&lt;Module&gt;</code></td></tr>
 <tr><td><code>Materials/</code></td><td><code>M_UndeadLegion_Master</code>, <code>M_Eyes</code></td></tr>
@@ -169,7 +169,7 @@ do not overlap. A module placed in a level on its own is a prop in its rest pose
 <tr><td class="n">5</td><td>Two daggers</td><td>Dagger</td><td>Dagger</td><td>Idle_Combat</td></tr>
 <tr><td class="n">6</td><td>Longsword (2H)</td><td>Longsword</td><td>on the shaft</td><td>Idle_TwoHanded</td></tr>
 <tr><td class="n">7</td><td>Battle axe (2H)</td><td>Battle axe</td><td>on the shaft</td><td>Idle_TwoHanded</td></tr>
-<tr><td class="n">8</td><td>Recurve bow</td><td>Arrow</td><td>Recurve bow</td><td>Idle_Bow</td></tr>
+<tr><td class="n">8</td><td>Recurve bow</td><td>Arrow</td><td>Recurve bow</td><td>Idle_01</td></tr>
 <tr><td class="n">9</td><td>Staff</td><td>Staff</td><td>—</td><td>Idle_TwoHanded</td></tr>
 <tr><td class="n">10</td><td>Wand</td><td>Wand</td><td>—</td><td>Idle_03 / Idle_TwoHanded</td></tr>
 </table>
@@ -215,7 +215,7 @@ Clips marked root motion carry their travel on the root bone; played from a mont
 </table>
 <p>The one-handed attacks and casts carry the whole body, so they read complete when a character stands; on the move they play on
 the arm and upper-body slots over the legs of a walk or run (section 8). The twitches and the hits are additive against their own
-first frame. <code>Animations/Montages/AM_&lt;Clip&gt;</code> holds a ready montage for every one-shot (33), each in the slot the clip
+first frame. <code>Animations/Montages/AM_&lt;Clip&gt;</code> holds a ready montage for every one-shot (26), each in the slot the clip
 belongs to, for your own Animation Blueprints; the pack's own character creates its montages at runtime from the sequences.</p>
 
 <h2>8. The Animation Blueprint</h2>

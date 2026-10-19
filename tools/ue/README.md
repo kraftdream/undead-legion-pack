@@ -583,6 +583,32 @@ Traps met (all fixed in the tools):
   Delete / typing (a Ctrl+A + Delete aimed at a graph once emptied the level editor's map - undone).
 * Disk: C: was at 111 MB free mid-build (the zen DDC answered 507); Temp files older than two days were cleared.
 
+**Fixes of 2026-10-19** (user: "models don't properly reset when playing death animations without waiting for the previous to
+stop"; "the model slightly hovers above the ground"). Both are in the DSL / scripts, so the 5.8 projects get them on their next build:
+* **A held death never left DefaultSlot.** `StopSlotAnimation` skips a PAUSED montage (`AnimInstance.cpp`: `IsActive() &&
+  IsPlaying()`), and the browser pauses every death for its 2 s hold, so the corpse stayed at full weight and mixed with the next
+  clip (half face-down, half on the back, sunk into the floor). `StopActions` now calls `Montage_Resume` on the action montage first.
+* **The hold itself was skipped at a low frame rate**: the pause was due at end − 0.3 s and the montage's own 0.25 s blend-out
+  starts at end − 0.25, so at ~8 fps the tick landed after it and the corpse stood up. The pause is at end − 0.6 now (`PlayClip`).
+  Measured in PIE (pelvis height per tick): all four deaths hold and return at length + 1.8 s; a death clicked during another's
+  hold, or mid-fall, plays clean and returns to the idle.
+* **The hover**: `ue_character.py` still put the mesh at −90; the −92.3 of "Showreel fixes of 2026-10-04" had been set by hand in
+  5.8. The script writes −92.3 now; the seven 5.4 Blueprints were set by Python.
+* **Mannequin animations on 5.4** ("is this compatible with the Epic skeleton, the same way as the 5.8 build?"): yes.
+  `tools/ue/ue54_manny_check.py` (its docstring has the steps) plays UE 5.4's own MM_Run_Fwd / MM_Walk_Fwd / MF_Walk_Fwd on the
+  demo Knight through its Animation Blueprint with SK_Mannequin <-> SKEL_UndeadLegion compatible, beside SKM_Manny frozen on the
+  same frame: every one of the 48 body bones moves exactly as the mannequin's (0.00 deg). ⚠ Compatible-skeleton playback is not a
+  bone-for-bone copy: `SkeletonRemapping.cpp` re-applies each bone's motion relative to the TARGET's rest pose, so raw rotations
+  differ by the two rest poses (13 - 30 deg median here) - compare each bone's rotation x its rest rotation^-1 (5.8's 0.00 deg
+  was the Assign Skeleton route, where rotations are copied). And a paused loop montage is never stopped by the next PlayLoop
+  (the StopSlotAnimation rule below), so one freeze per Play session. The mannequin content: `epic_mannequin_content.py --ue54`
+  (git-ignored; `make_production_ue.py --ue54` excludes it as it does for the Epic package).
+* The manual and the Fab texts were behind the shipped clip set (the manifest disables `Idle_Bow`, `Idle_Staff`, `Shoot_02`,
+  `Cast_Wand_03`, the L_03 swing and most heavy variants): now 49 animations and 26 montages, the bow loadout's idle `Idle_01`.
+  `make_documentation.py ue54` prints the same manual into `skeletons_ue54` with the engine version changed.
+* Single functions are replaced by `BlueprintEditorLibrary.remove_function_graph`, a paste (it arrives as `Name_0` while the
+  editor still knows the old name) and `rename_graph`; the call sites resolve by name on compile.
+
 ## Not done yet
 
 The in-place locomotion blend space;

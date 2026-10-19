@@ -1,4 +1,4 @@
-# Fab listing copy — Undead Legion, Modular Skeleton Army (Unreal Engine 5.8)
+# Fab listing copy — Undead Legion, Modular Skeleton Army (Unreal Engine 5.4 – 5.8)
 
 Every figure below was measured on 2026-10-05 through the editor's asset registry (the meshes, textures and clips of
 `skeletons_ue_epic` are the same exports as `skeletons_ue`'s, re-skinned to the Epic skeleton; the asset counts are the Epic package's)
@@ -16,6 +16,16 @@ manual into it): `../undead-legion-production-ue-epic/UndeadLegion_UE58_Epic.zip
 Fab's "no unused assets" rule, the creatures pack's rejection #2), `Developers`, `Collections`, all seven
 editor plugins and the dev config lines, audits the result and compiles every Blueprint headlessly on 5.8
 (29 compiled, 0 errors, 0 warnings on 2026-10-05). The figures below are the stripped package's.
+
+**The second package, for UE 5.4** (2026-10-19): the same content rebuilt in UE 5.4 (`skeletons_ue54`), built by
+`python tools/ue/make_production_ue.py --ue54 --verify` (after `python tools/make_documentation.py ue54`, the same manual with the
+engine version changed): `../undead-legion-production-ue54/UndeadLegion_UE54.zip` (277 files, 94 MB; 31 Blueprints compiled
+headlessly on 5.4, 0 errors, 0 warnings). A 5.4 project opens in 5.4 – 5.7 as it is (and in 5.8, which upgrades it), so it is
+the package for every version below 5.8. Its inventory (2026-10-19): 272 assets — 50 sequences (49 animations + `A_Grip`),
+26 montages, 23 Blueprints, 4 notifies, 3 widgets, 2 maps, 1 Animation Blueprint, 1 skeleton, 1 physics asset, 11 static meshes,
+67 textures, 2 materials, 25 instances. ⚠ The clip set shrank after 2026-10-05 (the manifest disables `Idle_Bow`, `Idle_Staff`,
+`Shoot_02`, `Cast_Wand_03`, the L_03 swing and most heavy variants), so the 5.8 package's 10-05 figures in the table below
+(59 sequences, 33 montages) are stale: rebuild the 5.8 zip and re-count it before submitting; the description now says 49 / 26.
 
 ---
 
@@ -41,9 +51,19 @@ creatures pack went under Creatures & Monsters)
 
 | Field | Value |
 |---|---|
-| Version title | Unreal 5.8 |
+Add the dialog twice, once per package:
+
+| Field | Unreal 5.8 | Unreal 5.4 |
+|---|---|---|
+| Version title | Unreal 5.8 | Unreal 5.4 |
+| Project file link | your upload of `UndeadLegion_UE58_Epic.zip` | your upload of `UndeadLegion_UE54.zip` |
+| Supported engine version | 5.8 (an older editor cannot open it) | 5.4, 5.5, 5.6, 5.7 (tested in 5.4 only; a 5.4 project opens in the later editors) |
+
+Both, every other field:
+
+| Field | Value |
+|---|---|
 | Project file link | your upload of the production project zip (Google Drive / Dropbox / any direct link); Fab downloads it from there |
-| Supported engine version | 5.8 (only: the project cannot be opened by an older editor; the Blueprint graphs and the skinned bow were built on 5.8) |
 | Supported target platforms | Windows, Mac, Linux (desktop; Blueprint only, nothing platform-specific; untested on mobile and consoles, so do not claim them) |
 | Version notes | the zip's password if you protect it; otherwise leave empty |
 
@@ -126,10 +146,10 @@ creatures pack went under Creatures & Monsters)
 
 | Field | Value |
 |---|---|
-| Supported engine version | 5.8 |
+| Supported engine version | 5.4 – 5.8 (two packages, see the version dialog) |
 | Supported target platforms | Windows, macOS, Linux |
 | Distribution method | Asset package |
-| Documentation | `Content/UndeadLegion/Documentation.pdf` — the Unreal manual (11 A4 pages: setup, folders, characters, armor API, weapons and loadouts, sockets, the bow, the clip list with lengths, the Animation Blueprint layers, root motion and speeds in cm/s, the Blueprint API, the demo map, mannequin animations and own animations, technical details), printed from `tools/docs/UndeadLegion_UE_Documentation.html` by `python tools/make_documentation.py ue` |
+| Documentation | `Content/UndeadLegion/Documentation.pdf` — the Unreal manual (11 A4 pages: setup, folders, characters, armor API, weapons and loadouts, sockets, the bow, the clip list with lengths, the Animation Blueprint layers, root motion and speeds in cm/s, the Blueprint API, the demo map, mannequin animations and own animations, technical details), printed from `tools/docs/UndeadLegion_UE_Documentation.html` by `python tools/make_documentation.py ue` (5.8) / `ue54` (5.4) |
 
 ---
 
@@ -141,6 +161,12 @@ creatures pack went under Creatures & Monsters)
 
 - The package compiles clean headlessly and the production copy was opened and tested interactively on 2026-10-06;
   a full cook on 5.8 has not been done (Fab's own validation cooks it).
+- The 5.4 package: compiled headlessly on 5.4 and tested interactively on 2026-10-19 (the browser, the death holds, the feet on
+  the floor); the mobile preview and a cook were not run on 5.4. Mannequin animations on 5.4 (`tools/ue/ue54_manny_check.py`, the
+  manual's compatible-skeletons route): UE 5.4's own MM_Run_Fwd, MM_Walk_Fwd and Quinn's MF_Walk_Fwd played through the
+  Knight's Animation Blueprint move every one of the 48 body bones exactly as on SKM_Manny (0.00 deg, measured as each bone's
+  motion from its own rest pose; the fingers follow the pack's grip layers and the neck / head its twitches, by design). The
+  "Rigged to Epic skeleton" claim holds for the 5.4 package.
 - The demo browser does not drive the bow string or fire the arrow (the weapon Blueprint has the poseable
   bow and `BP_ArrowProjectile` ships; the manual and the description say so).
 - The physics asset `PA_UndeadLegion` is the one the Knight's import generated, not a tuned ragdoll:

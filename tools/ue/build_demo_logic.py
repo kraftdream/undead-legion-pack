@@ -302,7 +302,9 @@ BROWSER = {
       (%(C)sSetTwitch :self c :Index 2 :Weight 0.0)
       (%(C)sSetTwitch :self c :Index 3 :Weight 0.0)
       (%(C)sSetFingersSuspended :self c :Suspended true)
-      (%(V)sSetDeathPauseAt (- (%(V)sGetActionEnd) 0.3))
+      ; 0.6 s before the end: the montage starts its own 0.25 s blend-out at end - 0.25, and at a low frame rate a pause
+      ; due at end - 0.3 landed after it, so the corpse stood up with no hold (UE 5.4 PIE, ~8 fps on this PC)
+      (%(V)sSetDeathPauseAt (- (%(V)sGetActionEnd) 0.6))
       (%(V)sSetDeathResumeAt 0.0))
     (:9
       (%(C)sPlayOverlay :self c :Clip anim)

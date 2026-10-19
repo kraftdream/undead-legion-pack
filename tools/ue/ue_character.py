@@ -102,7 +102,9 @@ def base():
     cap = cdo.get_editor_property("capsule_component")
     cap.set_capsule_size(35.0, 90.0)
     mesh = cdo.get_editor_property("mesh")
-    mesh.set_editor_property("relative_location", unreal.Vector(0, 0, -90))
+    # -92.3, not -90: CharacterMovement keeps the capsule 2.28 cm above the floor (README "Showreel fixes of 2026-10-04";
+    # the 5.8 asset was set by hand, so the UE 5.4 build from this script hovered by that much)
+    mesh.set_editor_property("relative_location", unreal.Vector(0, 0, -92.3))
     mesh.set_editor_property("relative_rotation", unreal.Rotator(roll=0, pitch=0, yaw=-90))
     mesh.set_editor_property("animation_mode", unreal.AnimationMode.ANIMATION_BLUEPRINT)
     mesh.set_editor_property("anim_class", unreal.load_object(None, ABP_CLASS))

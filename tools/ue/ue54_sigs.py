@@ -92,6 +92,7 @@ SIGS = {
     "Animation|Montage|MontageGetPosition": F(E + "AnimInstance", "Montage_GetPosition", True, [("Montage", "obj:" + E + "AnimMontage")],
                                               [("ReturnValue", "real")], target=E + "AnimInstance"),
     "Animation|Montage|MontagePause": F(E + "AnimInstance", "Montage_Pause", False, [("Montage", "obj:" + E + "AnimMontage")], target=E + "AnimInstance"),
+    "Animation|Montage|MontageResume": F(E + "AnimInstance", "Montage_Resume", False, [("Montage", "obj:" + E + "AnimMontage")], target=E + "AnimInstance"),
     "Animation|Montage|MontagePlay": F(E + "AnimInstance", "Montage_Play", False,
                                        [("MontageToPlay", "obj:" + E + "AnimMontage"), ("InPlayRate", "real", "1.000000"),
                                         ("ReturnValueType", "enum:" + E + "EMontagePlayReturnType", "MontageLength"),
