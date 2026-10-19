@@ -13,7 +13,7 @@ Clip settings mirror the Unity import (tools/unity/verify_clip.py per retarget m
 """
 import os, glob
 import unreal
-from ue_common import (PKG, EXPORT, SKEL, EAL, log, pipeline, interchange, clips_manifest, bn)
+from ue_common import (PKG, EXPORT, SKEL, EAL, log, pipeline, interchange, clips_manifest, bn, UE54)
 
 ANIMS = PKG + "/Animations"
 FPS = 30.0
@@ -130,7 +130,17 @@ def montages(only=None):
             continue
         a = unreal.load_asset(ANIMS + "/A_" + n)
         path = PKG + "/Animations/Montages/AM_" + n
-        if EAL.does_asset_exist(path):
+        if EAL.does_asset_exist(path) and UE54:
+            # 5.4's Python does not expose slot_anim_tracks: a montage whose length still matches is kept (it references the
+            # re-imported sequence), a changed one is deleted and recreated (nothing in the pack references an AM_ asset)
+            m = unreal.load_asset(path)
+            if abs(m.get_play_length() - a.get_play_length()) > 1e-4:
+                EAL.delete_asset(path)
+                f = unreal.AnimMontageFactory()
+                f.set_editor_property("target_skeleton", a.get_editor_property("skeleton"))
+                f.set_editor_property("source_animation", a)
+                m = unreal.AssetToolsHelpers.get_asset_tools().create_asset("AM_" + n, PKG + "/Animations/Montages", unreal.AnimMontage, f)
+        elif EAL.does_asset_exist(path):
             m = unreal.load_asset(path)
             tracks = m.get_editor_property("slot_anim_tracks")
             if len(tracks) != 1 or len(tracks[0].anim_track.anim_segments) != 1:

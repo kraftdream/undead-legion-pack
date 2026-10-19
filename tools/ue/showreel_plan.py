@@ -33,9 +33,10 @@ MODULES = {"Knight": ["Boot_L", "Boot_R", "Chest", "Glove_L", "Glove_R", "Greave
 # the character stays framed, while a recenter TELEPORT of camera + character pops the cascaded shadow map (it is camera-
 # relative) for a frame - measured 2026-10-04 on the Warrior's taunt: a 3.5 frame-diff spike at the recenter, none without it.
 RECENTER = {"Stagger_01", "Stagger_02"}
-GRIP_L = {"Idle_TwoHanded", "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Cast_Staff_01"}          # manifest grip_hands L
+GRIP_L = {"Idle_TwoHanded", "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_03_Swing", "Attack_2H_02_Swing_Heavy",
+          "Attack_2H_03_Swing_Heavy", "Cast_Staff_01"}          # manifest grip_hands L
 RETURN = {**{"Attack_%s_0%d_%s%s" % (sd, i, k, h): "Idle_Combat" for sd in "RL" for i, k in ((1, "Stab"), (2, "Swing"), (3, "Swing")) for h in ("",)},
-          **{"Attack_2H_0%d_Swing%s" % (i, h): "Idle_TwoHanded" for i in (1, 2) for h in ("",)},
+          **{"Attack_2H_0%d_Swing%s" % (i, h): "Idle_TwoHanded" for i in (1, 2, 3) for h in ("", "_Heavy")},
           "Attack_R_01_Stab": "Idle_Combat", "Attack_R_02_Swing": "Idle_Combat", "Attack_L_01_Stab": "Idle_Combat",
           "Attack_L_02_Swing": "Idle_Combat", "Attack_2H_01_Swing": "Idle_TwoHanded", "Attack_2H_02_Swing": "Idle_TwoHanded",
           "Shoot_01": "Idle_Combat", "Cast_Wand_01": "Idle_Combat", "Cast_Wand_02": "Idle_Combat", "Cast_Staff_01": "Idle_TwoHanded"}
@@ -89,12 +90,13 @@ def modular():
 
 
 def weapons():
-    # the recorder's weapons stage of 2026-10-04 (cab06e8): heavy variants, a Knight mace step, the per-weapon pace of
-    # SkeletonWeapon.AttackSpeedFor (sword / sword + shield 1.3, dagger / two daggers 1.7, else 1) instead of a step override
-    SWORD, DAGGER = 1.3, 1.7
+    # the recorder's weapons stage (2026-10-04 cab06e8, 2H_03 added 2026-10-12 eec9155): heavy variants, a Knight mace step, the
+    # per-weapon pace of SkeletonWeapon.AttackSpeedFor (sword / sword + shield / wand 1.3, longsword 1.2, dagger / two daggers 1.7,
+    # else 1; Attack_* and Cast_Wand_* only) instead of a step override
+    SWORD, DAGGER, LONGSWORD, WAND = 1.3, 1.7, 1.2, 1.3
     st = [A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Taunt", "Taunt_01"),
-          A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Two-handed idle; the second hand rides the handle", "Attack_2H_01_Swing", "Attack_2H_02_Swing"),
-          A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "The same two-handed grip and attacks on every long weapon", "Attack_2H_01_Swing", "Attack_2H_02_Swing"),
+          A("Warrior", "Longsword (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Longsword", "Two-handed idle; the second hand rides the handle", "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_03_Swing", speed=LONGSWORD),
+          A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "The same two-handed grip and attacks on every long weapon", "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_03_Swing"),
           death(A("Warrior", "Battle axe (2H)", "Idle_TwoHanded", "Skeleton Warrior  |  Battle axe", "Death", "Death_01")),
           A("Knight", "Axe + round shield", "Idle_Combat", "Skeleton Knight  |  Axe + round shield", "Taunt and rally", "Taunt_02", "Rally"),
           A("Knight", "Axe + round shield", "Idle_Combat", "Skeleton Knight  |  Axe + round shield", "Left-arm block HELD on its own layer; the right arm attacks under it", "Attack_R_02_Swing", "Attack_R_02_Swing_Heavy", hold_on="Block_L_Idle"),
@@ -107,7 +109,7 @@ def weapons():
           A("Assassin", "Two daggers", "Idle_Combat", "Skeleton Assassin  |  Two daggers", "Left-arm attacks with the second dagger", "Attack_L_01_Stab", "Attack_L_02_Swing", speed=DAGGER),
           death(A("Assassin", "Two daggers", "Idle_Combat", "Skeleton Assassin  |  Two daggers", "Death", "Death_03")),
           A("Archer", "Recurve bow", "Idle_Combat", "Skeleton Archer  |  Recurve bow", "The string follows the draw hand; draw and release", "Shoot_01"),
-          A("Mage", "Wand", "Idle_03", "Skeleton Mage  |  Wand", "Two wand casts", "Cast_Wand_01", "Cast_Wand_02"),
+          A("Mage", "Wand", "Idle_03", "Skeleton Mage  |  Wand", "Two wand casts", "Cast_Wand_01", "Cast_Wand_02", speed=WAND),
           A("Necromancer", "Staff", "Idle_TwoHanded", "Skeleton Necromancer  |  Staff", "Summon", "Summon"),
           A("Necromancer", "Staff", "Idle_TwoHanded", "Skeleton Necromancer  |  Staff", "The wand casts on the staff, then the two-handed staff cast", "Cast_Wand_01", "Cast_Wand_02", "Cast_Staff_01"),
           A("Necromancer", "Staff", "Idle_TwoHanded", "Skeleton Necromancer  |  Staff", "Area cast", "AOE_Cast"),

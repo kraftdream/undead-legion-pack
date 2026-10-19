@@ -1,6 +1,13 @@
 """Render every shot of the Unreal showreel, then encode the stages and the YouTube video (system Python, editor running).
 
-    python tools/ue/showreel_unreal_all.py [--samples 64] [--only weapons_03,...] [--no-encode]
+    python tools/ue/showreel_unreal_all.py [--samples 64] [--only weapons_03,...] [--no-encode] [--fresh] [--setup]
+                                            [--project skeletons_ue_epic]
+
+--project: the UE 5.8 project to render in (default skeletons_ue_epic, the Epic-skeleton source of the shipped package; the
+Mixamo skeletons_ue has the 10-05 content). --setup builds BP_ShowreelDirector there first (ue_build.py showreel_director +
+build_showreel_director.py through the MCP; needed once per project - the Epic project had none until 2026-10-19). --fresh deletes
+every rendered shot folder first (without it a shot whose folder holds its frames and a .final marker is skipped). The clip
+lengths are re-dumped from the project (ue_showreel.py lengths) and the plan regenerated before the shots.
 
 For each shot of Showreel/unreal/plan.json (tools/ue/showreel_plan.py): skipped when its folder already holds all its frames,
 else `ue_showreel.py shot` builds the map + sequence + director and `render` runs Movie Render Queue at the best quality this
@@ -24,10 +31,24 @@ def ue(*args, timeout=900):
     return out
 
 
+PROJECT = "skeletons_ue_epic"
+
+
 def editor_up():
     # Git Bash: a plain "bash" from Python on Windows resolves to WSL's, which has no /bin/bash here
     bash = "C:/Program Files/Git/bin/bash.exe" if os.path.exists("C:/Program Files/Git/bin/bash.exe") else "bash"
-    subprocess.run([bash, os.path.join(ROOT, "tools", "ue", "editor_up.sh")], cwd=ROOT, timeout=1800)
+    subprocess.run([bash, os.path.join(ROOT, "tools", "ue", "editor_up.sh"), PROJECT], cwd=ROOT, timeout=1800)
+
+
+def setup():
+    for cmd in ([os.path.join(ROOT, "tools", "ue", "ue_py.py"), os.path.join(ROOT, "tools", "ue", "ue_build.py"), "showreel_director"],
+                [os.path.join(ROOT, "tools", "ue", "build_showreel_director.py")],
+                [os.path.join(ROOT, "tools", "ue", "ue_py.py"), os.path.join(ROOT, "tools", "ue", "ue_build.py"), "save_all"]):
+        r = subprocess.run([PY] + cmd, capture_output=True, text=True, cwd=ROOT, timeout=1800)
+        out = r.stdout + r.stderr
+        print(out[-800:], flush=True)
+        if r.returncode or "Traceback" in out:
+            sys.exit("setup failed: " + " ".join(cmd[-2:]))
 
 
 def frames_in(d):
@@ -69,11 +90,23 @@ if __name__ == "__main__":
     ap.add_argument("--samples", type=int, default=64)
     ap.add_argument("--only", default="")
     ap.add_argument("--no-encode", action="store_true")
+    ap.add_argument("--fresh", action="store_true")
+    ap.add_argument("--setup", action="store_true")
+    ap.add_argument("--project", default=PROJECT)
     a = ap.parse_args()
+    PROJECT = a.project
+    editor_up()
+    if a.setup:
+        setup()
+    ue("lengths")
     subprocess.run([PY, os.path.join(ROOT, "tools", "ue", "showreel_plan.py")], check=True)
     plan = json.load(open(os.path.join(UR, "plan.json")))
     only = [x for x in a.only.split(",") if x]
-    editor_up()
+    if a.fresh and not only:
+        import shutil
+        for st in plan:
+            for i in range(len(st["shots"])):
+                shutil.rmtree(os.path.join(UR, "%s_%02d" % (st["name"], i)), ignore_errors=True)
     for st in plan:
         for i, sh in enumerate(st["shots"]):
             name = "%s_%02d" % (st["name"], i)

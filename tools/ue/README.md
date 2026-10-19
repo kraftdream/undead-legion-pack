@@ -275,6 +275,31 @@ Synced at the base pack's `5295a16`+ (2026-10-04). What changed on the Unity sid
 * Not ported: Unity's `AttackSpeed` Animator parameter (the per-weapon pace lives in the plan's `speed` and `PlayAction`'s rate here);
   the Extended edition; `Rise_01` (not exported anywhere yet).
 
+## Base-pack update of 2026-10-19 (the Unity clip changes of 2026-10-12/13)
+
+The Unity side changed 15 clips after the last Unreal sync (2026-10-11, `af98157`): `Attack_2H_02_Swing_Heavy`, `Attack_2H_03_Swing`,
+`Attack_2H_03_Swing_Heavy` NEW (the 10-05 two-handed attacks restored, `eec9155` / `ec3e017`), and `AOE_Cast`, `Attack_2H_01/02_Swing`,
+`Cast_Staff_01`, `Cast_Wand_01/02`, `Cutthroat`, `Rally`, `Summon`, `Taunt_01/02/03` re-authored. `export_ue.py --epic clips <the 15>`
+wrote them; in **5.4** `ue_build.py clips:<15> montages:<15> demo_data save_all` imported them (all in place, 52 clips in 13 browser
+sections, 29 montages; ⚠ 5.4's Python has no `AnimMontage.slot_anim_tracks`, so `montages` keeps a 5.4 montage whose length still
+matches and deletes + recreates a changed one). `ue_demo_ui.SECTIONS` / `GRIP_L` (and the showreel's two copies of `GRIP_L`) carry the
+five two-handed clips. Checked in PIE: the five 2H clips play from `Idle_TwoHanded` and return to it, the hands 24 cm apart on the shaft
+throughout. Manual, Fab texts and listing: 52 animations, 29 montages, 278 assets; `UndeadLegion_UE54.zip` rebuilt (31 Blueprints, 0
+errors, 0 warnings, 94.3 MB). Not ported (as before): Unity's per-weapon `AttackSpeed` in the browser (the new wand 1.3 / longsword 1.2
+live in the showreel plan only).
+
+**On the 5.8 machine** (the Epic project, after `git pull`; the FBX files are in `Export_UE_Epic/`):
+
+    bash tools/ue/editor_up.sh skeletons_ue_epic
+    MSYS_NO_PATHCONV=1 python tools/ue/ue_py.py tools/ue/ue_build.py clips:AOE_Cast,Attack_2H_01_Swing,Attack_2H_02_Swing,Attack_2H_02_Swing_Heavy,Attack_2H_03_Swing,Attack_2H_03_Swing_Heavy,Cast_Staff_01,Cast_Wand_01,Cast_Wand_02,Cutthroat,Rally,Summon,Taunt_01,Taunt_02,Taunt_03 montages:AOE_Cast,Attack_2H_01_Swing,Attack_2H_02_Swing,Attack_2H_02_Swing_Heavy,Attack_2H_03_Swing,Attack_2H_03_Swing_Heavy,Cast_Staff_01,Cast_Wand_01,Cast_Wand_02,Cutthroat,Rally,Summon,Taunt_01,Taunt_02,Taunt_03 demo_data save_all
+    python tools/ue/build_character.py StopActions          # the held-death fix of 2026-10-19 (Montage_Resume first)
+    python tools/ue/build_demo_logic.py browser PlayClip    # the death hold at end - 0.6
+    MSYS_NO_PATHCONV=1 python tools/ue/ue_py.py tools/ue/ue_build.py save_all
+
+then the showreel: `python tools/ue/showreel_unreal_all.py --setup --fresh` (runs on the Epic project now; `--setup` builds
+`BP_ShowreelDirector` there for the first time, `--fresh` drops the 10-04 frames, the clip lengths are re-dumped from the project and
+the plan regenerated; the plan follows the Unity recorder: 2H_01/02/03 on both two-handers, the longsword at 1.2x, the wand casts at 1.3x).
+
 ## Base-pack update of 2026-10-05 (checked at `e233110`: nothing to port)
 
 * **`bake_rot` on ten one-shots** (`Cast_Wand_01/02`, `Cutthroat`, `Rally`, `Stagger_01/02`, `Summon`, `Taunt_01/02/03`) is a Unity

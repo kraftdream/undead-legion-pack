@@ -28,7 +28,8 @@ SECTIONS = [
     ("Right arm", [(n, 4) for n in ("Attack_R_01_Stab", "Attack_R_02_Swing", "Attack_R_03_Swing",
                                     "Attack_R_01_Stab_Heavy", "Attack_R_02_Swing_Heavy")]),
     ("Left arm (block = hold)", [(n, 3) for n in ("Attack_L_01_Stab", "Attack_L_02_Swing")] + [("Block_L_Idle", 5)]),
-    ("Two-handed", [(n, 1) for n in ("Attack_2H_01_Swing", "Attack_2H_02_Swing")]),
+    ("Two-handed", [(n, 1) for n in ("Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_03_Swing",
+                                     "Attack_2H_02_Swing_Heavy", "Attack_2H_03_Swing_Heavy")]),
     ("Bow", [("Shoot_01", 2)]),
     ("Magic", [("Cast_Wand_01", 2), ("Cast_Wand_02", 2), ("Cast_Staff_01", 1)]),
     ("Specials", [("Taunt_01", 1), ("Taunt_02", 1), ("Taunt_03", 1), ("Rally", 2), ("Cutthroat", 1), ("Summon", 1), ("AOE_Cast", 1)]),
@@ -40,7 +41,8 @@ SECTIONS = [
 RETURN = {"Right arm": "Idle_Combat", "Left arm (block = hold)": "Idle_Combat", "Two-handed": "Idle_TwoHanded",
           "Bow": "Idle_Combat", "Magic": "Idle_TwoHanded"}                 # Unity: each section's idlePreference
 CLIP_RETURN = {"Cast_Wand_01": "Idle_Combat", "Cast_Wand_02": "Idle_Combat"}
-GRIP_L = {"Idle_TwoHanded", "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Cast_Staff_01"}   # manifest grip_hands "L"
+GRIP_L = {"Idle_TwoHanded", "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_03_Swing", "Attack_2H_02_Swing_Heavy",
+          "Attack_2H_03_Swing_Heavy", "Cast_Staff_01"}   # manifest grip_hands "L"
 
 
 def _t(kind, cls=None):

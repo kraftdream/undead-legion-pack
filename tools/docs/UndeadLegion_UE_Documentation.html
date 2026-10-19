@@ -58,7 +58,7 @@ the same skeleton asset, so any armor piece can be worn by any skeleton and ever
   <li><b>6 skeleton classes</b>: Knight, Warrior, Archer, Assassin, Mage, Necromancer, each a ready Blueprint Character.</li>
   <li><b>48 armor modules</b> as separate skeletal meshes: helms, hoods, chests, gloves, greaves, boots, skirts, robes and pants.</li>
   <li><b>12 weapons</b> as Blueprints spawned on the hand sockets, with adjustable grips; the recurve bow is skinned.</li>
-  <li><b>49 animations</b> at 30 fps: idles, two locomotion sets with root motion, one- and two-handed attacks (two with heavy variants),
+  <li><b>52 animations</b> at 30 fps: idles, two locomotion sets with root motion, one- and two-handed attacks (four with heavy variants),
       a held block, a bow shot, casts, specials, hit reactions, staggers, deaths, additive twitches and finger idles. A montage
       for every one-shot.</li>
   <li><b>One Animation Blueprint</b> with a layer stack: base loop, upper body, left arm, right arm, additive twitches, finger layers.</li>
@@ -81,7 +81,7 @@ under any renderer setting. The eyes are an unlit emissive material and glow thr
 <h2>3. Folder structure</h2>
 <table>
 <tr><th>Folder (<code>Content/UndeadLegion/</code>)</th><th>Contents</th></tr>
-<tr><td><code>Animations/</code></td><td>49 animation sequences <code>A_&lt;Clip&gt;</code> plus <code>A_Grip</code> (finger-pose data); <code>Montages/AM_&lt;Clip&gt;</code>, one per one-shot</td></tr>
+<tr><td><code>Animations/</code></td><td>52 animation sequences <code>A_&lt;Clip&gt;</code> plus <code>A_Grip</code> (finger-pose data); <code>Montages/AM_&lt;Clip&gt;</code>, one per one-shot</td></tr>
 <tr><td><code>Blueprints/</code></td><td><code>BP_UndeadSkeleton</code> (the base character), <code>ABP_UndeadSkeleton</code> (the Animation Blueprint), <code>Notifies/AN_BowAttach</code>, <code>AN_BowRelease</code></td></tr>
 <tr><td><code>Characters/</code></td><td><code>SKEL_UndeadLegion</code> (the shared skeleton), <code>PA_UndeadLegion</code> (physics asset); per class <code>Skeleton&lt;Class&gt;/</code>: the body <code>SK_</code>, <code>BP_Skeleton&lt;Class&gt;</code>, textures, material instances and <code>Armor/SK_Skeleton&lt;Class&gt;_&lt;Module&gt;</code></td></tr>
 <tr><td><code>Materials/</code></td><td><code>M_UndeadLegion_Master</code>, <code>M_Eyes</code></td></tr>
@@ -203,9 +203,9 @@ Clips marked root motion carry their travel on the root bone; played from a mont
 <tr><td>Locomotion, upright set</td><td>Walk_Fwd_02 (1.13), Walk_Back_02 (1.47), Run_Fwd_02 (0.93), Strafe_Left_02 (1.30), Strafe_Right_02 (1.30)</td><td>loop, root motion</td></tr>
 <tr><td>Right arm</td><td>Attack_R_01_Stab (1.47), Attack_R_02_Swing (1.97), Attack_R_03_Swing (1.93) and Attack_R_01_Stab_Heavy, Attack_R_02_Swing_Heavy (a bigger lunge of the body)</td><td>one-shot</td></tr>
 <tr><td>Left arm</td><td>Attack_L_01_Stab, Attack_L_02_Swing; Block_L_Idle (6.0, the held shield block)</td><td>one-shot; the block loops</td></tr>
-<tr><td>Two-handed</td><td>Attack_2H_01_Swing (2.57), Attack_2H_02_Swing (2.43)</td><td>one-shot</td></tr>
+<tr><td>Two-handed</td><td>Attack_2H_01_Swing (2.50), Attack_2H_02_Swing (1.67), Attack_2H_03_Swing (1.70) and Attack_2H_02_Swing_Heavy (2.00), Attack_2H_03_Swing_Heavy (2.03) (a bigger lunge of the body)</td><td>one-shot</td></tr>
 <tr><td>Bow</td><td>Shoot_01 (2.43: draw and release; notifies BowReset / BowDraw / BowAttach / BowRelease)</td><td>one-shot</td></tr>
-<tr><td>Magic</td><td>Cast_Wand_01 (2.23), Cast_Wand_02 (1.80), Cast_Staff_01 (2.23, both hands on the staff)</td><td>one-shot</td></tr>
+<tr><td>Magic</td><td>Cast_Wand_01 (2.10), Cast_Wand_02 (2.53), Cast_Staff_01 (2.23, both hands on the staff)</td><td>one-shot</td></tr>
 <tr><td>Specials</td><td>Taunt_01 (2.73), Taunt_02 (2.43), Taunt_03 (2.70), Rally (3.03), Cutthroat (3.10), Summon (3.77), AOE_Cast (4.77)</td><td>one-shot</td></tr>
 <tr><td>Reactions</td><td>Hit_01 (0.97, a head-and-shoulders recoil) and Hit_02 (0.97, a gut blow): additive, added over whatever plays; Stagger_01 / Stagger_02 (1.40 each: the hit while stepping back one walk cycle, 66 cm of root motion)</td><td>additive overlay / one-shot</td></tr>
 <tr><td>Deaths</td><td>Death_01 (2.50, drops), Death_02 (2.87, face-down), Death_03 (2.30, on the back), Death_04 (2.90, limp)</td><td>one-shot, ends lying</td></tr>
@@ -215,7 +215,7 @@ Clips marked root motion carry their travel on the root bone; played from a mont
 </table>
 <p>The one-handed attacks and casts carry the whole body, so they read complete when a character stands; on the move they play on
 the arm and upper-body slots over the legs of a walk or run (section 8). The twitches and the hits are additive against their own
-first frame. <code>Animations/Montages/AM_&lt;Clip&gt;</code> holds a ready montage for every one-shot (26), each in the slot the clip
+first frame. <code>Animations/Montages/AM_&lt;Clip&gt;</code> holds a ready montage for every one-shot (29), each in the slot the clip
 belongs to, for your own Animation Blueprints; the pack's own character creates its montages at runtime from the sequences.</p>
 
 <h2>8. The Animation Blueprint</h2>

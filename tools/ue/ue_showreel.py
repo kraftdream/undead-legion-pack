@@ -22,7 +22,8 @@ from ue_common import PKG, EAL, log
 
 MAP = PKG + "/Demo/Maps/UndeadLegion_Showreel"
 SEQ_DIR = PKG + "/Demo/Showreel"
-GRIP_L = {"Idle_TwoHanded", "Attack_2H_01", "Attack_2H_02", "Cast_Staff_01"}   # manifest grip_hands L
+GRIP_L = {"Idle_TwoHanded", "Attack_2H_01_Swing", "Attack_2H_02_Swing", "Attack_2H_03_Swing", "Attack_2H_02_Swing_Heavy",
+          "Attack_2H_03_Swing_Heavy", "Cast_Staff_01"}   # manifest grip_hands L
 
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -252,6 +253,20 @@ def exposure(ev):
             a.set_editor_property("settings", st)
     unreal.get_editor_subsystem(unreal.LevelEditorSubsystem).save_current_level()
     log("exposure %s EV" % ev)
+
+
+def lengths():
+    """Showreel/unreal/clip_lengths.json from the project's own A_ sequences (play length in s), the frame accounting of
+    showreel_plan.py; showreel_unreal_all.py re-dumps it before every run, so a re-imported clip's new length is used."""
+    import json
+    out = {}
+    for p in EAL.list_assets(PKG + "/Animations", recursive=False, include_folder=False):
+        a = unreal.load_asset(p)
+        if isinstance(a, unreal.AnimSequence) and a.get_name().startswith("A_"):
+            out[a.get_name()[2:]] = round(a.get_play_length(), 4)
+    os.makedirs(os.path.join(ROOT, "Showreel", "unreal"), exist_ok=True)
+    json.dump(out, open(os.path.join(ROOT, "Showreel", "unreal", "clip_lengths.json"), "w"), indent=1, sort_keys=True)
+    log("LENGTHS %d clips" % len(out))
 
 
 def busy():
