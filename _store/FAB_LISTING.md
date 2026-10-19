@@ -7,25 +7,30 @@ maps' `flip_green_channel`). The description and the additional-information box 
 files beside this one; paste those, not this file. Edit the `.txt`, then re-check the figures here —
 the creatures pack was rejected once for a description that did not match the pack.
 
-**The package to upload** is the EPIC-SKELETON project (`skeletons_ue_epic`, 2026-10-05), built by
-`python tools/ue/make_production_ue.py --epic --verify` (after `python tools/make_documentation.py ue`, which prints the
-manual into it): `../undead-legion-production-ue-epic/UndeadLegion_UE58_Epic.zip` (the Mixamo-skeleton package of
-`skeletons_ue` is `make_production_ue.py --verify` → `../undead-legion-production-ue/UndeadLegion_UE58.zip`) (top folder `UndeadLegion/`: `Config/`, `Content/UndeadLegion/`,
-`UndeadLegion.uproject`; 291 files, 95 MB). It strips the showreel map, the 25 `LS_*` level sequences,
-`BP_ShowreelDirector`, the 5 `Pipelines/IP_*` Interchange pipelines (import settings, not content —
-Fab's "no unused assets" rule, the creatures pack's rejection #2), `Developers`, `Collections`, all seven
-editor plugins and the dev config lines, audits the result and compiles every Blueprint headlessly on 5.8
-(29 compiled, 0 errors, 0 warnings on 2026-10-05). The figures below are the stripped package's.
+**The package to upload is the UE 5.4 one, and it is the ONLY Unreal package (user decision 2026-10-19: "easier to maintain only
+one version").** `skeletons_ue54`, built by `python tools/make_documentation.py ue54` (prints the manual into it) then
+`python tools/ue/make_production_ue.py --ue54 --verify` → `../undead-legion-production-ue54/UndeadLegion_UE54.zip` (top folder
+`UndeadLegion/`; 277 files, 94 MB; the showreel, level sequences, import pipelines, plugins, dev config and the mannequin test content
+stripped; 31 Blueprints compiled headlessly on 5.4, 0 errors, 0 warnings). A 5.4 project opens in 5.5 – 5.8 too (the newer editor
+converts it on first open), so one zip covers 5.4 – 5.8. Its inventory (2026-10-19): 272 assets — 50 sequences (49 animations +
+`A_Grip`), 26 montages, 23 Blueprints, 4 notifies, 3 widgets, 2 maps, 1 Animation Blueprint, 1 skeleton, 1 physics asset,
+11 static meshes, 67 textures, 2 materials, 25 instances. The per-asset figures further down (triangles, LODs, texture sizes) were
+measured on the 5.8 Epic package on 2026-10-05; meshes and textures are the same exports in both, the clip and montage counts are not
+(the 5.8 figures were 59 / 33 before the manifest disabled `Idle_Bow`, `Idle_Staff`, `Shoot_02`, `Cast_Wand_03`, the L_03 swing and
+most heavy variants).
 
-**The second package, for UE 5.4** (2026-10-19): the same content rebuilt in UE 5.4 (`skeletons_ue54`), built by
-`python tools/ue/make_production_ue.py --ue54 --verify` (after `python tools/make_documentation.py ue54`, the same manual with the
-engine version changed): `../undead-legion-production-ue54/UndeadLegion_UE54.zip` (277 files, 94 MB; 31 Blueprints compiled
-headlessly on 5.4, 0 errors, 0 warnings). A 5.4 project opens in 5.4 – 5.7 as it is (and in 5.8, which upgrades it), so it is
-the package for every version below 5.8. Its inventory (2026-10-19): 272 assets — 50 sequences (49 animations + `A_Grip`),
-26 montages, 23 Blueprints, 4 notifies, 3 widgets, 2 maps, 1 Animation Blueprint, 1 skeleton, 1 physics asset, 11 static meshes,
-67 textures, 2 materials, 25 instances. ⚠ The clip set shrank after 2026-10-05 (the manifest disables `Idle_Bow`, `Idle_Staff`,
-`Shoot_02`, `Cast_Wand_03`, the L_03 swing and most heavy variants), so the 5.8 package's 10-05 figures in the table below
-(59 sequences, 33 montages) are stale: rebuild the 5.8 zip and re-count it before submitting; the description now says 49 / 26.
+**The 5.8 project stays the SOURCE, not a product.** `skeletons_ue_epic` (UE 5.8) is rebuilt headlessly by `tools/ue/` and its DSL
+is what `tools/ue/ue54_compile.py` turns into the 5.4 paste text; every Blueprint change goes there first and is then pasted into
+5.4 (`tools/ue/README.md`, "The UE 5.4 twin"). `make_production_ue.py --epic` still works but its zip is not uploaded.
+
+**One-time check on the 5.8 machine before submitting** (5.8 has never opened the 5.4 build):
+1. Unzip `UndeadLegion_UE54.zip` to a fresh folder, open `UndeadLegion.uproject` in UE 5.8, accept the conversion ("Open a copy").
+2. Output Log after the load: no errors; compile every Blueprint (`BP_*`, `ABP_UndeadSkeleton`, `WBP_AnimBrowser`): 0 errors.
+3. Play `UndeadLegion_Demo`: switch all six characters, toggle armour, play a walk, a swing over a walk (arm layer), a 2H attack,
+   `Shoot_01` (string and arrow), a hit, a stagger, a death clicked during another death (it must reset), the held block.
+4. Mannequin route: copy the 5.8 template's `Characters/Content/Mannequins` into the copy's `Content/Characters/Mannequins`, add
+   `SKEL_UndeadLegion` to `SK_Mannequin`'s Compatible Skeletons, play `MM_Run_Fwd` on the Knight. Do not save the copy.
+If anything fails there, the fallback is to ship the 5.8 zip as a second version entry (rebuilt with today's DSL first).
 
 ---
 
@@ -49,22 +54,14 @@ creatures pack went under Creatures & Monsters)
 
 ## "Add Unreal Engine version" dialog
 
-| Field | Value |
-|---|---|
-Add the dialog twice, once per package:
-
-| Field | Unreal 5.8 | Unreal 5.4 |
-|---|---|---|
-| Version title | Unreal 5.8 | Unreal 5.4 |
-| Project file link | your upload of `UndeadLegion_UE58_Epic.zip` | your upload of `UndeadLegion_UE54.zip` |
-| Supported engine version | 5.8 (an older editor cannot open it) | 5.4, 5.5, 5.6, 5.7 (tested in 5.4 only; a 5.4 project opens in the later editors) |
-
-Both, every other field:
+One version entry:
 
 | Field | Value |
 |---|---|
-| Project file link | your upload of the production project zip (Google Drive / Dropbox / any direct link); Fab downloads it from there |
-| Supported target platforms | Windows, Mac, Linux (desktop; Blueprint only, nothing platform-specific; untested on mobile and consoles, so do not claim them) |
+| Version title | UE 5.4 – 5.8 |
+| Project file link | your upload of `UndeadLegion_UE54.zip` (Google Drive / Dropbox: sharing set to "Anyone with the link"); Fab downloads it from there |
+| Supported engine version | 5.4, 5.5, 5.6, 5.7, 5.8 (tested in 5.4; 5.8 after the one-time check above; 5.5 – 5.7 not opened, a 5.4 project upgrades) |
+| Supported target platforms | Windows, Mac, Linux, iOS, Android, Oculus, SteamVR / HTC Vive; optionally PS4, Xbox One, Nintendo Switch (supported by 5.4 – 5.8 and nothing in the pack is platform-specific, but untested without devkits). Never HTML5 (removed in 4.24), Win32 (UE5 is 64-bit only), Gear VR (removed in UE4), HoloLens 2 (deprecated). Mobile is backed by the ES3.1 preview only (run on the 5.8 copy, the same materials), no device cook |
 | Version notes | the zip's password if you protect it; otherwise leave empty |
 
 ## Fab "details" form — every field
@@ -146,10 +143,10 @@ Both, every other field:
 
 | Field | Value |
 |---|---|
-| Supported engine version | 5.4 – 5.8 (two packages, see the version dialog) |
-| Supported target platforms | Windows, macOS, Linux |
+| Supported engine version | 5.4 – 5.8 (one 5.4 package, see the version dialog) |
+| Supported target platforms | as in the version dialog |
 | Distribution method | Asset package |
-| Documentation | `Content/UndeadLegion/Documentation.pdf` — the Unreal manual (11 A4 pages: setup, folders, characters, armor API, weapons and loadouts, sockets, the bow, the clip list with lengths, the Animation Blueprint layers, root motion and speeds in cm/s, the Blueprint API, the demo map, mannequin animations and own animations, technical details), printed from `tools/docs/UndeadLegion_UE_Documentation.html` by `python tools/make_documentation.py ue` (5.8) / `ue54` (5.4) |
+| Documentation | `Content/UndeadLegion/Documentation.pdf` — the Unreal manual (11 A4 pages: setup, folders, characters, armor API, weapons and loadouts, sockets, the bow, the clip list with lengths, the Animation Blueprint layers, root motion and speeds in cm/s, the Blueprint API, the demo map, mannequin animations and own animations, technical details), printed from `tools/docs/UndeadLegion_UE_Documentation.html` by `python tools/make_documentation.py ue54` |
 
 ---
 
@@ -159,8 +156,8 @@ Both, every other field:
   demo map got a sky dome for it, the one NPOT texture was resized). A real Android / iOS cook needs the SDK and was not run,
   so a mobile platform claim is backed by the preview only.
 
-- The package compiles clean headlessly and the production copy was opened and tested interactively on 2026-10-06;
-  a full cook on 5.8 has not been done (Fab's own validation cooks it).
+- The 5.4 package opened in 5.8: the one-time check above.
+- A full cook has not been done on either version (Fab's own validation cooks it).
 - The 5.4 package: compiled headlessly on 5.4 and tested interactively on 2026-10-19 (the browser, the death holds, the feet on
   the floor); the mobile preview and a cook were not run on 5.4. Mannequin animations on 5.4 (`tools/ue/ue54_manny_check.py`, the
   manual's compatible-skeletons route): UE 5.4's own MM_Run_Fwd, MM_Walk_Fwd and Quinn's MF_Walk_Fwd played through the

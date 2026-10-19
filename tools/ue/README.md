@@ -377,6 +377,11 @@ background task is capped at 2 h: the 4-hour render runs as a detached process (
 
 ## The Fab package (2026-10-05)
 
+**Since 2026-10-19 the 5.4 zip is the only Unreal package uploaded** (user: "easier to maintain only one version"): one Fab version
+entry, 5.4 – 5.8, `UndeadLegion_UE54.zip` (section "The UE 5.4 twin"). The 5.8 Epic project stays the scripted source of every
+Blueprint and asset; its `--epic` package below still builds but is not uploaded. Before submitting, the 5.4 zip gets a one-time open
+in UE 5.8 (the checklist is in `_store/FAB_LISTING.md`). The rest of this section is how the 5.8 packages were made.
+
 `python tools/make_documentation.py ue` prints the buyer manual (`tools/docs/UndeadLegion_UE_Documentation.html`, the Unity
 manual's stylesheet, 10 A4 pages: the Blueprint API from `build_character.py`'s function table, the loadout table, the clip
 list with `clip_lengths.json`'s lengths, the speed table in cm/s) to `skeletons_ue/Content/UndeadLegion/Documentation.pdf`
@@ -536,7 +541,8 @@ manually controlling this PC". `skeletons_ue54/` is the Epic-skeleton project re
 this machine; 5.8 assets cannot be opened by an older engine), from the same `Export_UE_Epic/`, with the same content, graphs
 and demo. `python tools/ue/make_production_ue.py --ue54 --verify` → `../undead-legion-production-ue54/UndeadLegion_UE54.zip`
 (272 assets, 94 MB; 31 pack Blueprints compiled headlessly by UnrealEditor-Cmd 5.4, 0 errors, 0 warnings). A 5.4 package also
-opens in 5.5 - 5.8.
+opens in 5.5 - 5.8. **It is the shipped Unreal package** (2026-10-19, one Fab version entry for 5.4 – 5.8); changes still start in
+the 5.8 DSL and are pasted here.
 
 **Assets: the usual steps through editor Python** (`python tools/ue/ue54_py.py tools/ue/ue_build.py <step>`: `ue_py.py` plus the
 editor log's new lines, so a traceback is visible). `ue_common.UE54` is detected from the project folder. 5.4 differences, each

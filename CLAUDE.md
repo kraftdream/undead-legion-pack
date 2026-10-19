@@ -119,7 +119,9 @@ importer: 5.4's Interchange keeps `Armature` as a root bone), and every Blueprin
 driving the desktop, from paste text compiled out of the 5.8 build's own DSL (`tools/ue/ue54_compile.py`). Verified in Play in the
 editor (the browser, characters, armour, swings, the bow shot with string and arrow, the additive hits, the held block);
 `python tools/ue/make_production_ue.py --ue54 --verify` → `../undead-legion-production-ue54/UndeadLegion_UE54.zip`. Everything, with
-the traps, is in `tools/ue/README.md` "The UE 5.4 twin".
+the traps, is in `tools/ue/README.md` "The UE 5.4 twin". **Since 2026-10-19 this zip is the ONLY Unreal package on Fab** (one version
+entry, 5.4 – 5.8; user: "easier to maintain only one version"); `skeletons_ue_epic` (5.8) stays the scripted source, its zip is not
+uploaded, and the 5.4 zip needs a one-time open in 5.8 before submitting (checklist in `_store/FAB_LISTING.md`).
 
 ### Known gaps
 
